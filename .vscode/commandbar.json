@@ -1,0 +1,32 @@
+{
+    "skipTerminateQuickPick": true,
+    "skipSwitchToOutput": false,
+    "skipErrorMessage": true,
+    "commands": [
+      {
+        "text": "✪ Build test",
+        "color": "orange",
+        "commandType":"palette",
+        "command": "workbench.action.tasks.runTask|Test",
+        "alignment": "right",
+        "skipTerminateQuickPick": false,
+        "priority": 5
+      },
+      {
+        "text": "(Run)",
+        "color": "orange",
+        "command": "haxelib run redistHelper",
+        "alignment": "right",
+        "skipTerminateQuickPick": false,
+        "priority": 4
+      },
+      {
+        "text": "➠ Submit to haxelib",
+        "color": "yellow",
+        "command": "start haxelib submit .",
+        "alignment": "right",
+        "skipTerminateQuickPick": false,
+        "priority": 0
+      }
+    ]
+  }
