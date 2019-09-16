@@ -4,7 +4,7 @@ package dn.heaps;
 #error "heaps is required for HParticle"
 #end
 
-import mt.MLib;
+import dn.DM;
 import h2d.Tile;
 import h2d.SpriteBatch;
 import mt.deepnight.Lib;
@@ -474,18 +474,18 @@ class HParticle extends BatchElement {
 	inline function get_delayS() return delayF/fps;
 
 	inline function set_delayF(d:Float):Float {
-		d = MLib.fmax(0,d);
+		d = DM.fmax(0,d);
 		visible = !killed && d <= 0;
 		return delayF = d;
 	}
 
 	function set_lifeS(v:Float) {
-		rLifeF = maxLifeF = MLib.fmax(fps*v,0);
+		rLifeF = maxLifeF = DM.fmax(fps*v,0);
 		return v;
 	}
 
 	function set_lifeF(v:Float) {
-		rLifeF = maxLifeF = MLib.fmax(v,0);
+		rLifeF = maxLifeF = DM.fmax(v,0);
 		return v;
 	}
 
@@ -645,7 +645,7 @@ class HParticle extends BatchElement {
 
 					// Color animation
 					if( !Math.isNaN(rColor) ) {
-						rColor = MLib.fclamp(rColor+dColor*tmod, 0, 1);
+						rColor = DM.fclamp(rColor+dColor*tmod, 0, 1);
 						colorize( mt.deepnight.Color.interpolateInt(fromColor, toColor, rColor) );
 					}
 
@@ -664,7 +664,7 @@ class HParticle extends BatchElement {
 					if( rLifeF <= 0 )
 						alpha -= fadeOutSpeed * tmod;
 					else if( alphaFlicker>0 )
-						alpha = MLib.fclamp( alpha + rnd(0, alphaFlicker, true), 0, maxAlpha );
+						alpha = DM.fclamp( alpha + rnd(0, alphaFlicker, true), 0, maxAlpha );
 
 					// Death
 					if( rLifeF <= 0 && (alpha <= 0 || killOnLifeOut) ||

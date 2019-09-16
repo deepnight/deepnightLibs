@@ -1,6 +1,6 @@
 package dn;
 
-import mt.MLib;
+import dn.DM;
 
 #if macro
 import haxe.macro.Expr;
@@ -148,7 +148,7 @@ class Tween {
 	}
 
 	public function delayMs(d:Float) {
-		delay = MLib.round( d*tw.baseFps/1000 );
+		delay = DM.round( d*tw.baseFps/1000 );
 	}
 
 	public function chainMs(to:Float, ?ease:TType, ?duration_ms:Float) {
@@ -168,7 +168,7 @@ class Tween {
 	@:allow(dn.Tweenie) function complete(fl_allowLoop=false) {
 		var v = from + (to-from)*interpolate(1);
 		if( pixelSnap )
-			v = MLib.round(v);
+			v = DM.round(v);
 		setter( v );
 		onUpdate();
 		onUpdateT(1);
@@ -213,11 +213,11 @@ class Tween {
 				if( type!=TShake && type!=TShakeBoth )
 					from + n*dist ;
 				else if ( type==TShake )
-					from + Math.random() * MLib.fabs(n*dist) * (dist>0?1:-1);
+					from + Math.random() * DM.fabs(n*dist) * (dist>0?1:-1);
 				else
 					from + Math.random() * n*dist * (Std.random(2)*2-1);
 			if( pixelSnap )
-				val = MLib.round(val);
+				val = DM.round(val);
 			setter( val );
 			onUpdate();
 			onUpdateT(ln);

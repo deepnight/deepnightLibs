@@ -4,7 +4,7 @@ package dn;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 #else
-import mt.MLib;
+import dn.DM;
 import hxd.snd.*;
 import hxd.res.Sound;
 //import mt.deepnight.Tweenie;
@@ -26,7 +26,7 @@ private class GlobalGroup {
 	}
 
 	public inline function setVolume(v) {
-		volume = MLib.fclamp(v,0,1);
+		volume = DM.fclamp(v,0,1);
 		group.volume = getVolume();
 	}
 	public inline function getVolume() {
@@ -103,7 +103,7 @@ class Sfx {
 	inline function get_group() return getGlobalGroup(groupId).group;
 
 	inline function set_volume(v) {
-		volume = MLib.fclamp(v,0,1);
+		volume = DM.fclamp(v,0,1);
 		if( group!=null )
 			group.volume = v;
 		return volume;
@@ -280,7 +280,7 @@ class Sfx {
 		var v = volume * GLOBAL_VOLUME * chan.volume * (DISABLED?0:1) * (MUTED?0:1) * (muted?0:1) * (chan.muted?0:1);
 
 		if( spatialized )
-			v *= 1 - MLib.fmin(1, Lib.distance(spatialX,spatialY, LISTENER_X,LISTENER_Y) / spatialMaxDist );
+			v *= 1 - DM.fmin(1, Lib.distance(spatialX,spatialY, LISTENER_X,LISTENER_Y) / spatialMaxDist );
 
 		return normalizeVolume(v);
 	}
@@ -295,7 +295,7 @@ class Sfx {
 	}
 
 	inline function getPanningFromPosition(sourceX:Float, sourceY:Float, listenerX:Float, listenerY:Float) : Float {
-		return (listenerX>sourceX?-1:1) * MLib.fmin( 0.9, Lib.distanceSqr(listenerX,listenerY, sourceX,sourceY) / SPATIAL_PANNING_RANGE2 );
+		return (listenerX>sourceX?-1:1) * DM.fmin( 0.9, Lib.distanceSqr(listenerX,listenerY, sourceX,sourceY) / SPATIAL_PANNING_RANGE2 );
 	}
 
 	public inline function getRealPanning() {
@@ -448,8 +448,8 @@ class Sfx {
 		return randList[Std.random(randList.length)]();
 	}
 
-	static inline function normalizeVolume(f:Float) return MLib.fclamp(f, 0, 1);
-	static inline function normalizePanning(f:Float) return MLib.fclamp(f, -1, 1);
+	static inline function normalizeVolume(f:Float) return DM.fclamp(f, 0, 1);
+	static inline function normalizePanning(f:Float) return DM.fclamp(f, -1, 1);
 
 	public static inline function getGlobalVolume() {
 		return GLOBAL_VOLUME;

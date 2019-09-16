@@ -1,0 +1,350 @@
+package dn;
+
+#if macro
+import haxe.macro.Expr;
+import haxe.macro.Context;
+import haxe.macro.ExprTools;
+import haxe.macro.TypeTools;
+import haxe.macro.Type;
+#end
+
+private class CdInst {
+	public var k : Int;
+	public var frames : Float;
+	public var initial : Float;
+	public var cb : Null<Void -> Void>;
+
+	public function new(k,f) {
+		this.k = k;
+		this.frames = f;
+		initial = f;
+	}
+
+	public function toString(){
+		return Cooldown.INDEXES[ (k>>>22) ] + "|" + (k&0x3FFFFF)+": "+frames+"/"+initial;
+	}
+}
+
+class Cooldown {
+	public var cdList                : Array<CdInst>;
+	var fastCheck                    : haxe.ds.IntMap<Bool>;
+	public var baseFps(default,null) : Float;
+
+	public inline function msToFrames(ms:Float) return ms * baseFps / 1000.;
+	public inline function secToFrames(s:Float) return s * baseFps;
+
+	@:allow(dn.CdInst)
+	public static var INDEXES : Array<String>;
+
+	public function new(fps:Float) {
+		if( INDEXES == null )
+			if( haxe.rtti.Meta.getType(dn.Cooldown).indexes!=null )
+				INDEXES = [for (str in haxe.rtti.Meta.getType(dn.Cooldown).indexes) Std.string(str)];
+		reset();
+		baseFps = fps;
+	}
+
+	public function destroy() {
+		cdList = null;
+		fastCheck = null;
+	}
+
+	public inline function reset() {
+		cdList = new Array();
+		fastCheck = new haxe.ds.IntMap();
+	}
+
+	#if display
+	public function has( k : String ) : Bool return false;
+	public function hasSetS( k : String, seconds : Float ) : Bool return false;
+	public function hasSetMs( k : String, ms : Float ) : Bool return false;
+	public function hasSetF( k : String, frames : Float ) : Bool return false;
+	public function unset( k : String ) {}
+	public function getS( k:String ) : Float return 0.;
+	public function getMs( k : String ) : Float return 0.;
+	public function getF( k : String ) : Float return 0.;
+	public function setMs( k : String, milliSeconds:Float, allowLower=true, ?onComplete:Void->Void ){}
+	public function setS( k : String, seconds:Float, allowLower=true, ?onComplete:Void->Void ){}
+	public function setF( k : String, frames:Float, allowLower=true, ?onComplete:Void->Void ){}
+	public function getInitialValueF( k : String ) : Float return 0.;
+	public function getRatio( k : String ) : Float return 0.;
+	public function onComplete( k : String, onceCB : Void->Void ){}
+	#else
+
+	#if macro
+	static function getMeta() : MetaAccess {
+		for( m in Context.getModule("dn.Cooldown") )
+			switch( m ){
+			case TInst(ct,_):
+				var c = ct.get();
+				if( c.name == "Cooldown" ){
+					return c.meta;
+				}
+			case _:
+			}
+		Context.error("Unable to getModule dn.Cooldown", Context.currentPos());
+		return null;
+	}
+
+	static function getIndex( key : String, p : Position ) : Int {
+		var meta = getMeta();
+		var em = meta.extract("indexes")[0];
+		var a = em==null ? [] : em.params;
+		for( i in 0...a.length ){
+			switch( a[i] ){
+			case {expr: EConst(CString(str)), pos: _}if( str == key ):
+				return i;
+			case _:
+			}
+		}
+		if( a.length > 0x3FF )
+			Context.error("Too many cooldown strings (max 1024)", p);
+
+		a.push(macro $v{key});
+		meta.remove("indexes");
+		meta.add("indexes", a, p);
+		return a.length - 1;
+	}
+
+	static function key( k : ExprOf<String> ) : ExprOf<Int> {
+		var key : String = null;
+		var subIdx : Expr = null;
+		switch( k.expr ){
+		case EConst(CString(s)):
+			key = s;
+		case EBinop(OpAdd, {expr: EConst(CString(s)), pos: _}, e):
+			var t = TypeTools.toString( Context.typeof(e) );
+			switch( t ){
+			case "Int", "TAbstract(Int,[])":
+				subIdx = e;
+			case "Float", "TAbstract(Float,[])":
+				Context.warning("Float should be Int", e.pos);
+				subIdx = macro Std.int( $e );
+			case _:
+				Context.error(t+" should be Int", e.pos);
+			}
+			key = s;
+		case _:
+			Context.error("Invalid cooldown expression", k.pos);
+		}
+
+		var index = getIndex(key, k.pos) << 22;
+		if( subIdx == null )
+			subIdx = macro 0;
+		var eIndex = {expr: EConst(CInt(Std.string(index))), pos: k.pos};
+		#if debug
+		return macro {
+			// #if debug
+			// var v = $subIdx;
+			// if( v < 0 || v > 0x3FFFFF )
+			// 	trace("Warning: out of bounds cooldown sub-index: \""+dn.Cooldown.INDEXES[$eIndex>>>22]+"\" + "+v);
+			// #end
+			(($eIndex) | (($subIdx)&0x3FFFFF));
+		}
+		#else
+		return macro (($eIndex) | (($subIdx)&0x3FFFFF));
+		#end
+	}
+	#end
+
+	public macro function has( ethis : Expr, k : ExprOf<String> ){
+		return macro $ethis._has(${key(k)});
+	}
+
+	public macro function hasSetS(ethis:Expr, k:ExprOf<String>, seconds:ExprOf<Float>)   return macro $ethis._hasSetF(${key(k)}, $ethis.secToFrames($seconds));
+	public macro function hasSetMs(ethis:Expr, k:ExprOf<String>, ms:ExprOf<Float>)       return macro $ethis._hasSetF(${key(k)}, $ethis.msToFrames($ms));
+
+	public macro function hasSetF( ethis : Expr, k : ExprOf<String>, frames : ExprOf<Float> ) {
+		return macro $ethis._hasSetF(${key(k)},$frames);
+	}
+
+	public macro function unset( ethis : Expr, k : ExprOf<String> ){
+		return macro $ethis._unset(${key(k)});
+	}
+
+	public macro function getS(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>   return macro $ethis._getF(${key(k)}) / $ethis.baseFps;
+	public macro function getMs(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>  return macro $ethis._getF(${key(k)}) * 1000. / $ethis.baseFps;
+
+	public macro function getF( ethis : Expr, k : ExprOf<String> ){
+		return macro $ethis._getF(${key(k)});
+	}
+
+	public macro function setMs(ethis:Expr, k:ExprOf<String>, milliSeconds:ExprOf<Float>, extra:Array<Expr>){
+		var allowLower : Expr = null, onComplete : Expr = macro null;
+		for( e in extra )
+			switch( e ){
+			case {expr: EConst(CIdent(v)), pos: _} if( allowLower == null && (v == "true" || v == "false") ):
+				allowLower = e;
+			case _:
+				onComplete = e;
+			}
+		if( allowLower == null ) allowLower = macro true;
+		return macro $ethis._setF(${key(k)}, $ethis.msToFrames($milliSeconds), $allowLower, $onComplete);
+	}
+	public macro function setS(ethis:Expr, k:ExprOf<String>, seconds:ExprOf<Float>, extra:Array<Expr>){
+		var allowLower : Expr = null, onComplete : Expr = macro null;
+		for( e in extra )
+			switch( e ){
+			case {expr: EConst(CIdent(v)), pos: _} if( allowLower == null && (v == "true" || v == "false") ):
+				allowLower = e;
+			case _:
+				onComplete = e;
+			}
+		if( allowLower == null ) allowLower = macro true;
+		return macro $ethis._setF(${key(k)}, $ethis.secToFrames($seconds), $allowLower, $onComplete);
+	}
+
+	public macro function setF( ethis : Expr, k : ExprOf<String>, frames : ExprOf<Float>, extra:Array<Expr> ){
+		var allowLower : Expr = null, onComplete : Expr = macro null;
+		for( e in extra )
+			switch( e ){
+			case {expr: EConst(CIdent(v)), pos: _} if( allowLower == null && (v == "true" || v == "false") ):
+				allowLower = e;
+			case _:
+				onComplete = e;
+			}
+		if( allowLower == null ) allowLower = macro true;
+		return macro $ethis._setF(${key(k)}, $frames, $allowLower, $onComplete);
+	}
+
+	public macro function getInitialValueF( ethis : Expr, k : ExprOf<String> ){
+		return macro $ethis._getInitialValueF(${key(k)});
+	}
+
+	public macro function getRatio( ethis : Expr, k : ExprOf<String> ){
+		return macro $ethis._getRatio(${key(k)});
+	}
+
+	public macro function onComplete( ethis : Expr, k : ExprOf<String>, onceCB : ExprOf<Void->Void> ){
+		return macro $ethis._onComplete(${key(k)}, $onceCB);
+	}
+
+	#end
+
+	public static macro function getKey( k : ExprOf<String> ){
+		return key(k);
+	}
+
+	//
+
+	@:noCompletion
+	public inline function _getF(k : Int) : Float {
+		var cd = _getCdObject(k);
+		return cd == null ? 0 : cd.frames;
+	}
+
+	@:noCompletion
+	public inline function _getInitialValueF(k : Int) : Float {
+		var cd = _getCdObject(k);
+		return cd == null ? 0 : cd.initial;
+	}
+
+	@:noCompletion
+	public function _getRatio(k:Int) : Float { // 1->0
+		var max = _getInitialValueF(k);
+		return max<=0 ? 0 : _getF(k)/max;
+	}
+
+	// only called once when cooldown reaches 0, then CB destroyed
+	@:noCompletion
+	public inline function _onComplete(k:Int, onceCB:Void->Void) {
+		var cd = _getCdObject(k);
+		if( cd == null )
+			throw "cannot bind onComplete("+k+"): cooldown "+k+" isn't running";
+		cd.cb = onceCB;
+	}
+
+	@:noCompletion
+	public inline function _setF(k:Int, frames:Float, allowLower=true, ?onComplete:Void->Void) : Void {
+		frames = Math.ffloor(frames*1000)/1000; // neko bug: fix precision variations between platforms
+		var cur = _getCdObject(k);
+		if( cur!=null && frames<cur.frames && !allowLower )
+			return;
+
+		if ( frames <= 0 ) {
+			if( cur != null )
+				unsetObject(cur);
+		}
+		else {
+			fastCheck.set(k, true);
+			if( cur != null )
+				cur.frames = frames;
+			else
+				cdList.push( new CdInst(k,frames) );
+				//cdList.push({k:k, v:v, initial:v, cb:null});
+		}
+
+		if( onComplete!=null )
+			if( frames<=0 )
+				onComplete();
+			else
+				this._onComplete(k, onComplete);
+	}
+
+	@:noCompletion
+	public inline function _unset(k:Int) : Void {
+		for (cd in cdList)
+			if ( cd.k == k ) {
+				unsetObject(cd);
+				break;
+			}
+	}
+
+	@:noCompletion
+	public inline function _has(k : Int) : Bool {
+		return fastCheck.exists(k);
+	}
+
+	@:noCompletion
+	public inline function _hasSetF(k:Int, frames:Float) : Bool {
+		if ( _has(k) )
+			return true;
+		else {
+			_setF(k, frames);
+			return false;
+		}
+	}
+
+	function _getCdObject(k:Int) : Null<CdInst> {
+		for (cd in cdList)
+			if( cd.k == k )
+				return cd;
+		return null;
+	}
+
+	inline function unsetObject(cd:CdInst) {
+		cdList.remove(cd);
+		cd.frames = 0;
+		cd.cb = null;
+		fastCheck.remove(cd.k);
+	}
+
+	public function debug(){
+		return [ for( cd in cdList ) cd.toString() ].join("\n");
+	}
+
+	/*
+	// supprime tous les cooldowns dont la clé contient "search"
+	public inline function unsetAll(search:String) {
+		for ( cd in cdList ) {
+			if( cd.k.indexOf(search) >= 0 )
+				unsetObject(cd);
+		}
+	}
+	*/
+
+	public function update(dt:Float) {
+		var i = 0;
+		while( i<cdList.length ) {
+			var cd = cdList[i];
+			cd.frames = Math.ffloor( (cd.frames-dt)*1000 )/1000; // Neko vs Flash precision bug
+			if ( cd.frames<=0 ) {
+				var cb = cd.cb;
+				unsetObject(cd);
+				if( cb != null ) cb();
+			}
+			else
+				i++;
+		}
+	}
+}
