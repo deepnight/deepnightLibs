@@ -1,6 +1,10 @@
--hl test/test.hl
 -main Test
--lib castle
--lib heaps
 -cp src
 -cp test
+
+-lib castle
+-lib heaps
+-lib hldx
+
+-D windowSize=1280x720
+-hl test/test.hl

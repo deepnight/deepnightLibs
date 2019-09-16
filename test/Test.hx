@@ -21,6 +21,7 @@ class Test {
 		test(Tweenie, function() @:privateAccess Tweenie.DEFAULT_DURATION);
 
 		test(dn.heaps.slib.SpriteLib, function() dn.heaps.slib.SpriteLib.TMOD);
+		test(dn.heaps.Controller, function() dn.heaps.Controller.beforeUpdate());
 
 
 		// Unit tests
