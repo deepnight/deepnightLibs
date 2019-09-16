@@ -25,9 +25,9 @@ class Process {
 	var children			: Array<Process>;
 
 	// Tools
-	public var delayer		: mt.Delayer;
-	public var cd			: mt.Cooldown;
-	public var tw			: mt.deepnight.Tweenie;
+	public var delayer		: dn.Delayer;
+	public var cd			: dn.Cooldown;
+	public var tw			: dn.Tweenie;
 
 	// Optional graphic context
 	#if( heaps || h3d )
@@ -57,9 +57,9 @@ class Process {
 		tmod = 1;
 		speedMod = 1.0;
 
-		delayer = new mt.Delayer( getDefaultFrameRate() );
-		cd = new mt.Cooldown( getDefaultFrameRate() );
-		tw = new mt.deepnight.Tweenie( getDefaultFrameRate() );
+		delayer = new Delayer( getDefaultFrameRate() );
+		cd = new Cooldown( getDefaultFrameRate() );
+		tw = new Tweenie( getDefaultFrameRate() );
 	}
 
 	// -----------------------------------------------------------------------

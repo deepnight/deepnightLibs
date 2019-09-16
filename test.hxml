@@ -1,4 +1,6 @@
--hl test.hl
+-hl test/test.hl
 -main Test
 -lib castle
 -lib heaps
+-cp src
+-cp test

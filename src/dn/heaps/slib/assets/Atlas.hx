@@ -1,6 +1,6 @@
-package mt.heaps.slib.assets;
+package dn.heaps.slib.assets;
 
-import mt.heaps.slib.SpriteLib;
+import dn.heaps.slib.SpriteLib;
 
 class Atlas {
 	static var CACHE_ANIMS : Array<Array<Int>> = [];
@@ -52,7 +52,7 @@ class Atlas {
 		ltick();
 		var contents = atlas.getContents();
 		ltick();
-		
+
 		var bestVariants = new Map<String, { rawName : String, score : Int }>();
 
 		var propertiesReg = ~/(.*)((\.[a-z_\-]+)+)$/gi;
@@ -116,7 +116,7 @@ class Atlas {
 			#if hl hl.Gc.enable(true); #end
 		}
 
-		var lib = new mt.heaps.slib.SpriteLib(pages, nrmPages);
+		var lib = new dn.heaps.slib.SpriteLib(pages, nrmPages);
 
 		var frameReg = ~/(.*?)(_?)([0-9]+)$/gi;
 		var numReg = ~/^[0-9]+$/;
@@ -164,7 +164,7 @@ class Atlas {
 					);
 				}
 			}
-			
+
 		}
 
 		ltick();

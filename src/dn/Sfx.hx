@@ -7,8 +7,6 @@ import haxe.macro.Context;
 import dn.DM;
 import hxd.snd.*;
 import hxd.res.Sound;
-//import mt.deepnight.Tweenie;
-//import mt.deepnight.Lib;
 #end
 
 
@@ -573,7 +571,7 @@ class Sfx {
 
 				var fStr = { expr:EConst(CString(dir+"/"+fName)), pos:p }
 				var newSoundExpr = macro hxd.Res.load($fStr).toSound();
-				var newSfxExpr = 	macro new mt.deepnight.Sfx($e{newSoundExpr});
+				var newSfxExpr = 	macro new dn.Sfx($e{newSoundExpr});
 
 				// Create field method
 				var tfloat = macro : Null<Float>;

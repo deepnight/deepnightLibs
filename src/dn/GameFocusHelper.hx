@@ -36,8 +36,8 @@ class GameFocusHelper extends dn.Process {
             return;
 
         suspended = true;
-        oldSprLibTmod = mt.heaps.slib.SpriteLib.TMOD;
-        mt.heaps.slib.SpriteLib.TMOD = 0;
+        oldSprLibTmod = dn.heaps.slib.SpriteLib.TMOD;
+        dn.heaps.slib.SpriteLib.TMOD = 0;
 
         // Pause other process
         for(p in Process.ROOTS)
@@ -94,7 +94,7 @@ class GameFocusHelper extends dn.Process {
     function resumeGame() {
         if( !suspended )
             return;
-        mt.heaps.slib.SpriteLib.TMOD = oldSprLibTmod;
+        dn.heaps.slib.SpriteLib.TMOD = oldSprLibTmod;
 
         delayer.addF(function() {
             root.visible = false;

@@ -1,4 +1,4 @@
-package mt.heaps.slib.assets;
+package dn.heaps.slib.assets;
 
 #if macro
 import haxe.macro.Context;
@@ -22,33 +22,33 @@ private typedef Slice = {
 }
 
 class TexturePacker {
-	
+
 	macro public static function stream(worker:ExprOf<mt.Worker>, onComplete:ExprOf<SpriteLib->Void>, xmlPath:String){
 		var e = macro {
 			var libcb;
 			var xmlContent, xml, img;
-			
+
 			var xmlTask = new mt.Worker.WorkerTask(function() {
 				xmlContent = hxd.Res.load($v{xmlPath}).toText();
 				xml = new haxe.xml.Fast( Xml.parse(xmlContent) );
 			});
 			$worker.enqueue(xmlTask);
-			
+
 			var textureTask = new mt.Worker.WorkerTask(function() {
 				var imgPath = xml.node.TextureAtlas.att.imagePath;
 				img = hxd.Res.load(imgPath);
 			});
 			$worker.enqueue(textureTask);
-			
+
 			var libTask = new mt.Worker.WorkerTask(function() {
-				libcb = function() return mt.heaps.slib.assets.TexturePacker.parseXml(xml, img.toTile(), img.toBitmap(), false);
+				libcb = function() return dn.heaps.slib.assets.TexturePacker.parseXml(xml, img.toTile(), img.toBitmap(), false);
 			});
 			//probleme, c'est le parsing qui est le process le plus couteux et lui on ne peut l'executer sur le thread du worker
 			//comme c'est deprecated à venir, je laisse ceci de côté
 			libTask.onComplete = function(){ $onComplete( libcb() ); }
 			$worker.enqueue(libTask);
 		}
-		
+
 		//var p = new haxe.macro.Printer();
 		//trace(p.printExpr(e));
 		return e;
@@ -63,7 +63,7 @@ class TexturePacker {
 		var img = hxd.Res.load(imgPath);
 		return parseXml(xmlContent, img.toTile(), img.toBitmap(), treatFoldersAsPrefixes);
 	}
-	
+
 	static inline function makeChecksum(slice:Slice) : String {
 		return slice.name+","+slice.x+","+slice.y+","+slice.wid+","+slice.hei+","+slice.offX+","+slice.offY+","+slice.fwid+","+slice.fhei;
 	}

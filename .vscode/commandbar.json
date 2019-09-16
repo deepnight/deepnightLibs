@@ -15,7 +15,7 @@
       {
         "text": "(Run)",
         "color": "orange",
-        "command": "hl test.hl",
+        "command": "hl test/test.hl",
         "alignment": "right",
         "skipTerminateQuickPick": false,
         "priority": 4

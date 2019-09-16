@@ -7,7 +7,7 @@ package dn.heaps;
 import dn.DM;
 import h2d.Tile;
 import h2d.SpriteBatch;
-import mt.deepnight.Lib;
+import dn.Lib;
 import h3d.impl.AllocPos;
 
 class ParticlePool {
@@ -112,8 +112,8 @@ class Emitter {
 	public var y : Float;
 	public var wid : Float;
 	public var hei : Float;
-	public var cd : mt.Cooldown;
-	public var delayer : mt.Delayer;
+	public var cd : dn.Cooldown;
+	public var delayer : dn.Delayer;
 	public var activeCond : Null<Void->Bool>;
 	public var active(default,set) : Bool;
 	public var tmod : Float;
@@ -136,8 +136,8 @@ class Emitter {
 		padding = 0;
 		active = true;
 
-		delayer = new mt.Delayer(fps);
-		cd = new mt.Cooldown(fps);
+		delayer = new Delayer(fps);
+		cd = new Cooldown(fps);
 	}
 
 	public inline function setPosition(x,y, ?w, ?h) {
@@ -277,7 +277,7 @@ class HParticle extends BatchElement {
 	var fps : Int;
 
 	#if debug
-	@:allow(mt.heaps.ParticlePool)
+	@:allow(dn.heaps.ParticlePool)
 	var allocPos : AllocPos;
 	#end
 
@@ -290,7 +290,7 @@ class HParticle extends BatchElement {
 	}
 
 
-	var animLib : Null<mt.heaps.slib.SpriteLib>;
+	var animLib : Null<dn.heaps.slib.SpriteLib>;
 	var animId : Null<String>;
 	var animCursor : Float;
 	var animXr : Float;
@@ -298,7 +298,7 @@ class HParticle extends BatchElement {
 	var animLoop : Bool;
 	var animStop : Bool;
 	public var animSpd : Float;
-	public function playAnimAndKill(lib:mt.heaps.slib.SpriteLib, k:String, spd=1.0) {
+	public function playAnimAndKill(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
 		animLib = lib;
 		animId = k;
 		animCursor = 0;
@@ -306,7 +306,7 @@ class HParticle extends BatchElement {
 		animSpd = spd;
 		applyAnimFrame();
 	}
-	public function playAnimLoop(lib:mt.heaps.slib.SpriteLib, k:String, spd=1.0) {
+	public function playAnimLoop(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
 		animLib = lib;
 		animId = k;
 		animCursor = 0;
@@ -314,7 +314,7 @@ class HParticle extends BatchElement {
 		animSpd = spd;
 		applyAnimFrame();
 	}
-	public function playAnimAndStop(lib:mt.heaps.slib.SpriteLib, k:String, spd=1.0) {
+	public function playAnimAndStop(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
 		animLib = lib;
 		animId = k;
 		animCursor = 0;
@@ -427,7 +427,7 @@ class HParticle extends BatchElement {
 	public inline function uncolorize() r = g = b = 1;
 
 	public inline function colorize(c:UInt, ratio=1.0) {
-		mt.deepnight.Color.colorizeBatchElement(this, c, ratio);
+		dn.Color.colorizeBatchElement(this, c, ratio);
 	}
 
 	public function fade(targetAlpha:Float, fadeInSpd=1.0, fadeOutSpd=1.0) {
@@ -646,7 +646,7 @@ class HParticle extends BatchElement {
 					// Color animation
 					if( !Math.isNaN(rColor) ) {
 						rColor = DM.fclamp(rColor+dColor*tmod, 0, 1);
-						colorize( mt.deepnight.Color.interpolateInt(fromColor, toColor, rColor) );
+						colorize( dn.Color.interpolateInt(fromColor, toColor, rColor) );
 					}
 
 					// Fade in

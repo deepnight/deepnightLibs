@@ -697,7 +697,7 @@ class Lib {
 	}
 	#end
 
-	public static function ludumProtection(p:mt.Process, ?allowLocal=true) : Bool {
+	public static function ludumProtection(p:dn.Process, ?allowLocal=true) : Bool {
 		var ok = false;
 		var s = "d"+"e"+"e"+"p"+""+"n"+"i"+""+"g"+""+"h"+"t";
 
