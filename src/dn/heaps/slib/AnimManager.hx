@@ -1,6 +1,6 @@
 package dn.heaps.slib;
 
-import dn.DM;
+import dn.M;
 
 private class AnimInstance {
 	var spr : SpriteInterface;
@@ -327,7 +327,7 @@ class AnimManager {
 		else
 			UNSYNC.set(a.group, UNSYNC.get(a.group)+1);
 
-		var offset = DM.ceil(a.frames.length/3);
+		var offset = M.ceil(a.frames.length/3);
 		a.animCursor = ( offset * UNSYNC.get(a.group) + Std.random(100) ) % a.frames.length;
 		return this;
 	}

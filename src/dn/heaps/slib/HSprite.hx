@@ -3,7 +3,7 @@ package dn.heaps.slib;
 import h2d.Drawable;
 import dn.heaps.slib.*;
 import dn.heaps.slib.SpriteLib;
-import dn.DM;
+import dn.M;
 
 #if !heaps
 #error "Heaps required"
@@ -159,9 +159,9 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 
 	public function fitToBox(w:Float, ?h:Null<Float>, ?useFrameDataRealSize=false) {
 		if( useFrameDataRealSize )
-			setScale( DM.fmin( w/frameData.realWid, (h==null?w:h)/frameData.realHei ) );
+			setScale( M.fmin( w/frameData.realWid, (h==null?w:h)/frameData.realHei ) );
 		else
-			setScale( DM.fmin( w/tile.width, (h==null?w:h)/tile.height ) );
+			setScale( M.fmin( w/tile.width, (h==null?w:h)/tile.height ) );
 	}
 
 	public inline function setPivotCoord(x:Float, y:Float) {

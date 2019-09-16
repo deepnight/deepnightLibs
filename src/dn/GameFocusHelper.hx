@@ -60,7 +60,7 @@ class GameFocusHelper extends dn.Process {
         createChildProcess(
             function(c) {
                 // Resize dynamically
-                tf.setScale( DM.imax(1, Math.floor( w()*0.35 / tf.textWidth )) );
+                tf.setScale( M.imax(1, Math.floor( w()*0.35 / tf.textWidth )) );
                 tf.x = Std.int( w()*0.5 - tf.textWidth*tf.scaleX*0.5 );
                 tf.y = Std.int( h()*0.5 - tf.textHeight*tf.scaleY*0.5 );
 

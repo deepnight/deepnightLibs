@@ -125,7 +125,7 @@ class PathFinder {
 	}
 
 	inline function getHeuristicDist(a:AStarPoint, b:AStarPoint) {
-		return DM.iabs(a.x-b.x) + DM.iabs(a.y-b.y);
+		return M.iabs(a.x-b.x) + M.iabs(a.y-b.y);
 	}
 
 	public function getPath(from:{x:Int, y:Int}, to:{x:Int, y:Int}) : Path {

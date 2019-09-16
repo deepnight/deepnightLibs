@@ -6,7 +6,7 @@ package dn;
 
 import haxe.macro.Expr;
 
-class DM {
+class M {
 	/**
 	 * Min value, signed byte.
 	 */
@@ -161,7 +161,7 @@ class DM {
 	 */
 	inline public static function toRad(deg:Float):Float
 	{
-		return deg * DM.DEG_RAD;
+		return deg * M.DEG_RAD;
 	}
 
 	/**
@@ -169,7 +169,7 @@ class DM {
 	 */
 	inline public static function toDeg(rad:Float):Float
 	{
-		return rad * DM.RAD_DEG;
+		return rad * M.RAD_DEG;
 	}
 
 	/**
@@ -352,7 +352,7 @@ class DM {
 
         if( c < 0.)
 		{
-			if( (1. + c) > DM.EPS)
+			if( (1. + c) > M.EPS)
 			{
 				var o = m.acos(-c);
 				var s = m.sin(o);
@@ -369,7 +369,7 @@ class DM {
 		}
 		else
 		{
-			if( (1 - c) > DM.EPS)
+			if( (1 - c) > M.EPS)
 			{
 				var o = m.acos(c);
 				var s = m.sin(o);
@@ -540,7 +540,7 @@ class DM {
 	{
 		var l = min - .4999;
 		var h = max + .4999;
-		return DM.round(l + (h - l) * frand(rnd));
+		return M.round(l + (h - l) * frand(rnd));
 	}
 
 	/**
@@ -629,8 +629,8 @@ class DM {
 	{
 		var d = 0;
 		var r = 0;
-		x = DM.iabs(x);
-		y = DM.iabs(y);
+		x = M.iabs(x);
+		y = M.iabs(y);
 		while (true)
 		{
 			if( y == 0)

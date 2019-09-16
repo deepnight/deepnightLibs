@@ -8,7 +8,7 @@ class Test {
 		test(Cooldown, function() Cooldown.INDEXES);
 		test(DecisionHelper, function() new DecisionHelper([1,2,3]));
 		test(Delayer, function() new Delayer(60));
-		test(DM, DM.imax.bind(1,2));
+		test(M, M.imax.bind(1,2));
 		test(GameFocusHelper, function() {});
 		test(HaxeJson, function() HaxeJson.prettify("{ a:5 }"));
 		test(dn.heaps.HParticle, function() dn.heaps.HParticle.DEFAULT_BOUNDS);

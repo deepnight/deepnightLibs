@@ -4,7 +4,7 @@ import h2d.Drawable;
 import h2d.SpriteBatch;
 import dn.heaps.slib.SpriteLib;
 import dn.heaps.slib.SpriteInterface;
-import dn.DM;
+import dn.M;
 
 class HSpriteBE extends BatchElement implements SpriteInterface {
 	public var anim(get,never) : AnimManager;
@@ -143,9 +143,9 @@ class HSpriteBE extends BatchElement implements SpriteInterface {
 
 	public function fitToBox(w:Float, ?h:Null<Float>, ?useFrameDataRealSize=false) {
 		if( useFrameDataRealSize )
-			setScale( DM.fmin( w/frameData.realWid, (h==null?w:h)/frameData.realHei ) );
+			setScale( M.fmin( w/frameData.realWid, (h==null?w:h)/frameData.realHei ) );
 		else
-			setScale( DM.fmin( w/t.width, (h==null?w:h)/t.height ) );
+			setScale( M.fmin( w/t.width, (h==null?w:h)/t.height ) );
 	}
 
 	public inline function setScale(v:Float) scale = v;
@@ -204,8 +204,8 @@ class HSpriteBE extends BatchElement implements SpriteInterface {
 		lib.updTile(t, groupName, frame);
 
 		if ( pivot.isUsingCoord() ) {
-			t.dx = DM.round(-pivot.coordX - fd.realX);
-			t.dy = DM.round(-pivot.coordY - fd.realY);
+			t.dx = M.round(-pivot.coordX - fd.realX);
+			t.dy = M.round(-pivot.coordY - fd.realY);
 		}
 
 		if ( pivot.isUsingFactor() ){

@@ -432,16 +432,16 @@ class Color {
 
 	public static inline function offsetColor(c:Col, delta:Int) : Col {
 		return {
-			r	: Std.int( DM.fmax(0, DM.fmin(255,c.r + delta)) ),
-			g	: Std.int( DM.fmax(0, DM.fmin(255,c.g + delta)) ),
-			b	: Std.int( DM.fmax(0, DM.fmin(255,c.b + delta)) ),
+			r	: Std.int( M.fmax(0, M.fmin(255,c.r + delta)) ),
+			g	: Std.int( M.fmax(0, M.fmin(255,c.g + delta)) ),
+			b	: Std.int( M.fmax(0, M.fmin(255,c.b + delta)) ),
 		}
 	}
 	public static inline function offsetColorRgba(c:Col32, delta:Int) : Col32 {
 		return {
-			r	: Std.int( DM.fmax(0, DM.fmin(255,c.r + delta)) ),
-			g	: Std.int( DM.fmax(0, DM.fmin(255,c.g + delta)) ),
-			b	: Std.int( DM.fmax(0, DM.fmin(255,c.b + delta)) ),
+			r	: Std.int( M.fmax(0, M.fmin(255,c.r + delta)) ),
+			g	: Std.int( M.fmax(0, M.fmin(255,c.g + delta)) ),
+			b	: Std.int( M.fmax(0, M.fmin(255,c.b + delta)) ),
 			a	: c.a,
 		}
 	}
@@ -457,7 +457,7 @@ class Color {
 	}
 
 	public static inline function interpolate(from:Col, to:Col, ratio:Float) : Col {
-		ratio = DM.fclamp(ratio,0,1);
+		ratio = M.fclamp(ratio,0,1);
 		return {
 			r	: Std.int( from.r + (to.r-from.r)*ratio ),
 			g	: Std.int( from.g + (to.g-from.g)*ratio ),
@@ -495,7 +495,7 @@ class Color {
 		if( colors.length<2 )
 			throw "Need 2 colors or more!";
 
-		ratio = DM.fclamp(ratio, 0,1);
+		ratio = M.fclamp(ratio, 0,1);
 		var idx = Std.int(ratio*(colors.length-1));
 		var segLen = 1/(colors.length-1);
 		var subRatio = (ratio-segLen*idx) / segLen;
@@ -528,9 +528,9 @@ class Color {
 		}
 	}
 
-	public static inline function interpolateR(from:UInt, to:UInt, r:Float) return DM.round( DM.lerp( from>>16, to>>16, r ) );
-	public static inline function interpolateG(from:UInt, to:UInt, r:Float) return DM.round( DM.lerp( (from>>8)&0xFF, (to>>8)&0xFF, r ) );
-	public static inline function interpolateB(from:UInt, to:UInt, r:Float) return DM.round( DM.lerp( from&0xFF, to&0xFF, r ) );
+	public static inline function interpolateR(from:UInt, to:UInt, r:Float) return M.round( M.lerp( from>>16, to>>16, r ) );
+	public static inline function interpolateG(from:UInt, to:UInt, r:Float) return M.round( M.lerp( (from>>8)&0xFF, (to>>8)&0xFF, r ) );
+	public static inline function interpolateB(from:UInt, to:UInt, r:Float) return M.round( M.lerp( from&0xFF, to&0xFF, r ) );
 
 	#if(h3d||heaps)
 	public static inline function applyH2dContrast(e:h2d.Drawable, ratio:Float) {
@@ -820,7 +820,7 @@ class Color {
 
 		var pal : PalInt = [];
 		var idx = 0;
-		var colors = colors.map( function(c) return {idx:DM.round(c.ratio*256), col:c.col} );
+		var colors = colors.map( function(c) return {idx:M.round(c.ratio*256), col:c.col} );
 		colors.sort(function(a,b) return Reflect.compare(a.idx, b.idx));
 		if( colors[0].idx!=0 )
 			colors.insert(0, {idx:0, col:colors[0].col});
@@ -847,7 +847,7 @@ class Color {
 		var pal = Color.makeNicePalette(light, dark, white, true);
 		for(x in 0...wid)
 			for(y in 0...hei)
-				p.setPixel(x, y, pal[DM.round(pal.length*x/wid)]);
+				p.setPixel(x, y, pal[M.round(pal.length*x/wid)]);
 
 		return h3d.mat.Texture.fromPixels(p);
 	}
@@ -857,7 +857,7 @@ class Color {
 		var pal = Color.makePaletteLinear([light,dark], 256);
 		for(x in 0...wid)
 			for(y in 0...hei)
-				p.setPixel(x, y, pal[DM.round(pal.length*x/wid)]);
+				p.setPixel(x, y, pal[M.round(pal.length*x/wid)]);
 
 		return h3d.mat.Texture.fromPixels(p);
 	}

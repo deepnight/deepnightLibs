@@ -1,6 +1,6 @@
 package dn.heaps.slib;
 
-import dn.DM;
+import dn.M;
 
 #if macro
 import haxe.macro.Expr;
@@ -238,8 +238,8 @@ class SpriteLib {
 
 	public function sliceCustom(groupName:String, page:Int, frame:Int, x:Int, y:Int, wid:Int, hei:Int, realX:Int, realY:Int, realWid: Int, realHei: Int) {
 		var g = if( exists(groupName) ) getGroup(groupName) else createGroup(groupName);
-		g.maxWid = DM.imax( g.maxWid, wid );
-		g.maxHei = DM.imax( g.maxHei, hei );
+		g.maxWid = M.imax( g.maxWid, wid );
+		g.maxHei = M.imax( g.maxHei, hei );
 
 		// if( realFrame==null )
 		// 	realFrame = {x:0, y:0, realWid:wid, realHei:hei}
@@ -251,8 +251,8 @@ class SpriteLib {
 
 	public function resliceCustom( groupName: String, frame: Int, fd: FrameData ){
 		var g = if( exists(groupName) ) getGroup(groupName) else createGroup(groupName);
-		g.maxWid = DM.imax( g.maxWid, fd.wid );
-		g.maxHei = DM.imax( g.maxHei, fd.hei );
+		g.maxWid = M.imax( g.maxWid, fd.wid );
+		g.maxHei = M.imax( g.maxHei, fd.hei );
 		g.frames[frame] = fd;
 		return fd;
 	}
@@ -260,8 +260,8 @@ class SpriteLib {
 	public function slice(groupName:String, page:Int, x:Int, y:Int, wid:Int, hei:Int, repeatX=1, repeatY=1) {
 		var g = createGroup(groupName);
 		setCurrentGroup(groupName);
-		g.maxWid = DM.imax( g.maxWid, wid );
-		g.maxHei = DM.imax( g.maxHei, hei );
+		g.maxWid = M.imax( g.maxWid, wid );
+		g.maxHei = M.imax( g.maxHei, hei );
 		for(iy in 0...repeatY)
 			for(ix in 0...repeatX)
 				g.frames.push({page : page, x : x+ix*wid, y : y+iy*hei, wid:wid, hei:hei, realX:0, realY:0, realWid: wid, realHei: hei, tile: null });
@@ -270,8 +270,8 @@ class SpriteLib {
 	public function sliceGrid(groupName:String, page:Int, gx:Int, gy:Int, repeatX=1, repeatY=1) {
 		var g = createGroup(groupName);
 		setCurrentGroup(groupName);
-		g.maxWid = DM.imax( g.maxWid, gridX );
-		g.maxHei = DM.imax( g.maxHei, gridY );
+		g.maxWid = M.imax( g.maxWid, gridX );
+		g.maxHei = M.imax( g.maxHei, gridY );
 		for(iy in 0...repeatY)
 			for(ix in 0...repeatX)
 				g.frames.push({page : page, x : gridX*(gx+ix), y : gridY*(gy+iy), wid:gridX, hei:gridY, realX:0, realY:0, realWid:gridX, realHei:gridY, tile: null });

@@ -1,6 +1,6 @@
 package dn;
 
-import dn.DM;
+import dn.M;
 
 #if( flash||nme||openfl )
 import flash.display.Bitmap;
@@ -38,7 +38,7 @@ class Lib {
 	public static inline function countDeltaDays(now_:Date, next_:Date) {
 		var now = setTime(now_, 5);
 		var next = setTime(next_, 5);
-		return DM.floor( (next.getTime() - now.getTime()) / DateTools.days(1) );
+		return M.floor( (next.getTime() - now.getTime()) / DateTools.days(1) );
 	}
 
 	public static inline function leadingZeros(s:Dynamic, ?zeros=2) {
@@ -270,7 +270,7 @@ class Lib {
 
 	#if (flash || openfl)
 	public static inline function constraintBox(o:flash.display.DisplayObject, maxWid, maxHei) {
-		var r = DM.fmin( DM.fmin(1, maxWid/o.width), DM.fmin(1, maxHei/o.height) );
+		var r = M.fmin( M.fmin(1, maxWid/o.width), M.fmin(1, maxHei/o.height) );
 		o.scaleX = r;
 		o.scaleY = r;
 		return r;
@@ -343,7 +343,7 @@ class Lib {
 
 		var remain = total-plist.length;
 		while (remain>0) {
-			var move = DM.ceil(total*(randFunc(8)+1)/100);
+			var move = M.ceil(total*(randFunc(8)+1)/100);
 			if (move>remain)
 				move = remain;
 
@@ -461,7 +461,7 @@ class Lib {
 
 		// Cancel transforms to draw into BitmapData
 		var b = o.getBounds(o);
-		var bmp = new flash.display.Bitmap( new flash.display.BitmapData(DM.ceil(b.width+padding*2), DM.ceil(b.height+padding*2), true, 0x0) );
+		var bmp = new flash.display.Bitmap( new flash.display.BitmapData(M.ceil(b.width+padding*2), M.ceil(b.height+padding*2), true, 0x0) );
 		var m = new flash.geom.Matrix();
 		m.translate(-b.x, -b.y);
 		m.translate(padding, padding);
@@ -473,7 +473,7 @@ class Lib {
 		m.translate(-padding, -padding);
 		if( copyTransforms ) {
 			m.scale(o.scaleX, o.scaleY);
-			m.rotate( DM.toRad(o.rotation) );
+			m.rotate( M.toRad(o.rotation) );
 			m.translate(o.x, o.y);
 		}
 		bmp.transform.matrix = m;
@@ -490,12 +490,12 @@ class Lib {
 
 
 	public static function createTexture(source:flash.display.BitmapData, width:Float, height:Float, autoDisposeSource:Bool) {
-		var bd = new BitmapData(DM.ceil(width), DM.ceil(height), source.transparent, 0x0);
+		var bd = new BitmapData(M.ceil(width), M.ceil(height), source.transparent, 0x0);
 		bd.lock();
 
 		var pt = new flash.geom.Point();
-		for(x in 0...DM.ceil(width/source.width))
-			for(y in 0...DM.ceil(height/source.height)) {
+		for(x in 0...M.ceil(width/source.width))
+			for(y in 0...M.ceil(height/source.height)) {
 				pt.x = x * source.width;
 				pt.y = y * source.height;
 				bd.copyPixels(source, source.rect, pt, source, true);
@@ -512,7 +512,7 @@ class Lib {
 
 
 	public static function scaleBitmap(source:BitmapData, scale:Float, ?q:flash.display.StageQuality, disposeSource:Bool) {
-		var bd = new BitmapData( DM.round(source.width*scale), DM.round(source.height*scale), source.transparent, 0x0 );
+		var bd = new BitmapData( M.round(source.width*scale), M.round(source.height*scale), source.transparent, 0x0 );
 		var m = new flash.geom.Matrix();
 		m.scale(scale, scale);
 
@@ -554,7 +554,7 @@ class Lib {
 	}
 
 	public static inline function angularDistanceDeg(a:Float,b:Float) {
-		return DM.fabs( angularSubstractionDeg(a,b) );
+		return M.fabs( angularSubstractionDeg(a,b) );
 	}
 
 	public static inline function angularSubstractionDeg(a:Float,b:Float) { // returns a-b (normalized)
@@ -562,8 +562,8 @@ class Lib {
 	}
 
 	public static inline function normalizeRad(a:Float) { // [-PI,PI]
-		while( a<-DM.PI ) a+=DM.PI2;
-		while( a>DM.PI ) a-=DM.PI2;
+		while( a<-M.PI ) a+=M.PI2;
+		while( a>M.PI ) a-=M.PI2;
 		return a;
 	}
 
@@ -575,7 +575,7 @@ class Lib {
 	}
 
 	public static inline function angularDistanceRad(a:Float,b:Float) {
-		return DM.fabs( angularSubstractionRad(a,b) );
+		return M.fabs( angularSubstractionRad(a,b) );
 	}
 
 	public static inline function angularSubstractionRad(a:Float,b:Float) { // returns a-b (normalized)
@@ -623,10 +623,10 @@ class Lib {
 
 	public static inline function prettyFloat(v:Float, precision=2) : Float {
 		if( precision<=0 )
-			return DM.round(v);
+			return M.round(v);
 		else {
 			var d = Math.pow(10,precision);
-			return DM.round(v*d)/d;
+			return M.round(v*d)/d;
 		}
 	}
 
@@ -634,7 +634,7 @@ class Lib {
 	public static inline function prettyTime(t:Float) : String {
 		if( t<=DateTools.days(365) ) {
 			// Duration
-			var s = DM.fabs(t)/1000;
+			var s = M.fabs(t)/1000;
 			var m = s/60;
 			var h = m/60;
 			h = Std.int(h%24);
