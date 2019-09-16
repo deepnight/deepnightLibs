@@ -1,6 +1,6 @@
 package dn;
 
-import mt.deepnight.pf.Heap;
+import dn.pf.Heap;
 
 typedef AStarPoint = {x:Int, y:Int, parent:AStarPoint, goalDist:Float, homeDist:Float};
 
