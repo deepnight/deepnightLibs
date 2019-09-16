@@ -20,7 +20,10 @@ class Test {
 		test(Sfx, function() @:privateAccess Sfx.GLOBAL_GROUPS);
 		test(Tweenie, function() @:privateAccess Tweenie.DEFAULT_DURATION);
 
+		test(dn.data.GetText, function() dn.data.GetText.checkSyntax(new Map()));
+
 		test(dn.heaps.slib.SpriteLib, function() dn.heaps.slib.SpriteLib.TMOD);
+		test(dn.heaps.slib.assets.Atlas, function() dn.heaps.slib.assets.Atlas.LOADING_TICK_FUN);
 		test(dn.heaps.Controller, function() dn.heaps.Controller.beforeUpdate());
 
 
