@@ -9,7 +9,7 @@ class Test {
 		test(DecisionHelper, function() new DecisionHelper([1,2,3]));
 		test(Delayer, function() new Delayer(60));
 		test(M, M.imax.bind(1,2));
-		test(GameFocusHelper, function() {});
+		test(dn.heaps.GameFocusHelper, function() {});
 		test(HaxeJson, function() HaxeJson.prettify("{ a:5 }"));
 		test(dn.heaps.HParticle, function() dn.heaps.HParticle.DEFAULT_BOUNDS);
 		test(Lib, function() Lib.angularDistanceRad(0,3.14));
@@ -17,7 +17,7 @@ class Test {
 		test(Process, function() new dn.Process());
 		test(Rand, function() new Rand(0));
 		test(RandList, function() new RandList([1,2,3]));
-		test(Sfx, function() @:privateAccess Sfx.GLOBAL_GROUPS);
+		test(dn.heaps.Sfx, function() @:privateAccess dn.heaps.Sfx.GLOBAL_GROUPS);
 		test(Tweenie, function() @:privateAccess Tweenie.DEFAULT_DURATION);
 
 		test(dn.data.GetText, function() dn.data.GetText.checkSyntax(new Map()));

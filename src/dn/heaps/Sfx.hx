@@ -1,4 +1,4 @@
-package dn;
+package dn.heaps;
 
 #if macro
 import haxe.macro.Expr;
@@ -571,7 +571,7 @@ class Sfx {
 
 				var fStr = { expr:EConst(CString(dir+"/"+fName)), pos:p }
 				var newSoundExpr = macro hxd.Res.load($fStr).toSound();
-				var newSfxExpr = 	macro new dn.Sfx($e{newSoundExpr});
+				var newSfxExpr = 	macro new dn.heaps.Sfx($e{newSoundExpr});
 
 				// Create field method
 				var tfloat = macro : Null<Float>;

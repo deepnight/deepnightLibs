@@ -1,4 +1,4 @@
-package dn;
+package dn.heaps;
 
 import dn.Color;
 
