@@ -16,6 +16,7 @@ class Test {
 		test(PathFinder, function() new PathFinder(5,5));
 		test(Process, function() new dn.Process());
 		test(Rand, function() new Rand(0));
+		test(RandDeck, function() new RandDeck());
 		test(RandList, function() new RandList([1,2,3]));
 		test(dn.heaps.Sfx, function() @:privateAccess dn.heaps.Sfx.GLOBAL_GROUPS);
 		test(Tweenie, function() @:privateAccess Tweenie.DEFAULT_DURATION);
@@ -53,8 +54,7 @@ class Test {
 			cb();
 		}
 		catch(e:Dynamic) {
-			haxe.Log.trace(" > FAILED: "+e);
-			haxe.Log.trace("");
+			throw " > FAILED: "+e;
 		}
 	}
 }
