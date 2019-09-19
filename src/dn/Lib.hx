@@ -547,44 +547,6 @@ class Lib {
 	#end
 
 
-	public static inline function normalizeDeg(a:Float) { // [-180,180]
-		while( a<-180 ) a+=360;
-		while( a>180 ) a-=360;
-		return a;
-	}
-
-	public static inline function angularDistanceDeg(a:Float,b:Float) {
-		return M.fabs( angularSubstractionDeg(a,b) );
-	}
-
-	public static inline function angularSubstractionDeg(a:Float,b:Float) { // returns a-b (normalized)
-		return normalizeDeg( normalizeDeg(a) - normalizeDeg(b) );
-	}
-
-	public static inline function normalizeRad(a:Float) { // [-PI,PI]
-		while( a<-M.PI ) a+=M.PI2;
-		while( a>M.PI ) a-=M.PI2;
-		return a;
-	}
-
-	public static inline function angularClampRad(a:Float, refAng:Float, maxDelta:Float) {
-		var d = angularSubstractionRad(a,refAng);
-		if( d>maxDelta ) return refAng+maxDelta;
-		if( d<-maxDelta ) return refAng-maxDelta;
-		return a;
-	}
-
-	public static inline function angularDistanceRad(a:Float,b:Float) {
-		return M.fabs( angularSubstractionRad(a,b) );
-	}
-
-	public static inline function angularSubstractionRad(a:Float,b:Float) { // returns a-b (normalized)
-		a = normalizeRad(a);
-		b = normalizeRad(b);
-		return normalizeRad(a-b);
-	}
-
-
 
 	public static function makeXmlNode(name:String, ?attributes:Map<String, String>, ?inner:String) {
 		if( attributes==null && inner==null )
@@ -620,15 +582,6 @@ class Lib {
 	}
 	#end
 
-
-	public static inline function prettyFloat(v:Float, precision=2) : Float {
-		if( precision<=0 )
-			return M.round(v);
-		else {
-			var d = Math.pow(10,precision);
-			return M.round(v*d)/d;
-		}
-	}
 
 
 	public static inline function prettyTime(t:Float) : String {

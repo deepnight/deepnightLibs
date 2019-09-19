@@ -762,4 +762,53 @@ class M {
 		for (i in 1...(v+1)) r *= i;
 		return r;
 	}
+
+
+
+	public static inline function normalizeDeg(a:Float) { // [-180,180]
+		while( a<-180 ) a+=360;
+		while( a>180 ) a-=360;
+		return a;
+	}
+
+	public static inline function normalizeRad(a:Float) { // [-PI,PI]
+		while( a<-M.PI ) a+=M.PI2;
+		while( a>M.PI ) a-=M.PI2;
+		return a;
+	}
+
+	public static inline function degDistance(a:Float,b:Float) {
+		return fabs( degSubstract(a,b) );
+	}
+
+	public static inline function degSubstract(a:Float,b:Float) { // returns a-b (normalized)
+		return normalizeDeg( normalizeDeg(a) - normalizeDeg(b) );
+	}
+
+	public static inline function radClamp(a:Float, refAng:Float, maxDelta:Float) {
+		var d = radSubstract(a,refAng);
+		if( d>maxDelta ) return refAng+maxDelta;
+		if( d<-maxDelta ) return refAng-maxDelta;
+		return a;
+	}
+
+	public static inline function radDistance(a:Float,b:Float) {
+		return fabs( radSubstract(a,b) );
+	}
+
+	public static inline function radSubstract(a:Float,b:Float) { // returns a-b (normalized)
+		a = normalizeRad(a);
+		b = normalizeRad(b);
+		return normalizeRad(a-b);
+	}
+
+	public static inline function pretty(v:Float, precision=2) : Float {
+		if( precision<=0 )
+			return round(v);
+		else {
+			var d = Math.pow(10,precision);
+			return round(v*d)/d;
+		}
+	}
+
 }

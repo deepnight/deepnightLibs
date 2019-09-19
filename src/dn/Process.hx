@@ -123,7 +123,7 @@ class Process {
 	inline function rnd(min,max,?sign) return Lib.rnd(min,max,sign);
 	inline function irnd(min,max,?sign) return Lib.irnd(min,max,sign);
 	inline function rndSign() return Std.random(2)*2-1;
-	public inline function pretty(v:Float, ?precision=2) return Lib.prettyFloat(v, precision);
+	public inline function pretty(v:Float, ?precision=2) return M.pretty(v, precision);
 	inline function rndSecondsF(min,max,?sign) return secToFrames( Lib.rnd(min,max,sign) );
 	inline function irndSecondsF(min,max,?sign) return secToFrames( Lib.rnd(min,max,sign) );
 
