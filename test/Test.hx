@@ -12,7 +12,7 @@ class Test {
 		test(dn.heaps.GameFocusHelper, function() {});
 		test(HaxeJson, function() HaxeJson.prettify("{ a:5 }"));
 		test(dn.heaps.HParticle, function() dn.heaps.HParticle.DEFAULT_BOUNDS);
-		test(Lib, function() Lib.distance(0,0, 10,10));
+		test(Lib, function() M.dist(0,0, 10,10));
 		test(PathFinder, function() new PathFinder(5,5));
 		test(Process, function() new dn.Process());
 		test(Rand, function() new Rand(0));
