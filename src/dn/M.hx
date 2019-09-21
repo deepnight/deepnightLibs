@@ -200,9 +200,7 @@ class M {
 	 * Returns the sign of x.
 	 * sgn(0) = 0.
 	 */
-	inline public static function sign(x:Float) return sgn(x);
-	inline public static function sgn(x:Float):Int
-	{
+	inline public static function sign(x:Float):Int {
 		return (x > 0) ? 1 : (x < 0 ? -1 : 0);
 	}
 
@@ -672,18 +670,6 @@ class M {
 		return x ? 1 : 0;
 	}
 
-	/*
-	 * Normalize the angle back to [-2PI,2PI]
-	 * */
-	public static inline function normAngle( f:  Float) {
-		var pi = std.Math.PI;
-		while (f >= pi * 2)
-			f -= pi * 2;
-		while (f <= -pi * 2)
-			f += pi * 2;
-
-		return f;
-	}
 
 	/**
 	 * mod that allways returns a positive value ( neg % k -> neg )
@@ -721,40 +707,36 @@ class M {
 		return recur(ipow);
 	}
 
-	public static inline function dist3Sq(x:Float, y:Float, z:Float) :Float
-		return x * x + y * y + z * z;
+	public static inline function distSqr(ax:Float,ay:Float,bx:Float,by:Float) : Float {
+		return (ax-bx)*(ax-bx) + (ay-by)*(ay-by);
+	}
 
-	public static inline function dist3(x:Float, y:Float, z:Float):Float
-		return Math.sqrt(dist3Sq(x, y, z));
+	public static inline function idistSqr(ax:Int,ay:Int,bx:Int,by:Int) : Int {
+		return (ax-bx)*(ax-bx) + (ay-by)*(ay-by);
+	}
 
-	public static inline function dist2Sq(x:Float, y:Float ):Float
-		return x * x + y * y;
-
-	public static inline function dist2(x:Float, y:Float):Float
-		return Math.sqrt(dist2Sq(x, y));
+	public static inline function dist(ax:Float,ay:Float, bx:Float,by:Float) : Float {
+		return Math.sqrt( distSqr(ax,ay,bx,by) );
+	}
 
 
 	/**
 	 * Distance from point x,y to segment A(ax,ay)-B(bx,by)
 	 */
 	public static inline function distSegment(x:Float, y:Float, ax:Float, ay:Float, bx:Float, by:Float) { // point: x,y
-		return Math.sqrt( distSegmentSq(x,y, ax,ay, bx,by) );
+		return Math.sqrt( distSegmentSqr(x,y, ax,ay, bx,by) );
 	}
 
 	/**
 	 * Squared distance from point x,y to segment A(ax,ay)-B(bx,by)
 	 */
-	public static inline function distSegmentSq(x:Float, y:Float, ax:Float, ay:Float, bx:Float, by:Float) {
+	public static inline function distSegmentSqr(x:Float, y:Float, ax:Float, ay:Float, bx:Float, by:Float) {
 		// Source: https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
-		var l2 = _distSq(ax,ay, bx,by);
+		var l2 = distSqr(ax,ay, bx,by);
 		if( l2==0 )
-			return _distSq(x,y, ax,ay);
+			return distSqr(x,y, ax,ay);
 		var t = fclamp( ( (x-ax)*(bx-ax) + (y-ay)*(by-ay) ) / l2, 0, 1 );
-		return _distSq( x, y, ax+t*(bx-ax), ay+t*(by-ay) );
-	}
-
-	static inline function _distSq(ax:Float,ay:Float,bx:Float,by:Float) : Float {
-		return (ax-bx)*(ax-bx) + (ay-by)*(ay-by);
+		return distSqr( x, y, ax+t*(bx-ax), ay+t*(by-ay) );
 	}
 
 	public static function factorial(v : Int) {

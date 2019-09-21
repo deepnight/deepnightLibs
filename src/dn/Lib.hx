@@ -370,22 +370,6 @@ class Lib {
 		return try { new EReg(re, "g").replace(str, open+"$1"+close); } catch (e:String) { str; }
 	}
 
-	public static inline function sign() {
-		return Std.random(2)*2-1;
-	}
-
-	public static inline function distanceSqr(ax:Float,ay:Float,bx:Float,by:Float) : Float {
-		return (ax-bx)*(ax-bx) + (ay-by)*(ay-by);
-	}
-
-	public static inline function idistanceSqr(ax:Int,ay:Int,bx:Int,by:Int) : Int {
-		return (ax-bx)*(ax-bx) + (ay-by)*(ay-by);
-	}
-
-	public static inline function distance(ax:Float,ay:Float, bx:Float,by:Float) : Float {
-		return Math.sqrt( distanceSqr(ax,ay,bx,by) );
-	}
-
 	public static inline function getNextPower2(n:Int) { // n est sur 32 bits
 		n--;
 		n |= n >> 1;
