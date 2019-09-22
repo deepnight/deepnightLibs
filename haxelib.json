@@ -4,9 +4,9 @@
   "license": "Apache",
   "tags": ["Heaps","Hashlink","package","deepnight"],
   "description": "The general personal libs I use in my Haxe projects.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "classPath": "src/",
-  "releasenote": "Moved some angle/utility functions from Lib to M",
+  "releasenote": "Dist functions moved from Lib to M",
   "contributors": ["sbenard"],
   "dependencies": {}
 }
