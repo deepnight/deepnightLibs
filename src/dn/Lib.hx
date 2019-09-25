@@ -687,7 +687,24 @@ class Lib {
 		return "unknown";
 		#end
 	}
-}
+
+	public static function getEnumMetaFloat<T:EnumValue>(e:T, varName:String, ?def=0.) : Float {
+		var meta = haxe.rtti.Meta.getFields( Type.getEnum(e) );
+		if( meta==null )
+			return def;
+
+		var f = Reflect.field(meta, Type.enumConstructor(e));
+		if( f==null || !Reflect.hasField(f,varName) || !Std.is(Reflect.field(f,varName)[0], Float) )
+			return def;
+
+		var v : Float = Reflect.field(f,varName)[0];
+		return Math.isNaN(v) ? def : v;
+	}
+
+	public static inline function getEnumMetaInt<T:EnumValue>(e:T, varName:String, ?def=0) : Int {
+		return Std.int( getEnumMetaFloat(e, varName, def) );
+	}
+} // End of Lib
 
 
 #if (!(flash||openfl) && sys)
