@@ -4,9 +4,9 @@
   "license": "Apache",
   "tags": ["Heaps","Hashlink","package","deepnight"],
   "description": "The general personal libs I use in my Haxe projects.",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "classPath": "src/",
-  "releasenote": "Added 2 rtti meta getters to Lib",
+  "releasenote": "Fixed controller (keyboard/gamepad) auto-switching",
   "contributors": ["sbenard"],
   "dependencies": {}
 }
