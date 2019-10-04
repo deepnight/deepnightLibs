@@ -30,14 +30,8 @@ class Controller {
 	public function new( s2d : h2d.Scene ){
 		ALL.push( this );
 		gc = new GamePad(0.4);
-		/*
-		gc.onAnyControl = function() {
-			if( allowAutoSwitch && mode!=Pad )
-				mode = Pad;
-		}
-		*/
 		s2d.addEventListener( function(e:hxd.Event) {
-			if( allowAutoSwitch && e.kind==EMove && mode!=Keyboard )
+			if( allowAutoSwitch && ( e.kind==EMove || e.kind==EKeyDown ) && mode!=Keyboard )
 				mode = Keyboard;
 		});
 		for( idx in 0...pressTimers.length ) pressTimers[idx] = -1;
@@ -46,8 +40,6 @@ class Controller {
 
 	public inline function setKeyboard() mode = Keyboard;
 	public inline function setGamePad() mode = Pad;
-
-	//public inline function toggleInvert(axis:PadKey) return gc.toggleInvert(axis);
 
 	public function bind(k:PadKey, keyboardKey:Int, ?alternate1:Int, ?alternate2:Int) {
 		primary.set(k.getIndex(), keyboardKey);
@@ -128,8 +120,16 @@ class Controller {
 	public static function beforeUpdate() {
 		GamePad.update();
 
+
 		for( c in ALL )
 			if( c.gc!=null ) {
+				if( c.allowAutoSwitch && c.mode!=Pad && (
+						c.gc.isDown(A) || c.gc.isDown(B) || c.gc.isDown(X) || c.gc.isDown(Y)
+						|| M.fabs(c.gc.getValue(AXIS_LEFT_X_POS))>=0.75 || M.fabs(c.gc.getValue(AXIS_LEFT_Y_POS))>=0.75
+						|| M.fabs(c.gc.getValue(AXIS_RIGHT_X_POS))>=0.75 || M.fabs(c.gc.getValue(AXIS_RIGHT_Y_POS))>=0.75
+					) )
+					c.mode = Pad;
+
 				if( c.hasAnyPress ) {
 					c.hasAnyPress = false;
 					for( idx in 0...c.framePresses.length ) c.framePresses[idx] = -1;
@@ -233,8 +233,21 @@ class ControllerAccess {
 	public inline function yLongPressing()   return !locked() && getLongPressRatio(Y)>0;
 	public inline function yLongPressRatio() return getLongPressRatio(Y);
 
-	public inline function lxValue()         return parent.gc.getValue(AXIS_LEFT_X_POS, false, dn.M.fclamp(leftDeadZone,0,1));
-	public inline function lyValue()         return parent.gc.getValue(AXIS_LEFT_Y_POS, false, dn.M.fclamp(leftDeadZone,0,1));
+	public inline function lxValue() : Float {
+		if( isKeyboard() )
+			return leftDown() ? -1 : rightDown() ? 1 : 0;
+		else
+			return parent.gc.getValue(AXIS_LEFT_X_POS, false, dn.M.fclamp(leftDeadZone,0,1));
+	}
+
+	public inline function lyValue() : Float {
+		if( isKeyboard() )
+			return upDown() ? -1 : downDown() ? 1 : 0;
+		else
+			return parent.gc.getValue(AXIS_LEFT_Y_POS, false, dn.M.fclamp(leftDeadZone,0,1));
+	}
+	// public inline function lxValue()         return parent.gc.getValue(AXIS_LEFT_X_POS, false, dn.M.fclamp(leftDeadZone,0,1));
+	// public inline function lyValue()         return parent.gc.getValue(AXIS_LEFT_Y_POS, false, dn.M.fclamp(leftDeadZone,0,1));
 
 	public inline function rxValue()         return parent.gc.getValue(AXIS_RIGHT_X, false, dn.M.fclamp(rightDeadZone,0,1));
 	public inline function ryValue()         return parent.gc.getValue(AXIS_RIGHT_Y, false, dn.M.fclamp(rightDeadZone,0,1));
