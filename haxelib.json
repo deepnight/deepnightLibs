@@ -4,9 +4,9 @@
   "license": "Apache",
   "tags": ["Heaps","Hashlink","package","deepnight"],
   "description": "The general personal libs I use in my Haxe projects.",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "classPath": "src/",
-  "releasenote": "Fixed controller (keyboard/gamepad) auto-switching",
+  "releasenote": "Added fullscreen support to Heaps JS in Lib",
   "contributors": ["sbenard"],
   "dependencies": {}
 }
