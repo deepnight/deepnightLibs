@@ -716,7 +716,7 @@ class Lib {
 
 		#if js
 
-		var elem = js.Browser.document.getElementById("webgl");
+		var canvas = js.Browser.document.getElementById("webgl");
 
 		if( button ) {
 			var w = 24;
@@ -752,9 +752,10 @@ class Lib {
 			g.moveTo(w*0.1,w*0.9);
 			g.lineTo(w*0.35, w*0.65);
 
-			elem.addEventListener( "click", function(e) {
-				var x = e.pageX - elem.offsetLeft;
-				var y = e.pageY - elem.offsetTop;
+			canvas.addEventListener( "click", function(e) {
+				var rect = canvas.getBoundingClientRect();
+				var x = e.clientX - rect.left;
+				var y = e.clientY - rect.top;
 				if( !isFullscreen() && x>=g.x && x<g.x+w && y>=g.y && y<g.y+w )
 					toggleFullscreen();
 			});
@@ -766,7 +767,7 @@ class Lib {
 			});
 		}
 
-		elem.addEventListener("keydown",function(e) {
+		canvas.addEventListener("keydown",function(e) {
 			if( alternativeKey!=null && e.keyCode==alternativeKey || e.keyCode==hxd.Key.ENTER && e.altKey )
 				toggleFullscreen();
 		});
