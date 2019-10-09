@@ -768,14 +768,14 @@ class Lib {
 		}
 
 		canvas.addEventListener("keydown",function(e) {
-			if( alternativeKey!=null && e.keyCode==alternativeKey || e.keyCode==hxd.Key.ENTER && e.altKey )
+			if( alternativeKey!=null && e.keyCode==alternativeKey || e.keyCode==hxd.Key.ENTER && e.altKey || e.keyCode==hxd.Key.F11 )
 				toggleFullscreen();
 		});
 
 		#else
 
 		p.createChildProcess( function(_) {
-			if( alternativeKey!=null && hxd.Key.isPressed(alternativeKey) || hxd.Key.isDown(hxd.Key.ALT) && hxd.Key.isPressed(hxd.Key.ENTER) )
+			if( alternativeKey!=null && hxd.Key.isPressed(alternativeKey) || hxd.Key.isDown(hxd.Key.ALT) && hxd.Key.isPressed(hxd.Key.ENTER) || hxd.Key.isPressed(hxd.Key.F11) )
 				toggleFullscreen();
 		});
 
