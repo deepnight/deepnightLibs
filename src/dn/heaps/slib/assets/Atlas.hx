@@ -145,8 +145,8 @@ class Atlas {
 
 				var fd = lib.sliceCustom(
 					k, page, f,
-					e.t.x, e.t.y, e.t.width, e.t.height,
-					-e.t.dx, -e.t.dy, e.width, e.height
+					e.t.ix, e.t.iy, e.t.iwidth, e.t.iheight,
+					Math.floor(-e.t.dx), Math.floor(-e.t.dy), e.width, e.height
 				);
 
 				if( regBoth )
@@ -159,8 +159,8 @@ class Atlas {
 					var page = pageMap.get(e.t.getTexture());
 					lib.sliceCustom(
 						k, page, i,
-						e.t.x, e.t.y, e.t.width, e.t.height,
-						-e.t.dx, -e.t.dy, e.width, e.height
+						e.t.ix, e.t.iy, e.t.iwidth, e.t.iheight,
+						Math.floor(-e.t.dx), Math.floor(-e.t.dy), e.width, e.height
 					);
 				}
 			}
