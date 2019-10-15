@@ -164,8 +164,22 @@ class ControllerAccess {
 	}
 
 
-	public var leftDeadZone : Null<Float>; // null means default controller deadZone
-	public var rightDeadZone : Null<Float>;
+	var leftDeadZone : Null<Float>; // null means default controller deadZone
+	var rightDeadZone : Null<Float>;
+
+	public inline function setLeftDeadZone(?v:Float) {
+		if( v==null )
+			leftDeadZone = null;
+		else
+			leftDeadZone = dn.M.fclamp(v, 0, 1);
+	}
+
+	public inline function setRightDeadZone(?v:Float) {
+		if( v==null )
+			rightDeadZone = null;
+		else
+			rightDeadZone = dn.M.fclamp(v, 0, 1);
+	}
 
 	public inline function isKeyboard() return parent.mode==Keyboard;
 	public inline function isGamePad() return parent.mode==Pad;
@@ -237,18 +251,18 @@ class ControllerAccess {
 		if( isKeyboard() )
 			return leftDown() ? -1 : rightDown() ? 1 : 0;
 		else
-			return parent.gc.getValue(AXIS_LEFT_X_POS, false, dn.M.fclamp(leftDeadZone,0,1));
+			return parent.gc.getValue(AXIS_LEFT_X_POS, false, leftDeadZone);
 	}
 
 	public inline function lyValue() : Float {
 		if( isKeyboard() )
 			return upDown() ? -1 : downDown() ? 1 : 0;
 		else
-			return parent.gc.getValue(AXIS_LEFT_Y_POS, false, dn.M.fclamp(leftDeadZone,0,1));
+			return parent.gc.getValue(AXIS_LEFT_Y_POS, false, leftDeadZone);
 	}
 
-	public inline function rxValue()         return parent.gc.getValue(AXIS_RIGHT_X, false, dn.M.fclamp(rightDeadZone,0,1));
-	public inline function ryValue()         return parent.gc.getValue(AXIS_RIGHT_Y, false, dn.M.fclamp(rightDeadZone,0,1));
+	public inline function rxValue()         return parent.gc.getValue(AXIS_RIGHT_X, false, rightDeadZone);
+	public inline function ryValue()         return parent.gc.getValue(AXIS_RIGHT_Y, false, rightDeadZone);
 
 	public inline function ltDown()          return isDown(LT);
 	public inline function ltPressed()       return isPressed(LT);
