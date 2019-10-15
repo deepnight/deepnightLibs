@@ -4,9 +4,9 @@
   "license": "Apache",
   "tags": ["Heaps","Hashlink","package","deepnight"],
   "description": "The general personal libs I use in my Haxe projects.",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "classPath": "src/",
-  "releasenote": "Added fullscreen support to Heaps JS in Lib",
+  "releasenote": "Cleaner controller deadzone management (still need fixes)",
   "contributors": ["sbenard"],
   "dependencies": {}
 }
