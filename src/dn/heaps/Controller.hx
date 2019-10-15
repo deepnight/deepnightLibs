@@ -246,8 +246,6 @@ class ControllerAccess {
 		else
 			return parent.gc.getValue(AXIS_LEFT_Y_POS, false, dn.M.fclamp(leftDeadZone,0,1));
 	}
-	// public inline function lxValue()         return parent.gc.getValue(AXIS_LEFT_X_POS, false, dn.M.fclamp(leftDeadZone,0,1));
-	// public inline function lyValue()         return parent.gc.getValue(AXIS_LEFT_Y_POS, false, dn.M.fclamp(leftDeadZone,0,1));
 
 	public inline function rxValue()         return parent.gc.getValue(AXIS_RIGHT_X, false, dn.M.fclamp(rightDeadZone,0,1));
 	public inline function ryValue()         return parent.gc.getValue(AXIS_RIGHT_Y, false, dn.M.fclamp(rightDeadZone,0,1));
