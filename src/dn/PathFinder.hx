@@ -48,6 +48,7 @@ private class AStarList {
 
 
 // Credits : http://www.policyalmanac.org/games/aStarTutorial.htm
+//  cached : https://gist.github.com/jcward/45afd22560939aaae5c75e68f1e57505
 
 typedef Path = Array<{x:Int, y:Int}>;
 
