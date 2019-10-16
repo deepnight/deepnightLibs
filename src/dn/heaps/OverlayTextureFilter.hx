@@ -7,7 +7,7 @@ enum BevelType {
 	Deep;
 }
 
-class OverlayBlendShader extends h3d.shader.ScreenShader {
+private class OverlayBlendShader extends h3d.shader.ScreenShader {
 
 	static var SRC = {
 		@param var texture : Sampler2D;
