@@ -803,6 +803,15 @@ class Lib {
 	}
 	#end
 
+	public static function fixKeyPropagationBugJs() {
+		#if( heaps && js )
+		var w = hxd.Window.getInstance();
+		(@:privateAccess w.element).addEventListener("keydown", function(ev) {
+			ev.preventDefault();
+		});
+		#end
+	}
+
 } // End of Lib
 
 
