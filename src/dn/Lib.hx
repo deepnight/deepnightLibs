@@ -708,7 +708,7 @@ class Lib {
 
 	#if heaps
 	static var fullscreenEnabled = false;
-	public static function enableFullscreen(p:dn.Process, ?alternativeKey:Int, button:Bool) {
+	public static function enableFullscreen(scene:h2d.Scene, p:dn.Process, ?alternativeKey:Int, button:Bool) {
 		if( fullscreenEnabled )
 			return;
 
@@ -720,7 +720,7 @@ class Lib {
 
 		if( button ) {
 			var w = 24;
-			var g = new h2d.Graphics(Boot.ME.s2d);
+			var g = new h2d.Graphics(scene);
 			g.alpha = 0.7;
 			g.blendMode = None;
 			g.beginFill(0x0,1);
