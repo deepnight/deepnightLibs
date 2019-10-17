@@ -1,12 +1,14 @@
 {
-  "name": "deepnightLibs",
-  "url" : "https://github.com/deepnight/deepnightLibs",
-  "license": "Apache",
-  "tags": ["Heaps","Hashlink","package","deepnight"],
-  "description": "The general personal libs I use in my Haxe projects.",
-  "version": "0.0.11",
-  "classPath": "src/",
-  "releasenote": "Cleaner controller deadzone management (still need fixes)",
-  "contributors": ["sbenard"],
-  "dependencies": {}
+	"name": "deepnightLibs",
+	"url" : "https://github.com/deepnight/deepnightLibs",
+	"license": "Apache",
+	"tags": ["Heaps","Hashlink","package","deepnight"],
+	"description": "The general personal libs I use in my Haxe projects.",
+	"version": "0.0.12",
+	"classPath": "src/",
+	"releasenote": "Latest heaps/Haxe4RC5 compatibility",
+	"contributors": ["sbenard"],
+	"dependencies": {
+		"heaps": "1.7.0"
+	}
 }
