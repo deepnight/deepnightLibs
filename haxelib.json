@@ -4,11 +4,11 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.13",
+	"version": "0.0.14",
 	"classPath": "src/",
-	"releasenote": "Fixed broken Boot.ME ref",
+	"releasenote": "Removed version from haxelib deps",
 	"contributors": ["sbenard"],
 	"dependencies": {
-		"heaps": "1.7.0"
+		"heaps": ""
 	}
 }
