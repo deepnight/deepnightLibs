@@ -110,7 +110,7 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 				throw 'Unknown frame: $groupName($frame)';
 
 			if (rawTile == null) rawTile = lib.pages[frameData.page].clone();
-			else rawTile.setTexture(lib.pages[frameData.page].getTexture());
+			else rawTile.switchTexture(lib.pages[frameData.page]);
 			lastPage = frameData.page;
 			setFrame(frame);
 		}
@@ -148,7 +148,7 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 				throw 'Unknown frame: $groupName($frame)';
 
 			if( lastFrame != frameData.page ) {
-				rawTile.setTexture(lib.pages[frameData.page].getTexture());
+				rawTile.switchTexture(lib.pages[frameData.page]);
 				lastPage = frameData.page;
 			}
 

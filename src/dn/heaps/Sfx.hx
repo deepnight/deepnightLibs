@@ -596,7 +596,7 @@ class Sfx {
 				// Add field
 				var fieldName = fName.substr(0, fName.length-4); // remove extension
 				fieldName = r_names.replace(fieldName,"_"); // cleanup
-				var wrapperExpr : Expr = { pos:p, expr:EFunction(fieldName, f) }
+				var wrapperExpr : Expr = { pos:p, expr:EFunction(FNamed(fieldName), f) }
 				sounds.push({ field:fieldName, expr:wrapperExpr });
 			}
 			if( n>0 ) break;

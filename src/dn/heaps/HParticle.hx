@@ -334,17 +334,11 @@ class HParticle extends BatchElement {
 
 	function reset(sb:Null<SpriteBatch>, ?tile:Tile, x:Float=0., y:Float=0.) {
 		if( tile!=null ) @:access(h2d.Tile) {
-			this.t.x = tile.x;
-			this.t.y = tile.y;
-			this.t.width = tile.width;
-			this.t.height = tile.height;
+			this.t.setPosition(tile.x, tile.y);
+			this.t.setSize(tile.width, tile.height);
 			this.t.dx = tile.dx;
 			this.t.dy = tile.dy;
-			this.t.innerTex = tile.innerTex;
-			this.t.u = tile.u;
-			this.t.u2 = tile.u2;
-			this.t.v = tile.v;
-			this.t.v2 = tile.v2;
+			this.t.switchTexture(tile);
 		}
 
 		setPosition(x,y);

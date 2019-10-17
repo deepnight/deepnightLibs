@@ -55,8 +55,8 @@ abstract LocaleString(String) to String {
 
 	#if heaps
 	@:to
-	inline function toUString() : hxd.UString {
-		return (cast this:hxd.UString);
+	inline function toUString() : String {
+		return (cast this:String);
 	}
 	#end
 }
