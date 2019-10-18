@@ -811,7 +811,6 @@ class Lib {
 					33, 34, // page up/down
 					35, 36, // home/end
 					8, // backspace
-					32, // space
 					16, 17 : // ctrl & shift
 						ev.preventDefault();
 				case _ :
