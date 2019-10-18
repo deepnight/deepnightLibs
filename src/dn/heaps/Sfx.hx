@@ -124,6 +124,16 @@ class Sfx {
 	}
 
 
+	public inline function togglePlay(?loop=false, ?vol:Float) {
+		if( isPlaying() ) {
+			stop();
+			return false;
+		}
+		else {
+			play(loop, vol);
+			return true;
+		}
+	}
 
 	public function play(?loop=false, ?vol:Float) {
 		if( vol!=null )
