@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"classPath": "src/",
-	"releasenote": "Added a dirty fix for key propagation issue on JS",
+	"releasenote": "Cleaned up key propagation fix for JS targets (pull-requested fix on Heaps GIT)",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""

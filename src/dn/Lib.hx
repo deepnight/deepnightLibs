@@ -807,11 +807,12 @@ class Lib {
 		#if( heaps && js )
 		(@:privateAccess hxd.Window.getInstance().element).addEventListener("keydown", function(ev:js.html.KeyboardEvent) {
 			switch ev.keyCode {
-				case 37, 38, 39, 40, // arrows
-					33, 34, // page up/down
-					35, 36, // home/end
-					8, // backspace
-					16, 17 : // ctrl & shift
+				case 37, 38, 39, 40, // Arrows
+					33, 34, // Page up/down
+					35, 36, // Home/end
+					8, // Backspace
+					16, // Shift
+					17 : // Ctrl
 						ev.preventDefault();
 				case _ :
 			}
