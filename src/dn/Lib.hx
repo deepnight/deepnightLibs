@@ -803,11 +803,19 @@ class Lib {
 	}
 	#end
 
-	public static function fixKeyPropagationBugJs() {
+	public static function preventBrowserGameKeyEvents() {
 		#if( heaps && js )
-		var w = hxd.Window.getInstance();
-		(@:privateAccess w.element).addEventListener("keydown", function(ev) {
-			ev.preventDefault();
+		(@:privateAccess hxd.Window.getInstance().element).addEventListener("keydown", function(ev:js.html.KeyboardEvent) {
+			switch ev.keyCode {
+				case 37, 38, 39, 40, // arrows
+					33, 34, // page up/down
+					35, 36, // home/end
+					8, // backspace
+					32, // space
+					16, 17 : // ctrl & shift
+						ev.preventDefault();
+				case _ :
+			}
 		});
 		#end
 	}
