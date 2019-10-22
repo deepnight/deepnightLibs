@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.17",
+	"version": "0.0.18",
 	"classPath": "src/",
-	"releasenote": "Added togglePlay function to Sfx",
+	"releasenote": "Updated GetText for latest Heaps",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
