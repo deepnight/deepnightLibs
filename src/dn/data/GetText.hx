@@ -239,7 +239,7 @@ class GetText {
 			includeDeprecated(conf.deprecatedFile, data, strMap);
 		}
 
-		Sys.println("[GetText] Saving POT file...");
+		Sys.println("[GetText] Saving POT file ("+conf.potFile+")...");
 		POTools.exportFile( conf.potFile, data );
 
 		var ret = data.map(entry -> POTools.cloneEntry(entry));
@@ -358,7 +358,8 @@ class GetText {
 	#if castle
 	static function exploreCDB( filesList:Array<String>, data:POData, strMap:Map<String,Bool>, ?cdbSpecialId: Array<{ereg: EReg, field: String}> ){
 		for( file in filesList ){
-			var cbdData = cdb.Parser.parse( sys.io.File.getContent(file) );
+			Sys.println("  -> "+file);
+			var cbdData = cdb.Parser.parse( sys.io.File.getContent(file), false );
 			var columns = new Map<String,Array<Array<String>>>();
 			for( sheet in cbdData.sheets ){
 				var p = sheet.name.split("@");
@@ -370,7 +371,7 @@ class GetText {
 				var cid = p;
 
 				for ( column in sheet.columns ) {
-					if( column.kind == Localizable && column.type == TString ){
+					if( Std.string(column.kind) == "localizable" && column.type == TString ){
 						var p = p.copy();
 						p.push( column.name );
 						sheetColumns.push( p );
