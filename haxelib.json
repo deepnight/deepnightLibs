@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.19",
+	"version": "0.0.20",
 	"classPath": "src/",
-	"releasenote": "Updated Sfx with latest Heaps fixes. Asset importers moved to a new folder.",
+	"releasenote": "Added pixel-perfect outline filter. Moved OverlayTexture to dn.heaps.filter package.",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
