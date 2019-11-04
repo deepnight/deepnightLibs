@@ -1,4 +1,4 @@
-package dn.heaps;
+package dn.heaps.filter;
 
 enum BevelType {
 	Classic;
@@ -7,39 +7,8 @@ enum BevelType {
 	Deep;
 }
 
-private class OverlayBlendShader extends h3d.shader.ScreenShader {
-
-	static var SRC = {
-		@param var texture : Sampler2D;
-		@param var overlay : Sampler2D;
-
-		@param var alpha : Float;
-		@param var uvScale : Vec2;
-
-		function blendOverlay(base:Vec3, blend:Vec3) : Vec3 {
-			return mix(
-				1.0 - 2.0 * (1.0 - base) * (1.0 - blend),
-				2.0 * base * blend,
-				step( base, vec3(0.5) )
-			);
-		}
-
-		function fragment() {
-			var sourceColor = texture.get(input.uv);
-			var overlayColor = mix( vec4(0.5), overlay.get(input.uv*uvScale), alpha );
-
-			pixelColor.rgba = vec4(
-				blendOverlay( sourceColor.rgb, overlayColor.rgb ),
-				sourceColor.a
-			);
-		}
-
-	};
-}
-
-
-
-class OverlayTextureFilter extends h2d.filter.Shader<OverlayBlendShader> {
+// --- Filter -------------------------------------------------------------------------------
+class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
 	public var alpha(get,set) : Float;
 	public var bevelSize(default,set) : Int;
 	public var bevelType(default,set) : BevelType;
@@ -136,4 +105,36 @@ class OverlayTextureFilter extends h2d.filter.Shader<OverlayBlendShader> {
 		shader.overlay = overlayTex;
 		shader.uvScale = new hxsl.Types.Vec( screenWid / overlayTex.width, screenHei / overlayTex.width );
 	}
+}
+
+
+// --- Shader -------------------------------------------------------------------------------
+private class OverlayBlendShader extends h3d.shader.ScreenShader {
+
+	static var SRC = {
+		@param var texture : Sampler2D;
+		@param var overlay : Sampler2D;
+
+		@param var alpha : Float;
+		@param var uvScale : Vec2;
+
+		function blendOverlay(base:Vec3, blend:Vec3) : Vec3 {
+			return mix(
+				1.0 - 2.0 * (1.0 - base) * (1.0 - blend),
+				2.0 * base * blend,
+				step( base, vec3(0.5) )
+			);
+		}
+
+		function fragment() {
+			var sourceColor = texture.get(input.uv);
+			var overlayColor = mix( vec4(0.5), overlay.get(input.uv*uvScale), alpha );
+
+			pixelColor.rgba = vec4(
+				blendOverlay( sourceColor.rgb, overlayColor.rgb ),
+				sourceColor.a
+			);
+		}
+
+	};
 }
