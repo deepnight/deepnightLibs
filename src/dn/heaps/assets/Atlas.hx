@@ -1,4 +1,4 @@
-package dn.heaps.slib.assets;
+package dn.heaps.assets;
 
 import dn.heaps.slib.SpriteLib;
 

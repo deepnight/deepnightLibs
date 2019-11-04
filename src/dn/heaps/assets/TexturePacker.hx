@@ -1,4 +1,4 @@
-package dn.heaps.slib.assets;
+package dn.heaps.assets;
 
 #if macro
 import haxe.macro.Context;
