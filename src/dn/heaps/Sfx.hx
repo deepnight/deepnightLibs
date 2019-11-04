@@ -54,9 +54,7 @@ class Sfx {
 	public var group(get,never) : Null<SoundGroup>;
 	public var volume(default,set) : Float;
 	public var groupId : Int;
-	var duration(get,never) : Float;
-	inline function get_duration() return channel==null ? 0 : channel.duration;
-
+	public var duration(get,never) : Float; inline function get_duration() return channel==null ? 0 : channel.duration;
 
 
 	public function new(s:Sound) {
