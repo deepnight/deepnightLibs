@@ -1,12 +1,16 @@
 package dn.heaps;
 
+#if !macro
 import dn.M;
 import hxd.snd.*;
 import hxd.res.Sound;
+#end
 
 
 // --- GLOBAL PLAY GROUP ------------------------------------------------------
+#if !macro
 private class GlobalGroup {
+
 	var id : Int;
 	var volume : Float;
 	public var group : SoundGroup;
@@ -36,11 +40,18 @@ private class GlobalGroup {
 		return v;
 	}
 }
+#end
 
 
 // --- SFX ------------------------------------------------------
 
 class Sfx {
+	macro public static function importDirectory(dir:String) {
+		haxe.macro.Context.error("ERROR: importDirectory() is deprecated. Use dn.heaps.assets.SfxDirectory.load() instead.", haxe.macro.Context.currentPos());
+		return macro null;
+	}
+
+	#if !macro
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
 	public static var DEFAULT_GROUP_ID = 0;
 
@@ -164,5 +175,5 @@ class Sfx {
 	public static inline function isMuted(id) {
 		return getGlobalGroup(id).muted;
 	}
-
+	#end
 }
