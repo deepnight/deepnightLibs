@@ -25,9 +25,9 @@ class GameFocusHelper extends dn.Process {
             suspendGame();
         #end
 
-        #if js
-        @:privateAccess hxd.snd.NativeChannel.stopInput(null);
-        #end
+        // #if js
+        // @:privateAccess hxd.snd.NativeChannel.stopInput(null);
+        // #end
     }
 
     var oldSprLibTmod = 1.0;
