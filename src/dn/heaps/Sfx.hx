@@ -10,6 +10,7 @@ import hxd.res.Sound;
 #end
 
 
+// --- GLOBAL PLAY GROUP ------------------------------------------------------
 #if !macro
 private class GlobalGroup {
 	var id : Int;
@@ -44,10 +45,12 @@ private class GlobalGroup {
 #end
 
 
+// --- SFX ------------------------------------------------------
+
 class Sfx {
 	#if !macro
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
-
+	public static var DEFAULT_GROUP_ID = 0;
 
 	public var channel : Null<Channel>;
 	public var sound : Sound;
@@ -60,13 +63,12 @@ class Sfx {
 	public function new(s:Sound) {
 		sound = s;
 		volume = 1;
-		groupId = 0;
+		groupId = DEFAULT_GROUP_ID;
 	}
 
 	public function toString() {
 		return Std.string(sound);
 	}
-
 
 
 	inline function get_group() return getGlobalGroup(groupId).group;
