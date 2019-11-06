@@ -4,13 +4,17 @@ package dn.pathfinder;
 // Source: https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/
 
 @:allow(dn.pathfinder.PathNode)
-class AStar {
+class AStar<T> {
 	var nodes : Array<PathNode> = [];
 	var collisions : Map<Int,Bool> = new Map();
 	var wid = -1;
 	var hei = -1;
 
-	public function new() {}
+	var nodeToPoint : (Int,Int)->T;
+
+	public function new(nodeToPoint:(Int,Int)->T) {
+		this.nodeToPoint = nodeToPoint;
+	}
 
 	public function init(w:Int, h:Int, hasCollision:(Int,Int)->Bool) {
 		wid = w;
@@ -51,7 +55,7 @@ class AStar {
 
 		// Simple case
 		if( sightCheck(fx,fy,tx,ty) )
-			return [ new PathPoint(tx,ty) ];
+			return [ nodeToPoint(tx,ty) ];
 
 		// Init network
 		for(n in nodes)
@@ -77,7 +81,7 @@ class AStar {
 		}
 
 		// Get path
-		var path = astar(start,end).map( function(n) return n.toPoint() );
+		var path = astar(start,end).map( function(n) return nodeToPoint(n.cx,n.cy) );
 		for(i in 0...addeds)
 			nodes.pop();
 		return path;
@@ -175,7 +179,7 @@ private class PathNode {
 	public var homeDist = 0.;
 	public var parent : Null<PathNode>;
 
-	public function new(as:AStar, x,y) {
+	public function new(as:AStar<Dynamic>, x,y) {
 		cx = x;
 		cy = y;
 		id = cx + cy*as.wid;
@@ -201,21 +205,5 @@ private class PathNode {
 			originalNexts.push(n);
 			n.originalNexts.push(this);
 		}
-	}
-
-	public inline function toPoint() return new PathPoint(cx,cy);
-}
-
-
-
-// **** Output point ************************************************************
-
-class PathPoint {
-	public var cx : Int;
-	public var cy : Int;
-
-	public function new(x,y) {
-		cx = x;
-		cy = y;
 	}
 }

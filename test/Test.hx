@@ -13,7 +13,7 @@ class Test {
 		test(HaxeJson, function() HaxeJson.prettify("{ a:5 }"));
 		test(dn.heaps.HParticle, function() dn.heaps.HParticle.DEFAULT_BOUNDS);
 		test(Lib, function() M.dist(0,0, 10,10));
-		test(PathFinder, function() new PathFinder(5,5));
+		test(dn.pathfinder.AStar, function() new dn.pathfinder.AStar( function(cx,cy) return { cx:cx, cy:cy } ));
 		test(Process, function() new dn.Process());
 		test(Rand, function() new Rand(0));
 		test(RandDeck, function() new RandDeck());
