@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.20",
+	"version": "0.0.21",
 	"classPath": "src/",
-	"releasenote": "Added pixel-perfect outline filter. Moved OverlayTexture to dn.heaps.filter package.",
+	"releasenote": "Added optimized AStar pathfinder. Removed old pathfinder.",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
