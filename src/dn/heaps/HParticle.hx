@@ -72,7 +72,7 @@ class ParticlePool {
 		}
 	}
 
-	public inline function getAllocateds() return nalloc;
+	public inline function count() return nalloc;
 
 	public inline function killAll() {
 		for( i in 0...nalloc) {
@@ -252,6 +252,7 @@ class HParticle extends BatchElement {
 	public var onStart			: Null<Void->Void>;
 	public var onBounce			: Null<Void->Void>;
 	public var onUpdate			: Null<HParticle->Void>;
+	public var onFadeOutStart	: Null<HParticle->Void>;
 	public var onKill			: Null<Void->Void>;
 
 	public var pixel			: Bool;
@@ -387,6 +388,7 @@ class HParticle extends BatchElement {
 		onKill = null;
 		onBounce = null;
 		onUpdate = null;
+		onFadeOutStart = null;
 	}
 
 
@@ -652,6 +654,8 @@ class HParticle extends BatchElement {
 						}
 					}
 
+					if( onFadeOutStart!=null && rLifeF>0 && rLifeF-tmod<=0 )
+						onFadeOutStart(this);
 					rLifeF -= tmod;
 
 					// Fade out (life)
