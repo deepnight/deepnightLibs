@@ -46,6 +46,10 @@ private class GlobalGroup {
 // --- SFX ------------------------------------------------------
 
 class Sfx {
+	static var SPATIAL_LISTENER_X = 0.;
+	static var SPATIAL_LISTENER_Y = 0.;
+	static var SPATIAL_LISTENER_RANGE = 1.;
+
 	macro public static function importDirectory(dir:String) {
 		haxe.macro.Context.error("ERROR: importDirectory() is deprecated. Use dn.heaps.assets.SfxDirectory.load() instead.", haxe.macro.Context.currentPos());
 		return macro null;
@@ -83,7 +87,11 @@ class Sfx {
 		return volume;
 	}
 
-
+	public static inline function setSpatialListenerPosition(x:Float, y:Float, maxRange:Float) {
+		SPATIAL_LISTENER_X = x;
+		SPATIAL_LISTENER_Y = y;
+		SPATIAL_LISTENER_RANGE = maxRange;
+	}
 
 	static function getGlobalGroup(id) : GlobalGroup {
 		if( !GLOBAL_GROUPS.exists(id) )
@@ -139,6 +147,17 @@ class Sfx {
 			volume = vol;
 		channel = sound.play(loop, volume, getGlobalGroup(groupId).group);
 		channel.volume = volume*getGlobalGroup(groupId).getVolume();
+		return this;
+	}
+
+	public function playSpatial(x:Float, y:Float, ?vol:Float) {
+		if( vol!=null )
+			volume = vol;
+		channel = sound.play(false, volume, getGlobalGroup(groupId).group);
+
+		var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
+		var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
+		channel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
 		return this;
 	}
 
