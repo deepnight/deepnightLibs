@@ -666,6 +666,10 @@ class Color {
 		];
 		return h3d.Matrix.L(m);
 	}
+
+	public static inline function getColorizeFilterH2d(col:UInt, ?ratioNewColor=1.0, ?ratioOldColor:Float) : h2d.filter.ColorMatrix {
+		return new h2d.filter.ColorMatrix( getColorizeMatrixH2d(col, ratioNewColor, ratioOldColor) );
+	}
 	#end
 
 	#if (flash9 || openfl)
