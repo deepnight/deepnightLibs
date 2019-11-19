@@ -20,7 +20,7 @@ class Controller {
 	var gc : GamePad;
 	var suspendTimer = 0.;
 
-	var isLocked = false;
+	var locked = false;
 	public var allowAutoSwitch = true;
 
 	var primary : haxe.ds.IntMap<Int> = new haxe.ds.IntMap();
@@ -63,10 +63,11 @@ class Controller {
 
 	public inline function setDefaultDeadZone(v:Float) gc.deadZone = dn.M.fclamp(v,0,1);
 
-	public function lock() isLocked = true;
+	public function isLocked() return locked;
+	public function lock() locked = true;
 	public function unlock() {
-		if( isLocked ) {
-			isLocked = false;
+		if( locked ) {
+			locked = false;
 			suspendTemp();
 		}
 	}
@@ -186,7 +187,7 @@ class ControllerAccess {
 
 	public inline function lock() manualLock = true;
 	public inline function unlock() manualLock = false;
-	public inline function locked() return manualLock || parent.isLocked || ( parent.exclusiveId!=null && parent.exclusiveId!=id ) || haxe.Timer.stamp()<parent.suspendTimer;
+	public inline function locked() return manualLock || parent.isLocked() || ( parent.exclusiveId!=null && parent.exclusiveId!=id ) || haxe.Timer.stamp()<parent.suspendTimer;
 
 
 	public inline function isDown(k:PadKey)      return !locked() && ( isKeyboardDown(parent.getPrimaryKey(k)) || isKeyboardDown(parent.getSecondaryKey(k)) || isKeyboardDown(parent.getThirdKey(k)) || parent.gc.isDown(k) );
