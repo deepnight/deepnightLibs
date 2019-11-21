@@ -384,12 +384,16 @@ class Color {
 		//return rgb.r<=maxRed*255 && rgb.g<=maxGreen*255 && rgb.b<=maxBlue*255;
 	}
 
-	public static inline function getLuminosityPerception(c:Col) { // 0-255, tient compte de la luminance réelle
-		return Math.sqrt( 0.241*(c.r*c.r) + 0.691*(c.g*c.g) + 0.068*(c.b*c.b) );
+	public static inline function getPerceivedLuminosity(c:Col) : Float  { // 0-1
+		return Math.sqrt( 0.241*(c.r*c.r) + 0.691*(c.g*c.g) + 0.068*(c.b*c.b) ) / 255;
 	}
 
-	public static inline function autoContrast(c:Int, ?dark=0x0, ?light=0xffffff) { // renvoie DARK si C est clair, ou LIGHT si C est sombre
-		return getLuminosityPerception(intToRgb(c))>=125 ? dark : light;
+	public static inline function getPerceivedLuminosityInt(c:UInt) : Float { // 0-1
+		return Math.sqrt( 0.241*(getR(c)*getR(c)) + 0.691*(getG(c)*getG(c)) + 0.068*(getB(c)*getB(c)) );
+	}
+
+	public static inline function autoContrast(c:Int, ?ifLight=0x0, ?ifDark=0xffffff) { // returns ifLight color if c is light, ifDark otherwise
+		return getPerceivedLuminosityInt(c)>=0.5 ? ifLight : ifDark;
 	}
 
 	public static inline function getLuminosity(?c:Col, ?cint:Int) { // 0-1, valeur HSL
