@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.23",
+	"version": "0.0.24",
 	"classPath": "src/",
-	"releasenote": "Added simple sound spatialization support.",
+	"releasenote": "Added new methods() to Controller and Color",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
