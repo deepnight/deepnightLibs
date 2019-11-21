@@ -248,6 +248,11 @@ class ControllerAccess {
 	public inline function yLongPressing()   return !locked() && getLongPressRatio(Y)>0;
 	public inline function yLongPressRatio() return getLongPressRatio(Y);
 
+	public inline function leftAngle() return Math.atan2( -lyValue(), lxValue() );
+	public inline function leftDist() return M.fmax( M.fabs(lxValue()), M.fabs(lyValue()) );
+	public inline function rightAngle() return Math.atan2( -ryValue(), rxValue() );
+	public inline function rightDist() return M.fmax( M.fabs(rxValue()), M.fabs(ryValue()) );
+
 	public inline function lxValue() : Float {
 		if( isKeyboard() )
 			return leftDown() ? -1 : rightDown() ? 1 : 0;
