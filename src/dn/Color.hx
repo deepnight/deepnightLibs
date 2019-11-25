@@ -26,6 +26,10 @@ class Color {
 	public static var WHITE = intToRgb(0xffffff);
 	public static var MEDIAN_GRAY = intToRgb(0x808080);
 
+	public static var RED_LUMA = 0.299;
+	public static var GREEN_LUMA = 0.587;
+	public static var BLUE_LUMA = 0.114;
+
 	public static inline function hexToRgb(hex:String) : Col {
 		if ( hex==null )
 			throw "hexToColor with null";
@@ -317,17 +321,12 @@ class Color {
 	}
 
 
-	public static inline function desaturate(c:Col, ratio:Float) : Col {
-		var gray = 0.3*c.r + 0.59*c.g + 0.11*c.b;
-		return {
-			r	: Std.int(gray*ratio + c.r*(1-ratio)),
-			g	: Std.int(gray*ratio + c.g*(1-ratio)),
-			b	: Std.int(gray*ratio + c.b*(1-ratio)),
-		}
-	}
-
-	public static inline function desaturateInt(c:Int, ratio:Float) : Int {
-		return rgbToInt( desaturate(intToRgb(c),ratio) );
+	public static inline function grayscale(c:UInt) : UInt {
+		var gray = RED_LUMA*getR(c) + GREEN_LUMA*getG(c) + BLUE_LUMA*getB(c);
+		return
+			( Std.int(gray*255) << 16 ) |
+			( Std.int(gray*255) << 8 ) |
+			( Std.int(gray*255) );
 	}
 
 
@@ -385,11 +384,11 @@ class Color {
 	}
 
 	public static inline function getPerceivedLuminosity(c:Col) : Float  { // 0-1
-		return Math.sqrt( 0.241*(c.r*c.r) + 0.691*(c.g*c.g) + 0.068*(c.b*c.b) ) / 255;
+		return Math.sqrt( RED_LUMA*(c.r*c.r) + GREEN_LUMA*(c.g*c.g) + BLUE_LUMA*(c.b*c.b) ) / 255;
 	}
 
 	public static inline function getPerceivedLuminosityInt(c:UInt) : Float { // 0-1
-		return Math.sqrt( 0.241*(getR(c)*getR(c)) + 0.691*(getG(c)*getG(c)) + 0.068*(getB(c)*getB(c)) );
+		return Math.sqrt( RED_LUMA*(getR(c)*getR(c)) + GREEN_LUMA*(getG(c)*getG(c)) + BLUE_LUMA*(getB(c)*getB(c)) );
 	}
 
 	public static inline function autoContrast(c:Int, ?ifLight=0x0, ?ifDark=0xffffff) { // returns ifLight color if c is light, ifDark otherwise
@@ -618,12 +617,12 @@ class Color {
 
 	// Renvoie une matrice pour utiliser avec un ColorMatrixFilter
 	static inline function getDesaturateMatrix(?ratio=1.0) {
-		// Credit : http://www.senocular.com/flash/source/?id=0.169
+		// Credit : https://en.wikipedia.org/wiki/Luma_(video)
 		var redIdentity		= [1.0, 0, 0, 0, 0];
 		var greenIdentity	= [0, 1.0, 0, 0, 0];
 		var blueIdentity	= [0, 0, 1.0, 0, 0];
 		var alphaIdentity	= [0, 0, 0, 1.0, 0];
-		var grayluma		= [.3, .59, .11, 0, 0];
+		var grayluma		= [RED_LUMA, GREEN_LUMA, BLUE_LUMA, 0, 0];
 
 		var a = new Array();
 		a = a.concat( interpolateArrays(redIdentity,	grayluma, ratio) );
