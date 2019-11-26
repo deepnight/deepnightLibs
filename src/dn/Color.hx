@@ -280,6 +280,14 @@ class Color {
 		return hslToRgb(hsl);
 	}
 
+	public static function getHue(c:Int) {
+		return intToHsl(c).h;
+	}
+
+	public static function getSaturation(c:Int) {
+		return intToHsl(c).s;
+	}
+
 	public static inline function hueInt(c:Int, f:Float) {
 		return rgbToInt( hue(intToRgb(c), f) );
 	}
