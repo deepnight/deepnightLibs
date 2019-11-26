@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.24",
+	"version": "0.0.25",
 	"classPath": "src/",
-	"releasenote": "Added new methods() to Controller and Color",
+	"releasenote": "Better luminosity getter & grayscale using unified Luma values",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
