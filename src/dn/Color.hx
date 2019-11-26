@@ -322,11 +322,15 @@ class Color {
 
 
 	public static inline function grayscale(c:UInt) : UInt {
-		var gray = RED_LUMA*getR(c) + GREEN_LUMA*getG(c) + BLUE_LUMA*getB(c);
+		var gray = getGrayscaleFactor(c);
 		return
 			( Std.int(gray*255) << 16 ) |
 			( Std.int(gray*255) << 8 ) |
 			( Std.int(gray*255) );
+	}
+
+	public static inline function getGrayscaleFactor(c:UInt) : Float {
+		return RED_LUMA*getR(c) + GREEN_LUMA*getG(c) + BLUE_LUMA*getB(c);
 	}
 
 
