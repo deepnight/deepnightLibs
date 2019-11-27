@@ -793,4 +793,16 @@ class M {
 		}
 	}
 
+	public static function intToBitString(v:Int, ?pad=8) {
+		var bitMask = 1;
+		var out = "";
+		while( bitMask<=v ) {
+			out += ( v&bitMask!=0 ? "1" : "0" );
+			bitMask<<=1;
+		}
+		while( out.length<pad )
+			out = "0"+out;
+		return out;
+	}
+
 }
