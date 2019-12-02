@@ -6,7 +6,7 @@
 	"description": "The general personal libs I use in my Haxe projects.",
 	"version": "0.0.26",
 	"classPath": "src/",
-	"releasenote": "Added rotation velocity friction",
+	"releasenote": "Added HParticle rotation velocity friction. Added useful methods to Lib & DecisionHelper.",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
