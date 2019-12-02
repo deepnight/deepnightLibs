@@ -225,6 +225,7 @@ class HParticle extends BatchElement {
 	public var scaleXMul		: Float;
 	public var scaleYMul		: Float;
 	public var dr				: Float;
+	public var drFrict			: Float;
 	public var frict(get,set)	: Float;
 	public var frictX			: Float;
 	public var frictY			: Float;
@@ -374,6 +375,7 @@ class HParticle extends BatchElement {
 		dx = dy = da = dr = ds = dsX = dsY = 0;
 		gx = gy = 0;
 		frictX = frictY = 1;
+		drFrict = 1;
 		fadeOutSpeed = 0.1;
 		bounceMul = 0.85;
 		delayS = 0;
@@ -628,6 +630,7 @@ class HParticle extends BatchElement {
 
 				if( !killed ) { // can be killed in onBounce
 					rotation += dr * tmod;
+					dr *= optimPow(drFrict, tmod);
 					scaleX += (ds+dsX) * tmod;
 					scaleY += (ds+dsY) * tmod;
 					var scaleMulTmod = optimPow(scaleMul, tmod);
