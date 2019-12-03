@@ -252,6 +252,7 @@ class HParticle extends BatchElement {
 
 	public var onStart			: Null<Void->Void>;
 	public var onBounce			: Null<Void->Void>;
+	public var onTouchGround	: Null<HParticle->Void>;
 	public var onUpdate			: Null<HParticle->Void>;
 	public var onFadeOutStart	: Null<HParticle->Void>;
 	public var onKill			: Null<Void->Void>;
@@ -391,6 +392,7 @@ class HParticle extends BatchElement {
 		onBounce = null;
 		onUpdate = null;
 		onFadeOutStart = null;
+		onTouchGround = null;
 	}
 
 
@@ -626,6 +628,8 @@ class HParticle extends BatchElement {
 					y = groundY-1;
 					if( onBounce!=null )
 						onBounce();
+					if( onTouchGround!=null )
+						onTouchGround(this);
 				}
 
 				if( !killed ) { // can be killed in onBounce
