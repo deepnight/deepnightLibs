@@ -805,4 +805,11 @@ class M {
 		return out;
 	}
 
+	public static inline function setBit(baseValue:Int, bitIdx:Int) : Int {
+		return baseValue | ( 1<<bitIdx );
+	}
+
+	public static inline function hasBit(v:Int, bitIdx:Int) : Bool{
+		return v & ( 1<<bitIdx ) != 0;
+	}
 }
