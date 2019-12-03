@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.27",
+	"version": "0.0.28",
 	"classPath": "src/",
-	"releasenote": "Added HParticle.onTouchGround.",
+	"releasenote": "Added set/hasBits to M. Fixed Hparticle reset()",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
