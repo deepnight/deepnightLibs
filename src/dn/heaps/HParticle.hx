@@ -344,8 +344,6 @@ class HParticle extends BatchElement {
 			this.t.switchTexture(tile);
 		}
 
-		setPosition(x,y);
-
 		if( batch!=sb ) {
 			if( batch!=null )
 				remove();
@@ -353,15 +351,20 @@ class HParticle extends BatchElement {
 				sb.add(this);
 		}
 
+		// Batch-element base fields
+		setPosition(x,y);
+		scaleX = 1;
+		scaleY = 1;
+		rotation = 0;
+		r = g = b = a = 1;
+		alpha = 1;
+		visible = true;
+
+		// Hparticle fields
 		data0 = data1 = data2 = data3 = data4 = data5 = data6 = data7 = Math.NaN;
 		customTmod = null;
 		animId = null;
 		animLib = null;
-		uncolorize();
-		visible = true;
-		rotation = 0;
-		scale = 1;
-		alpha = 1;
 		scaleMul = 1;
 		scaleXMul = scaleYMul = 1;
 		dsFrict = 1;
@@ -387,6 +390,7 @@ class HParticle extends BatchElement {
 		groundY = null;
 		groupId = null;
 
+		// Callbacks
 		onStart = null;
 		onKill = null;
 		onBounce = null;
