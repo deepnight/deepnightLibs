@@ -85,6 +85,13 @@ class ParticlePool {
 		nalloc = 0;
 	}
 
+	public inline function killAllWithFade() {
+		for( i in 0...nalloc) {
+			var p = all[i];
+			p.lifeS = 0;
+		}
+	}
+
 	public function dispose() {
 		for(p in all)
 			@:privateAccess p.dispose();
