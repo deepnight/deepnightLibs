@@ -784,6 +784,10 @@ class M {
 		return normalizeRad(a-b);
 	}
 
+	public static inline function angTo(fx:Float, fy:Float, tx:Float, ty:Float) {
+		return Math.atan2(ty-fy, tx-fx);
+	}
+
 	public static inline function pretty(v:Float, precision=2) : Float {
 		if( precision<=0 )
 			return round(v);
