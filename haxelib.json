@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.29",
+	"version": "0.0.30",
 	"classPath": "src/",
-	"releasenote": "Added Identify",
+	"releasenote": "Hotfix on Identify (returns enum-typed values)",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
