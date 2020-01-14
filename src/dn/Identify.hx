@@ -1,13 +1,17 @@
 package dn;
 
+// Inspired by: https://github.com/maitag/whatformat
+// Signatures: https://en.wikipedia.org/wiki/List_of_file_signatures
+
 enum IdentifyFormat {
 	Unknown;
+	// Images
 	Png;
 	Jpeg;
 	Gif;
+	Bmp;
 }
 
-// Inspired by: https://github.com/maitag/whatformat
 class Identify {
 	static var formats = [
 		// Note: "-1" means "any byte"
@@ -20,6 +24,8 @@ class Identify {
 		{ id:Jpeg, magic:[0xFF,0xD8,0xFF,0xDB] }, // Jpeg raw
 		{ id:Jpeg, magic:[0xFF,0xD8,0xFF,0xE0,-1,-1,0x4A,0x46,0x49,0x46,0x00,0x01] }, // Jpeg JFIF
 		{ id:Jpeg, magic:[0xFF,0xD8,0xFF,0xE1,-1,-1,0x45,0x78,0x69,0x66,0x00,0x00] }, // Jpeg EXIF
+
+		{ id:Bmp,  magic:[0x42,0x4d] },
 	];
 
 	public static function getType(b:haxe.io.Bytes) : IdentifyFormat {
