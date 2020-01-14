@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.28",
+	"version": "0.0.29",
 	"classPath": "src/",
-	"releasenote": "Added set/hasBits to M. Fixed Hparticle reset()",
+	"releasenote": "Added Identify",
 	"contributors": ["sbenard"],
 	"dependencies": {
 		"heaps": ""
