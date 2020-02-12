@@ -188,7 +188,7 @@ class Cinematic {
 			$r;
 		}
 		#if CinematicDebug
-		trace( tink.macro.tools.Printer.print(r) );
+		trace( new haxe.macro.Printer().printExpr(r) );
 		#end
 		return r;
 	}
