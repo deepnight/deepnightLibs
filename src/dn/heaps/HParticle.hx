@@ -8,7 +8,7 @@ import dn.M;
 import h2d.Tile;
 import h2d.SpriteBatch;
 import dn.Lib;
-import h3d.impl.AllocPos;
+import hxd.impl.AllocPos;
 
 class ParticlePool {
 	var all : haxe.ds.Vector<HParticle>;
