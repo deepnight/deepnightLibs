@@ -159,13 +159,16 @@ class HaxeJson {
 
 
 	public static function prettify(json:String) {
-		var out = "";
+		var strBuff = new StringBuf();
 		var inString = false;
 		var indent = 0;
-		for(c in json.split("")) {
-			var jumpBefore = false;
-			var jumpAfter = false;
+		var jumpBefore : Bool;
+		var jumpAfter : Bool;
+		var cid : Int;
 
+		for(c in json.split("")) {
+			cid = c.charCodeAt(0);
+			jumpBefore = jumpAfter = false;
 			if( inString ) {
 				if( c=="\"" )
 					inString = false;
@@ -204,18 +207,18 @@ class HaxeJson {
 					case "\"" : inString = true;
 				}
 			if( jumpBefore ) {
-				out+="\n";
+				strBuff.addChar(10); // new line
 				for(i in 0...indent)
-					out+="\t";
+					strBuff.addChar(9); // tab
 			}
-			out+=c;
+			strBuff.addChar(cid);
 			if( jumpAfter ) {
-				out+="\n";
+				strBuff.addChar(10); // new line
 				for(i in 0...indent)
-					out+="\t";
+					strBuff.addChar(9); // tab
 			}
 		}
-		return out;
+		return strBuff.toString();
 	}
 
 }
