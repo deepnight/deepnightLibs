@@ -433,9 +433,9 @@ class Color {
 
 	public static inline function addHslInt(c:Int, hDelta:Float, sDelta:Float, lDelta:Float) {
 		var hsl = intToHsl(c);
-		hsl.h += hDelta;
-		hsl.s += sDelta;
-		hsl.l += lDelta;
+		hsl.h = M.fclamp( hsl.h + hDelta, 0, 1 );
+		hsl.s = M.fclamp( hsl.s + sDelta, 0, 1 );
+		hsl.l = M.fclamp( hsl.l + lDelta, 0, 1 );
 		return hslToInt(hsl);
 	}
 
@@ -517,11 +517,11 @@ class Color {
 		return rgbToInt( interpolate(intToRgb(colors[idx]), intToRgb(colors[idx+1]), subRatio) );
 	}
 
-	public static inline function darken(c:Int, ratio:Float) : Int {
+	public static inline function toBlack(c:Int, ratio:Float) : Int {
 		return rgbToInt( interpolate(intToRgb(c), BLACK, ratio) );
 	}
 
-	public static inline function lighten(c:Int, ratio:Float) : Int {
+	public static inline function toWhite(c:Int, ratio:Float) : Int {
 		return rgbToInt( interpolate(intToRgb(c), WHITE, ratio) );
 	}
 
