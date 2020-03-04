@@ -203,6 +203,9 @@ class M {
 	inline public static function sign(x:Float):Int {
 		return (x > 0) ? 1 : (x < 0 ? -1 : 0);
 	}
+	inline public static function signEq(x:Float,y:Float):Bool {
+		return M.sign(x)==M.sign(y);
+	}
 
 	/**
 	 * Clamps x to the interval so min <= x <= max.
