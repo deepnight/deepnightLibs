@@ -4,11 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.32",
+	"version": "0.0.33",
 	"classPath": "src/",
-	"releasenote": "Optimized HaxeJson.prettify, added FilePath class",
+	"releasenote": "Got rid of Heaps haxelib-depency as it was getting in the way of GIT-installed Heaps versions",
 	"contributors": ["sbenard"],
-	"dependencies": {
-		"heaps": ""
-	}
+	"dependencies": {}
 }
