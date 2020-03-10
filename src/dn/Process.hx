@@ -98,6 +98,7 @@ class Process {
 	// overridable functions
 	// -----------------------------------------------------------------------
 
+	public function preUpdate() {}
 	public function update() {}
 	public function postUpdate() { }
 	public function onResize() { }
@@ -202,8 +203,10 @@ class Process {
 				onDispose(p);
 			}
 
-		if( runUpdateImmediatly )
-			_doProcessMainUpdate(p,1);
+		if( runUpdateImmediatly ) {
+			_doProcessPreUpdate(p,1);
+			_doProcessMainUpdate(p);
+		}
 
 		return p;
 	}
@@ -216,7 +219,8 @@ class Process {
 	// -----------------------------------------------------------------------
 	// internals statics
 	// -----------------------------------------------------------------------
-	static function _doProcessMainUpdate(p : Process, tmod:Float) {
+
+	static inline function _doProcessPreUpdate(p:Process, tmod:Float) {
 		if( p.paused || p.destroyed )
 			return;
 
@@ -226,18 +230,32 @@ class Process {
 		p.ftime += tmod;
 
 		p.delayer.update(tmod);
-		p.cd.update(tmod);
-		p.tw.update(tmod);
 
-		if( !p.paused && !p.destroyed ) {
-			p.update();
-			if( p.onUpdateCb != null )
-				p.onUpdateCb();
-		}
+		if( !p.paused && !p.destroyed )
+			p.cd.update(tmod);
+
+		if( !p.paused && !p.destroyed )
+			p.tw.update(tmod);
+
+		if( !p.paused && !p.destroyed )
+			p.preUpdate();
+
+		if( !p.destroyed )
+			for (c in p.children)
+				_doProcessPreUpdate(c,tmod);
+	}
+
+	static function _doProcessMainUpdate(p : Process) {
+		if( p.paused || p.destroyed )
+			return;
+
+		p.update();
+		if( p.onUpdateCb!=null )
+			p.onUpdateCb();
 
 		if( !p.paused && !p.destroyed )
 			for (p in p.children)
-				_doProcessMainUpdate(p, tmod);
+				_doProcessMainUpdate(p);
 	}
 
 	static inline function _doProcessPostUpdate(p : Process) {
@@ -324,7 +342,10 @@ class Process {
 
 	public static function updateAll(tmod:Float) {
 		for (p in ROOTS)
-			_doProcessMainUpdate(p, tmod);
+			_doProcessPreUpdate(p, tmod);
+
+		for (p in ROOTS)
+			_doProcessMainUpdate(p);
 
 		for (p in ROOTS)
 			_doProcessPostUpdate(p);
