@@ -9,7 +9,6 @@ class Process {
 	static var UNIQ_ID = 0;
 	static var ROOTS : Array<Process> = [];
 
-	public var rendering(default, null) : Bool; // if that process update frame is a rendering one
 	public var uniqId					: Int;
 	public var ftime(default, null)		: Float; // elapsed frames
 	public var itime(get, never)		: Int;
@@ -218,9 +217,9 @@ class Process {
 	// static api
 	// -----------------------------------------------------------------------
 
-	public static function updateAll(tmod:Float, ?rendering:Bool=true) {
+	public static function updateAll(tmod:Float) {
 		for (p in ROOTS)
-			_doProcessMainUpdate(p, tmod, rendering);
+			_doProcessMainUpdate(p, tmod);
 
 		for (p in ROOTS)
 			_doProcessPostUpdate(p);
@@ -244,13 +243,12 @@ class Process {
 	// -----------------------------------------------------------------------
 	// internals statics
 	// -----------------------------------------------------------------------
-	static function _doProcessMainUpdate(p : Process, tmod:Float, ?rendering:Bool=true) {
+	static function _doProcessMainUpdate(p : Process, tmod:Float) {
 		if( p.paused || p.destroyed )
 			return;
 
 		tmod *= p.speedMod;
 
-		p.rendering = rendering;
 		p.tmod = tmod;
 		p.ftime += tmod;
 
@@ -266,7 +264,7 @@ class Process {
 
 		if( !p.paused && !p.destroyed )
 			for (p in p.children)
-				_doProcessMainUpdate(p, tmod, rendering);
+				_doProcessMainUpdate(p, tmod);
 	}
 
 	static inline function _doProcessPostUpdate(p : Process) {
