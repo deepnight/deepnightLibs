@@ -210,8 +210,8 @@ class Process {
 			}
 
 		if( runUpdateImmediatly ) {
-			_doProcessPreUpdate(p,1);
-			_doProcessMainUpdate(p);
+			_doPreUpdate(p,1);
+			_doMainUpdate(p);
 		}
 
 		return p;
@@ -223,13 +223,13 @@ class Process {
 	}
 
 	// -----------------------------------------------------------------------
-	// internals statics
+	// Internals statics
 	// -----------------------------------------------------------------------
-	// static inline function canRun(p:Process) return !p.paused && !p.destroyed;
 
+	static inline function canRun(p:Process) return !p.paused && !p.destroyed;
 
-	static inline function _doProcessPreUpdate(p:Process, tmod:Float) {
-		if( p.paused || p.destroyed )
+	static inline function _doPreUpdate(p:Process, tmod:Float) {
+		if( !canRun(p) )
 			return;
 
 		tmod *= p.tmodMultiplier;
@@ -239,61 +239,61 @@ class Process {
 
 		p.delayer.update(tmod);
 
-		if( !p.paused && !p.destroyed )
+		if( canRun(p) )
 			p.cd.update(tmod);
 
-		if( !p.paused && !p.destroyed )
+		if( canRun(p) )
 			p.tw.update(tmod);
 
-		if( !p.paused && !p.destroyed )
+		if( canRun(p) )
 			p.preUpdate();
 
-		if( !p.paused && !p.destroyed )
+		if( canRun(p) )
 			for (c in p.children)
-				_doProcessPreUpdate(c,tmod);
+				_doPreUpdate(c,tmod);
 	}
 
-	static function _doProcessMainUpdate(p : Process) {
-		if( p.paused || p.destroyed )
+	static function _doMainUpdate(p : Process) {
+		if( !canRun(p) )
 			return;
 
 		p.update();
 		if( p.onUpdateCb!=null )
 			p.onUpdateCb();
 
-		if( !p.paused && !p.destroyed )
+		if( canRun(p) )
 			for (p in p.children)
-				_doProcessMainUpdate(p);
+				_doMainUpdate(p);
 	}
 
-	static function _doProcessFixedUpdate(p : Process) {
-		if( p.paused || p.destroyed )
+	static function _doFixedUpdate(p : Process) {
+		if( !canRun(p) )
 			return;
 
 		p._fixedUpdateCounter+=p.tmod;
 		while( p._fixedUpdateCounter >= p.getDefaultFrameRate() / p.fixedUpdateFps ) {
 			p._fixedUpdateCounter -= p.getDefaultFrameRate() / p.fixedUpdateFps;
-			if( !p.paused && !p.destroyed ) {
+			if( canRun(p) ) {
 				p.fixedUpdate();
 				if( p.onFixedUpdateCb!=null )
 					p.onFixedUpdateCb();
 			}
 		}
 
-		if( !p.paused && !p.destroyed )
+		if( canRun(p) )
 			for (p in p.children)
-				_doProcessFixedUpdate(p);
+				_doFixedUpdate(p);
 	}
 
-	static inline function _doProcessPostUpdate(p : Process) {
-		if( p.paused || p.destroyed )
+	static inline function _doPostUpdate(p : Process) {
+		if( !canRun(p) )
 			return;
 
 		p.postUpdate();
 
 		if( !p.destroyed )
 			for (c in p.children)
-				_doProcessPostUpdate(c);
+				_doPostUpdate(c);
 	}
 
 	static function _garbageCollector(plist:Array<Process>) {
@@ -369,16 +369,16 @@ class Process {
 
 	public static function updateAll(tmod:Float) {
 		for (p in ROOTS)
-			_doProcessPreUpdate(p, tmod);
+			_doPreUpdate(p, tmod);
 
 		for (p in ROOTS)
-			_doProcessMainUpdate(p);
+			_doMainUpdate(p);
 
 		for (p in ROOTS)
-			_doProcessFixedUpdate(p);
+			_doFixedUpdate(p);
 
 		for (p in ROOTS)
-			_doProcessPostUpdate(p);
+			_doPostUpdate(p);
 
 		_garbageCollector(ROOTS);
 	}
