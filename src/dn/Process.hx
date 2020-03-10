@@ -28,6 +28,10 @@ class Process {
 	public var cd			: dn.Cooldown;
 	public var tw			: dn.Tweenie;
 
+	// Fixed update
+	public var fixedUpdateFps = 30;
+	var _fixedUpdateCounter = 0.;
+
 	// Optional graphic context
 	#if( heaps || h3d )
 	public var root			: Null<h2d.Layers>;
@@ -100,11 +104,13 @@ class Process {
 
 	public function preUpdate() {}
 	public function update() {}
+	public function fixedUpdate() { }
 	public function postUpdate() { }
 	public function onResize() { }
 	public function onDispose() { }
 
 	public dynamic function onUpdateCb() {}
+	public dynamic function onFixedUpdateCb() {}
 	public dynamic function onDisposeCb() {}
 
 
@@ -219,6 +225,8 @@ class Process {
 	// -----------------------------------------------------------------------
 	// internals statics
 	// -----------------------------------------------------------------------
+	// static inline function canRun(p:Process) return !p.paused && !p.destroyed;
+
 
 	static inline function _doProcessPreUpdate(p:Process, tmod:Float) {
 		if( p.paused || p.destroyed )
@@ -240,7 +248,7 @@ class Process {
 		if( !p.paused && !p.destroyed )
 			p.preUpdate();
 
-		if( !p.destroyed )
+		if( !p.paused && !p.destroyed )
 			for (c in p.children)
 				_doProcessPreUpdate(c,tmod);
 	}
@@ -256,6 +264,25 @@ class Process {
 		if( !p.paused && !p.destroyed )
 			for (p in p.children)
 				_doProcessMainUpdate(p);
+	}
+
+	static function _doProcessFixedUpdate(p : Process) {
+		if( p.paused || p.destroyed )
+			return;
+
+		p._fixedUpdateCounter+=p.tmod;
+		while( p._fixedUpdateCounter >= p.getDefaultFrameRate() / p.fixedUpdateFps ) {
+			p._fixedUpdateCounter -= p.getDefaultFrameRate() / p.fixedUpdateFps;
+			if( !p.paused && !p.destroyed ) {
+				p.fixedUpdate();
+				if( p.onFixedUpdateCb!=null )
+					p.onFixedUpdateCb();
+			}
+		}
+
+		if( !p.paused && !p.destroyed )
+			for (p in p.children)
+				_doProcessFixedUpdate(p);
 	}
 
 	static inline function _doProcessPostUpdate(p : Process) {
@@ -346,6 +373,9 @@ class Process {
 
 		for (p in ROOTS)
 			_doProcessMainUpdate(p);
+
+		for (p in ROOTS)
+			_doProcessFixedUpdate(p);
 
 		for (p in ROOTS)
 			_doProcessPostUpdate(p);
