@@ -214,33 +214,6 @@ class Process {
 	}
 
 	// -----------------------------------------------------------------------
-	// static api
-	// -----------------------------------------------------------------------
-
-	public static function updateAll(tmod:Float) {
-		for (p in ROOTS)
-			_doProcessMainUpdate(p, tmod);
-
-		for (p in ROOTS)
-			_doProcessPostUpdate(p);
-
-		_checkDestroyeds(ROOTS);
-	}
-
-	public static function resizeAll() {
-		for ( p in ROOTS )
-			_resize(p);
-	}
-
-	static inline function _resize(p : Process) {
-		if ( !p.destroyed ){
-			p.onResize();
-			for ( p in p.children )
-				_resize(p);
-		}
-	}
-
-	// -----------------------------------------------------------------------
 	// internals statics
 	// -----------------------------------------------------------------------
 	static function _doProcessMainUpdate(p : Process, tmod:Float) {
@@ -335,5 +308,32 @@ class Process {
 		p.root = null;
 		p.pt0 = null;
 		#end
+	}
+
+	static inline function _resizeProcess(p : Process) {
+		if ( !p.destroyed ){
+			p.onResize();
+			for ( p in p.children )
+				_resizeProcess(p);
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Public static API
+	// -----------------------------------------------------------------------
+
+	public static function updateAll(tmod:Float) {
+		for (p in ROOTS)
+			_doProcessMainUpdate(p, tmod);
+
+		for (p in ROOTS)
+			_doProcessPostUpdate(p);
+
+		_checkDestroyeds(ROOTS);
+	}
+
+	public static function resizeAll() {
+		for ( p in ROOTS )
+			_resizeProcess(p);
 	}
 }
