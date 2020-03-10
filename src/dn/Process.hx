@@ -9,7 +9,6 @@ class Process {
 	static var UNIQ_ID = 0;
 	static var ROOTS : Array<Process> = [];
 
-	public var rendering(default, null) : Bool; // if that process update frame is a rendering one
 	public var uniqId					: Int;
 	public var ftime(default, null)		: Float; // elapsed frames
 	public var itime(get, never)		: Int;
@@ -28,6 +27,10 @@ class Process {
 	public var delayer		: dn.Delayer;
 	public var cd			: dn.Cooldown;
 	public var tw			: dn.Tweenie;
+
+	// Fixed update
+	public var fixedUpdateFps = 30;
+	var _fixedUpdateCounter = 0.;
 
 	// Optional graphic context
 	#if( heaps || h3d )
@@ -99,12 +102,15 @@ class Process {
 	// overridable functions
 	// -----------------------------------------------------------------------
 
+	public function preUpdate() {}
 	public function update() {}
+	public function fixedUpdate() { }
 	public function postUpdate() { }
 	public function onResize() { }
 	public function onDispose() { }
 
 	public dynamic function onUpdateCb() {}
+	public dynamic function onFixedUpdateCb() {}
 	public dynamic function onDisposeCb() {}
 
 
@@ -203,8 +209,10 @@ class Process {
 				onDispose(p);
 			}
 
-		if( runUpdateImmediatly )
-			_update(p,1);
+		if( runUpdateImmediatly ) {
+			_doProcessPreUpdate(p,1);
+			_doProcessMainUpdate(p);
+		}
 
 		return p;
 	}
@@ -215,61 +223,69 @@ class Process {
 	}
 
 	// -----------------------------------------------------------------------
-	// static api
-	// -----------------------------------------------------------------------
-
-	public static function updateAll(tmod:Float, ?rendering:Bool=true) {
-		for (p in ROOTS)
-			_update(p, tmod, rendering);
-
-		for (p in ROOTS)
-			_postUpdate(p);
-
-		_checkDestroyeds(ROOTS);
-	}
-
-	public static function resizeAll() {
-		for ( p in ROOTS )
-			_resize(p);
-	}
-
-	static inline function _resize(p : Process) {
-		if ( !p.destroyed ){
-			p.onResize();
-			for ( p in p.children )
-				_resize(p);
-		}
-	}
-
-	// -----------------------------------------------------------------------
 	// internals statics
 	// -----------------------------------------------------------------------
-	static function _update(p : Process, tmod:Float, ?rendering:Bool=true) {
+	// static inline function canRun(p:Process) return !p.paused && !p.destroyed;
+
+
+	static inline function _doProcessPreUpdate(p:Process, tmod:Float) {
 		if( p.paused || p.destroyed )
 			return;
 
 		tmod *= p.speedMod;
 
-		p.rendering = rendering;
 		p.tmod = tmod;
 		p.ftime += tmod;
 
 		p.delayer.update(tmod);
-		p.cd.update(tmod);
-		p.tw.update(tmod);
 
-		if( !p.paused && !p.destroyed ) {
-			p.update();
-			if( p.onUpdateCb != null )
-				p.onUpdateCb();
+		if( !p.paused && !p.destroyed )
+			p.cd.update(tmod);
+
+		if( !p.paused && !p.destroyed )
+			p.tw.update(tmod);
+
+		if( !p.paused && !p.destroyed )
+			p.preUpdate();
+
+		if( !p.paused && !p.destroyed )
+			for (c in p.children)
+				_doProcessPreUpdate(c,tmod);
+	}
+
+	static function _doProcessMainUpdate(p : Process) {
+		if( p.paused || p.destroyed )
+			return;
+
+		p.update();
+		if( p.onUpdateCb!=null )
+			p.onUpdateCb();
+
+		if( !p.paused && !p.destroyed )
+			for (p in p.children)
+				_doProcessMainUpdate(p);
+	}
+
+	static function _doProcessFixedUpdate(p : Process) {
+		if( p.paused || p.destroyed )
+			return;
+
+		p._fixedUpdateCounter+=p.tmod;
+		while( p._fixedUpdateCounter >= p.getDefaultFrameRate() / p.fixedUpdateFps ) {
+			p._fixedUpdateCounter -= p.getDefaultFrameRate() / p.fixedUpdateFps;
+			if( !p.paused && !p.destroyed ) {
+				p.fixedUpdate();
+				if( p.onFixedUpdateCb!=null )
+					p.onFixedUpdateCb();
+			}
 		}
 
 		if( !p.paused && !p.destroyed )
 			for (p in p.children)
-				_update(p, tmod, rendering);
+				_doProcessFixedUpdate(p);
 	}
 
-	static inline function _postUpdate(p : Process) {
+	static inline function _doProcessPostUpdate(p : Process) {
 		if( p.paused || p.destroyed )
 			return;
 
@@ -277,27 +293,27 @@ class Process {
 
 		if( !p.destroyed )
 			for (c in p.children)
-				_postUpdate(c);
+				_doProcessPostUpdate(c);
 	}
 
-	static function _checkDestroyeds(plist:Array<Process>) {
+	static function _garbageCollector(plist:Array<Process>) {
 		var i = 0;
 		while (i < plist.length) {
 			var p = plist[i];
 			if( p.destroyed )
-				_dispose(p);
+				_disposeProcess(p);
 			else {
-				_checkDestroyeds(p.children);
+				_garbageCollector(p.children);
 				i++;
 			}
 		}
 	}
 
-	static function _dispose(p : Process) {
+	static function _disposeProcess(p : Process) {
 		// Children
 		for(p in p.children)
 			p.destroy();
-		_checkDestroyeds(p.children);
+		_garbageCollector(p.children);
 
 		// Tools
 		p.delayer.destroy();
@@ -337,5 +353,38 @@ class Process {
 		p.root = null;
 		p.pt0 = null;
 		#end
+	}
+
+	static inline function _resizeProcess(p : Process) {
+		if ( !p.destroyed ){
+			p.onResize();
+			for ( p in p.children )
+				_resizeProcess(p);
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Public static API
+	// -----------------------------------------------------------------------
+
+	public static function updateAll(tmod:Float) {
+		for (p in ROOTS)
+			_doProcessPreUpdate(p, tmod);
+
+		for (p in ROOTS)
+			_doProcessMainUpdate(p);
+
+		for (p in ROOTS)
+			_doProcessFixedUpdate(p);
+
+		for (p in ROOTS)
+			_doProcessPostUpdate(p);
+
+		_garbageCollector(ROOTS);
+	}
+
+	public static function resizeAll() {
+		for ( p in ROOTS )
+			_resizeProcess(p);
 	}
 }
