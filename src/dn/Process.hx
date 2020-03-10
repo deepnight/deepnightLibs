@@ -204,7 +204,7 @@ class Process {
 			}
 
 		if( runUpdateImmediatly )
-			_update(p,1);
+			_doProcessMainUpdate(p,1);
 
 		return p;
 	}
@@ -220,10 +220,10 @@ class Process {
 
 	public static function updateAll(tmod:Float, ?rendering:Bool=true) {
 		for (p in ROOTS)
-			_update(p, tmod, rendering);
+			_doProcessMainUpdate(p, tmod, rendering);
 
 		for (p in ROOTS)
-			_postUpdate(p);
+			_doProcessPostUpdate(p);
 
 		_checkDestroyeds(ROOTS);
 	}
@@ -244,7 +244,7 @@ class Process {
 	// -----------------------------------------------------------------------
 	// internals statics
 	// -----------------------------------------------------------------------
-	static function _update(p : Process, tmod:Float, ?rendering:Bool=true) {
+	static function _doProcessMainUpdate(p : Process, tmod:Float, ?rendering:Bool=true) {
 		if( p.paused || p.destroyed )
 			return;
 
@@ -266,10 +266,10 @@ class Process {
 
 		if( !p.paused && !p.destroyed )
 			for (p in p.children)
-				_update(p, tmod, rendering);
+				_doProcessMainUpdate(p, tmod, rendering);
 	}
 
-	static inline function _postUpdate(p : Process) {
+	static inline function _doProcessPostUpdate(p : Process) {
 		if( p.paused || p.destroyed )
 			return;
 
@@ -277,7 +277,7 @@ class Process {
 
 		if( !p.destroyed )
 			for (c in p.children)
-				_postUpdate(c);
+				_doProcessPostUpdate(c);
 	}
 
 	static function _checkDestroyeds(plist:Array<Process>) {
@@ -285,7 +285,7 @@ class Process {
 		while (i < plist.length) {
 			var p = plist[i];
 			if( p.destroyed )
-				_dispose(p);
+				_disposeProcess(p);
 			else {
 				_checkDestroyeds(p.children);
 				i++;
@@ -293,7 +293,7 @@ class Process {
 		}
 	}
 
-	static function _dispose(p : Process) {
+	static function _disposeProcess(p : Process) {
 		// Children
 		for(p in p.children)
 			p.destroy();
