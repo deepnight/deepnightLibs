@@ -9,14 +9,14 @@ class Process {
 	static var UNIQ_ID = 0;
 	static var ROOTS : Array<Process> = [];
 
-	public var uniqId					: Int;
-	public var ftime(default, null)		: Float; // elapsed frames
-	public var itime(get, never)		: Int;
-	public var paused(default, null)	: Bool;
-	public var destroyed(default, null)	: Bool;
-	public var speedMod                 : Float;
-	var parent(default, null)			: Process;
-	public var tmod						: Float;
+	public var uniqId : Int;
+	public var ftime(default, null) : Float; // elapsed frames
+	public var itime(get, never) : Int;
+	public var paused(default, null) : Bool;
+	public var destroyed(default, null) : Bool;
+	public var tmodMultiplier : Float;
+	var parent(default, null) : Process;
+	public var tmod : Float;
 
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
@@ -58,7 +58,7 @@ class Process {
 		destroyed = false;
 		ftime = 0;
 		tmod = 1;
-		speedMod = 1.0;
+		tmodMultiplier = 1.0;
 
 		delayer = new Delayer( getDefaultFrameRate() );
 		cd = new Cooldown( getDefaultFrameRate() );
@@ -232,7 +232,7 @@ class Process {
 		if( p.paused || p.destroyed )
 			return;
 
-		tmod *= p.speedMod;
+		tmod *= p.tmodMultiplier;
 
 		p.tmod = tmod;
 		p.ftime += tmod;
