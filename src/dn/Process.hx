@@ -14,9 +14,11 @@ class Process {
 	public var itime(get, never) : Int;
 	public var paused(default, null) : Bool;
 	public var destroyed(default, null) : Bool;
-	public var tmodMultiplier : Float;
 	var parent(default, null) : Process;
-	public var tmod : Float;
+
+	public var utmod : Float; // this tmod value is unaffected by the multiplier
+	public var tmod(get,never) : Float; inline function get_tmod() return utmod * M.fmax(tmodMultiplier, 0);
+	public var tmodMultiplier : Float;
 
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
@@ -24,9 +26,9 @@ class Process {
 	var children			: Array<Process>;
 
 	// Tools
-	public var delayer		: dn.Delayer;
-	public var cd			: dn.Cooldown;
-	public var tw			: dn.Tweenie;
+	public var delayer : dn.Delayer;
+	public var cd : dn.Cooldown;
+	public var tw : dn.Tweenie;
 
 	// Fixed update
 	public var fixedUpdateFps = 30;
@@ -57,7 +59,7 @@ class Process {
 		paused = false;
 		destroyed = false;
 		ftime = 0;
-		tmod = 1;
+		utmod = 1;
 		tmodMultiplier = 1.0;
 
 		delayer = new Delayer( getDefaultFrameRate() );
@@ -228,29 +230,27 @@ class Process {
 
 	static inline function canRun(p:Process) return !p.paused && !p.destroyed;
 
-	static inline function _doPreUpdate(p:Process, tmod:Float) {
+	static inline function _doPreUpdate(p:Process, utmod:Float) {
 		if( !canRun(p) )
 			return;
 
-		tmod *= p.tmodMultiplier;
+		p.utmod = utmod;
+		p.ftime += p.tmod;
 
-		p.tmod = tmod;
-		p.ftime += tmod;
-
-		p.delayer.update(tmod);
+		p.delayer.update(p.tmod);
 
 		if( canRun(p) )
-			p.cd.update(tmod);
+			p.cd.update(p.tmod);
 
 		if( canRun(p) )
-			p.tw.update(tmod);
+			p.tw.update(p.tmod);
 
 		if( canRun(p) )
 			p.preUpdate();
 
 		if( canRun(p) )
 			for (c in p.children)
-				_doPreUpdate(c,tmod);
+				_doPreUpdate(c,p.tmod);
 	}
 
 	static function _doMainUpdate(p : Process) {
@@ -367,9 +367,9 @@ class Process {
 	// Public static API
 	// -----------------------------------------------------------------------
 
-	public static function updateAll(tmod:Float) {
+	public static function updateAll(utmod:Float) {
 		for (p in ROOTS)
-			_doPreUpdate(p, tmod);
+			_doPreUpdate(p, utmod);
 
 		for (p in ROOTS)
 			_doMainUpdate(p);
