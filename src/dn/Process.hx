@@ -269,14 +269,14 @@ class Process {
 				_doProcessPostUpdate(c);
 	}
 
-	static function _checkDestroyeds(plist:Array<Process>) {
+	static function _garbageCollector(plist:Array<Process>) {
 		var i = 0;
 		while (i < plist.length) {
 			var p = plist[i];
 			if( p.destroyed )
 				_disposeProcess(p);
 			else {
-				_checkDestroyeds(p.children);
+				_garbageCollector(p.children);
 				i++;
 			}
 		}
@@ -286,7 +286,7 @@ class Process {
 		// Children
 		for(p in p.children)
 			p.destroy();
-		_checkDestroyeds(p.children);
+		_garbageCollector(p.children);
 
 		// Tools
 		p.delayer.destroy();
@@ -350,7 +350,7 @@ class Process {
 		for (p in ROOTS)
 			_doProcessPostUpdate(p);
 
-		_checkDestroyeds(ROOTS);
+		_garbageCollector(ROOTS);
 	}
 
 	public static function resizeAll() {
