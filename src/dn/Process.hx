@@ -17,8 +17,8 @@ class Process {
 	var parent(default, null) : Process;
 
 	public var utmod : Float; // this tmod value is unaffected by the multiplier
-	public var tmod(get,never) : Float; inline function get_tmod() return utmod * M.fmax(tmodMultiplier, 0);
-	public var tmodMultiplier : Float;
+	public var tmod(get,never) : Float; inline function get_tmod() return utmod * M.fmax(timeMultiplier, 0);
+	public var timeMultiplier : Float;
 
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
@@ -29,6 +29,10 @@ class Process {
 	public var delayer : dn.Delayer;
 	public var cd : dn.Cooldown;
 	public var tw : dn.Tweenie;
+
+	// Tools not affected by timeMultiplier
+	public var udelayer : dn.Delayer;
+	public var ucd : dn.Cooldown;
 
 	// Fixed update
 	public var fixedUpdateFps = 30;
@@ -60,11 +64,14 @@ class Process {
 		destroyed = false;
 		ftime = 0;
 		utmod = 1;
-		tmodMultiplier = 1.0;
+		timeMultiplier = 1.0;
 
-		delayer = new Delayer( getDefaultFrameRate() );
 		cd = new Cooldown( getDefaultFrameRate() );
+		delayer = new Delayer( getDefaultFrameRate() );
 		tw = new Tweenie( getDefaultFrameRate() );
+
+		ucd = new Cooldown( getDefaultFrameRate() );
+		udelayer = new Delayer( getDefaultFrameRate() );
 	}
 
 	// -----------------------------------------------------------------------
@@ -240,7 +247,13 @@ class Process {
 		p.delayer.update(p.tmod);
 
 		if( canRun(p) )
+			p.udelayer.update(p.utmod);
+
+		if( canRun(p) )
 			p.cd.update(p.tmod);
+
+		if( canRun(p) )
+			p.ucd.update(p.utmod);
 
 		if( canRun(p) )
 			p.tw.update(p.tmod);
