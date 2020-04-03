@@ -63,6 +63,7 @@ abstract LocaleString(String) to String {
 #end
 
 class GetText {
+	public static var CONTEXT = "||";
 
 	var texts : Map<String,LocaleString>;
 
@@ -122,8 +123,8 @@ class GetText {
 		return macro $ethis.get($estr,$params);
 	}
 
-	inline static function stripComment( str : String ) : String {
-		return StringTools.rtrim( str.split("||")[0] );
+	inline static function stripContext( str : String ) : String {
+		return StringTools.rtrim( str.split(CONTEXT)[0] );
 	}
 
 	@:noCompletion public function get(str:Null<String>, ?params:Dynamic) : Null<LocaleString> {
@@ -133,12 +134,12 @@ class GetText {
 		if(texts.exists(str))
 			str = texts.get(str);
 		else{
-			var str2 = stripComment(str);
+			var str2 = stripContext(str);
 			if( texts.exists(str2) )
 				str = texts.get(str2);
 		}
 
-		str = stripComment(str);
+		str = stripContext(str);
 
 		var list = str.split("::");
 		var n = 0;
@@ -163,7 +164,7 @@ class GetText {
 			if( r.exists(v) )
 				texts.set(k, r.get(v));
 			else {
-				var v2 = stripComment(v);
+				var v2 = stripContext(v);
 				if( r.exists(v2) )
 					texts.set(k, r.get(v2));
 			}
@@ -259,6 +260,22 @@ class GetText {
 	}
 	#end
 
+	static var errors = [];
+	public static inline function error(path:String, idx:Dynamic, err:String) {
+		errors.push('[$path:$idx] ERROR: $err');
+	}
+	public static function haltIfErrors() {
+		if( errors.length==0 )
+			return;
+
+		for(e in errors)
+			Sys.println(e);
+		throw "Found "+errors.length+" error(s).";
+	}
+	public static inline function fatal(path:String, idx:Dynamic, err:String) {
+		throw '[$path:$idx] FATAL: $err';
+	}
+
 	static function explore(folder:String, data:POData, strMap:Map<String,Bool>, ?codeIgnore: EReg) {
 		// Test it: http://regexr.com/
 		var strReg = ~/\._\([ ]*"((\\"|[^"])+)"/i;
@@ -297,8 +314,7 @@ class GetText {
 						try {
 						pos += strReg.matchedPos().pos + strReg.matchedPos().len;
 						} catch(e:Dynamic) {
-							//trace(str);
-							throw e;
+							fatal(f,n,e);
 						}
 
 						// Ignore commented strings
@@ -310,14 +326,19 @@ class GetText {
 
 						// Translator comment
 						var comment : String = null;
-						if( cleanedStr.indexOf("||")>=0 ) {
-							var parts = cleanedStr.split("||");
+						if( cleanedStr.indexOf(CONTEXT)>=0 ) {
+							var parts = cleanedStr.split(CONTEXT);
 							if( parts.length!=2 ) {
-								throw "Malformed translator comment in "+f+" (line "+n+")";
+								error(f,n,"Malformed translator comment");
 								continue;
 							}
+							if( parts[0].length != StringTools.rtrim(parts[0]).length ||
+								parts[1].length != StringTools.trim(parts[1]).length ) {
+									error(f,n,"Any SPACE character around \""+CONTEXT+"\" will lead to translation overlaps");
+									continue;
+								}
 							comment = StringTools.trim(parts[1]);
-							cleanedStr = cleanedStr.substr(0,cleanedStr.indexOf("||"));
+							cleanedStr = cleanedStr.substr(0,cleanedStr.indexOf(CONTEXT));
 						}
 						cleanedStr = StringTools.rtrim(cleanedStr);
 
@@ -331,16 +352,16 @@ class GetText {
 								cExtracted	: comment,
 							});
 						}else{
-							var previous = Lambda.find(data,function(e) return e.id==cleanedStr);
+							var previous = Lambda.find(data,function(e) return e.id==cleanedStr && e.cExtracted==comment);
 							if( previous != null && previous.cExtracted == comment ){
 								previous.cRef += " "+path+":"+n;
 							}else{
-								if( previous != null && previous.cExtracted != null && previous.cExtracted.length > 0 ){
-									previous.id += " || "+previous.cExtracted;
-								}
-								if( comment != null && comment.length > 0 ){
-									cleanedStr += " || " + comment;
-								}
+								// if( previous != null && previous.cExtracted != null && previous.cExtracted.length > 0 ){
+								// 	previous.id += " "+CONTEXT+" "+previous.cExtracted;
+								// }
+								// if( comment != null && comment.length > 0 ){
+								// 	cleanedStr += " || " + comment;
+								// }
 								data.push({
 									id			: cleanedStr,
 									str			: "",
@@ -353,6 +374,7 @@ class GetText {
 				}
 			}
 		}
+		haltIfErrors();
 	}
 
 	#if castle
@@ -385,13 +407,13 @@ class GetText {
 
 				var cleanedStr = str;
 				var comment : String = StringTools.trim(id);
-				if( cleanedStr.indexOf("||")>=0 ) {
-					var parts = cleanedStr.split("||");
+				if( cleanedStr.indexOf(CONTEXT)>=0 ) {
+					var parts = cleanedStr.split(CONTEXT);
 					if( parts.length!=2 ) {
-						throw "Malformed translator comment in "+file+" @ "+idx;
+						error(file,idx,"Malformed translator comment");
 					}
 					comment = StringTools.trim(parts[1]) + "\n" +comment;
-					cleanedStr = cleanedStr.substr(0,cleanedStr.indexOf("||"));
+					cleanedStr = cleanedStr.substr(0,cleanedStr.indexOf(CONTEXT));
 				}
 				cleanedStr = POTools.escape(StringTools.rtrim(cleanedStr));
 
@@ -512,8 +534,14 @@ class MoReader
 		hash_offset= d.readInt32();
 
 		var texts : Map<String,LocaleString> = new Map();
+		var eot = String.fromCharCode(4);
 		for (i in 0...num_strings){
 			var ori = getOriginalString(i);
+			if( ori.indexOf(eot)>=0 ) {
+				// Swap context
+				var split = ori.split(eot);
+				ori = split[1]+GetText.CONTEXT+split[0];
+			}
 			if( ori == null || ori == "" ) continue;
 			var trs = getTranslatedString(i);
 			if( trs == null || trs == "" ) continue;
@@ -806,8 +834,6 @@ class POTools {
 		for( e in data ){
 			if( e.cTranslator != null )
 				out.writeString("# "+e.cTranslator.split("\n").join("\n# ")+"\n");
-			if( e.cExtracted != null )
-				out.writeString("#. "+e.cExtracted.split("\n").join("\n#. ")+"\n");
 			if( e.cRef != null )
 				out.writeString("#: "+e.cRef.split("\n").join("\n#: ")+"\n");
 			if( e.cFlags != null )
@@ -816,6 +842,9 @@ class POTools {
 				out.writeString("#| "+e.cPrevious.split("\n").join("\n#| ")+"\n");
 			if( e.cComment != null )
 				out.writeString("#~ "+e.cComment.split("\n").join("\n#~ ")+"\n");
+			if( e.cExtracted != null )
+				out.writeString("msgctxt "+wrapQuote(e.cExtracted)+"\n");
+				// out.writeString("msgctxt "+wrapQuote(e.cExtracted.split("\n").join("\n#. "))+"\n");
 
 			var id = null;
 			if( e.msgid != null ){
