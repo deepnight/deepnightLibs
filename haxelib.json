@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.35",
+	"version": "0.0.36",
 	"classPath": "src/",
-	"releasenote": "Added time distorsion support to Process",
+	"releasenote": "GetText now uses Context instead of Comments to disambiguate identical strings",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
