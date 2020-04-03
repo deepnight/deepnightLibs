@@ -319,6 +319,24 @@ class Lib {
 		}
 	}
 
+	public static function findInArray<T>(arr:Array<T>, checkElement:T->Bool, ?defaultIfNotFound:Null<T>) : Null<T> {
+		for(e in arr)
+			if( checkElement(e) )
+				return e;
+		return defaultIfNotFound;
+	}
+
+	public static function findBestInArray<T>(arr:Array<T>, scoreElement:T->Float) : Null<T> {
+		if( arr.length==0 )
+			return null;
+
+		var best = arr[0];
+		for(e in arr)
+			if( scoreElement(e) > scoreElement(best) )
+				best = e;
+		return best;
+	}
+
 	public static function randomSpread(total:Int, nbStacks:Int, ?maxStackValue:Null<Int>, randFunc:Int->Int) : Array<Int> {
 		if (total<=0 || nbStacks<=0)
 			return new Array();
