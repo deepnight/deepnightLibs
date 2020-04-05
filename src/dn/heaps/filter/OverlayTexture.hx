@@ -26,12 +26,14 @@ class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
 	public inline function invalidate() invalidated = true;
 
 	inline function set_bevelSize(v) {
-		invalidate();
+		if( bevelSize!=v )
+			invalidate();
 		return bevelSize = v;
 	}
 
 	inline function set_bevelType(v) {
-		invalidate();
+		if( bevelType!=v )
+			invalidate();
 		return bevelType = v;
 	}
 	inline function set_alpha(v) return shader.alpha = v;
