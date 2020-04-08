@@ -166,11 +166,12 @@ class HaxeJson {
 		var jumpAfter : Bool;
 		var cid : Int;
 
+		var lastChar : Null<String> = null;
 		for(c in json.split("")) {
 			cid = c.charCodeAt(0);
 			jumpBefore = jumpAfter = false;
 			if( inString ) {
-				if( c=="\"" )
+				if( c=="\"" && lastChar!="\\" )
 					inString = false;
 			}
 			else
@@ -204,7 +205,9 @@ class HaxeJson {
 						jumpBefore = true;
 						indent--;
 
-					case "\"" : inString = true;
+					case "\"" :
+						if( lastChar!="\\" )
+							inString = true;
 				}
 			if( jumpBefore ) {
 				strBuff.addChar(10); // new line
@@ -217,6 +220,7 @@ class HaxeJson {
 				for(i in 0...indent)
 					strBuff.addChar(9); // tab
 			}
+			lastChar = c;
 		}
 		return strBuff.toString();
 	}
