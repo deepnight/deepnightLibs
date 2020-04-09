@@ -14,7 +14,7 @@ class FilePath {
 	}
 
 	function sanitize(v:String) {
-		var r = ~/[~#%&*{}\/:<>?|]/g;
+		var r = ~/[~#%*{}\/:<>?|]/g;
 		return r.replace(v, "_");
 	}
 
