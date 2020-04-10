@@ -354,6 +354,10 @@ class Color {
 		return col32 & 0xffffff;
 	}
 
+	public static inline function replaceAlphaF(c:Int, ?a=1.0) : #if (flash || openfl) UInt #else Int #end {
+		return addAlphaF( removeAlpha(c), a );
+	}
+
 	public static inline function addAlphaF(c:Int, ?a=1.0) : #if (flash || openfl) UInt #else Int #end {
 		return Std.int(a*255)<<24 | c;
 	}
