@@ -245,26 +245,56 @@ class Bresenham {
 		var y = y0;
 		var ystep = if ( y0 < y1 ) 1 else -1;
 
-		if( swapXY )
-			// Y / X
-			for ( x in x0 ... x1+1 ) {
+		for ( x in x0 ... x1+1 ) {
+			if( swapXY )
 				cb(y,x);
-				error -= deltay;
-				if ( error < 0 ) {
-					y+=ystep;
-					error = error + deltax;
-				}
-			}
-		else
-			// X / Y
-			for ( x in x0 ... x1+1 ) {
+			else
 				cb(x,y);
-				error -= deltay;
-				if ( error < 0 ) {
-					y+=ystep;
-					error = error + deltax;
-				}
+			error -= deltay;
+			if ( error < 0 ) {
+				y+=ystep;
+				error = error + deltax;
 			}
+		}
+	}
+
+
+	public inline static function iterateFatLine(x0:Int,y0:Int, x1:Int,y1:Int, cb:Int->Int->Void) {
+		var swapXY = M.iabs( y1 - y0 ) > M.iabs( x1 - x0 );
+		var tmp : Int;
+		if ( swapXY ) {
+			// swap x and y
+			tmp = x0; x0 = y0; y0 = tmp; // swap x0 and y0
+			tmp = x1; x1 = y1; y1 = tmp; // swap x1 and y1
+		}
+		if ( x0 > x1 ) {
+			// make sure x0 < x1
+			tmp = x0; x0 = x1; x1 = tmp; // swap x0 and x1
+			tmp = y0; y0 = y1; y1 = tmp; // swap y0 and y1
+		}
+		var deltax = x1 - x0;
+		var deltay = Math.floor( M.iabs( y1 - y0 ) );
+		var error = Math.floor( deltax / 2 );
+		var y = y0;
+		var ystep = if ( y0 < y1 ) 1 else -1;
+
+		for ( x in x0 ... x1+1 ) {
+			if( swapXY )
+				cb(y,x);
+			else
+				cb(x,y);
+
+			error -= deltay;
+			if ( error < 0 ) {
+				if( x<x1 )
+					if( swapXY )
+						cb(y,x+1);
+					else
+						cb(x+1,y);
+				y+=ystep;
+				error = error + deltax;
+			}
+		}
 	}
 
 
@@ -294,32 +324,17 @@ class Bresenham {
 			var ystep = if ( y0 < y1 ) 1 else -1;
 			var valid = true;
 
-			if( swapXY )
-				// Y / X
-				for ( x in x0 ... x1+1 ) {
-					if( !rayCanPass(y,x) ){
-						valid = false;
-						break;
-					}
-					error -= deltay;
-					if ( error < 0 ) {
-						y+=ystep;
-						error = error + deltax;
-					}
+			for ( x in x0 ... x1+1 ) {
+				if( swapXY && !rayCanPass(y,x) || !swapXY && !rayCanPass(x,y) ){
+					valid = false;
+					break;
 				}
-			else
-				// X / Y
-				for ( x in x0 ... x1+1 ) {
-					if( !rayCanPass(x,y) ){
-						valid = false;
-						break;
-					}
-					error -= deltay;
-					if ( error < 0 ) {
-						y+=ystep;
-						error = error + deltax;
-					}
+				error -= deltay;
+				if ( error < 0 ) {
+					y+=ystep;
+					error = error + deltax;
 				}
+			}
 			return valid;
 		}
 	}
@@ -387,5 +402,6 @@ class Bresenham {
 			return valid;
 		}
 	}
+
 }
 
