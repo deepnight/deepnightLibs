@@ -1,8 +1,18 @@
 package dn;
 
 class Bresenham {
+	/**
+		The "Thin" methods work on regular "pixel perfect" bresenhman lines, like:
+			###
+			   ###
+			      ###
 
-	// Renvoie la liste des points entre x0,y0 et x1,y1
+	  The "Thick" versions are slightly thicker when getting pixels in diagonal:
+			###
+			  ####
+			     ####
+
+	**/
 
 	public static function getThinLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false) : Array<{x:Int, y:Int}> {
 		var pts = [];
@@ -54,11 +64,12 @@ class Bresenham {
 
 
 
-	// Cette version "Fat" fonctionne comme la précédente, mais la ligne renvoyée est
-	// légèrement plus "épaisse" au niveau des brisures de lignes.
-	// Utile pour les collisions en diagonal (demander à Seb si besoin de précisions).
-
-	public static function getFatLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false) {
+	@:noCompletion
+	@:deprecated("Use getThickLine() instead")
+	public static inline function getFatLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false) {
+		return getThickLine(x0,y0,x1,y1,respectOrder);
+	}
+	public static function getThickLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false) {
 		var pts = [];
 		var swapXY = M.iabs( y1 - y0 ) > M.iabs( x1 - x0 );
 		var swapped = false;
@@ -118,7 +129,6 @@ class Bresenham {
 	}
 
 
-	// Donne la liste des points situés sur un cercle donné
 	// Source : http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 	// Duplicates fix: https://stackoverflow.com/questions/44117168/midpoint-circle-without-duplicates
 	public inline static function getCircle(x0,y0,radius) {
@@ -129,36 +139,14 @@ class Bresenham {
 
 
 
-	// Donne la liste des points situés SUR et DANS un cercle donné
 	// Source : http://stackoverflow.com/questions/1201200/fast-algorithm-for-drawing-filled-circles
-
-	static inline function addLine(pts, fx,fy, tx) {
-		for(x in fx...tx+1)
-			pts.push({x:x, y:fy});
-	}
 	public static function getDisc(x0,y0,radius) {
 		var pts = [];
 		iterateDisc(x0, y0, radius, function(x,y) pts.push( { x:x, y:y } ));
-		//var x = radius;
-		//var y = 0;
-		//var radiusError = 1-x;
-		//while( x>=y ) {
-			//addLine(pts, -x+x0, y+y0, x+x0);
-			//addLine(pts, -y+x0, x+y0, y+x0);
-			//addLine(pts, -x+x0, -y+y0, x+x0);
-			//addLine(pts, -y+x0, -x+y0, y+x0);
-			//y++;
-			//if( radiusError<0 )
-				//radiusError += 2*y+1;
-			//else {
-				//x--;
-				//radiusError += 2*(y-x+1);
-			//}
-		//}
 		return pts;
 	}
 
-	static inline function iterateHorizontal(fx,fy, tx, cb:Int->Int->Void) {
+	static inline function _iterateHorizontal(fx,fy, tx, cb:Int->Int->Void) {
 		for(x in fx...tx+1)
 			cb(x,fy);
 	}
@@ -168,16 +156,16 @@ class Bresenham {
 		var y = 0;
 		var radiusError = 1-x;
 		while( x>=y ) {
-			iterateHorizontal(-x+x0, y+y0, x+x0, cb); // WWS
+			_iterateHorizontal(-x+x0, y+y0, x+x0, cb); // WWS
 
 			if( ( radius<=1 || x!=y && y!=0 ) && radiusError>=0 )
-				iterateHorizontal(-y+x0, x+y0, y+x0, cb); // WSS
+				_iterateHorizontal(-y+x0, x+y0, y+x0, cb); // WSS
 
 			if( y!=0 )
-				iterateHorizontal(-x+x0, -y+y0, x+x0, cb); // WWN
+				_iterateHorizontal(-x+x0, -y+y0, x+x0, cb); // WWN
 
 			if( ( radius<=1 || x!=y && y!=0 ) && radiusError>=0 )
-				iterateHorizontal(-y+x0, -x+y0, y+x0, cb); // WNN
+				_iterateHorizontal(-y+x0, -x+y0, y+x0, cb); // WNN
 
 			y++;
 			if( radiusError<0 )
@@ -259,7 +247,7 @@ class Bresenham {
 	}
 
 
-	public inline static function iterateFatLine(x0:Int,y0:Int, x1:Int,y1:Int, cb:Int->Int->Void) {
+	public inline static function iterateThickLine(x0:Int,y0:Int, x1:Int,y1:Int, cb:Int->Int->Void) {
 		var swapXY = M.iabs( y1 - y0 ) > M.iabs( x1 - x0 );
 		var tmp : Int;
 		if ( swapXY ) {
@@ -340,7 +328,12 @@ class Bresenham {
 	}
 
 
-	public inline static function checkFatLine(x0:Int,y0:Int, x1:Int,y1:Int, rayCanPass:Int->Int->Bool) {
+	@:noCompletion
+	@:deprecated("Use checkThickLine() instead")
+	public static inline function checkFatLine(x0:Int,y0:Int, x1:Int,y1:Int, rayCanPass:Int->Int->Bool) {
+		return checkThickLine(x0,y0,x1,y1,rayCanPass);
+	}
+	public inline static function checkThickLine(x0:Int,y0:Int, x1:Int,y1:Int, rayCanPass:Int->Int->Bool) {
 		if( !rayCanPass(x0,y0) || !rayCanPass(x1,y1) ){
 			return false;
 		}else{
