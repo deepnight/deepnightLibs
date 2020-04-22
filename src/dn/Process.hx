@@ -16,9 +16,10 @@ class Process {
 	public var destroyed(default, null) : Bool;
 	var parent(default, null) : Process;
 
-	public var utmod : Float; // this tmod value is unaffected by the multiplier
+	public var utmod : Float; // this tmod value is unaffected by the time multiplier
 	public var tmod(get,never) : Float; inline function get_tmod() return utmod * M.fmax(timeMultiplier, 0);
 	public var timeMultiplier : Float;
+	public var uftime(default, null) : Float; // elapsed frames not affected by time multiplier
 
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
@@ -63,6 +64,7 @@ class Process {
 		paused = false;
 		destroyed = false;
 		ftime = 0;
+		uftime = 0;
 		utmod = 1;
 		timeMultiplier = 1.0;
 
@@ -243,6 +245,7 @@ class Process {
 
 		p.utmod = utmod;
 		p.ftime += p.tmod;
+		p.uftime += p.utmod;
 
 		p.delayer.update(p.tmod);
 
