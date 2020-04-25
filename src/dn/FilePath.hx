@@ -201,7 +201,11 @@ class FilePath {
 		Initialize using a String representation of a PATH (optional directory with a file name)
 	**/
 	public static inline function fromFile(raw:String) {
-		return new FilePath(raw);
+		var oldWarn = AMBIGUITY_WARNINGS;
+		AMBIGUITY_WARNINGS = false;
+		var p = new FilePath(raw);
+		AMBIGUITY_WARNINGS = oldWarn;
+		return p;
 	}
 
 	/**
