@@ -36,6 +36,19 @@ class Identify {
 		return Unknown;
 	}
 
+	public static function is64BitsExe(first1024bytes:haxe.io.Bytes) {
+		var header = "PE".split("").map(function(c) return c.charCodeAt(0));
+		var i = 0;
+		while( i<first1024bytes.length-6 )
+			if( first1024bytes.get(i)==header[0] && first1024bytes.get(i+1)==header[1] && first1024bytes.getUInt16(i+4)==0x8664 )
+				return true;
+			else
+				i++;
+
+		return false;
+	}
+
+
 	static function matchHeader(b:haxe.io.Bytes, magicNumbers:Array<Int>) {
 		for( idx in 0...magicNumbers.length )
 			if( idx>=b.length || magicNumbers[idx]!=b.get(idx) && magicNumbers[idx]>=0 )
