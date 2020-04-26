@@ -74,6 +74,16 @@ class FilePath {
 		parse(filePath);
 	}
 
+	public function convertToSlashes() {
+		directory = StringTools.replace(directory, "\\", "/");
+		backslashes = false;
+	}
+
+	public function convertToBackslashes() {
+		directory = StringTools.replace(directory, "/", "\\");
+		backslashes = true;
+	}
+
 	public inline function parseDirPath(dirPath:String) {
 		parse(dirPath);
 		if( fileWithExt!=null ) {
