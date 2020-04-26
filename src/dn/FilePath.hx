@@ -2,12 +2,6 @@ package dn;
 
 class FilePath {
 	/**
-		If TRUE, FilePath will print warnings to standard outputs when provided with ambiguous paths, like "/project/myFolder",
-		where "myFolder" could be interpreted as a directory, or as a file name (the default parse() behaviour).
-	**/
-	public static var AMBIGUITY_WARNINGS = #if debug true; #else false; #end
-
-	/**
 		Directory
 
 		Can be null, no slash in the end.
@@ -50,11 +44,8 @@ class FilePath {
 	public var full(get,never) : String;
 
 
-	public function new(?raw:String) {
-		if( raw!=null )
-			parse(raw);
-		else
-			init();
+	public function new() {
+		init();
 	}
 
 	function init() {
@@ -79,19 +70,28 @@ class FilePath {
 		return path;
 	}
 
+	public inline function parseFilePath(filePath:String) {
+		parse(filePath);
+	}
+
+	public inline function parseDirPath(dirPath:String) {
+		parse(dirPath);
+		if( fileWithExt!=null ) {
+			directory += slash() + fileWithExt;
+			fileName = null;
+			extension = null;
+		}
+	}
+
 	/**
 		Initialize using a String representation of a path
 	**/
-	public function parse(raw:String) {
+	function parse(raw:String) {
 		init();
 		if( raw.indexOf("\\")>=0 ) {
 			backslashes = true;
 			raw = StringTools.replace(raw,"/","\\"); // avoid mixing slashes
 		}
-
-		if( AMBIGUITY_WARNINGS && raw.lastIndexOf(".")<raw.lastIndexOf(slash()) && raw.charAt(raw.length-1)!=slash() )
-			trace("WARNING: FilePath value \""+raw+"\" is ambiguous (the last part could be a folder or a filename)");
-
 
 		if( raw.indexOf(slash())<0 ) {
 			// No directory
@@ -201,10 +201,8 @@ class FilePath {
 		Initialize using a String representation of a PATH (optional directory with a file name)
 	**/
 	public static inline function fromFile(raw:String) {
-		var oldWarn = AMBIGUITY_WARNINGS;
-		AMBIGUITY_WARNINGS = false;
-		var p = new FilePath(raw);
-		AMBIGUITY_WARNINGS = oldWarn;
+		var p = new FilePath();
+		p.parseFilePath(raw);
 		return p;
 	}
 
@@ -213,37 +211,29 @@ class FilePath {
 		will be considered as being a directory, even if it contains dots, like "/project/myApp.stable"
 	**/
 	public static inline function fromDir(raw:String) {
-		var oldWarn = AMBIGUITY_WARNINGS;
-		AMBIGUITY_WARNINGS = false;
-		var p = new FilePath(raw);
-		AMBIGUITY_WARNINGS = oldWarn;
-
-		if( p.fileWithExt!=null ) {
-			p.directory += p.slash() + p.fileWithExt;
-			p.fileName = null;
-			p.extension = null;
-		}
+		var p = new FilePath();
+		p.parseDirPath(raw);
 		return p;
 	}
 
 	/**
-		Extract the file name & extension from a path
+		Extract the file name & extension from a path. Returns null if they don't exist.
 	**/
-	public static inline function getFileWithExt(raw:String) : Null<String> {
+	public static inline function extractFileWithExt(raw:String) : Null<String> {
 		return FilePath.fromFile(raw).fileWithExt;
 	}
 
 	/**
-		Extract the file name without extension from a path
+		Extract the file name without extension from a path. Returns null if it doesn't exist.
 	**/
-	public static inline function getFile(raw:String) : Null<String> {
+	public static inline function extractFileName(raw:String) : Null<String> {
 		return FilePath.fromFile(raw).fileName;
 	}
 
 	/**
-		Extract the file extension from a path
+		Extract the file extension from a path. Returns null if it doesn't exist.
 	**/
-	public static inline function getExt(raw:String) : Null<String> {
+	public static inline function extractExtension(raw:String) : Null<String> {
 		return FilePath.fromFile(raw).extension;
 	}
 
@@ -255,7 +245,7 @@ class FilePath {
 
 		If containsNoFileName is TRUE, the whole path provided will be considered as being a directory.
 	**/
-	public static inline function getDirNoSlash(filePath:String, containsNoFileName=false) : Null<String> {
+	public static inline function extractDirNoSlash(filePath:String, containsNoFileName=false) : Null<String> {
 		return containsNoFileName
 			? FilePath.fromDir(filePath).directory
 			: FilePath.fromFile(filePath).directory;
@@ -270,9 +260,39 @@ class FilePath {
 
 		If "containsNoFileName" is TRUE, the whole path provided will be considered as being a directory.
 	**/
-	public static inline function getDirWithSlash(filePath:String, containsNoFileName=false) : Null<String> {
+	public static inline function extractDirWithSlash(filePath:String, containsNoFileName=false) : Null<String> {
 		return containsNoFileName
 			? FilePath.fromDir(filePath).directoryWithSlash
 			: FilePath.fromFile(filePath).directoryWithSlash;
 	}
+
+
+	// Deprecated static API
+	@:noCompletion @:deprecated("Use FilePath.fromFile or FilePath.fromDir")
+	public static inline function fullPath(v:String) return fromFile(v).full;
+
+	@:noCompletion @:deprecated("Use FilePath.getFileWithExt")
+	public static inline function fileAndExt(v:String) return extractFileWithExt(v);
+
+	// Deprecated instance API
+	@:noCompletion @:deprecated("Use <myVar>.fromFile or <myVar>.fromDir")
+	public inline function fromString(v:String) return fromFile(v);
+
+	@:noCompletion @:deprecated("Use <myVar>.full")
+	public inline function getFull() return full;
+
+	@:noCompletion @:deprecated("Use <myVar>.fileWithExt")
+	public inline function getFileAndExt() return fileWithExt;
+
+	// Deprecated fields
+	@:noCompletion @:deprecated("Use <myVar>.directory")
+	public var path(get,never) : String; inline function get_path() return directory;
+
+	@:noCompletion @:deprecated("Use <myVar>.fileName")
+	public var file(get,never) : String; inline function get_file() return fileName;
+
+	@:noCompletion @:deprecated("Use <myVar>.extension")
+	public var ext(get,set) : String;
+	inline function get_ext() return extension;
+	inline function set_ext(v) return extension = v;
 }
