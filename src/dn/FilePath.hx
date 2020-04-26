@@ -198,11 +198,11 @@ class FilePath {
 
 
 	/**
-		Initialize using a String representation of a PATH (optional directory with a file name)
+		Initialize using a String representation of a PATH (ie. optional directory ending with a file name)
 	**/
-	public static inline function fromFile(raw:String) {
+	public static inline function fromFile(path:String) {
 		var p = new FilePath();
-		p.parseFilePath(raw);
+		p.parseFilePath(path);
 		return p;
 	}
 
@@ -210,31 +210,31 @@ class FilePath {
 		Initialize using a String representation of a DIRECTORY (no filename). The whole string
 		will be considered as being a directory, even if it contains dots, like "/project/myApp.stable"
 	**/
-	public static inline function fromDir(raw:String) {
+	public static inline function fromDir(path:String) {
 		var p = new FilePath();
-		p.parseDirPath(raw);
+		p.parseDirPath(path);
 		return p;
 	}
 
 	/**
 		Extract the file name & extension from a path. Returns null if they don't exist.
 	**/
-	public static inline function extractFileWithExt(raw:String) : Null<String> {
-		return FilePath.fromFile(raw).fileWithExt;
+	public static inline function extractFileWithExt(path:String) : Null<String> {
+		return FilePath.fromFile(path).fileWithExt;
 	}
 
 	/**
 		Extract the file name without extension from a path. Returns null if it doesn't exist.
 	**/
-	public static inline function extractFileName(raw:String) : Null<String> {
-		return FilePath.fromFile(raw).fileName;
+	public static inline function extractFileName(path:String) : Null<String> {
+		return FilePath.fromFile(path).fileName;
 	}
 
 	/**
 		Extract the file extension from a path. Returns null if it doesn't exist.
 	**/
-	public static inline function extractExtension(raw:String) : Null<String> {
-		return FilePath.fromFile(raw).extension;
+	public static inline function extractExtension(path:String) : Null<String> {
+		return FilePath.fromFile(path).extension;
 	}
 
 	/**
@@ -245,10 +245,10 @@ class FilePath {
 
 		If containsNoFileName is TRUE, the whole path provided will be considered as being a directory.
 	**/
-	public static inline function extractDirNoSlash(filePath:String, containsNoFileName=false) : Null<String> {
+	public static inline function extractDirNoSlash(path:String, containsNoFileName=false) : Null<String> {
 		return containsNoFileName
-			? FilePath.fromDir(filePath).directory
-			: FilePath.fromFile(filePath).directory;
+			? FilePath.fromDir(path).directory
+			: FilePath.fromFile(path).directory;
 	}
 
 	/**
@@ -260,10 +260,10 @@ class FilePath {
 
 		If "containsNoFileName" is TRUE, the whole path provided will be considered as being a directory.
 	**/
-	public static inline function extractDirWithSlash(filePath:String, containsNoFileName=false) : Null<String> {
+	public static inline function extractDirWithSlash(path:String, containsNoFileName=false) : Null<String> {
 		return containsNoFileName
-			? FilePath.fromDir(filePath).directoryWithSlash
-			: FilePath.fromFile(filePath).directoryWithSlash;
+			? FilePath.fromDir(path).directoryWithSlash
+			: FilePath.fromFile(path).directoryWithSlash;
 	}
 
 
