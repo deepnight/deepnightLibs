@@ -72,16 +72,7 @@ class FilePath {
 
 	public inline function parseFilePath(filePath:String) {
 		parse(filePath);
-	}
-
-	public function convertToSlashes() {
-		directory = StringTools.replace(directory, "\\", "/");
-		backslashes = false;
-	}
-
-	public function convertToBackslashes() {
-		directory = StringTools.replace(directory, "/", "\\");
-		backslashes = true;
+		return this;
 	}
 
 	public inline function parseDirPath(dirPath:String) {
@@ -90,6 +81,39 @@ class FilePath {
 			directory += slash() + fileWithExt;
 			fileName = null;
 			extension = null;
+		}
+		return this;
+	}
+
+	public function convertToSlashes() {
+		directory = StringTools.replace(directory, "\\", "/");
+		backslashes = false;
+		return this;
+	}
+
+	public function convertToBackslashes() {
+		directory = StringTools.replace(directory, "/", "\\");
+		backslashes = true;
+		return this;
+	}
+
+	function parseFileName(raw:String) {
+		if( raw==".." ) {
+			fileName = extension = null;
+			if( directory==null )
+				directory = raw;
+			else
+				directory = directoryWithSlash + raw;
+		}
+		else if( raw.indexOf(".")<0 ) {
+			// No extension
+			fileName = raw;
+			extension = null;
+		}
+		else {
+			// Normal filename
+			fileName = raw.substr(0, raw.lastIndexOf("."));
+			extension = raw.substr(raw.lastIndexOf(".")+1);
 		}
 	}
 
@@ -105,12 +129,7 @@ class FilePath {
 
 		if( raw.indexOf(slash())<0 ) {
 			// No directory
-			if( raw.indexOf(".")<0 )
-				fileName = raw;
-			else {
-				fileName = raw.split(".")[0];
-				extension = raw.split(".")[1];
-			}
+			parseFileName(raw);
 		}
 		else {
 			// Clean up double-slashes
@@ -123,12 +142,7 @@ class FilePath {
 			if( raw.lastIndexOf(slash())<raw.length-1 ) {
 				// File name & extension
 				var rawFile = raw.substr( raw.lastIndexOf(slash())+1 );
-				if( rawFile.indexOf(".")<0 )
-					fileName = rawFile;
-				else {
-					fileName = rawFile.substr(0, rawFile.lastIndexOf("."));
-					extension = rawFile.substr( rawFile.lastIndexOf(".")+1 );
-				}
+				parseFileName(rawFile);
 			}
 		}
 	}
@@ -174,14 +188,7 @@ class FilePath {
 			extension = null;
 		}
 		v = sanitize(v);
-		if( v.indexOf(".")<=0 ) {
-			fileName = v;
-			extension = null;
-		}
-		else {
-			fileName = v.substr(0, v.lastIndexOf("."));
-			extension = v.substr(v.lastIndexOf(".")+1);
-		}
+		parseFileName(v);
 		return fileWithExt;
 	}
 
@@ -192,8 +199,7 @@ class FilePath {
 	inline function get_full() {
 		return
 			( directory==null ? "" : ( fileName==null && extension==null ? directory : directoryWithSlash ) )
-			+ (fileName==null ? "" : fileName)
-			+ (extension==null ? "" : "."+extension);
+			+ ( fileWithExt==null ? "" : fileWithExt );
 	}
 
 	inline function get_directoryWithSlash() {
