@@ -67,7 +67,7 @@ class GameFocusHelper extends dn.Process {
                 i.width = w()+1;
                 i.height = h()+1;
                 bg.scaleX = w()+1;
-                bg.scaleY = w()+1;
+                bg.scaleY = h()+1;
 
                 // Auto-kill
                 if( !suspended )
