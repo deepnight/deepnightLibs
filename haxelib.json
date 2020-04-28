@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.37",
+	"version": "0.0.38",
 	"classPath": "src/",
-	"releasenote": "Fixed a bug in HaxeJson. Updated Bresenham, Color & FilePath.",
+	"releasenote": "New FilePath API (breaks existing code, but warnings included)",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
