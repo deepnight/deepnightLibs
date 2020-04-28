@@ -20,13 +20,13 @@ class Test {
 		test(RandList, function() new RandList([1,2,3]));
 		test(dn.heaps.Sfx, function() @:privateAccess dn.heaps.Sfx.GLOBAL_GROUPS);
 		test(Tweenie, function() @:privateAccess Tweenie.DEFAULT_DURATION);
+		test(FilePath, function() @:privateAccess FilePath.SLASH_MODE);
 
 		test(dn.data.GetText, function() dn.data.GetText.checkSyntax(new Map()));
 
 		test(dn.heaps.slib.SpriteLib, function() dn.heaps.slib.SpriteLib.TMOD);
 		test(dn.heaps.assets.Atlas, function() dn.heaps.assets.Atlas.LOADING_TICK_FUN);
 		test(dn.heaps.Controller, function() dn.heaps.Controller.beforeUpdate());
-
 
 		// Unit tests
 		var cd = new dn.Cooldown(60);
