@@ -1,6 +1,32 @@
 package dn;
 
+enum PathSlashMode {
+	/**
+		Keep existing slashes/backslashes.
+	**/
+	Keep;
+
+	/**
+		Convert all paths to backslashes
+	**/
+	Backslash;
+
+	/**
+		Convert all paths to slashes
+	**/
+	Slash;
+}
+
 class FilePath {
+	/**
+		Change the way FilePath parser deals with slashes/backslashes.
+
+		[Keep] (default) - Don't change the existing slashes and maintain them
+
+		[Slash] or [Backslash] - Convert to the corresponding type
+	**/
+	public static var SLASH_MODE = Keep;
+
 	/**
 		Directory
 
@@ -122,10 +148,19 @@ class FilePath {
 	**/
 	function parse(raw:String) {
 		init();
-		if( raw.indexOf("\\")>=0 ) {
-			backslashes = true;
-			raw = StringTools.replace(raw,"/","\\"); // avoid mixing slashes
+
+		switch SLASH_MODE {
+			case Keep:
+			case Backslash: raw = StringTools.replace(raw, "/", "\\");
+			case Slash: raw = StringTools.replace(raw, "\\", "/");
 		}
+
+		// Detect slashes
+		if( raw.indexOf("\\")>=0 )
+			backslashes = true;
+
+		// Avoid mixing slashes
+		raw = StringTools.replace(raw, backslashes ? "/" : "\\", slash());
 
 		if( raw.indexOf(slash())<0 ) {
 			// No directory
@@ -147,7 +182,7 @@ class FilePath {
 		}
 	}
 
-	inline function slash() {
+	public inline function slash() {
 		return backslashes ? "\\" : "/";
 	}
 
@@ -214,7 +249,7 @@ class FilePath {
 
 
 	/**
-		Initialize using a String representation of a PATH (ie. optional directory ending with a file name)
+		Initialize using a FILE PATH string (ie. "optional directory ending with a file name")
 	**/
 	public static inline function fromFile(path:String) {
 		var p = new FilePath();
@@ -223,7 +258,7 @@ class FilePath {
 	}
 
 	/**
-		Initialize using a String representation of a DIRECTORY (no filename). The whole string
+		Initialize using a DIRECTORY string (no filename). The whole string
 		will be considered as being a directory, even if it contains dots, like "/project/myApp.stable"
 	**/
 	public static inline function fromDir(path:String) {
