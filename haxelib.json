@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.38",
+	"version": "0.0.39",
 	"classPath": "src/",
-	"releasenote": "New FilePath API (breaks existing code, but warnings included)",
+	"releasenote": "Added folder copy/crawl to FileTools, better SlashMode enum naming in FilePath",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
