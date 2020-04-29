@@ -74,12 +74,12 @@ class FileTools {
 		var files = [];
 		while( pendingDirs.length>0 ) {
 			var cur = pendingDirs.shift();
-			dirs.push(cur);
+			dirs.push( FilePath.fromDir(cur).full );
 			for( e in sys.FileSystem.readDirectory(cur) ) {
 				if( sys.FileSystem.isDirectory(cur+"/"+e) )
 					pendingDirs.push(cur+"/"+e);
 				else
-					files.push(cur+"/"+e);
+					files.push(  FilePath.fromDir(cur+"/"+e).full );
 			}
 		}
 		return {
