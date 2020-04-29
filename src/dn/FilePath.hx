@@ -104,7 +104,10 @@ class FilePath {
 	public inline function parseDirPath(dirPath:String) {
 		parse(dirPath);
 		if( fileWithExt!=null ) {
-			directory += slash() + fileWithExt;
+			if( directory==null )
+				directory = fileWithExt;
+			else
+				directory += slash() + fileWithExt;
 			fileName = null;
 			extension = null;
 		}
