@@ -51,7 +51,7 @@ class Sfx {
 	static var SPATIAL_LISTENER_RANGE = 1.;
 
 	macro public static function importDirectory(dir:String) {
-		haxe.macro.Context.error("ERROR: importDirectory() is deprecated. Use dn.heaps.assets.SfxDirectory.load() instead.", haxe.macro.Context.currentPos());
+		haxe.macro.Context.error("ERROR: use dn.heaps.assets.SfxDirectory.load()", haxe.macro.Context.currentPos());
 		return macro null;
 	}
 
