@@ -245,6 +245,21 @@ class FilePath {
 	}
 
 
+	public function getDirectoryArray() {
+		if( directory==null )
+			return [];
+		else
+			return directory.split(slash());
+	}
+
+	public function getLastDirectory() : Null<String> {
+		if( directory==null )
+			return null;
+		var arr = getDirectoryArray();
+		return arr[arr.length-1];
+	}
+
+
 	public function debug() {
 		return 'dir=$directory, fileName=$fileName, ext=$extension';
 	}
