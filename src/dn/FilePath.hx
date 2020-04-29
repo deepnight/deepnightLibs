@@ -9,12 +9,12 @@ enum PathSlashMode {
 	/**
 		Convert all paths to backslashes
 	**/
-	Backslash;
+	OnlyBackslashes;
 
 	/**
 		Convert all paths to slashes
 	**/
-	Slash;
+	OnlySlashes;
 }
 
 class FilePath {
@@ -23,7 +23,7 @@ class FilePath {
 
 		[Keep] (default) - Don't change the existing slashes and maintain them
 
-		[Slash] or [Backslash] - Convert to the corresponding type
+		[OnlySlashes] or [OnlyBackslashes] - Convert to the corresponding type
 	**/
 	public static var SLASH_MODE = Keep;
 
@@ -114,16 +114,24 @@ class FilePath {
 		return this;
 	}
 
-	public function convertToSlashes() {
+	public function useSlashes() {
 		directory = StringTools.replace(directory, "\\", "/");
 		backslashes = false;
 		return this;
 	}
 
-	public function convertToBackslashes() {
+	public function useBackslashes() {
 		directory = StringTools.replace(directory, "/", "\\");
 		backslashes = true;
 		return this;
+	}
+
+	public static inline function convertToSlashes(path:String) {
+		return StringTools.replace(path, "\\", "/");
+	}
+
+	public static inline function convertToBackslashes(path:String) {
+		return StringTools.replace(path, "/", "\\");
 	}
 
 	function parseFileName(raw:String) {
@@ -154,8 +162,8 @@ class FilePath {
 
 		switch SLASH_MODE {
 			case Keep:
-			case Backslash: raw = StringTools.replace(raw, "/", "\\");
-			case Slash: raw = StringTools.replace(raw, "\\", "/");
+			case OnlyBackslashes: raw = StringTools.replace(raw, "/", "\\");
+			case OnlySlashes: raw = StringTools.replace(raw, "\\", "/");
 		}
 
 		// Detect slashes
