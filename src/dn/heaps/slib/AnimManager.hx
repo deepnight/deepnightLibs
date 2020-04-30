@@ -446,6 +446,13 @@ class AnimManager {
 		return null;
 	}
 
+	public function appendStateAnim(group:String, ?spd=1.0, ?condition:Void->Bool) {
+		var maxPrio = 0;
+		for(s in stateAnims)
+			maxPrio = M.imax(s.priority, maxPrio);
+		registerStateAnim(group, maxPrio+1, spd, condition);
+	}
+
 	public function registerStateAnim(group:String, priority:Int, ?spd=1.0, ?condition:Void->Bool) {
 		if( condition==null )
 			condition = function() return true;
