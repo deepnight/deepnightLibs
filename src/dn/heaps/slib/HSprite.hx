@@ -168,7 +168,7 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 		pivot.setCoord(x, y);
 	}
 
-	public inline function setCenterRatio(xRatio:Float, yRatio:Float) {
+	public inline function setCenterRatio(xRatio=0.5, yRatio=0.5) {
 		pivot.setCenterRatio(xRatio, yRatio);
 	}
 

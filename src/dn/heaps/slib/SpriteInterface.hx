@@ -36,7 +36,7 @@ interface SpriteInterface {
 	public function setScale(#if h2d v:hxd.Float32 #else v:Float #end) : Void;
 	public function setPos(x:Float, y:Float) : Void;
 	public function setPivotCoord(x:Float, y:Float) : Void;
-	public function setCenterRatio(xr:Float, yr:Float) : Void;
+	public function setCenterRatio(xr:Float=0.5, yr:Float=0.5) : Void;
 	public function fitToBox(w:Float, ?h:Null<Float>, ?useFrameDataRealSize:Bool=false) : Void;
 
 	public function totalFrames() : Int;
