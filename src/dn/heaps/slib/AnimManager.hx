@@ -359,18 +359,18 @@ class AnimManager {
 
 
 	public function suspend() {
-		suspended = true;
 		suspendF = 9999;
 	}
 
 	public function unsuspend() { // the name sucks, but its easier to understand
-		suspended = false;
 		suspendF = 0;
 	}
 
-	public function suspendForF(durationFrame:Float) {
-		suspendF = durationFrame + 1;
+	public function suspendForF(frames:Int) {
+		suspendF = frames + 1;
 	}
+
+	public inline function isSuspended() return suspendF>0;
 
 
 	public inline function getPlaySpeed() return genSpeed * ( hasAnim() ? getLastAnim().speed : 1.0 );
@@ -532,7 +532,10 @@ class AnimManager {
 	}
 
 	function _update(dt:Float) {
-		if( suspended ) {
+		if( SpriteLib.DISABLE_ANIM_UPDATES )
+			return;
+
+		if( isSuspended() ) {
 			suspendF-=dt;
 			if( suspendF<=0 )
 				unsuspend();

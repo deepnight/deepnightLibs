@@ -30,14 +30,12 @@ class GameFocusHelper extends dn.Process {
         // #end
     }
 
-    var oldSprLibTmod = 1.0;
     function suspendGame() {
         if( suspended )
             return;
 
         suspended = true;
-        oldSprLibTmod = dn.heaps.slib.SpriteLib.TMOD;
-        dn.heaps.slib.SpriteLib.TMOD = 0;
+        dn.heaps.slib.SpriteLib.DISABLE_ANIM_UPDATES = true;
 
         // Pause other process
         for(p in Process.ROOTS)
@@ -94,7 +92,7 @@ class GameFocusHelper extends dn.Process {
     function resumeGame() {
         if( !suspended )
             return;
-        dn.heaps.slib.SpriteLib.TMOD = oldSprLibTmod;
+        dn.heaps.slib.SpriteLib.DISABLE_ANIM_UPDATES = false;
 
         delayer.addF(function() {
             root.visible = false;

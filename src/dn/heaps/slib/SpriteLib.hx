@@ -54,8 +54,10 @@ class SpriteLib {
 	#if !macro
 
 	@:noCompletion
-	@:deprecated("Use the instance tmod field instead of this static")
+	@:deprecated("NOT SUPPORTED ANYMORE, use \"tmod\" class field")
 	public static var TMOD : Float = Math.NaN;
+
+	public static var DISABLE_ANIM_UPDATES = false;
 
 	var groups					: Map<String, LibGroup>;
 	public var defaultCenterX(default, null)	: Float;
