@@ -52,11 +52,16 @@ enum SLBError {
 
 class SpriteLib {
 	#if !macro
+
+	@:noCompletion
+	@:deprecated("Use the instance tmod field instead of this static")
 	public static var TMOD : Float = Math.NaN;
 
 	var groups					: Map<String, LibGroup>;
 	public var defaultCenterX(default, null)	: Float;
 	public var defaultCenterY(default, null)	: Float;
+
+	public var tmod = 1.0;
 
 	// Slicer variables
 	var currentGroup			: Null<LibGroup>;

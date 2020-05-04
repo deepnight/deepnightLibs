@@ -226,7 +226,7 @@ class HSpriteBE extends BatchElement implements SpriteInterface {
 
 	override function update(et:Float) {
 		if( animAllocated )
-			anim.update( !Math.isNaN(SpriteLib.TMOD) ? SpriteLib.TMOD : et*hxd.Timer.wantedFPS );
+			anim.update( lib!=null ? lib.tmod : 1 );
 
 		return super.update(et);
 	}
