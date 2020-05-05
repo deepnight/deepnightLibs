@@ -453,6 +453,13 @@ class AnimManager {
 		registerStateAnim(group, maxPrio+1, spd, condition);
 	}
 
+	public function prependStateAnim(group:String, ?spd=1.0, ?condition:Void->Bool) {
+		var minPrio = 0;
+		for(s in stateAnims)
+			minPrio = M.imin(s.priority, minPrio);
+		registerStateAnim(group, minPrio-1, spd, condition);
+	}
+
 	public function registerStateAnim(group:String, priority:Int, ?spd=1.0, ?condition:Void->Bool) {
 		if( condition==null )
 			condition = function() return true;
