@@ -62,8 +62,6 @@ class RandDeck<T> {
 		if( ++curIdx >= size )
 			shuffle();
 
-		trace("draw "+v);
-
 		return v;
 	}
 
