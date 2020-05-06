@@ -2,99 +2,86 @@ package dn;
 import haxe.ds.Vector;
 
 class RandDeck<T> {
-	public var size (default, null) : Int;
-	var a    : Vector<T>;
-	var cur  : Int;
-	var max  : Int;
-	var rnd  : Int->Int;
+	public var size(default, null) : Int;
+	var elements : Vector<T>;
+	var curIdx : Int;
+	var maxLength : Int;
+	var rndFunc : Int->Int;
 
 	public function new(?rnd : Int->Int) {
-		cur  = 0;
-		max  = 0;
+		curIdx  = 0;
+		maxLength  = 0;
 		size = 0;
-		this.rnd = (rnd == null) ? Std.random : rnd;
+		rndFunc = rnd==null ? Std.random : rnd;
 	}
 
-	function grow(min = 0) {
-		max = max * 2 + 8;
-		if (max < min) max = min;
-
-		var old = a;
-		// fix for haxe 3.3 (see https://github.com/HaxeFoundation/haxe/issues/5093)
-		#if flash
-		untyped a = new flash.Vector(max, true);
-		#else
-		a = new Vector(max);
-		#end
-		if( old != null && size > 0 )
-			Vector.blit(old, 0, a, 0, size);
+	public function toString() {
+		return 'RandDeck($size)=>'+getAllElements();
 	}
 
-	public function push(v : T, n = 1) {
+	function grow() {
+		maxLength = maxLength==0 ? 2 : maxLength * 2;
+
+		var old = elements;
+		elements = new Vector(maxLength);
+		if( old!=null && size>0 )
+			Vector.blit(old, 0, elements, 0, size);
+	}
+
+	public function push(v:T, n=1) {
 		var newSize = size + n;
-		if (newSize > max) grow(newSize);
-		for (i in size...newSize) a[i] = v;
+		if( newSize>maxLength )
+			grow();
+
+		for (i in size...newSize) elements[i] = v;
 		size = newSize;
 	}
 
-	public function remove(v : T) {
-		var index = -1;
-		for (i in 0...size) if (a[i] == v) {
-			index = i;
-			break;
-		}
-
-		// item not found
-		if (index < 0) return false;
-		if (index != --size) a[index] = a[size]; // swap with last
-		if (cur == size) cur = 0;
-		a[size] = null;
-
-		return true;
-	}
-
-	public function shuffle() {
-		cur = 0;
+	public inline function shuffle() {
+		curIdx = 0;
 		for (i in 0...(size-1)) {
-			var j = rnd(size - i);
-			var tmp = a[i];
-			a[i] = a[i + j];
-			a[i + j] = tmp;
+			var j = rndFunc(size - i);
+			var tmp = elements[i];
+			elements[i] = elements[i + j];
+			elements[i + j] = tmp;
 		}
 	}
 
-	public inline function countRemaining() return size-cur;
+	public inline function countRemaining() return size-curIdx;
 
 	public function clear() {
-		cur  = 0;
+		curIdx  = 0;
 		size = 0;
 	}
 
-	public function pop() : Null<T> {
-		if (size==0) return null;
-		var v = a[cur];
-		if (++cur == size) shuffle();
+	public function draw() : Null<T> {
+		if( size==0 )
+			return null;
+
+		var v = elements[curIdx];
+		if( ++curIdx >= size )
+			shuffle();
+
+		trace("draw "+v);
+
 		return v;
 	}
 
-	public function peek() : Null<T> {
-		return a[cur];
+	public inline function peekNextDraw() : Null<T> {
+		return elements[curIdx];
 	}
 
-	// Removes all elements for which cond returns false from deck
-	// Keep current deck order, updates cur and size
-	public function filter( cond : T -> Bool ){
-		var i = 0;
-		while( i < size ){
-			if( cond( a[i] ) )
-				i++;
-			else{
-				if( i <= cur )
-					cur--;
-				if( size - 1 - i > 0 )
-					haxe.ds.Vector.blit(a,i+1,a,i,size-i-1);
-				size--;
-			}
-		}
+	public function getRemainingElements() : Array<T> {
+		var a = [];
+		for(i in curIdx...size)
+			a.push( elements[i] );
+		return a;
+	}
+
+	public function getAllElements() : Array<T> {
+		var a = [];
+		for(i in 0...size)
+			a.push( elements[i] );
+		return a;
 	}
 }
