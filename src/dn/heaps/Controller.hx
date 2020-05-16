@@ -257,14 +257,14 @@ class ControllerAccess {
 		if( isKeyboard() )
 			return leftDown() ? -1 : rightDown() ? 1 : 0;
 		else
-			return parent.gc.getValue(AXIS_LEFT_X_POS, false, leftDeadZone);
+			return parent.gc.getLXValue(false, leftDeadZone);
 	}
 
 	public inline function lyValue() : Float {
 		if( isKeyboard() )
 			return upDown() ? -1 : downDown() ? 1 : 0;
 		else
-			return parent.gc.getValue(AXIS_LEFT_Y_POS, false, leftDeadZone);
+			return parent.gc.getLYValue(false, leftDeadZone);
 	}
 
 	public inline function rxValue()         return parent.gc.getValue(AXIS_RIGHT_X, false, rightDeadZone);

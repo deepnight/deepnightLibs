@@ -158,11 +158,7 @@ class GamePad {
 			device.rumble(strength, time_s);
 	}
 
-	inline function getControlValue(idx:Int, simplified:Bool, overrideDeadZone:Float=-1.) : Float {
-		var v = idx > -1 && idx<device.values.length ? device.values[idx] : 0;
-		//if( inverts.get(cid)==true )
-		//	v*=-1;
-
+	function applyDeadZone(v:Float, simplified:Bool, overrideDeadZone:Float) : Float {
 		var dz : Float = overrideDeadZone < 0. ? deadZone : overrideDeadZone;
 
 		if( simplified )
@@ -170,9 +166,24 @@ class GamePad {
 		else
 			return v>-dz && v<dz ? 0. : v;
 	}
+	inline function getControlValue(idx:Int, simplified:Bool, overrideDeadZone:Float) : Float {
+		var v = idx > -1 && idx<device.values.length ? device.values[idx] : 0;
+		//if( inverts.get(cid)==true )
+		//	v*=-1;
+
+		return applyDeadZone(v, simplified, overrideDeadZone);
+	}
 
 	public inline function getValue(k:PadKey, simplified=false, overrideDeadZone:Float=-1.) : Float {
 		return isEnabled() ? getControlValue( MAPPING[k.getIndex()], simplified, overrideDeadZone ) : 0.;
+	}
+
+	public inline function getLXValue(simplified=false, overrideDeadZone:Float=-1.) : Float {
+		return isEnabled() ? applyDeadZone( device.xAxis, simplified, overrideDeadZone ) : 0.;
+	}
+
+	public inline function getLYValue(simplified=false, overrideDeadZone:Float=-1.) : Float {
+		return isEnabled() ? applyDeadZone( device.yAxis, simplified, overrideDeadZone ) : 0.;
 	}
 
 	public inline function checkDownStatus(k:PadKey) {
