@@ -85,10 +85,11 @@ class DecisionHelper<T> {
 		return best==null ? null : best.v;
 	}
 
-	public inline function useBest(action:T->Void) {
+	public inline function useBest(action:T->Void) : Null<T> {
 		var e = getBest();
 		if( e!=null )
 			action(e);
+		return e;
 	}
 
 	public function getRemainingRandomWithoutScore(rnd:Int->Int) : Null<T> {
