@@ -17,9 +17,9 @@ class Process {
 	var parent(default, null) : Process;
 
 	public var utmod : Float; // this tmod value is unaffected by the time multiplier
-	public var tmod(get,never) : Float; inline function get_tmod() return utmod * M.fmax(timeMultiplier, 0);
-	public var timeMultiplier : Float;
+	public var tmod(get,never) : Float; inline function get_tmod() return utmod * getComputedTimeMultiplier();
 	public var uftime(default, null) : Float; // elapsed frames not affected by time multiplier
+	var baseTimeMul = 1.0;
 
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
@@ -66,7 +66,7 @@ class Process {
 		ftime = 0;
 		uftime = 0;
 		utmod = 1;
-		timeMultiplier = 1.0;
+		baseTimeMul = 1;
 
 		cd = new Cooldown( getDefaultFrameRate() );
 		delayer = new Delayer( getDefaultFrameRate() );
@@ -163,6 +163,15 @@ class Process {
 		//#else
 		//return flash.Lib.current.stage.frameRate;
 		//#end
+	}
+
+
+	public function setTimeMultiplier(v:Float) {
+		baseTimeMul = v;
+	}
+
+	function getComputedTimeMultiplier() : Float {
+		return M.fmax(0, baseTimeMul * ( parent==null ? 1 : parent.getComputedTimeMultiplier() ) );
 	}
 
 
@@ -266,7 +275,7 @@ class Process {
 
 		if( canRun(p) )
 			for (c in p.children)
-				_doPreUpdate(c,p.tmod);
+				_doPreUpdate(c,p.utmod);
 	}
 
 	static function _doMainUpdate(p : Process) {
