@@ -210,10 +210,25 @@ class Process {
 		children.push(p);
 	}
 
-	public function removeChild( p : Process ) {
-		if( p.parent != this ) throw "invalid parent access";
+	public inline function isRootProcess() return parent==null;
+
+	public function moveChildToRootProcesses( p : Process ) {
+		if( p.parent!=this )
+			throw "Not a child of this process";
+
 		p.parent = null;
 		children.remove(p);
+		ROOTS.push(p);
+	}
+
+	public function removeAndDestroyChild( p : Process ) {
+		if( p.parent!=this )
+			throw "Not a child of this process";
+
+		p.parent = null;
+		children.remove(p);
+		ROOTS.push(p); // needed for garbage collector
+		p.destroy();
 	}
 
 	public function createChildProcess( ?onUpdate:Process->Void, ?onDispose:Process->Void, ?runUpdateImmediatly=false ) : Process {
