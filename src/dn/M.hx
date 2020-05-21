@@ -10,37 +10,37 @@ class M {
 	/**
 	 * Min value, signed byte.
 	 */
-	inline public static var INT8_MIN =-0x80;
+	inline public static var T_INT8_MIN =-0x80;
 
 	/**
 	 * Max value, signed byte.
 	 */
-	inline public static var INT8_MAX = 0x7F;
+	inline public static var T_INT8_MAX = 0x7F;
 
 	/**
 	 * Max value, unsigned byte.
 	 */
-	inline public static var UINT8_MAX = 0xFF;
+	inline public static var T_UINT8_MAX = 0xFF;
 
 	/**
 	 * Min value, signed short.
 	 */
-	inline public static var INT16_MIN =-0x8000;
+	inline public static var T_INT16_MIN =-0x8000;
 
 	/**
 	 * Max value, signed short.
 	 */
-	inline public static var INT16_MAX = 0x7FFF;
+	inline public static var T_INT16_MAX = 0x7FFF;
 
 	/**
 	 * Max value, unsigned short.
 	 */
-	inline public static var UINT16_MAX = 0xFFFF;
+	inline public static var T_UINT16_MAX = 0xFFFF;
 
 	/**
 	 * Min value, signed integer.
 	 */
-	inline public static var INT32_MIN =
+	inline public static var T_INT32_MIN =
 	#if cpp
 	//warning: this decimal constant is unsigned only in ISO C90
 	-0x7fffffff;
@@ -53,17 +53,17 @@ class M {
 	/**
 	 * Max value, signed integer.
 	 */
-	inline public static var INT32_MAX = #if(neko && !neko_v2) 0x3fffffff #else 0x7fffffff#end;
+	inline public static var T_INT32_MAX = #if(neko && !neko_v2) 0x3fffffff #else 0x7fffffff#end;
 
 	/**
 	 * Max value, unsigned integer.
 	 */
-	inline public static var UINT32_MAX =  #if(neko && !neko_v2) 0x3fffffff #else 0xffffffff#end;
+	inline public static var T_UINT32_MAX =  #if(neko && !neko_v2) 0x3fffffff #else 0xffffffff#end;
 
 	/**
 	 * Number of bits using for representing integers.
 	 */
-	inline public static var INT_BITS =	#if (neko && neko_v2)
+	inline public static var T_INT_BITS =	#if (neko && neko_v2)
 											32;
 										#elseif(neko)
 											31;
@@ -74,22 +74,22 @@ class M {
 	/**
 	 * The largest representable number (single-precision IEEE-754).
 	 */
-	inline public static var FLOAT_MAX = 3.4028234663852886e+38;
+	inline public static var T_FLOAT_MAX = 3.4028234663852886e+38;
 
 	/**
 	 * The smallest representable number (single-precision IEEE-754).
 	 */
-	inline public static var FLOAT_MIN = -3.4028234663852886e+38;
+	inline public static var T_FLOAT_MIN = -3.4028234663852886e+38;
 
 	/**
 	 * The largest representable number (double-precision IEEE-754).
 	 */
-	inline public static var DOUBLE_MAX = 1.7976931348623157e+308;
+	inline public static var T_DOUBLE_MAX = 1.7976931348623157e+308;
 
 	/**
 	 * The smallest representable number (double-precision IEEE-754).
 	 */
-	inline public static var DOUBLE_MIN = -1.7976931348623157e+308;
+	inline public static var T_DOUBLE_MIN = -1.7976931348623157e+308;
 
 	/**
 	 * IEEE 754 NAN.
