@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "0.0.41",
+	"version": "0.0.42",
 	"classPath": "src/",
-	"releasenote": "Tmod is no longer static in SpriteLib. Fixed timeMultiplier with nested processes. Fixed a conflict with Iphone SDK.",
+	"releasenote": "Tmod is no longer static in SpriteLib. Fixed timeMultiplier with nested processes. Fixed a conflict with Iphone SDK. Fixed orphans in Process.removeChild.",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
