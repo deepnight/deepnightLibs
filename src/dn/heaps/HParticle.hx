@@ -552,6 +552,12 @@ class HParticle extends BatchElement {
 		return Std.random( Std.int(f*10000) ) / 10000;
 	}
 
+	public inline function setGravityAng(a:Float, spd:Float) {
+		gx = Math.cos(a)*spd;
+		gy = Math.sin(a)*spd;
+	}
+
+
 	public inline function moveAng(a:Float, spd:Float) {
 		dx = Math.cos(a)*spd;
 		dy = Math.sin(a)*spd;
