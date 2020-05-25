@@ -151,6 +151,8 @@ class Atlas {
 
 				if( regBoth )
 					lib.resliceCustom(groupName, 0, fd);
+
+				lib.resliceCustom(rawName, 0, fd); // original name
 			} else {
 				var k = groupName;
 				if( k.indexOf("/")>=0 ) k = k.substr( k.lastIndexOf("/")+1 );
