@@ -264,7 +264,6 @@ class HParticle extends BatchElement {
 	public var onFadeOutStart	: Null<HParticle->Void>;
 	public var onKill			: Null<Void->Void>;
 
-	public var pixel			: Bool;
 	public var killOnLifeOut	: Bool;
 	public var killed			: Bool;
 
@@ -395,7 +394,6 @@ class HParticle extends BatchElement {
 		bounceMul = 0.85;
 		delayS = 0;
 		lifeS = 1;
-		pixel = false;
 		bounds = DEFAULT_BOUNDS;
 		killOnLifeOut = false;
 		groundY = null;
