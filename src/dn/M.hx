@@ -819,4 +819,9 @@ class M {
 	public static inline function hasBit(v:Int, bitIdx:Int) : Bool{
 		return v & ( 1<<bitIdx ) != 0;
 	}
+
+
+	public static inline function isValidNumber(v:Null<Float>) {
+		return v!=null && !Math.isNaN(v) && Math.isFinite(v);
+	}
 }
