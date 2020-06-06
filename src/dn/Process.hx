@@ -129,7 +129,7 @@ class Process {
 	// private api
 	// -----------------------------------------------------------------------
 
-	function toString() return name+":"+uniqId;
+	@:keep function toString() return name+":"+uniqId;
 	inline function get_itime() return Std.int(ftime);
 	#if( heaps || h3d )
 	inline function get_engine() return h3d.Engine.getCurrent();
