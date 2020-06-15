@@ -1,19 +1,28 @@
 package dn.heaps;
 
 class ImageDecoder {
-	public static function readBytes(b:haxe.io.Bytes) : Null<h3d.mat.Texture> {
+	public static function getPixels(b:haxe.io.Bytes) : Null<hxd.Pixels> {
 		return try switch dn.Identify.getType(b) {
 			case Png: readPng(b);
 			case Gif: readGif(b);
 			case Jpeg: readJpeg(b);
 			case _: null;
 		}
-		catch( e:String ) {
+		catch( err:String ) {
 			return null;
 		}
 	}
 
-	static function readPng(b:haxe.io.Bytes) : Null<h3d.mat.Texture> {
+
+	public static function getTexture(bytes:haxe.io.Bytes) : Null<h3d.mat.Texture> {
+		var pixels = getPixels(bytes);
+		return pixels==null ? null : h3d.mat.Texture.fromPixels(pixels);
+	}
+
+	
+
+
+	static function readPng(b:haxe.io.Bytes) : Null<hxd.Pixels> {
 		try {
 			var i = new haxe.io.BytesInput(b);
 			var reader = new format.png.Reader(i);
@@ -37,9 +46,7 @@ class ImageDecoder {
 					var pixels = hxd.Pixels.alloc(wid, hei, BGRA);
 					format.png.Tools.extract32(data, pixels.bytes, false);
 
-					var tex = new h3d.mat.Texture(wid,hei);
-					tex.uploadPixels(pixels);
-					return tex;
+					return pixels;
 
 				case _:
 			}
@@ -51,7 +58,7 @@ class ImageDecoder {
 		return null;
 	}
 
-	static function readGif(b:haxe.io.Bytes) : Null<h3d.mat.Texture> {
+	static function readGif(b:haxe.io.Bytes) : Null<hxd.Pixels> {
 		try {
 			var i = new haxe.io.BytesInput(b);
 			var reader = new format.gif.Reader(i);
@@ -61,10 +68,7 @@ class ImageDecoder {
 			var wid = data.logicalScreenDescriptor.width;
 			var hei = data.logicalScreenDescriptor.height;
 			var pixels = new hxd.Pixels(wid, hei, format.gif.Tools.extractFullBGRA(data, 0), BGRA);
-
-			var tex = new h3d.mat.Texture(wid,hei);
-			tex.uploadPixels(pixels);
-			return tex;
+			return pixels;
 		}
 		catch(e:Dynamic) {
 			throw "Failed to read GIF";
@@ -74,7 +78,7 @@ class ImageDecoder {
 	}
 
 
-	static function readJpeg(b:haxe.io.Bytes) : Null<h3d.mat.Texture> {
+	static function readJpeg(b:haxe.io.Bytes) : Null<hxd.Pixels> {
 		var i = new haxe.io.BytesInput(b);
 		i.readUInt16(); // skip header
 		i.bigEndian = true;
@@ -99,12 +103,7 @@ class ImageDecoder {
 
 		// Read pixels
 		var pixels = _decodeJpeg(b, wid, hei, false);
-		if( pixels==null )
-			return null;
-
-		var tex = new h3d.mat.Texture(wid,hei);
-		tex.uploadPixels(pixels);
-		return tex;
+		return pixels;
 	}
 
 	static function _decodeJpeg( src : haxe.io.Bytes, width : Int, height : Int, flipY : Bool ) {
