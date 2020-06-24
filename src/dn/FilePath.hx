@@ -134,6 +134,30 @@ class FilePath {
 		return StringTools.replace(path, "/", "\\");
 	}
 
+
+	public function makeRelativeTo(dirPath:String) {
+		var cur = getDirectoryArray();
+		var ref = fromDir(dirPath).getDirectoryArray();
+
+		if( cur[0]!=ref[0] )
+			return;
+
+		// Drop common elements
+		while( cur[0]==ref[0] ) {
+			cur.shift();
+			ref.shift();
+		}
+
+		var i = 0;
+		while( i<ref.length ) {
+			cur.insert(0, "..");
+			i++;
+		}
+
+		directory = cur.join( slash() );
+	}
+
+
 	function parseFileName(raw:String) {
 		if( raw==".." ) {
 			fileName = extension = null;
