@@ -19,7 +19,7 @@ class ImageDecoder {
 		return pixels==null ? null : h3d.mat.Texture.fromPixels(pixels);
 	}
 
-	
+
 
 
 	static function readPng(b:haxe.io.Bytes) : Null<hxd.Pixels> {
@@ -120,6 +120,10 @@ class ImageDecoder {
 
 		var d = hxd.res.NanoJpeg.decode(src);
 		return new hxd.Pixels(d.width, d.height, d.pixels, BGRA);
+
+		#else
+
+		return null;
 
 		#end
 	}
