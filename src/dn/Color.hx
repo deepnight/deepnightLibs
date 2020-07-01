@@ -152,7 +152,7 @@ class Color {
 		return matrix;
 	}
 
-	public static inline function intToHex(c:Int, ?leadingZeros=6) {
+	public static inline function intToHex(c:Int, ?leadingZeros=6) : String {
 		var h = StringTools.hex(c);
 		while (h.length<leadingZeros)
 			h="0"+h;
