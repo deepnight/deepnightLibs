@@ -8,11 +8,11 @@ typedef DecodedImage = {
 
 class ImageDecoder {
 
-	public static function run(encoded:haxe.io.Bytes) : Null<DecodedImage> {
-		return try switch dn.Identify.getType(encoded) {
-			case Png: readPng(encoded);
-			case Gif: readGif(encoded);
-			case Jpeg: readJpeg(encoded);
+	public static function run(fileContent:haxe.io.Bytes) : Null<DecodedImage> {
+		return try switch dn.Identify.getType(fileContent) {
+			case Png: decodePng(fileContent);
+			case Gif: decodeGif(fileContent);
+			case Jpeg: decodeJpeg(fileContent);
 			case _: null;
 		}
 		catch( err:String ) {
@@ -21,13 +21,13 @@ class ImageDecoder {
 	}
 
 	#if heaps
-	public static function getPixels(encoded:haxe.io.Bytes) : Null<hxd.Pixels> {
-		var img = run(encoded);
+	public static function getPixels(fileContent:haxe.io.Bytes) : Null<hxd.Pixels> {
+		var img = run(fileContent);
 		return img==null ? null : new hxd.Pixels(img.width, img.height, img.bytes, BGRA);
 	}
 
-	public static function getTexture(encoded:haxe.io.Bytes) : Null<h3d.mat.Texture> {
-		var pixels = getPixels(encoded);
+	public static function getTexture(fileContent:haxe.io.Bytes) : Null<h3d.mat.Texture> {
+		var pixels = getPixels(fileContent);
 		return pixels==null ? null : h3d.mat.Texture.fromPixels(pixels);
 	}
 	#end
@@ -35,7 +35,7 @@ class ImageDecoder {
 
 
 
-	static function readPng(b:haxe.io.Bytes) : Null<DecodedImage> {
+	static function decodePng(b:haxe.io.Bytes) : Null<DecodedImage> {
 		try {
 			var i = new haxe.io.BytesInput(b);
 			var reader = new format.png.Reader(i);
@@ -75,7 +75,7 @@ class ImageDecoder {
 		return null;
 	}
 
-	static function readGif(b:haxe.io.Bytes) : Null<DecodedImage> {
+	static function decodeGif(b:haxe.io.Bytes) : Null<DecodedImage> {
 		try {
 			var i = new haxe.io.BytesInput(b);
 			var reader = new format.gif.Reader(i);
@@ -95,7 +95,7 @@ class ImageDecoder {
 	}
 
 
-	static function readJpeg(encoded:haxe.io.Bytes) : Null<DecodedImage> {
+	static function decodeJpeg(encoded:haxe.io.Bytes) : Null<DecodedImage> {
 
 		#if hl
 
