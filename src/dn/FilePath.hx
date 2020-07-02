@@ -143,7 +143,7 @@ class FilePath {
 			return;
 
 		// Drop common elements
-		while( cur[0]==ref[0] ) {
+		while( cur.length>0 && ref.length>0 && cur[0]==ref[0] ) {
 			cur.shift();
 			ref.shift();
 		}
