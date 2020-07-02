@@ -116,7 +116,7 @@ class ImageDecoder {
 		if( flipY ) pix.flags.set(FlipY);
 		return pix;
 
-		#elseif js
+		#elseif( js && heaps )
 
 		var d = hxd.res.NanoJpeg.decode(src);
 		return new hxd.Pixels(d.width, d.height, d.pixels, BGRA);
