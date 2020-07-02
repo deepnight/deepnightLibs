@@ -1,14 +1,14 @@
 package dn;
 
 typedef DecodedImage = {
-	var bytes: haxe.io.Bytes;
+	var decodedBytes: haxe.io.Bytes;
 	var width: Int;
 	var height: Int;
 }
 
 class ImageDecoder {
 
-	public static function run(fileContent:haxe.io.Bytes) : Null<DecodedImage> {
+	public static function decode(fileContent:haxe.io.Bytes) : Null<DecodedImage> {
 		return try switch dn.Identify.getType(fileContent) {
 			case Png: decodePng(fileContent);
 			case Gif: decodeGif(fileContent);
@@ -21,13 +21,13 @@ class ImageDecoder {
 	}
 
 	#if heaps
-	public static function getPixels(fileContent:haxe.io.Bytes) : Null<hxd.Pixels> {
-		var img = run(fileContent);
-		return img==null ? null : new hxd.Pixels(img.width, img.height, img.bytes, BGRA);
+	public static function decodePixels(fileContent:haxe.io.Bytes) : Null<hxd.Pixels> {
+		var img = decode(fileContent);
+		return img==null ? null : new hxd.Pixels(img.width, img.height, img.decodedBytes, BGRA);
 	}
 
-	public static function getTexture(fileContent:haxe.io.Bytes) : Null<h3d.mat.Texture> {
-		var pixels = getPixels(fileContent);
+	public static function decodeTexture(fileContent:haxe.io.Bytes) : Null<h3d.mat.Texture> {
+		var pixels = decodePixels(fileContent);
 		return pixels==null ? null : h3d.mat.Texture.fromPixels(pixels);
 	}
 	#end
@@ -62,7 +62,7 @@ class ImageDecoder {
 					return {
 						width: wid,
 						height: hei,
-						bytes: dst,
+						decodedBytes: dst,
 					};
 
 				case _:
@@ -84,7 +84,7 @@ class ImageDecoder {
 			return {
 				width: data.logicalScreenDescriptor.width,
 				height: data.logicalScreenDescriptor.height,
-				bytes: format.gif.Tools.extractFullBGRA(data, 0),
+				decodedBytes: format.gif.Tools.extractFullBGRA(data, 0),
 			}
 		}
 		catch(e:Dynamic) {
@@ -128,7 +128,7 @@ class ImageDecoder {
 			return {
 				width: width,
 				height: height,
-				bytes: decoded,
+				decodedBytes: decoded,
 			}
 
 		#elseif( js && heaps )
@@ -137,7 +137,7 @@ class ImageDecoder {
 		return {
 			width: d.width,
 			height: d.height,
-			bytes: d.pixels,
+			decodedBytes: d.pixels,
 		}
 
 		#else
