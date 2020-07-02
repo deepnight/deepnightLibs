@@ -122,7 +122,7 @@ class ImageDecoder {
 
 		// Decode
 		var decoded = haxe.io.Bytes.alloc(width * height * 4);
-		if( !hl.Format.decodeJPG( encoded.getData(), encoded.length, decoded.getData(), width, height, width * 4, BGRA, 0 )
+		if( !hl.Format.decodeJPG( encoded.getData(), encoded.length, decoded.getData(), width, height, width * 4, BGRA, 0 ) )
 			return null;
 		else
 			return {
