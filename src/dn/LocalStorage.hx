@@ -30,7 +30,7 @@ class LocalStorage {
 		}
 	}
 
-	public static function read(cookieName:String, ?defValue:Dynamic) : String {
+	public static function readString(cookieName:String, ?defValue:String) : String {
 		try {
 			var data = _getCookieData(cookieName);
 			var serializedReg = ~/^y[0-9]+:/gim;
@@ -43,7 +43,7 @@ class LocalStorage {
 		}
 	}
 
-	public static function write(cookieName:String, value:String) {
+	public static function writeString(cookieName:String, value:String) {
 		try {
 			#if flash
 				var so = flash.net.SharedObject.getLocal( cookieName );
@@ -65,6 +65,40 @@ class LocalStorage {
 		catch( e:Dynamic ) {
 		}
 	}
+
+
+	public static function readObject<T>(cookieName:String, ?defValue:T) : T {
+		var raw = readString(cookieName);
+		if( raw==null )
+			return defValue;
+		else {
+			return
+				try haxe.Unserializer.run(raw)
+				catch( err:Dynamic ) return defValue;
+		}
+	}
+
+	public static function writeObject<T>(cookieName:String, obj:T) {
+		writeString(cookieName, haxe.Serializer.run(obj));
+	}
+
+
+	public static function readJson(cookieName:String, ?defValue:Dynamic) : Dynamic {
+		var raw = readString(cookieName);
+		if( raw==null )
+			return defValue;
+		else {
+			return
+				try haxe.Json.parse(raw)
+				catch(err:Dynamic) defValue;
+
+		}
+	}
+
+	public static function writeJson(cookieName:String, json:Dynamic) {
+		writeString(cookieName, haxe.Json.stringify(json));
+	}
+
 
 	public static function delete(cookieName:String) {
 		try {
