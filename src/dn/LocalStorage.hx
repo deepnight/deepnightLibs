@@ -72,9 +72,21 @@ class LocalStorage {
 		if( raw==null )
 			return defValue;
 		else {
-			return
+			var obj =
 				try haxe.Unserializer.run(raw)
 				catch( err:Dynamic ) return defValue;
+
+			// Remove old fields
+			for(k in Reflect.fields(obj))
+				if( !Reflect.hasField(defValue,k) )
+					Reflect.deleteField(obj, k);
+
+			// Add missing fields
+			for(k in Reflect.fields(defValue))
+				if( !Reflect.hasField(obj,k) )
+					Reflect.setField(obj, k, Reflect.field(defValue,k));
+
+			return obj;
 		}
 	}
 
