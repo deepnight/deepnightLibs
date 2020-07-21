@@ -29,6 +29,9 @@ class Identify {
 	];
 
 	public static function getType(b:haxe.io.Bytes) : IdentifyFormat {
+		if( b==null )
+			return Unknown;
+
 		for(f in formats)
 			if( matchHeader(b, f.magic) )
 				return f.id;
@@ -37,6 +40,9 @@ class Identify {
 	}
 
 	public static function is64BitsExe(first1024bytes:haxe.io.Bytes) {
+		if( first1024bytes==null )
+			return false;
+
 		var header = "PE".split("").map(function(c) return c.charCodeAt(0));
 		var i = 0;
 		while( i<first1024bytes.length-6 )
