@@ -115,13 +115,15 @@ class FilePath {
 	}
 
 	public function useSlashes() {
-		directory = StringTools.replace(directory, "\\", "/");
+		if( directory!=null )
+			directory = StringTools.replace(directory, "\\", "/");
 		backslashes = false;
 		return this;
 	}
 
 	public function useBackslashes() {
-		directory = StringTools.replace(directory, "/", "\\");
+		if( directory!=null )
+			directory = StringTools.replace(directory, "/", "\\");
 		backslashes = true;
 		return this;
 	}
