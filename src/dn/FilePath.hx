@@ -214,6 +214,19 @@ class FilePath {
 				var rawFile = raw.substr( raw.lastIndexOf(slash())+1 );
 				parseFileName(rawFile);
 			}
+
+			// Simplify ".."
+			var dirs = getDirectoryArray();
+			var i = 0;
+			while( i<dirs.length ) {
+				if( dirs[i]!=".." || i==0 || dirs[i-1]==".." )
+					i++;
+				else {
+					dirs.splice(i-1, 2);
+					i--;
+				}
+			}
+			directory = dirs.join( slash() );
 		}
 	}
 
