@@ -2,100 +2,155 @@ package dn;
 
 class JsonPretty {
 	public static var INDENT_CHAR = "\t";
-	static var INDENT_LENGTH_LIMIT = 40;
+
+	static var buf : StringBuf;
+	static var indent = 0;
 
 	public static function stringify(o:Dynamic) {
-		return encodeValue(null, o, 0);
-	}
-
-	static function encodeObject(name:Null<String>, o:Dynamic, indentDepth:Int) {
-		if( Reflect.fields(o).length==0 )
-			if( name==null )
-				return "{}";
-			else
-				return '"$name" : {}';
-
-		// Parse fields
-		var frags = [];
-		for(k in Reflect.fields(o)) {
-			var v = Reflect.field(o, k);
-			frags.push( encodeValue(k, v, indentDepth+1) );
-		}
-		var len = 0;
-		for(str in frags)
-			len+=str.length;
-
-
-		// Build output
-		var buffer = new StringBuf();
-
-		if( name!=null )
-			buffer.add('"$name" : ');
-
-		if( len<=INDENT_LENGTH_LIMIT ) {
-			// Inlined
-			buffer.add("{ ");
-			buffer.add( frags.join(",") );
-			buffer.add(" }");
-		}
-		else {
-			// Indent
-			var curIndent = "";
-			for(i in 0...indentDepth)
-				curIndent+=INDENT_CHAR;
-			buffer.add("{\n");
-			buffer.add(curIndent + INDENT_CHAR + frags.join(",\n"+curIndent+INDENT_CHAR) + "\n");
-			buffer.add(curIndent + "}");
-		}
-
-		return buffer.toString();
+		buf = new StringBuf();
+		addValue(null, o);
+		return buf.toString();
 	}
 
 
-	static function encodeArray(name:String, arr:Array<Dynamic>, indentDepth:Int) {
-		if( arr.length==0 )
-			return '"$name" : []';
-
-		var frags = [];
-		for(v in arr)
-			frags.push( encodeValue(null,v, indentDepth+1) );
-
-		var len = 0;
-		for(str in frags)
-			len+=str.length;
-		if( len<=INDENT_LENGTH_LIMIT ) {
-			// Inlined
-			return '"$name" : [ ' + frags.join(", ") + " ]";
-		}
-		else {
-			// Indent
-			var curIndent = "";
-			for(i in 0...indentDepth)
-				curIndent+=INDENT_CHAR;
-			return '"$name" : ['
-				+ curIndent + INDENT_CHAR + frags.join(",\n"+curIndent+INDENT_CHAR) + "\n"
-				+ curIndent + "]";
-		}
-	}
-
-
-
-	static function encodeValue(name:Null<String>, v:Dynamic, indentDepth:Int) {
+	static inline function addValue(name:Null<String>, v:Dynamic) : Void {
 		switch Type.typeof(v) {
 			case TNull, TInt, TFloat, TBool:
-				return name==null ? v : '"$name" : $v';
+				name==null ? buf.add(Std.string(v)) : buf.add('"$name" : $v');
 
 			case TClass(String):
-				return name==null ? v : '"$name" : "$v"';
+				name==null ? buf.add(v) : buf.add('"$name" : "$v"');
 
 			case TClass(Array):
-				return encodeArray(name, v, indentDepth+1);
+				addArray(name, v);
 
 			case TObject:
-				return encodeObject(name, v, indentDepth+1);
+				addObject(name, v);
 
 			case _:
 				throw 'Unknown value type $name=$v ('+Type.typeof(v)+')';
+		}
+	}
+
+
+	static function addObject(name:Null<String>, o:Dynamic) {
+		var keys = Reflect.fields(o);
+		if( keys.length==0 ) {
+			if( name==null )
+				buf.add('{}');
+			else
+				buf.add('"$name" : {}');
+			return;
+		}
+
+		// Evaluate length for multiline option
+		var len = 0;
+		for( k in keys )
+			len += evaluateLength( Reflect.field(o,k) );
+
+		if( name!=null )
+			buf.add('"$name" : ');
+
+		// Add fields to buffer
+		var keys = Reflect.fields(o);
+		if( len<=20 ) {
+			// Single line
+			buf.add('{ ');
+			for( i in 0...keys.length ) {
+				addValue( keys[i], Reflect.field(o,keys[i]) );
+				if( i<keys.length-1 )
+					buf.add(", ");
+			}
+			buf.add(' }');
+		}
+		else {
+			// Multiline
+			buf.add('{\n');
+			indent++;
+			for( i in 0...keys.length ) {
+				addIndent();
+				addValue( keys[i], Reflect.field(o,keys[i]) );
+				if( i<keys.length-1 )
+					buf.add(",\n");
+			}
+			indent--;
+			buf.add("\n");
+			addIndent();
+			buf.add("}");
+		}
+	}
+
+
+	static function addArray(name:Null<String>, arr:Array<Dynamic>) {
+		if( arr.length==0 ) {
+			if( name==null )
+				buf.add('[]');
+			else
+				buf.add('"$name" : []');
+			return;
+		}
+
+		// Evaluate length for multiline option
+		var len = 0;
+		for( v in arr )
+			len += evaluateLength(v);
+
+		if( name!=null )
+			buf.add('"$name" : ');
+
+		// Add values to buffer
+		if( len<=20 ) {
+			// Single line
+			buf.add('[ ');
+			for( i in 0...arr.length ) {
+				addValue( null, arr[i] );
+				if( i<arr.length-1 )
+					buf.add(", ");
+			}
+			buf.add(' ]');
+		}
+		else {
+			// Multiline
+			buf.add('[\n');
+			indent++;
+			for( i in 0...arr.length ) {
+				addIndent();
+				addValue( null, arr[i] );
+				if( i<arr.length-1 )
+					buf.add(",\n");
+			}
+			indent--;
+			buf.add("\n");
+			addIndent();
+			buf.add("]");
+		}
+	}
+
+
+	static inline function addIndent() {
+		for(i in 0...indent)
+			buf.add(INDENT_CHAR);
+	}
+
+	static inline function evaluateLength(v:Dynamic) {
+		return switch Type.typeof(v) {
+			case TNull: 4;
+			case TInt: 4;
+			case TFloat: 5;
+			case TBool: v ? 4 : 5;
+			case TObject: 99;
+			case TClass(String): ( cast v ).length + 2;
+			case TClass(Array):
+				var arr : Array<Dynamic> = cast v;
+				if( arr.length>5 )
+					99;
+				else {
+					var len = 0;
+					for(e in arr)
+						len += evaluateLength(e);
+					len;
+				}
+			case _: 1;
 		}
 	}
 }
