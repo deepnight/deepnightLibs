@@ -156,7 +156,7 @@ class FilePath {
 			i++;
 		}
 
-		directory = cur.join( slash() );
+		directory = cur.length==0 ? null : cur.join( slash() );
 	}
 
 
