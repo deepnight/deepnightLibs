@@ -19,7 +19,7 @@ class JsonPretty {
 				name==null ? buf.add(Std.string(v)) : buf.add('"$name" : $v');
 
 			case TClass(String):
-				name==null ? buf.add(v) : buf.add('"$name" : "$v"');
+				name==null ? buf.add('"$v"') : buf.add('"$name" : "$v"');
 
 			case TClass(Array):
 				addArray(name, v);
