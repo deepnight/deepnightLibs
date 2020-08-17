@@ -13,13 +13,28 @@ class JsonPretty {
 	}
 
 
-	static inline function addValue(name:Null<String>, v:Dynamic) : Void {
+	static var floatReg = ~/^([-0-9.]+)f$/g;
+	static function addValue(name:Null<String>, v:Dynamic) : Void {
 		switch Type.typeof(v) {
-			case TNull, TInt, TFloat, TBool:
+			case TNull, TInt, TBool:
 				name==null ? buf.add(Std.string(v)) : buf.add('"$name" : $v');
 
+			case TFloat:
+				var strFloat = v==Std.int(v) ? v+".0" : Std.string(v);
+				name==null ? buf.add(strFloat) : buf.add('"$name" : $strFloat');
+
 			case TClass(String):
-				name==null ? buf.add('"$v"') : buf.add('"$name" : "$v"');
+				if( floatReg.match(v) ) {
+					// Treat numbers ending with "f" as float-hinted values, which can be useful to keep int/float
+					// distinction in JSON files
+					// Examples: 0f, -65f, 1f etc.
+					var v : String = v;
+					var f = Std.parseFloat( v.substr(0,v.length-1) );
+					var strFloat = f==Std.int(f) ? f+".0" : Std.string(f);
+					name==null ? buf.add(strFloat) : buf.add('"$name" : $strFloat');
+				}
+				else
+					name==null ? buf.add('"$v"') : buf.add('"$name" : "$v"');
 
 			case TClass(Array):
 				addArray(name, v);
