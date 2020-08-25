@@ -4,10 +4,23 @@ class JsonPretty {
 	public static var INDENT_CHAR = "\t";
 
 	static var buf : StringBuf;
-	static var indent = 0;
+	static var indent : Int;
+	static var needHeader : Bool;
+	static var header : Dynamic;
 
-	public static function stringify(o:Dynamic) {
+	public static function stringify(o:Dynamic, ?headerObject:Dynamic) {
+		indent = 0;
 		buf = new StringBuf();
+
+		header = headerObject;
+		needHeader = headerObject!=null;
+		if( headerObject!=null )
+			switch Type.typeof(headerObject) {
+				case TObject:
+				case TClass(String):
+				case _: throw "Only Anonymous Objects or Strings are supported as JSON headers";
+			}
+
 		addValue(null, o);
 		return buf.toString();
 	}
@@ -68,7 +81,7 @@ class JsonPretty {
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
-		if( len<=20 ) {
+		if( len<=20 && !needHeader ) {
 			// Single line
 			buf.add('{ ');
 			for( i in 0...keys.length ) {
@@ -82,6 +95,13 @@ class JsonPretty {
 			// Multiline
 			buf.add('{\n');
 			indent++;
+
+			if( needHeader ) {
+				addHeader();
+				if( keys.length>0 )
+					buf.add(",\n");
+			}
+
 			for( i in 0...keys.length ) {
 				addIndent();
 				addValue( keys[i], Reflect.field(o,keys[i]) );
@@ -95,6 +115,19 @@ class JsonPretty {
 		}
 	}
 
+	static function addHeader() {
+		needHeader = false;
+		addIndent();
+
+		switch Type.typeof(header) {
+			case TObject, TClass(String):
+				addValue("__header__", header);
+
+			case _:
+				throw "Unsupported header type";
+		}
+
+	}
 
 	static function addArray(name:Null<String>, arr:Array<Dynamic>) {
 		if( arr.length==0 ) {
