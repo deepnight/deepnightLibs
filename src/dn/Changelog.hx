@@ -70,6 +70,9 @@ class Changelog {
 		parse(markdown);
 	}
 
+	/**
+		Return a short description of the changelog data.
+	**/
 	@:keep
 	public function toString() {
 		return 'Changelog, ${versions.length} entries = ['
