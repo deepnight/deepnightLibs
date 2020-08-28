@@ -61,6 +61,9 @@ class Changelog {
 	**/
 	public var versions : Array<ChangelogEntry>;
 
+	/** Latest entry **/
+	public var latest(get,never) : Null<ChangelogEntry>;
+		inline function get_latest() return versions[0];
 
 	/**
 		Version numbers should comply to the SemVer format.
@@ -145,5 +148,24 @@ class Changelog {
 
 			cur.linesMd.push(l);
 		}
+
+		versions.sort( function(a,b) return isHigherVersion(a,b) ? -1 : 1 );
+	}
+
+	/**
+		Return TRUE if "v" version is higher than "than version"
+	**/
+	public function isHigherVersion(v:ChangelogEntry, than:ChangelogEntry) {
+		if( v.major>than.major )
+			return true;
+		else if( v.major==than.major ) {
+			if( v.minor>than.minor )
+				return true;
+			else if( v.minor==than.minor ) {
+				if( v.patch>than.patch )
+					return true;
+			}
+		}
+		return false;
 	}
 }
