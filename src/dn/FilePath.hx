@@ -272,8 +272,10 @@ class FilePath {
 			fileName = null;
 			extension = null;
 		}
-		v = sanitize(v);
-		parseFileName(v);
+		else {
+			v = sanitize(v);
+			parseFileName(v);
+		}
 		return fileWithExt;
 	}
 
