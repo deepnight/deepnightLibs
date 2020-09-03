@@ -1,13 +1,13 @@
 package dn;
 
 
-private class Task { //classes are faster
+private class Task { // Classes are faster
 
 	public var t	: Float;
 	public var id	: String;
 	public var cb	: Void->Void;
 
-	public inline function new(id, t,cb) { //inline new classes are faster faster
+	public inline function new(id, t,cb) { // Inline new classes are faster faster
 		this.t = t;
 		this.cb = cb;
 		this.id = id;
@@ -18,17 +18,15 @@ private class Task { //classes are faster
 
 class Delayer {
 	var delays		: Array<Task>;
-	var now			: Float;
 	var fps			: Float;
 
-	public function new(fps:Float) { //no need for nullability because no other nullable args
-		now = 0;
+	public function new(fps:Float) { // No need for nullability because no other nullable args
 		this.fps = fps;
 		delays = new Array();
 	}
 
 	public function toString() {
-		return "Delayer(now="+now+",timers="+delays.map(function(d) return d.t).join(",")+")";
+		return "Delayer(timers="+delays.map(function(d) return d.t).join(",")+")";
 	}
 
 	public inline function isDestroyed() return delays == null;
@@ -86,26 +84,31 @@ class Delayer {
 	}
 
 	public function addMs(?id:String, cb:Void->Void, ms:Float) {
-		delays.push( new Task( id, now + ms / 1000 * fps, cb) );
+		delays.push( new Task( id, ms / 1000 * fps, cb) );
 		haxe.ds.ArraySort.sort(delays, cmp);
 	}
 
 	public function addS(?id:String, cb:Void->Void, sec:Float) {
-		delays.push( new Task( id, now + sec*fps, cb) );
+		delays.push( new Task( id, sec*fps, cb) );
 		haxe.ds.ArraySort.sort(delays, cmp);
 	}
 
 	public function addF(?id:String, cb:Void->Void, frames:Float) {
-		delays.push( new Task( id, now + frames, cb ) );
+		delays.push( new Task( id, frames, cb ) );
 		haxe.ds.ArraySort.sort(delays, cmp);
 	}
 
 	public function update(dt:Float) {
-		while( delays.length>0 && delays[0].t<=now ) {
-			var d = delays.shift();
-			d.cb();
-			d.cb = null;//help garbage
+		var i = 0;
+		while( i<delays.length ) {
+			delays[i].t-=dt;
+			if( delays[i].t<=0 ) {
+				delays[i].cb();
+				delays[i].cb = null;
+				delays.shift();
+			}
+			else
+				i++;
 		}
-		now+=dt;
 	}
 }
