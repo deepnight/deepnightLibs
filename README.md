@@ -83,16 +83,16 @@ var arr = [ "a", "foo", "bar", "food", "hello" ];
 var dh = new dn.DecisionHelper(arr);
 
 /* Iterates all values in arr and increase their internal score by 1 if they contain the letter "o". */
-dh.score( function(v) return v.indexOf("o")>=0 ? 1 : 0 );
+dh.score( v -> StringTools.contains(v,"o") ? 1 : 0 );
 
 /* Increase score of each values using 10% of their length (ie. longer strings get slightly higher score) */
-dh.score( function(v) return v.length*0.1 );
+dh.score( v -> v.length*0.1 );
 
 /* Discard any value containing the letter "h" */
-dh.remove( function(v) return v.indexOf("h")>=0 );
+dh.remove( v -> StringTools.contains(v,"h") );
 
 /* Only keep values with length>1 */
-dh.keepOnly( function(v) return v.length>1 );
+dh.keepOnly( v -> v.length>1 );
 
 trace( dh.getBest() ); // -> food
 /* Internal scores: a (discarded), foo (1.3), bar (0.3), food (1.4), hello (discarded). */
