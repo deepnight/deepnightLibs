@@ -21,6 +21,7 @@ class Test {
 		test(dn.heaps.Sfx, function() @:privateAccess dn.heaps.Sfx.GLOBAL_GROUPS);
 		test(Tweenie, function() @:privateAccess Tweenie.DEFAULT_DURATION);
 		test(FilePath, function() @:privateAccess FilePath.SLASH_MODE);
+		test(CiAssert, function() CiAssert.failIf(true==false));
 
 		test(dn.data.GetText, function() dn.data.GetText.checkSyntax(new Map()));
 
