@@ -75,3 +75,27 @@ dn.Color.toWhite(0xff0000, 0.5); // Interpolates color to white at 50%
 dn.Color.getPerceivedLuminosityInt(0x7799ff); // return perceived luminosity (0 to 1.0)
 ```
 
+## dn.DecisionHelper
+
+A nice tool to easily pick a value among many others using any custom criterion.
+
+```haxe
+var arr = [ "a", "foo", "bar", "food", "hello" ];
+
+var dh = new dn.DecisionHelper(arr);
+
+/* Iterates all values in arr and increase their internal score by 1 if they contain the letter "o". */
+dh.score( function(v) return v.indexOf("o")>=0 ? 1 : 0 );
+
+/* Increase score of each values using 10% of their length (ie. longer strings get slightly higher score) */
+dh.score( function(v) return v.length*0.1 );
+
+/* Discard any value containing the letter "h" */
+dh.remove( function(v) return v.indexOf("h")>=0 );
+
+/* Only keep values with length>1 */
+dh.keepOnly( function(v) return v.length>1 );
+
+trace( dh.getBest() ); // -> food
+/* Internal scores: a (discarded), foo (1.3), bar (0.3), food (1.4), hello (discarded). */
+```
