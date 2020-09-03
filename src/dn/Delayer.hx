@@ -66,7 +66,7 @@ class Delayer {
 				i++;
 	}
 
-	public function runImmediatly(id:String) {
+	public function runImmediately(id:String) {
 		var i = 0;
 		while( i<delays.length )
 			if( delays[i].id==id ) {
