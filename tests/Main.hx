@@ -49,23 +49,28 @@ class Main {
 		CiAssert.isTrue( Color.getSaturation(0xff0000)==1 );
 
 		// Cooldown
-		var coolDown = new Cooldown(30);
-		coolDown.setF("test",1);
+		var fps = 30;
+		var coolDown = new Cooldown(fps);
+		coolDown.setS("test",1);
 		CiAssert.isTrue( coolDown.has("test") );
 		CiAssert.isTrue( coolDown.getRatio("test") == 1 );
-		coolDown.update(1);
+		
+		for(i in 0...fps) coolDown.update(1);
 		CiAssert.isFalse( coolDown.has("test") );
 		CiAssert.isTrue( coolDown.getRatio("test") == 0 );
 
 		// Delayer
-		var delayer = new Delayer(30);
+		var fps = 30;
+		var delayer = new Delayer(fps);
 		var done = false;
-		delayer.addF("test", function() done = true, 2);
+		delayer.addS("test", function() done = true, 2);
 		CiAssert.isTrue( delayer.hasId("test") );
 		CiAssert.isFalse( done );
-		delayer.update(1);
+
+		for(i in 0...fps) delayer.update(1);
 		CiAssert.isFalse( done );
-		delayer.update(1);
+
+		for(i in 0...fps) delayer.update(1);
 		CiAssert.isFalse( delayer.hasId("test") );
 		CiAssert.isTrue( done );
 
