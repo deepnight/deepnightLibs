@@ -35,9 +35,7 @@ class MyProject {
 
 # Tips
 
-## Use global imports
-
-To import libs in every HX files, just add a "global" ``import.hx`` to the root of our ``src`` folder:
+Use global imports! To import libs in every HX files, just add a ``import.hx`` (this exact name & caps) file to the **root** of your ``src`` folder:
 
 ```
 dn.*;
