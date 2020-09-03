@@ -63,7 +63,14 @@ class CiAssert {
 	static function printCode(code:Expr) : String {
 		var printer = new haxe.macro.Printer();
 		var codeStr = printer.printExpr(code);
-		return "[" + Context.getLocalModule() + "] \"" + codeStr + "\"";
+		if( codeStr.length>=90 )
+			codeStr = codeStr.substr(0,10)+"... ..."+codeStr.substr(-80);
+
+		var build = Context.defined("js") ? "JS"
+			: Context.defined("hl") ? "HL"
+			: Context.defined("neko") ? "Neko"
+			: "Unknown";
+		return '[$build|${Context.getLocalModule()}] "$codeStr"';
 	}
 	#end
 
