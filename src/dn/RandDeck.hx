@@ -22,7 +22,7 @@ class RandDeck<T> {
 		var oldSize = elements==null ? 0 : elements.length;
 
 		var old = elements;
-		elements = new Vector(newSize);
+		elements = new Vector(newSize*2);
 		if( old!=null && oldSize>0 )
 			Vector.blit(old, 0, elements, 0, oldSize);
 	}
