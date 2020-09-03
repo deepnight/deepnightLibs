@@ -194,7 +194,10 @@ class FilePath {
 
 		// Detect slashes
 		if( raw.indexOf("\\")>=0 )
-			backslashes = true;
+			if( raw.indexOf("/")>=0 )
+				backslashes = raw.indexOf("\\") < raw.indexOf("/"); // if mixed, the first one sets the mode
+			else
+				backslashes = true;
 
 		// Avoid mixing slashes
 		raw = StringTools.replace(raw, backslashes ? "/" : "\\", slash());
