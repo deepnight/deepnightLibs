@@ -3,6 +3,9 @@ package dn.electron;
 import electron.main.IpcMain;
 import electron.renderer.IpcRenderer;
 
+#if !electron
+#error "HaxeLib \"electron\" is required";
+#end
 
 private typedef UpdateInfo = {
 	var version: String;

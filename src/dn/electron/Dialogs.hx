@@ -1,7 +1,7 @@
 package dn.electron;
 
-#if !hxelectron
-#error "HaxeLib \"hxelectron\" is required";
+#if !electron
+#error "HaxeLib \"electron\" is required";
 #end
 
 import electron.main.IpcMain;
