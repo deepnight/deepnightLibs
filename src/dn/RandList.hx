@@ -167,7 +167,7 @@ class RandList<T> {
 		return 0;
 	}
 
-	public inline function getProbaPct(v:T) {
+	public inline function getProbaPct(v:T) : Float { // 0-100
 		return totalProba==0 ? 0 : Math.round(1000*getProba(v)/totalProba) / 10;
 	}
 
