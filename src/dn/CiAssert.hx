@@ -32,7 +32,7 @@ class CiAssert {
 
 	public static macro function isNotNull(code:Expr) {
 		return macro {
-			if( ${buildIsNotNullExpr(code)} )
+			if( ($code) != null )
 				dn.CiAssert.print( $v{printCode(code)}+" != null... Ok");
 			else {
 				dn.CiAssert.print( $v{printCode(code)}+" != null ... FAILED!");
@@ -44,7 +44,7 @@ class CiAssert {
 
 	#if macro
 	// Build expr of: "code==true"
-	static function buildIsTrueExpr(code:Expr) {
+	static function buildIsTrueExpr(code:Expr) : Expr {
 		var eCheck : Expr = {
 			expr: EBinop(OpEq, code, macro true),
 			pos: Context.currentPos(),
@@ -54,15 +54,6 @@ class CiAssert {
 		try Context.typeExpr(eCheck)
 		catch(e:Dynamic) {
 			Context.fatalError("Parameter should return a Bool value", code.pos);
-		}
-
-		return eCheck;
-	}
-	// Build expr of: "code==true"
-	static function buildIsNotNullExpr(code:Expr) {
-		var eCheck : Expr = {
-			expr: EBinop(OpNotEq, code, macro null),
-			pos: Context.currentPos(),
 		}
 
 		return eCheck;
