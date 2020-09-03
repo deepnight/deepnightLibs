@@ -54,7 +54,7 @@ class Main {
 		coolDown.setS("test",1);
 		CiAssert.isTrue( coolDown.has("test") );
 		CiAssert.isTrue( coolDown.getRatio("test") == 1 );
-		
+
 		for(i in 0...fps) coolDown.update(1);
 		CiAssert.isFalse( coolDown.has("test") );
 		CiAssert.isTrue( coolDown.getRatio("test") == 0 );
@@ -135,12 +135,12 @@ class Main {
 		// RandDeck
 		var randDeck = new RandDeck();
 		randDeck.push(0, 2);
-		randDeck.push(1, 2);
-		randDeck.push(2, 2);
+		randDeck.push(1, 5);
+		randDeck.push(2, 10);
 		randDeck.shuffle();
-		CiAssert.isTrue( randDeck.countRemaining()==6 );
-		CiAssert.noException("RandDeck bounds check", {
-			for(i in 0...100) {
+		CiAssert.isTrue( randDeck.countRemaining()==17 );
+		CiAssert.noException("RandDeck.draw() check", {
+			for(i in 0...200) {
 				var v = randDeck.draw();
 				if( v==null || v<0 || v>2 )
 					throw "Value "+v+" is incorrect";
@@ -149,8 +149,8 @@ class Main {
 
 		// RandList
 		var randList = new RandList([0,1,2,3]);
-		CiAssert.noException("RandList bounds check", {
-			for(i in 0...100) {
+		CiAssert.noException("RandList.draw() check", {
+			for(i in 0...200) {
 				var v = randList.draw();
 				if( v==null || v<0 || v>3 )
 					throw "Value "+v+" is incorrect";
