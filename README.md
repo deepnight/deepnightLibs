@@ -44,7 +44,7 @@ dn.Color as C;
 
  - The first line imports all classes in ``dn`` package,
 
- - The second one import ``Color`` as an alias "C",
+ - The second one imports ``Color`` as an alias "C",
 
  - Feel free to add your own convenient imports there.
 
@@ -52,7 +52,7 @@ dn.Color as C;
 
 ## dn.M
 
-My Math class re-implementation, with high-performances in mind:
+My re-implementation of the Math class, with high-performances in mind:
 
 ```haxe
 M.fmin(0.5, 0.9); // 0.5
