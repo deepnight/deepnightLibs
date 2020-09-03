@@ -3,14 +3,13 @@ import haxe.ds.Vector;
 
 class RandDeck<T> {
 	public var size(default, null) : Int;
-	var elements : Vector<T>;
+	var elements : Null< Vector<T> >;
 	var curIdx : Int;
-	var maxLength : Int;
 	var rndFunc : Int->Int;
+	public var autoShuffle = true;
 
 	public function new(?rnd : Int->Int) {
 		curIdx  = 0;
-		maxLength  = 0;
 		size = 0;
 		rndFunc = rnd==null ? Std.random : rnd;
 	}
@@ -19,21 +18,22 @@ class RandDeck<T> {
 		return 'RandDeck($size)=>'+getAllElements();
 	}
 
-	function grow() {
-		maxLength = maxLength==0 ? 2 : maxLength * 2;
+	function grow(newSize:Int) {
+		var oldSize = elements==null ? 0 : elements.length;
 
 		var old = elements;
-		elements = new Vector(maxLength);
-		if( old!=null && size>0 )
-			Vector.blit(old, 0, elements, 0, size);
+		elements = new Vector(newSize);
+		if( old!=null && oldSize>0 )
+			Vector.blit(old, 0, elements, 0, oldSize);
 	}
 
 	public function push(v:T, n=1) {
 		var newSize = size + n;
-		if( newSize>maxLength )
-			grow();
+		if( elements==null || newSize >= elements.length )
+			grow(newSize);
 
-		for (i in size...newSize) elements[i] = v;
+		for( i in size...newSize )
+			elements[i] = v;
 		size = newSize;
 	}
 
@@ -59,7 +59,7 @@ class RandDeck<T> {
 			return null;
 
 		var v = elements[curIdx];
-		if( ++curIdx >= size )
+		if( ++curIdx >= size && autoShuffle )
 			shuffle();
 
 		return v;
