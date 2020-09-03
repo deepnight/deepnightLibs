@@ -4,18 +4,17 @@
     "skipErrorMessage": true,
     "commands": [
       {
-        "text": "✪ Build test",
+        "text": "✪ Build tests",
         "color": "orange",
-        "commandType":"palette",
-        "command": "workbench.action.tasks.runTask|Test",
+        "command": "haxe tests.neko.hxml  &&  echo Done.",
         "alignment": "right",
         "skipTerminateQuickPick": false,
         "priority": 5
       },
       {
-        "text": "(Run)",
+        "text": "Run",
         "color": "orange",
-        "command": "hl test/test.hl",
+        "command": "neko tests/bin/test.n",
         "alignment": "right",
         "skipTerminateQuickPick": false,
         "priority": 4

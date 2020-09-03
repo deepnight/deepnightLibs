@@ -1,0 +1,4 @@
+tests.base.hxml
+
+-D dump=pretty
+-neko tests/bin/test.n

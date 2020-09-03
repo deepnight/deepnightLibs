@@ -1,0 +1,15 @@
+language: haxe
+
+os: linux
+dist: trusty
+
+haxe:
+  - development
+  - stable
+
+install:
+  - haxelib list
+
+script:
+  - haxe tests.neko.hxml
+  - neko tests/bin/test.n

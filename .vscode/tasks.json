@@ -4,19 +4,29 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Test",
+            "label": "Tests neko",
             "type": "hxml",
-            "file": "test.hxml",
+            "file": "tests.neko.hxml",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
                 "clear": true
             },
-            "problemMatcher": ["$haxe"],
+            "group": "build"
+        },
+        {
+            "type": "haxe",
+            "args": "active configuration",
+            "presentation": {
+                "reveal": "never",
+                "panel": "dedicated",
+                "clear": true
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "label": "haxe: active configuration"
         }
     ]
 }

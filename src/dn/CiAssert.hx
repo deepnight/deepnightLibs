@@ -18,10 +18,23 @@ class CiAssert {
 		};
 	}
 
+	public static macro function noException(desc:String, code:Expr) {
+		return macro {
+			try {
+				$code;
+				dn.CiAssert.print($v{printWithPrefix(desc)}+ " had no exception... Ok");
+			}
+			catch(e:Dynamic) {
+				dn.CiAssert.print( $v{printWithPrefix(desc)}+" thrown \""+e+"\"... FAILED!");
+				dn.CiAssert.die();
+			}
+		};
+	}
+
 	public static macro function isFalse(code:Expr) {
 		return macro {
 			if( !${buildIsTrueExpr(code)} )
-				dn.CiAssert.print( $v{printCode(code)}+" ... Ok");
+				dn.CiAssert.print( $v{printCode(code)}+" == false ... Ok");
 			else {
 				dn.CiAssert.print( $v{printCode(code)}+" == false ... FAILED!");
 				dn.CiAssert.die();
@@ -52,8 +65,8 @@ class CiAssert {
 
 		// Does "code" actually returns a Bool?
 		try Context.typeExpr(eCheck)
-		catch(e:Dynamic) {
-			Context.fatalError("Parameter should return a Bool value", code.pos);
+		catch(err:Dynamic) {
+			Context.fatalError('$err (this assertion should return a Bool)', code.pos);
 		}
 
 		return eCheck;
@@ -71,6 +84,15 @@ class CiAssert {
 			: Context.defined("neko") ? "Neko"
 			: "Unknown";
 		return '[$build|${Context.getLocalModule()}] "$codeStr"';
+	}
+
+	static function printWithPrefix(str:String) : String {
+		var build = Context.defined("js") ? "JS"
+			: Context.defined("hl") ? "HL"
+			: Context.defined("neko") ? "Neko"
+			: "Unknown";
+
+		return '[$build|${Context.getLocalModule()}] "$str"';
 	}
 	#end
 
