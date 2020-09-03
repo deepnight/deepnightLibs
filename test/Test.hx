@@ -10,7 +10,7 @@ class Test {
 		test(Delayer, function() new Delayer(60));
 		test(M, M.imax.bind(1,2));
 		test(dn.heaps.GameFocusHelper, function() {});
-		test(HaxeJson, function() HaxeJson.prettify("{ a:5 }"));
+		test(JsonPretty, function() JsonPretty.stringify("{ a:5 }"));
 		test(dn.heaps.HParticle, function() dn.heaps.HParticle.DEFAULT_BOUNDS);
 		test(Lib, function() M.dist(0,0, 10,10));
 		test(dn.pathfinder.AStar, function() new dn.pathfinder.AStar( function(cx,cy) return { cx:cx, cy:cy } ));
