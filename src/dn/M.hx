@@ -527,6 +527,16 @@ class M {
 	}
 
 	/**
+		Returns a seeded random for a x/y coord. Result range: [0->max[
+	**/
+	public static inline function randSeedCoords(seed:Int, x:Int, y:Int, max:Int) {
+		// Source: https://stackoverflow.com/questions/37128451/random-number-generator-with-x-y-coordinates-as-seed
+		var h = seed + x*374761393 + y*668265263; // all constants are prime
+		h = (h^(h >> 13)) * 1274126177;
+		return ( h^(h >> 16) ) % max;
+	}
+
+	/**
 	 * Returns a pseudo-random integral value x, where 0 <= x < 0x7fffffff  0 <= x < 0x3FFFFFFF on Neko1
 	 */
 	inline public static function rand(?max:Int=#if neko 0x3FFFFFFF #else 0x7fffffff #end, ?rnd:Void->Float):Int
