@@ -811,14 +811,14 @@ class M {
 	}
 
 	public static function intToBitString(v:Int, ?pad=8) {
-		var bitMask = 1;
 		var out = "";
-		while( bitMask<=v ) {
-			out += ( v&bitMask!=0 ? "1" : "0" );
-			bitMask<<=1;
-		}
+		var i = 0;
+		while( setBit(0, i) <= v )
+			out = ( hasBit(v, i++) ? "1" : "0" ) + out;
+
 		while( out.length<pad )
 			out = "0"+out;
+
 		return out;
 	}
 
