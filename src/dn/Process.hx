@@ -76,6 +76,9 @@ class Process {
 		udelayer = new Delayer( getDefaultFrameRate() );
 	}
 
+	var _initOnceDone = false;
+	function initOnceBeforeUpdate() {}
+
 	// -----------------------------------------------------------------------
 	// Graphic context (optional)
 	// -----------------------------------------------------------------------
@@ -285,8 +288,13 @@ class Process {
 		if( canRun(p) )
 			p.tw.update(p.tmod);
 
-		if( canRun(p) )
+		if( canRun(p) ) {
+			if( !p._initOnceDone ) {
+				p.initOnceBeforeUpdate();
+				p._initOnceDone = true;
+			}
 			p.preUpdate();
+		}
 
 		if( canRun(p) )
 			for (c in p.children)
