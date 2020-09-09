@@ -375,6 +375,12 @@ class Color {
 		return makeColorHsl( (csum%1000)/1000, 0.5+0.5*(csum%637)/637, 0.6+0.4*(csum%1221)/1221 );
 	}
 
+	public static inline function fromStringLight(k:String) {
+		var csum = 0;
+		for(i in 0...k.length) csum+=k.charCodeAt(i);
+		return makeColorHsl( (csum%1000)/1000, 0.4+0.3*(csum%637)/637, 1 );
+	}
+
 	public static inline function makeColorHsl(hue:Float, ?saturation=1.0, ?luminosity=1.0) : Int { // range : 0-1
 		var hsl : ColHsl = {
 			h : hue,
