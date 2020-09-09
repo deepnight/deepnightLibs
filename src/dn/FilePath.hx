@@ -304,6 +304,13 @@ class FilePath {
 			return directory.split(slash());
 	}
 
+	public function getDirectoryAndFileArray() {
+		var out = getDirectoryArray();
+		if( fileWithExt!=null )
+			out.push(fileWithExt);
+		return out;
+	}
+
 	public function getLastDirectory() : Null<String> {
 		if( directory==null )
 			return null;
