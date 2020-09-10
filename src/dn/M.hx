@@ -810,6 +810,10 @@ class M {
 		}
 	}
 
+
+	/**
+		Print an integer as binary
+	**/
 	public static function intToBitString(v:Int, ?pad=8) {
 		var out = "";
 		var i = 0;
@@ -822,10 +826,16 @@ class M {
 		return out;
 	}
 
+	/**
+		Set an integer bit to 1 (index starts from 0)
+	**/
 	public static inline function setBit(baseValue:Int, bitIdx:Int) : Int {
 		return baseValue | ( 1<<bitIdx );
 	}
 
+	/**
+		Check for bit presence (index starts from 0)
+	**/
 	public static inline function hasBit(v:Int, bitIdx:Int) : Bool{
 		return v & ( 1<<bitIdx ) != 0;
 	}
