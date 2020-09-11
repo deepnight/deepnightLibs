@@ -139,9 +139,7 @@ class JsonPretty {
 		}
 
 		// Evaluate length for multiline option
-		var len = 0;
-		for( v in arr )
-			len += evaluateLength(v);
+		var len = evaluateLength(arr);
 
 		if( name!=null )
 			buf.add('"$name" : ');
@@ -190,7 +188,9 @@ class JsonPretty {
 			case TClass(String): ( cast v ).length + 2;
 			case TClass(Array):
 				var arr : Array<Dynamic> = cast v;
-				if( arr.length>5 )
+				if( arr.length>0 && arr.length<50 && ( Type.typeof(arr[0])==TInt || Type.typeof(arr[0])==TFloat ) )
+					4;
+				else if( arr.length>5 )
 					99;
 				else {
 					var len = 0;
