@@ -370,12 +370,16 @@ class Color {
 	}
 
 	public static inline function fromString(k:String) {
+		if( k==null )
+			return 0x999999;
 		var csum = 0;
 		for(i in 0...k.length) csum+=k.charCodeAt(i);
 		return makeColorHsl( (csum%1000)/1000, 0.5+0.5*(csum%637)/637, 0.6+0.4*(csum%1221)/1221 );
 	}
 
 	public static inline function fromStringLight(k:String) {
+		if( k==null )
+			return 0xffffff;
 		var csum = 0;
 		for(i in 0...k.length) csum+=k.charCodeAt(i);
 		return makeColorHsl( (csum%1000)/1000, 0.4+0.3*(csum%637)/637, 1 );
