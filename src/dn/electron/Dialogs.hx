@@ -8,6 +8,11 @@ import electron.main.IpcMain;
 import electron.renderer.IpcRenderer;
 
 class Dialogs {
+	static function isWindows() {
+		return js.Node.process.platform.toLowerCase().indexOf("win")==0;
+	}
+
+
 	public static function initMain() {
 		if( IpcMain==null )
 			throw "Should only be called in Main";
@@ -24,6 +29,9 @@ class Dialogs {
 	}
 
 	public static function open(?extWithDots:Array<String>, rootDir:String, onLoad:(filePath:String)->Void) {
+		if( isWindows() )
+			rootDir = FilePath.convertToBackslashes(rootDir);
+
 		var options = {
 			filters: extWithDots==null
 				? [{ name:"Any file type", extensions:["*"] }]
@@ -38,6 +46,9 @@ class Dialogs {
 
 
 	public static function saveAs(?extWithDots:Array<String>, rootDir:String, onFileSelect:(filePath:String)->Void) {
+		if( isWindows() )
+			rootDir = FilePath.convertToBackslashes(rootDir);
+
 		var options = {
 			filters: extWithDots==null
 				? [{ name:"Any file type", extensions:["*"] }]
