@@ -81,7 +81,7 @@ class JsonPretty {
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
-		if( len<=20 && !needHeader ) {
+		if( len<=80 && !needHeader ) {
 			// Single line
 			buf.add('{ ');
 			for( i in 0...keys.length ) {
@@ -184,7 +184,7 @@ class JsonPretty {
 			case TInt: 4;
 			case TFloat: 5;
 			case TBool: v ? 4 : 5;
-			case TObject: 99;
+			case TObject: 10;
 			case TClass(String): ( cast v ).length + 2;
 			case TClass(Array):
 				var arr : Array<Dynamic> = cast v;
