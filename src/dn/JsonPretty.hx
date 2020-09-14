@@ -1,16 +1,21 @@
 package dn;
 
 class JsonPretty {
-	public static var INDENT_CHAR = "\t";
-
 	static var buf : StringBuf;
 	static var indent : Int;
 	static var needHeader : Bool;
 	static var header : Dynamic;
 
-	public static function stringify(o:Dynamic, ?headerObject:Dynamic) {
+	static var space : String;
+	static var tab : String;
+	static var lineBreak : String;
+
+	public static function stringify(minified=false, o:Dynamic, ?headerObject:Dynamic) {
 		indent = 0;
 		buf = new StringBuf();
+		space = minified ? "" : " ";
+		tab = minified ? "" : "\t";
+		lineBreak = minified ? "" : "\n";
 
 		header = headerObject;
 		needHeader = headerObject!=null;
@@ -30,11 +35,11 @@ class JsonPretty {
 	static function addValue(name:Null<String>, v:Dynamic) : Void {
 		switch Type.typeof(v) {
 			case TNull, TInt, TBool:
-				name==null ? buf.add(Std.string(v)) : buf.add('"$name" : $v');
+				name==null ? buf.add(Std.string(v)) : buf.add('"$name"$space:$space$v');
 
 			case TFloat:
 				var strFloat = v==Std.int(v) ? v+".0" : Std.string(v);
-				name==null ? buf.add(strFloat) : buf.add('"$name" : $strFloat');
+				name==null ? buf.add(strFloat) : buf.add('"$name"$space:$space$strFloat');
 
 			case TClass(String):
 				if( floatReg.match(v) ) {
@@ -44,10 +49,10 @@ class JsonPretty {
 					var v : String = v;
 					var f = Std.parseFloat( v.substr(0,v.length-1) );
 					var strFloat = f==Std.int(f) ? f+".0" : Std.string(f);
-					name==null ? buf.add(strFloat) : buf.add('"$name" : $strFloat');
+					name==null ? buf.add(strFloat) : buf.add('"$name"$space:$space$strFloat');
 				}
 				else
-					name==null ? buf.add('"$v"') : buf.add('"$name" : "$v"');
+					name==null ? buf.add('"$v"') : buf.add('"$name"$space:$space"$v"');
 
 			case TClass(Array):
 				addArray(name, v);
@@ -74,39 +79,39 @@ class JsonPretty {
 		// Evaluate length for multiline option
 		var len = evaluateLength(o);
 		if( name!=null )
-			buf.add('"$name" : ');
+			buf.add('"$name"$space:$space');
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
 		if( len<=70 && !needHeader ) {
 			// Single line
-			buf.add('{ ');
+			buf.add('{$space');
 			for( i in 0...keys.length ) {
 				addValue( keys[i], Reflect.field(o,keys[i]) );
 				if( i<keys.length-1 )
 					buf.add(", ");
 			}
-			buf.add(' }');
+			buf.add('$space}');
 		}
 		else {
 			// Multiline
-			buf.add('{\n');
+			buf.add('{$lineBreak');
 			indent++;
 
 			if( needHeader ) {
 				addHeader();
 				if( keys.length>0 )
-					buf.add(",\n");
+					buf.add(',$lineBreak');
 			}
 
 			for( i in 0...keys.length ) {
 				addIndent();
 				addValue( keys[i], Reflect.field(o,keys[i]) );
 				if( i<keys.length-1 )
-					buf.add(",\n");
+					buf.add(',$lineBreak');
 			}
 			indent--;
-			buf.add("\n");
+			buf.add(lineBreak);
 			addIndent();
 			buf.add("}");
 		}
@@ -131,7 +136,7 @@ class JsonPretty {
 			if( name==null )
 				buf.add('[]');
 			else
-				buf.add('"$name" : []');
+				buf.add('"$name"$space:$space[]');
 			return;
 		}
 
@@ -139,31 +144,31 @@ class JsonPretty {
 		var len = evaluateLength(arr);
 
 		if( name!=null )
-			buf.add('"$name" : ');
+			buf.add('"$name"$space:$space');
 
 		// Add values to buffer
 		if( len<=70 ) {
 			// Single line
-			buf.add('[ ');
+			buf.add('[$space');
 			for( i in 0...arr.length ) {
 				addValue( null, arr[i] );
 				if( i<arr.length-1 )
-					buf.add(", ");
+					buf.add(',$space');
 			}
-			buf.add(' ]');
+			buf.add('$space]');
 		}
 		else {
 			// Multiline
-			buf.add('[\n');
+			buf.add('[$lineBreak');
 			indent++;
 			for( i in 0...arr.length ) {
 				addIndent();
 				addValue( null, arr[i] );
 				if( i<arr.length-1 )
-					buf.add(",\n");
+					buf.add(',$lineBreak');
 			}
 			indent--;
-			buf.add("\n");
+			buf.add(lineBreak);
 			addIndent();
 			buf.add("]");
 		}
@@ -171,8 +176,9 @@ class JsonPretty {
 
 
 	static inline function addIndent() {
-		for(i in 0...indent)
-			buf.add(INDENT_CHAR);
+		if( tab.length>0 )
+			for(i in 0...indent)
+				buf.add(tab);
 	}
 
 	static inline function evaluateLength(v:Dynamic, curEvalDepth=0) {
