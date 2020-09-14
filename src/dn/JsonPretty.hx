@@ -205,7 +205,9 @@ class JsonPretty {
 
 			case TClass(Array):
 				var arr : Array<Dynamic> = cast v;
-				if( arr.length>0 && arr.length<50 && ( Type.typeof(arr[0])==TInt || Type.typeof(arr[0])==TFloat ) )
+				if( arr.length==0 )
+					2;
+				else if( arr.length>0 && arr.length<50 && ( Type.typeof(arr[0])==TInt || Type.typeof(arr[0])==TFloat ) )
 					arr.length;
 				else if( arr.length>5 || curEvalDepth>0 )
 					99;
