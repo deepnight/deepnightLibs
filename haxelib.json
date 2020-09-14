@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.43",
+	"version": "1.0.44",
 	"classPath": "src/",
-	"releasenote": "Updated many libs (JsonPretty, FilePath, Color, etc.). Increased version to 1.0.43, because why not. Updated README.",
+	"releasenote": "Updated JsonPretty (minifying & better prettifying), added Travis tests, many minor fixes & changes",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
