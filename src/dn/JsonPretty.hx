@@ -7,6 +7,8 @@ class JsonPretty {
 	static var header : Dynamic;
 
 	static var space : String;
+	static var preSpace : String; // Spaces before ":"
+	static var postSpace : String; // Spaces after ":"
 	static var tab : String;
 	static var lineBreak : String;
 
@@ -14,6 +16,8 @@ class JsonPretty {
 		indent = 0;
 		buf = new StringBuf();
 		space = minified ? "" : " ";
+		preSpace = "";
+		postSpace = minified ? "" : " ";
 		tab = minified ? "" : "\t";
 		lineBreak = minified ? "" : "\n";
 
@@ -35,11 +39,11 @@ class JsonPretty {
 	static function addValue(name:Null<String>, v:Dynamic) : Void {
 		switch Type.typeof(v) {
 			case TNull, TInt, TBool:
-				name==null ? buf.add(Std.string(v)) : buf.add('"$name"$space:$space$v');
+				name==null ? buf.add(Std.string(v)) : buf.add('"$name"$preSpace:$postSpace$v');
 
 			case TFloat:
 				var strFloat = v==Std.int(v) ? v+".0" : Std.string(v);
-				name==null ? buf.add(strFloat) : buf.add('"$name"$space:$space$strFloat');
+				name==null ? buf.add(strFloat) : buf.add('"$name"$preSpace:$postSpace$strFloat');
 
 			case TClass(String):
 				if( floatReg.match(v) ) {
@@ -49,10 +53,10 @@ class JsonPretty {
 					var v : String = v;
 					var f = Std.parseFloat( v.substr(0,v.length-1) );
 					var strFloat = f==Std.int(f) ? f+".0" : Std.string(f);
-					name==null ? buf.add(strFloat) : buf.add('"$name"$space:$space$strFloat');
+					name==null ? buf.add(strFloat) : buf.add('"$name"$preSpace:$postSpace$strFloat');
 				}
 				else
-					name==null ? buf.add('"$v"') : buf.add('"$name"$space:$space"$v"');
+					name==null ? buf.add('"$v"') : buf.add('"$name"$preSpace:$postSpace"$v"');
 
 			case TClass(Array):
 				addArray(name, v);
@@ -79,7 +83,7 @@ class JsonPretty {
 		// Evaluate length for multiline option
 		var len = evaluateLength(o);
 		if( name!=null )
-			buf.add('"$name"$space:$space');
+			buf.add('"$name"$preSpace:$postSpace');
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
@@ -89,7 +93,7 @@ class JsonPretty {
 			for( i in 0...keys.length ) {
 				addValue( keys[i], Reflect.field(o,keys[i]) );
 				if( i<keys.length-1 )
-					buf.add(", ");
+					buf.add(',$space');
 			}
 			buf.add('$space}');
 		}
@@ -136,7 +140,7 @@ class JsonPretty {
 			if( name==null )
 				buf.add('[]');
 			else
-				buf.add('"$name"$space:$space[]');
+				buf.add('"$name"$preSpace:$postSpace[]');
 			return;
 		}
 
@@ -144,7 +148,7 @@ class JsonPretty {
 		var len = evaluateLength(arr);
 
 		if( name!=null )
-			buf.add('"$name"$space:$space');
+			buf.add('"$name"$preSpace:$postSpace');
 
 		// Add values to buffer
 		if( len<=70 ) {
