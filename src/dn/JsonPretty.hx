@@ -72,16 +72,13 @@ class JsonPretty {
 		}
 
 		// Evaluate length for multiline option
-		var len = 0;
-		for( k in keys )
-			len += evaluateLength( Reflect.field(o,k) );
-
+		var len = evaluateLength(o);
 		if( name!=null )
 			buf.add('"$name" : ');
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
-		if( len<=80 && !needHeader ) {
+		if( len<=70 && !needHeader ) {
 			// Single line
 			buf.add('{ ');
 			for( i in 0...keys.length ) {
@@ -145,7 +142,7 @@ class JsonPretty {
 			buf.add('"$name" : ');
 
 		// Add values to buffer
-		if( len<=20 ) {
+		if( len<=70 ) {
 			// Single line
 			buf.add('[ ');
 			for( i in 0...arr.length ) {
@@ -178,26 +175,37 @@ class JsonPretty {
 			buf.add(INDENT_CHAR);
 	}
 
-	static inline function evaluateLength(v:Dynamic) {
+	static inline function evaluateLength(v:Dynamic, curEvalDepth=0) {
 		return switch Type.typeof(v) {
 			case TNull: 4;
 			case TInt: 4;
 			case TFloat: 5;
 			case TBool: v ? 4 : 5;
-			case TObject: 10;
 			case TClass(String): ( cast v ).length + 2;
+
+			case TObject:
+				if( curEvalDepth<=0 && Reflect.fields(v).length<=5 ) {
+					var len = 0;
+					for( k in Reflect.fields(v) )
+						len += evaluateLength( Reflect.field(v,k), curEvalDepth+1 );
+					len;
+				}
+				else
+					Reflect.fields(v).length*10;
+
 			case TClass(Array):
 				var arr : Array<Dynamic> = cast v;
 				if( arr.length>0 && arr.length<50 && ( Type.typeof(arr[0])==TInt || Type.typeof(arr[0])==TFloat ) )
-					4;
-				else if( arr.length>5 )
+					arr.length;
+				else if( arr.length>5 || curEvalDepth>0 )
 					99;
 				else {
 					var len = 0;
 					for(e in arr)
-						len += evaluateLength(e);
+						len += evaluateLength(e, curEvalDepth+1);
 					len;
 				}
+
 			case _: 1;
 		}
 	}
