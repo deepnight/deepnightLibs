@@ -2,6 +2,8 @@
 
 The general purpose personal libs I use in all my Haxe projects.
 
+[![Build Status](https://travis-ci.com/deepnight/deepnightLibs.svg?branch=master)](https://travis-ci.com/deepnight/deepnightLibs)
+
 # Install
 
 ## Stable
