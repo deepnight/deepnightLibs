@@ -319,6 +319,10 @@ class FilePath {
 	}
 
 
+	@:keep public function toString() {
+		return full;
+	}
+
 	public function debug() {
 		return 'dir=$directory, fileName=$fileName, ext=$extension';
 	}
