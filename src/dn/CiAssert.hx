@@ -76,6 +76,8 @@ class CiAssert {
 	static function printCode(code:Expr) : String {
 		var printer = new haxe.macro.Printer();
 		var codeStr = printer.printExpr(code);
+		codeStr = StringTools.replace(codeStr,"\n","");
+		codeStr = StringTools.replace(codeStr,"\t"," ");
 		if( codeStr.length>=90 )
 			codeStr = codeStr.substr(0,10)+"... ..."+codeStr.substr(-80);
 
