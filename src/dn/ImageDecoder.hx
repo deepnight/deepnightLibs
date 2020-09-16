@@ -30,6 +30,11 @@ class ImageDecoder {
 		var pixels = decodePixels(fileContent);
 		return pixels==null ? null : h3d.mat.Texture.fromPixels(pixels);
 	}
+
+	public static function decodeTile(fileContent:haxe.io.Bytes) : Null<h2d.Tile> {
+		var pixels = decodePixels(fileContent);
+		return pixels==null ? null : h2d.Tile.fromPixels(pixels);
+	}
 	#end
 
 
