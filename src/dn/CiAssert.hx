@@ -10,22 +10,9 @@ class CiAssert {
 	public static macro function isTrue(code:Expr) {
 		return macro {
 			if( ${buildIsTrueExpr(code)} )
-				dn.CiAssert.print( $v{printCode(code)}+" == true... Ok");
+				dn.CiAssert.printOk( $v{printCode(code)} );
 			else {
-				dn.CiAssert.print( $v{printCode(code)}+" == true ... FAILED!");
-				dn.CiAssert.die();
-			}
-		};
-	}
-
-	public static macro function noException(desc:String, code:Expr) {
-		return macro {
-			try {
-				$code;
-				dn.CiAssert.print($v{printWithPrefix(desc)}+ " had no exception... Ok");
-			}
-			catch(e:Dynamic) {
-				dn.CiAssert.print( $v{printWithPrefix(desc)}+" thrown \""+e+"\"... FAILED!");
+				dn.CiAssert.printFailure( $v{printCode(code)}, "This expression should be TRUE");
 				dn.CiAssert.die();
 			}
 		};
@@ -34,11 +21,24 @@ class CiAssert {
 	public static macro function isFalse(code:Expr) {
 		return macro {
 			if( !${buildIsTrueExpr(code)} )
-				dn.CiAssert.print( $v{printCode(code)}+" == false ... Ok");
+				dn.CiAssert.printOk( $v{printCode(code)} );
 			else {
-				dn.CiAssert.print( $v{printCode(code)}+" == false ... FAILED!");
+				dn.CiAssert.printFailure( $v{printCode(code)}, "This expression should be FALSE");
 				dn.CiAssert.die();
 
+			}
+		};
+	}
+
+	public static macro function noException(desc:String, code:Expr) {
+		return macro {
+			try {
+				$code;
+				dn.CiAssert.printOk($v{printWithPrefix(desc)} );
+			}
+			catch(e:Dynamic) {
+				dn.CiAssert.printFailure( $v{printWithPrefix(desc)}, "This expression should thrown NO exception (caught \""+e+"\")");
+				dn.CiAssert.die();
 			}
 		};
 	}
@@ -46,9 +46,9 @@ class CiAssert {
 	public static macro function isNotNull(code:Expr) {
 		return macro {
 			if( ($code) != null )
-				dn.CiAssert.print( $v{printCode(code)}+" != null... Ok");
+				dn.CiAssert.printOk( $v{printCode(code)} );
 			else {
-				dn.CiAssert.print( $v{printCode(code)}+" != null ... FAILED!");
+				dn.CiAssert.printFailure( $v{printCode(code)}, "This expression should NOT be NULL");
 				dn.CiAssert.die();
 			}
 		};
@@ -83,7 +83,7 @@ class CiAssert {
 			: Context.defined("hl") ? "HL"
 			: Context.defined("neko") ? "Neko"
 			: "Unknown";
-		return '[$build|${Context.getLocalModule()}] "$codeStr"';
+		return '[$build|${Context.getLocalModule()}] $codeStr';
 	}
 
 	static function printWithPrefix(str:String) : String {
@@ -116,5 +116,21 @@ class CiAssert {
 		#else
 		Sys.println( Std.string(v) );
 		#end
+	}
+
+	@:noCompletion
+	public static inline function printOk(v:Dynamic) {
+		print(Std.string(v)+"  <Ok>");
+	}
+
+	@:noCompletion
+	public static inline function printFailure(v:Dynamic, reason:String) {
+		var v = Std.string(v);
+		var sep = [ for(i in 0...v.length+11) "*" ];
+
+		print(sep.join(""));
+		print(v+"  <FAILED!>");
+		print("ERROR: "+reason);
+		print(sep.join(""));
 	}
 }
