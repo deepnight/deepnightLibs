@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.44",
+	"version": "1.0.45",
 	"classPath": "src/",
-	"releasenote": "Updated JsonPretty (minifying & better prettifying), added Travis tests, many minor fixes & changes",
+	"releasenote": "Added ImageDecoder.decodeTile(), better CiAssert ouput",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
