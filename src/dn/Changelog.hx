@@ -6,35 +6,9 @@ package dn;
 
 typedef ChangelogEntry = {
 	/**
-		Version with format x[.y][.z][-label]
-	**/
-	var shortVersion: String;
-
-	/**
 		Version with format x.y.z[-label]
 	**/
-	var fullVersion: String;
-
-
-	/**
-		"x" in "x.y.z-label"
-	**/
-	var major: Int; // x
-
-	/**
-		"y" in "x.y.z-label"
-	**/
-	var minor: Null<Int>;
-
-	/**
-		"z" in "x.y.z-label"
-	**/
-	var patch: Null<Int>;
-
-	/**
-		"label" in "x.y.z-label"
-	**/
-	var metaLabel: Null<String>;
+	var version : dn.VersionNumber;
 
 	/**
 		Version title
@@ -44,7 +18,12 @@ typedef ChangelogEntry = {
 	/**
 		Markdown description lines
 	**/
-	var linesMd : Array<String>;
+	var allNoteLines : Array<String>;
+
+	/**
+		Markdown description lines
+	**/
+	var notEmptyNoteLines : Array<String>;
 }
 
 
@@ -54,16 +33,18 @@ class Changelog {
 	**/
 	public static var VERSION_TITLE_REG = ~/^[ \t]*##[ \t]+([0-9.a-z\-]+)[\- \t]*(.*)$/gim;
 
-	static var VERSION_NUMBER_REG = ~/^([0-9]+)[.]*([0-9a-z]*)[.]*([0-9]*)\-*([a-z0-9]*)/gi;
-
 	/**
 		Changelog entries
 	**/
-	public var versions : Array<ChangelogEntry>;
+	public var entries : Array<ChangelogEntry>;
 
 	/** Latest entry **/
 	public var latest(get,never) : Null<ChangelogEntry>;
-		inline function get_latest() return versions[0];
+		inline function get_latest() return entries.length==0 ? null : entries[0];
+
+	/** Latest entry **/
+	public var oldest(get,never) : Null<ChangelogEntry>;
+		inline function get_oldest() return entries.length==0 ? null : entries[ entries.length-1 ];
 
 	/**
 		Version numbers should comply to the SemVer format.
@@ -78,22 +59,15 @@ class Changelog {
 	**/
 	@:keep
 	public function toString() {
-		return 'Changelog, ${versions.length} entries = ['
-			+ versions.map(function(v) {
-				return '${v.fullVersion}, "${v.title}", ${v.linesMd.length} lines';
+		return 'Changelog, ${entries.length} entries = ['
+			+ entries.map(function(v) {
+				return '${v.version.full}, "${v.title}", ${v.notEmptyNoteLines.length} lines';
 			}).join("], [")
 			+ "]";
 	}
 
 	public static inline function fromString(markdown:String) {
 		return new Changelog(markdown);
-	}
-
-	function getVersion(v:ChangelogEntry, fillZeros=false) : String {
-		return v.major
-		+ ( v.minor!=null ? "."+v.minor : fillZeros ? ".0" : "" )
-		+ ( v.patch!=null ? "."+v.patch : fillZeros ? ".0" : "" )
-		+ ( v.metaLabel!=null ? "-"+v.metaLabel : "" );
 	}
 
 	/**
@@ -104,68 +78,102 @@ class Changelog {
 
 		\#\# 0.1 - Some title
 
-		hello world
+		Some markdown...
 
-		foo
+		Another markdown...
 
 		\#\# 0.0.1-alpha - Another title
 
-		bar
+		A markdown paragraph...
 	**/
 	public function parse(markdown:String) {
-		versions = [];
+		entries = [];
 
-		var lines = markdown.split("\n");
+		var endl = markdown.indexOf("\r\n")>=0 ? "\r\n" : "\n";
+		var lines = markdown.split( endl );
 		var cur  : ChangelogEntry = null;
 		for(l in lines) {
 			if( VERSION_TITLE_REG.match(l) ) {
 				var rawVersion = VERSION_TITLE_REG.matched(1);
 
 				// Parse version number according to SemVer format
-				var r = VERSION_NUMBER_REG;
-				if( !r.match(rawVersion) )
+				if( !VersionNumber.isValid(rawVersion) )
 					throw "Version number "+rawVersion+" in changelog doesn't comply to SemVer semantics";
 
+				var ver = new VersionNumber(rawVersion);
 				cur = {
-					fullVersion: "???",
-					shortVersion: "???",
-					major: Std.parseInt( r.matched(1) ),
-					minor: r.matched(2)!="" ? Std.parseInt( r.matched(2) ) : null,
-					patch: r.matched(3)!="" ? Std.parseInt( r.matched(3) ) : null,
-					metaLabel: r.matched(4)!="" ?r.matched(4) : null,
+					version: ver,
 					title: VERSION_TITLE_REG.matched(2)=="" ? null : VERSION_TITLE_REG.matched(2),
-					linesMd: [],
+					allNoteLines: [],
+					notEmptyNoteLines: [],
 				}
-				cur.fullVersion = getVersion(cur, true);
-				cur.shortVersion = getVersion(cur, false);
 
-				versions.push(cur);
+				entries.push(cur);
 				continue;
 			}
 
 			if( cur==null )
 				continue;
 
-			cur.linesMd.push(l);
+			cur.allNoteLines.push(l);
+			var trim = trimLine(l);
+			if( trim.length>0 )
+				cur.notEmptyNoteLines.push(l);
 		}
 
-		versions.sort( function(a,b) return isHigherVersion(a,b) ? -1 : 1 );
+		entries.sort( function(a,b) return -a.version.compare( b.version ) );
 	}
 
-	/**
-		Return TRUE if "v" version is higher than "than version"
-	**/
-	public function isHigherVersion(v:ChangelogEntry, than:ChangelogEntry) {
-		if( v.major>than.major )
-			return true;
-		else if( v.major==than.major ) {
-			if( v.minor>than.minor )
-				return true;
-			else if( v.minor==than.minor ) {
-				if( v.patch>than.patch )
-					return true;
-			}
-		}
-		return false;
+	function trimLine(l:String) {
+		while( l.length>0 && ( l.charAt(0)==" " || l.charAt(0)=="\t" ) )
+			l = l.substr(1);
+
+		while( l.length>0 && ( l.charAt(l.length-1)==" " || l.charAt(l.length-1)=="\t" ) )
+			l = l.substr(0, l.length-1);
+
+		return l;
+	}
+
+
+	@:noCompletion
+	public static function __test() {
+		var markDown = "
+		## 0.9 - Not in proper position
+
+		Some note
+
+		## 1 - Release
+
+		Some note
+
+		- list 1
+		- list 2
+
+
+		## 0.7-beta - Some update
+
+		Some note
+
+		## 0.1-alpha - not in the right position
+		markdown
+		Some note
+
+		## 0.2-beta - Going beta
+
+		Some note
+		";
+
+		var c = new Changelog( markDown );
+
+		CiAssert.isTrue( c.entries.length>0 );
+
+		CiAssert.isNotNull( c.latest );
+		CiAssert.isTrue( c.latest.version.full == "1.0.0" );
+		CiAssert.isTrue( c.latest.title == "Release" );
+		CiAssert.isTrue( c.latest.allNoteLines.length==7 );
+		CiAssert.isTrue( c.latest.notEmptyNoteLines.length==3 );
+
+		CiAssert.isNotNull( c.oldest );
+		CiAssert.isTrue( c.oldest.version.full == "0.1.0-alpha" );
 	}
 }

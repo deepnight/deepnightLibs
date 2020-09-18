@@ -129,6 +129,7 @@ class Main {
 		dn.pathfinder.AStar.__test();
 		dn.VersionNumber.__test();
 		dn.M.__test();
+		dn.Changelog.__test();
 
 		// Done!
 		Sys.println("");

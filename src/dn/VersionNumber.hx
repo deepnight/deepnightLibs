@@ -42,10 +42,15 @@ class VersionNumber {
 	}
 
 	@:keep
-	public function toString() {
-		return full;
-	}
+	public function toString() return full;
 
+
+	/**
+		Return TRUE if the provided version complies to SemVer semantic "x.y.z[-label]"
+	**/
+	public static inline function isValid(v:String) {
+		return v!=null && VERSION_REG.match(v);
+	}
 
 	/**
 		Similar to Reflect.compare().
