@@ -153,14 +153,14 @@ class FilePath {
 
 
 	function parseFileName(raw:String) {
-		if( raw==".." ) { // TODO why?
-			fileName = extension = null;
-			if( directory==null )
-				directory = raw;
-			else
-				directory = directoryWithSlash + raw;
-		}
-		else if( raw.indexOf(".")<0 ) {
+		// if( raw==".." ) { // TODO why?
+		// 	fileName = extension = null;
+		// 	if( directory==null )
+		// 		directory = raw;
+		// 	else
+		// 		directory = directoryWithSlash + raw;
+		// }
+		if( raw.indexOf(".")<0 ) {
 			// No extension
 			fileName = raw;
 			extension = null;
@@ -247,6 +247,7 @@ class FilePath {
 		}
 	}
 
+	/** Return default "slash" character as used in this path **/
 	public inline function slash() {
 		return backslashes ? "\\" : "/";
 	}
