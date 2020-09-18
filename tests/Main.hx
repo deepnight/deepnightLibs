@@ -79,32 +79,6 @@ class Main {
 		delayer.cancelById("test");
 		delayer.update(1);
 
-		// Build a basic map for pathfinder
-		var matrix = [
-			"...#.",
-			".###.",
-			"...#.",
-			".#.#.",
-			".#.#.",
-			".#...",
-		];
-		var wid = matrix[0].length;
-		var hei = matrix.length;
-		var targetX = wid-1;
-		var targetY = 0;
-		Sys.println("\t"+matrix.join("\n\t"));
-
-		// Pathfinder
-		var pf = new dn.pathfinder.AStar( function(x,y) return {x:x, y:y} );
-		pf.init(
-			wid, hei,
-			function(x,y) return x>=0 && y>=0 && x<wid && y<hei ? matrix[y].charAt(x)=="#" : true
-		);
-		var path = pf.getPath(0, 0, targetX, targetY);
-		Sys.println("	Path="+path.map( function(pt) return pt.x+","+pt.y ).join(" -> ") );
-		CiAssert.isTrue( path.length>0 );
-		CiAssert.isTrue( path[path.length-1].x==targetX && path[path.length-1].y==targetY );
-
 		// DecisionHelper
 		var arr = [ "a", "foo", "bar", "food", "hello" ];
 		var dh = new dn.DecisionHelper(arr);
@@ -151,20 +125,8 @@ class Main {
 		CiAssert.isTrue( randList.getProbaPct(2)==25 );
 		CiAssert.isTrue( randList.contains(3) );
 
-		// FilePath
-		CiAssert.isTrue( FilePath.fromDir("c:\\windows\\system").getDirectoryArray().length==3 );
-		CiAssert.isTrue( FilePath.fromFile("../a\\b/file.png").fileName=="file" );
-		CiAssert.isTrue( FilePath.fromFile("a/b/file.png").extension=="png" );
-		CiAssert.isTrue( FilePath.fromFile("a/b/file.png").directoryWithSlash=="a/b/" );
-		CiAssert.isTrue( FilePath.fromFile("a/file.2.png").fileName=="file.2" );
-		CiAssert.isTrue( FilePath.fromFile("f.png").directoryWithSlash==null );
-		CiAssert.isTrue( FilePath.fromFile("").fileName=="" );
-		CiAssert.isTrue( FilePath.fromFile("").extension==null );
-		CiAssert.isTrue( FilePath.fromDir("").fileName==null );
-		CiAssert.isTrue( FilePath.fromFile("./f.png").directory=="." );
-		CiAssert.isTrue( FilePath.fromFile(".htaccess").fileName=="" );
-		CiAssert.isTrue( FilePath.extractDirWithSlash("../a\\b/file.png")=="../a/b/" );
-
+		dn.FilePath.__test();
+		dn.pathfinder.AStar.__test();
 		dn.VersionNumber.__test();
 		dn.M.__test();
 

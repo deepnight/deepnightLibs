@@ -2,9 +2,9 @@ package dn;
 
 enum PathSlashMode {
 	/**
-		Keep existing slashes/backslashes.
+		Preserve existing slashes/backslashes.
 	**/
-	Keep;
+	Preserve;
 
 	/**
 		Convert all paths to backslashes
@@ -21,11 +21,11 @@ class FilePath {
 	/**
 		Change the way FilePath parser deals with slashes/backslashes.
 
-		[Keep] (default) - Don't change the existing slashes and maintain them
+		[Preserve] (default) - Don't change the existing slashes and maintain them
 
 		[OnlySlashes] or [OnlyBackslashes] - Convert to the corresponding type
 	**/
-	public static var SLASH_MODE = Keep;
+	public static var SLASH_MODE = Preserve;
 
 	/**
 		Directory
@@ -97,20 +97,12 @@ class FilePath {
 	}
 
 	public inline function parseFilePath(filePath:String) {
-		parse(filePath);
+		parse(filePath, true);
 		return this;
 	}
 
 	public inline function parseDirPath(dirPath:String) {
-		parse(dirPath);
-		if( fileWithExt!=null ) {
-			if( directory==null )
-				directory = fileWithExt;
-			else
-				directory += slash() + fileWithExt;
-			fileName = null;
-			extension = null;
-		}
+		parse(dirPath, false);
 		return this;
 	}
 
@@ -182,56 +174,71 @@ class FilePath {
 
 	/**
 		Initialize using a String representation of a path
+
+		If "containsFileName" is FALSE, the provided path is considered to be a pure directory path (eg. "/user/files")
 	**/
-	function parse(raw:String) {
+	function parse(rawPath:String, containsFileName:Bool) {
 		init();
 
 		switch SLASH_MODE {
-			case Keep:
-			case OnlyBackslashes: raw = StringTools.replace(raw, "/", "\\");
-			case OnlySlashes: raw = StringTools.replace(raw, "\\", "/");
+			case Preserve:
+			case OnlyBackslashes: rawPath = StringTools.replace(rawPath, "/", "\\");
+			case OnlySlashes: rawPath = StringTools.replace(rawPath, "\\", "/");
 		}
 
 		// Detect slashes
-		if( raw.indexOf("\\")>=0 )
-			if( raw.indexOf("/")>=0 )
-				backslashes = raw.indexOf("\\") < raw.indexOf("/"); // if mixed, the first one sets the mode
+		if( rawPath.indexOf("\\")>=0 )
+			if( rawPath.indexOf("/")>=0 )
+				backslashes = rawPath.indexOf("\\") < rawPath.indexOf("/"); // if mixed, the first one sets the mode
 			else
 				backslashes = true;
 
 		// Avoid mixing slashes
-		raw = StringTools.replace(raw, backslashes ? "/" : "\\", slash());
+		rawPath = StringTools.replace(rawPath, backslashes ? "/" : "\\", slash());
 
-		if( raw.indexOf(slash())<0 ) {
+		if( containsFileName && rawPath.indexOf(slash()) < 0 ) {
 			// No directory
-			parseFileName(raw);
+			parseFileName(rawPath);
 		}
 		else {
 			// Clean up double-slashes
-			while( raw.indexOf( slash()+slash() ) >= 0 )
-				raw = StringTools.replace(raw, slash()+slash(), slash() );
+			while( rawPath.indexOf( slash()+slash() ) >= 0 )
+				rawPath = StringTools.replace(rawPath, slash()+slash(), slash() );
+
+			// Remove trailing slash
+			if( !containsFileName && rawPath.length>1 && rawPath.charAt(rawPath.length-1)==slash() )
+				rawPath = rawPath.substr(0,rawPath.length-1);
 
 			// Directory
-			directory = raw.substr( 0, raw.lastIndexOf(slash()) );
+			directory = containsFileName ? rawPath.substr( 0, rawPath.lastIndexOf(slash()) ) : rawPath;
+			if( directory.length==0 )
+				directory = null;
 
-			if( raw.lastIndexOf(slash())<raw.length-1 ) {
-				// File name & extension
-				var rawFile = raw.substr( raw.lastIndexOf(slash())+1 );
+			// File name & extension
+			if( containsFileName && rawPath.lastIndexOf(slash()) < rawPath.length-1 ) {
+				var rawFile = rawPath.substr( rawPath.lastIndexOf(slash())+1 );
 				parseFileName(rawFile);
 			}
 
 			// Simplify ".."
 			var dirs = getDirectoryArray();
-			var i = 0;
-			while( i<dirs.length ) {
-				if( dirs[i]!=".." || i==0 || dirs[i-1]==".." )
-					i++;
-				else {
-					dirs.splice(i-1, 2);
-					i--;
+			if( dirs.length>0 ) {
+				var i = 0;
+				while( i<dirs.length ) {
+					if( dirs[i]==".." && i>0 && dirs[i-1]!=".." ) {
+						dirs.splice(i-1, 2);
+						i--;
+					}
+					else
+						i++;
 				}
+				if( dirs.length==0 )
+					directory = null;
+				else if( dirs.length==1 && dirs[0]=="" )
+					directory = slash();
+				else
+					directory = dirs.join( slash() );
 			}
-			directory = dirs.join( slash() );
 		}
 	}
 
@@ -288,18 +295,31 @@ class FilePath {
 
 	inline function get_full() {
 		return
-			( directory==null ? "" : ( fileName==null && extension==null ? directory : directoryWithSlash ) )
-			+ ( fileWithExt==null ? "" : fileWithExt );
+			// Directory
+			( directory==null
+				? ""
+				: directory
+			)
+			+
+			// File name
+			( fileWithExt==null ? "" : fileWithExt );
 	}
 
 	inline function get_directoryWithSlash() {
-		return directory==null ? null : directory + slash();
+		return
+			directory==null
+			? null
+			: directory==slash()
+				? directory
+				: directory + slash();
 	}
 
 
 	public function getDirectoryArray() {
 		if( directory==null )
 			return [];
+		else if( directory==slash() )
+			return [ slash() ];
 		else
 			return directory.split(slash());
 	}
@@ -369,33 +389,34 @@ class FilePath {
 		return FilePath.fromFile(path).extension;
 	}
 
+
 	/**
 		Extract the directory without trailing slash.
 
-		The "containsNoFileName" flag is to avoid ambiguities in cases like "/project/myFolder", where "myFolder"
+		The "containsFileName" flag is to avoid ambiguities in cases like "/project/myFolder", where "myFolder"
 		would be interpreted as a file name and not a directory.
 
-		If containsNoFileName is TRUE, the whole path provided will be considered as being a directory.
+		If "containsFileName" is FALSE, the whole path provided will be considered as being a directory.
 	**/
-	public static inline function extractDirNoSlash(path:String, containsNoFileName=false) : Null<String> {
-		return containsNoFileName
-			? FilePath.fromDir(path).directory
-			: FilePath.fromFile(path).directory;
+	public static inline function extractDirectoryWithoutSlash(path:String, containsFileName:Bool) : Null<String> {
+		return containsFileName
+			? FilePath.fromFile(path).directory
+			: FilePath.fromDir(path).directory;
 	}
+
 
 	/**
 		Extract the directory with a trailing slash (or backslash)
 
-		The "containsNoFileName" flag is provided to avoid ambiguities in cases like "/project/myFolder",
-		where "myFolder" would be interpreted as a file name and not a directory. Note that you can also
-		avoid that by adding a trailing slash to the provided parameter (ie. "/project/myFolder/").
+		The "containsFileName" flag is to avoid ambiguities in cases like "/project/myFolder", where "myFolder"
+		would be interpreted as a file name and not a directory.
 
-		If "containsNoFileName" is TRUE, the whole path provided will be considered as being a directory.
+		If "containsFileName" is FALSE, the whole path provided will be considered as being a directory.
 	**/
-	public static inline function extractDirWithSlash(path:String, containsNoFileName=false) : Null<String> {
-		return containsNoFileName
-			? FilePath.fromDir(path).directoryWithSlash
-			: FilePath.fromFile(path).directoryWithSlash;
+	public static inline function extractDirectoryWithSlash(path:String, containsFileName:Bool) : Null<String> {
+		return containsFileName
+			? FilePath.fromFile(path).directoryWithSlash
+			: FilePath.fromDir(path).directoryWithSlash;
 	}
 
 
@@ -427,4 +448,91 @@ class FilePath {
 	public var ext(get,set) : String;
 	inline function get_ext() return extension;
 	inline function set_ext(v) return extension = v;
+
+
+	@:noCompletion
+	public static function __test() {
+		CiAssert.isNotNull( new FilePath() );
+
+		// Dirs
+		CiAssert.isTrue( FilePath.fromDir("/user/foo").directory=="/user/foo" );
+		CiAssert.isTrue( FilePath.fromDir("/user/foo.png").directory=="/user/foo.png" );
+		CiAssert.isTrue( FilePath.fromDir("/").directory=="/" );
+		CiAssert.isTrue( FilePath.fromDir("c:").getDirectoryArray().length==1 );
+		CiAssert.isTrue( FilePath.fromDir("/user").getDirectoryArray().length==2 );
+		CiAssert.isTrue( FilePath.fromDir("/user").directoryWithSlash == "/user/" );
+		CiAssert.isTrue( FilePath.fromDir("/").directoryWithSlash == "/" );
+		CiAssert.isTrue( FilePath.fromDir("").directory == null );
+		CiAssert.isTrue( FilePath.fromDir("").directoryWithSlash == null );
+		CiAssert.isTrue( FilePath.fromDir("").fileName == null );
+		CiAssert.isTrue( FilePath.fromDir("").extension == null );
+
+		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("", false) == null );
+		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("/", false) == "/" );
+		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("user/test.png", true) == "user" );
+		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("test.png", true) == null );
+		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("", false) == null );
+		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("..", false) == "../" );
+		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("user", false) == "user/" );
+
+		// Files
+		CiAssert.isTrue( FilePath.fromFile("/user/foo").directory=="/user" );
+		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").directory=="/user" );
+		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").fileName=="foo" );
+		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").extension=="png" );
+		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").fileWithExt=="foo.png" );
+		CiAssert.isTrue( FilePath.fromFile(".htaccess").fileName=="" );
+		CiAssert.isTrue( FilePath.fromFile(".htaccess").extension=="htaccess" );
+		CiAssert.isTrue( FilePath.fromFile("").directory == null );
+		CiAssert.isTrue( FilePath.fromFile("").fileName == "" );
+		CiAssert.isTrue( FilePath.fromFile("").extension == null );
+
+		CiAssert.isTrue( FilePath.extractFileName("/user/test.png") == "test" );
+		CiAssert.isTrue( FilePath.extractExtension("/user/test.png") == "png" );
+		CiAssert.isTrue( FilePath.extractExtension("/user/test") == null );
+
+		// Simplification
+		CiAssert.isTrue( FilePath.fromDir("foo/bar/../../test").directory=="test" );
+		CiAssert.isTrue( FilePath.fromDir("../test").directory=="../test" );
+		CiAssert.isTrue( FilePath.fromDir("test/..").directory==null );
+		CiAssert.isTrue( FilePath.fromDir("foo/test/../..").directory==null );
+		CiAssert.isTrue( FilePath.fromDir("foo/test/../../").directory==null );
+		CiAssert.isTrue( FilePath.fromDir("/foo/test/../../").directory=="/" );
+		CiAssert.isTrue( FilePath.fromDir("/foo/test/../../").full=="/" );
+		CiAssert.isTrue( FilePath.fromFile("/foo/test/../../test.png").directory=="/" );
+		CiAssert.isTrue( FilePath.fromFile("/foo/test/../../test.png").full=="/test.png" );
+		CiAssert.isTrue( FilePath.fromFile("/foo/test/../../test.png").getDirectoryArray()[0] == "/" );
+		CiAssert.isTrue( FilePath.fromFile("foo/test/../../test.png").getDirectoryArray()[0] == null );
+		CiAssert.isTrue( FilePath.fromDir("/").getDirectoryArray()[0] == "/" );
+
+		// Slash/backslash
+		FilePath.SLASH_MODE = OnlySlashes;
+		CiAssert.isTrue( FilePath.fromDir("\\").directory == "/" );
+		CiAssert.isTrue( FilePath.fromDir("c:\\windows\\system\\").directory == "c:/windows/system" );
+		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").directory == "c:/windows/system" );
+		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").getDirectoryArray().length==3 );
+		FilePath.SLASH_MODE = OnlyBackslashes;
+		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").full == "c:\\windows\\system" );
+		CiAssert.isTrue( FilePath.fromDir("c:/windows/system").full == "c:\\windows\\system" );
+		FilePath.SLASH_MODE = Preserve;
+		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").full == "c:\\windows\\system" );
+		CiAssert.isTrue( FilePath.fromDir("c:/windows/system").full == "c:/windows/system" );
+
+
+		// CiAssert.isTrue( FilePath.fromDir("c:\\windows\\system").getDirectoryArray().length==3 );
+		// CiAssert.isTrue( FilePath.fromFile("../a\\b/file.png").fileName=="file" );
+		// CiAssert.isTrue( FilePath.fromFile("a/b/file.png").extension=="png" );
+		// CiAssert.isTrue( FilePath.fromFile("a/b/file.png").directoryWithSlash=="a/b/" );
+		// CiAssert.isTrue( FilePath.fromFile("a/file.2.png").fileName=="file.2" );
+		// CiAssert.isTrue( FilePath.fromFile("f.png").directoryWithSlash==null );
+		// CiAssert.isTrue( FilePath.fromFile("").fileName=="" );
+		// CiAssert.isTrue( FilePath.fromFile("").extension==null );
+		// CiAssert.isTrue( FilePath.fromDir("").fileName==null );
+		// CiAssert.isTrue( FilePath.fromFile("./f.png").directory=="." );
+		// CiAssert.isTrue( FilePath.fromFile(".htaccess").fileName=="" );
+		// CiAssert.isTrue( FilePath.extractDirWithSlash("../a\\b/file.png")=="../a/b/" );
+
+		// trace(FilePath.fromDir("foo/bar/../../test").directory);
+		// CiAssert.isTrue()
+	}
 }
