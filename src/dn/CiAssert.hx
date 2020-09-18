@@ -126,7 +126,7 @@ class CiAssert {
 
 		// Stop
 		#if js
-		throw new js.lib.Error('Failed in $file');
+		throw new js.lib.Error('Failed in ${filePos.file}');
 		#else
 		Sys.stderr().writeString('${filePos.file}:${filePos.line}: characters 1-999 : $reason\n');
 		Sys.exit(1);
