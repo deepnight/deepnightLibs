@@ -230,7 +230,7 @@ class FilePath {
 			if( dirs.length>0 ) {
 				var i = 0;
 				while( i<dirs.length ) {
-					if( dirs[i]==".." && i>0 && dirs[i-1]!=".." ) {
+					if( dirs[i]==".." && i>0 && dirs[i-1]!=".." && dirs[i-1]!="" ) {
 						dirs.splice(i-1, 2);
 						i--;
 					}
@@ -313,7 +313,7 @@ class FilePath {
 			// Directory
 			( directory==null
 				? ""
-				: directory
+				: fileName==null && extension==null || directory==slash() ? directory : directoryWithSlash
 			)
 			+
 			// File name
@@ -484,6 +484,12 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromDir("").fileName == null );
 		CiAssert.isTrue( FilePath.fromDir("").extension == null );
 		CiAssert.isTrue( FilePath.fromDir("user/?/test").directory == "user/_/test");
+		CiAssert.isTrue( FilePath.fromDir("/user/foo").full=="/user/foo" );
+		CiAssert.isTrue( FilePath.fromDir("/user/foo/").full=="/user/foo" );
+		CiAssert.isTrue( FilePath.fromDir("user//foo").full=="user/foo" );
+		CiAssert.isTrue( FilePath.fromDir("..").full==".." );
+		CiAssert.isTrue( FilePath.fromDir("/..").full=="/.." ); // non sense but well..
+		CiAssert.isTrue( FilePath.fromDir("a/../..").full==".." );
 
 		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("", false) == null );
 		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("/", false) == "/" );
@@ -509,9 +515,14 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromFile("/user/.foo.png").fileWithExt==".foo.png" );
 		CiAssert.isTrue( FilePath.fromFile("/user/.foo.").extension==null );
 		CiAssert.isTrue( FilePath.fromFile("/user/.foo.").fileName==".foo" );
+		CiAssert.isTrue( FilePath.fromFile("/user/").fileName==null );
+		CiAssert.isTrue( FilePath.fromFile("/user/").extension==null );
 		CiAssert.isTrue( FilePath.fromFile("").directory == null );
 		CiAssert.isTrue( FilePath.fromFile("").fileName == "" );
 		CiAssert.isTrue( FilePath.fromFile("").extension == null );
+		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").full=="/user/foo.png" );
+		CiAssert.isTrue( FilePath.fromFile("/user/").full=="/user" );
+
 
 		CiAssert.isTrue( FilePath.extractFileName("/user/test.png") == "test" );
 		CiAssert.isTrue( FilePath.extractExtension("/user/test.png") == "png" );
