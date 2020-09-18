@@ -1,6 +1,7 @@
 import dn.*;
 class Main {
 	public static function main() {
+
 		// Assert itself
 		CiAssert.isTrue(true);
 		CiAssert.isFalse(false);
@@ -77,16 +78,6 @@ class Main {
 		delayer.addF("test", function() CiAssert.isFalse(true), 1);
 		delayer.cancelById("test");
 		delayer.update(1);
-
-		// Math
-		CiAssert.isTrue( M.round(1.2)==1 );
-		CiAssert.isTrue( M.round(1.5)==2 );
-		CiAssert.isTrue( M.round(-1.5)==-2 );
-		CiAssert.isTrue( M.ceil(-1.5)==-1 );
-		CiAssert.isTrue( M.floor(-1.5)==-2 );
-		CiAssert.isTrue( M.isValidNumber(1.5) );
-		CiAssert.isTrue( !M.isValidNumber(null) );
-		CiAssert.isTrue( !M.isValidNumber(1/0) );
 
 		// Build a basic map for pathfinder
 		var matrix = [
@@ -173,6 +164,9 @@ class Main {
 		CiAssert.isTrue( FilePath.fromFile("./f.png").directory=="." );
 		CiAssert.isTrue( FilePath.fromFile(".htaccess").fileName=="" );
 		CiAssert.isTrue( FilePath.extractDirWithSlash("../a\\b/file.png")=="../a/b/" );
+
+		dn.VersionNumber.__test();
+		dn.M.__test();
 
 		// Done!
 		Sys.println("");

@@ -844,4 +844,18 @@ class M {
 	public static inline function isValidNumber(v:Null<Float>) {
 		return v!=null && !Math.isNaN(v) && Math.isFinite(v);
 	}
+
+
+	@:noCompletion
+	public static function __test() {
+		// TODO more tests
+		CiAssert.isTrue( M.round(1.2)==1 );
+		CiAssert.isTrue( M.round(1.5)==2 );
+		CiAssert.isTrue( M.round(-1.5)==-2 );
+		CiAssert.isTrue( M.ceil(-1.5)==-1 );
+		CiAssert.isTrue( M.floor(-1.5)==-2 );
+		CiAssert.isTrue( M.isValidNumber(1.5) );
+		CiAssert.isTrue( !M.isValidNumber(null) );
+		CiAssert.isTrue( !M.isValidNumber(1/0) );
+	}
 }
