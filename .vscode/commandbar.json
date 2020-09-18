@@ -4,20 +4,12 @@
     "skipErrorMessage": true,
     "commands": [
       {
-        "text": "✪ Build tests",
+        "text": "✪ Run tests",
         "color": "orange",
-        "command": "haxe tests.neko.hxml  &&  echo Done.",
+        "command": "haxe tests.neko.hxml  &&  neko tests/bin/test.n",
         "alignment": "right",
         "skipTerminateQuickPick": false,
         "priority": 5
-      },
-      {
-        "text": "Run",
-        "color": "orange",
-        "command": "neko tests/bin/test.n",
-        "alignment": "right",
-        "skipTerminateQuickPick": false,
-        "priority": 4
       },
       {
         "text": "➠ Submit to haxelib",

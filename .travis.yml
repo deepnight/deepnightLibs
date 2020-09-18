@@ -12,7 +12,6 @@ install:
 
 script:
   - haxe tests.neko.hxml
-  - neko tests/bin/test.n
 
 notifications:
   email:
