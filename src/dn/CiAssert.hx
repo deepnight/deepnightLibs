@@ -10,23 +10,18 @@ class CiAssert {
 	public static macro function isTrue(code:Expr) {
 		return macro {
 			if( ${buildIsTrueExpr(code)} )
-				dn.CiAssert.printOk( $v{printCode(code)} );
-			else {
-				dn.CiAssert.printFailure( $v{printCode(code)}, "This expression should be TRUE");
-				dn.CiAssert.die();
-			}
+				dn.CiAssert.printOk( $v{getCodeStr(code)} );
+			else
+				dn.CiAssert.fail( $v{getFilePos()}, $v{getCodeStr(code)}, "This expression should be TRUE");
 		};
 	}
 
 	public static macro function isFalse(code:Expr) {
 		return macro {
 			if( !${buildIsTrueExpr(code)} )
-				dn.CiAssert.printOk( $v{printCode(code)} );
-			else {
-				dn.CiAssert.printFailure( $v{printCode(code)}, "This expression should be FALSE");
-				dn.CiAssert.die();
-
-			}
+				dn.CiAssert.printOk( $v{getCodeStr(code)} );
+			else
+				dn.CiAssert.fail( $v{getFilePos()}, $v{getCodeStr(code)}, "This expression should be FALSE");
 		};
 	}
 
@@ -34,11 +29,10 @@ class CiAssert {
 		return macro {
 			try {
 				$code;
-				dn.CiAssert.printOk($v{printWithPrefix(desc)} );
+				dn.CiAssert.printOk($v{getDescWithPrefix(desc)} );
 			}
 			catch(e:Dynamic) {
-				dn.CiAssert.printFailure( $v{printWithPrefix(desc)}, "This expression should thrown NO exception (caught \""+e+"\")");
-				dn.CiAssert.die();
+				dn.CiAssert.fail( $v{getFilePos()}, $v{getDescWithPrefix(desc)}, "This expression should thrown NO exception (caught \""+e+"\")");
 			}
 		};
 	}
@@ -46,11 +40,9 @@ class CiAssert {
 	public static macro function isNotNull(code:Expr) {
 		return macro {
 			if( ($code) != null )
-				dn.CiAssert.printOk( $v{printCode(code)} );
-			else {
-				dn.CiAssert.printFailure( $v{printCode(code)}, "This expression should NOT be NULL");
-				dn.CiAssert.die();
-			}
+				dn.CiAssert.printOk( $v{getCodeStr(code)} );
+			else
+				dn.CiAssert.fail( $v{getFilePos()}, $v{getCodeStr(code)}, "This expression should NOT be NULL");
 		};
 	}
 
@@ -73,7 +65,7 @@ class CiAssert {
 	}
 
 	// Print code expr in human-readable fashion
-	static function printCode(code:Expr) : String {
+	static function getCodeStr(code:Expr) : String {
 		var printer = new haxe.macro.Printer();
 		var codeStr = printer.printExpr(code);
 		codeStr = StringTools.replace(codeStr,"\n","");
@@ -88,7 +80,7 @@ class CiAssert {
 		return '[$build|${Context.getLocalModule()}] $codeStr';
 	}
 
-	static function printWithPrefix(str:String) : String {
+	static function getDescWithPrefix(str:String) : String {
 		var build = Context.defined("js") ? "JS"
 			: Context.defined("hl") ? "HL"
 			: Context.defined("neko") ? "Neko"
@@ -98,21 +90,18 @@ class CiAssert {
 	}
 	#end
 
-
-	@:noCompletion
-	public static function die() {
-		print("Stopped.");
-		print("");
-
-		#if js
-		throw new js.lib.Error("Failed");
-		#else
-		Sys.exit(1);
-		#end
+	#if macro
+	static inline function getFilePos() {
+		var pos = Context.getPosInfos( Context.currentPos() );
+		var fi = sys.io.File.read(pos.file);
+		var line = fi.readString(pos.min).split("\n").length;
+		fi.close();
+		return { file:pos.file, line:line }
 	}
+	#end
 
 	@:noCompletion
-	public static function print(v:Dynamic) {
+	public static function println(v:Dynamic) {
 		#if js
 		js.html.Console.log( Std.string(v) );
 		#else
@@ -122,17 +111,25 @@ class CiAssert {
 
 	@:noCompletion
 	public static inline function printOk(v:Dynamic) {
-		print(Std.string(v)+"  <Ok>");
+		println(Std.string(v)+"  <Ok>");
 	}
 
 	@:noCompletion
-	public static inline function printFailure(v:Dynamic, reason:String) {
-		var v = Std.string(v);
-		var sep = [ for(i in 0...v.length+11) "*" ];
+	public static function fail(filePos:{file:String, line:Int}, desc:String, reason:String) {
+		var desc = Std.string(desc);
+		var sep = [ for(i in 0...desc.length+11) "*" ];
 
-		print(sep.join(""));
-		print(v+"  <FAILED!>");
-		print("ERROR: "+reason);
-		print(sep.join(""));
+		println(sep.join(""));
+		println(desc+"  <FAILED!>");
+		println("ERROR: "+reason);
+		println(sep.join(""));
+
+		// Stop
+		#if js
+		throw new js.lib.Error('Failed in $file');
+		#else
+		Sys.stderr().writeString('${filePos.file}:${filePos.line}: characters 1-999 : $reason\n');
+		Sys.exit(1);
+		#end
 	}
 }
