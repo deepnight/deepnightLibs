@@ -153,7 +153,7 @@ class FilePath {
 
 
 	function parseFileName(raw:String) {
-		if( raw==".." ) {
+		if( raw==".." ) { // TODO why?
 			fileName = extension = null;
 			if( directory==null )
 				directory = raw;
@@ -164,6 +164,11 @@ class FilePath {
 			// No extension
 			fileName = raw;
 			extension = null;
+		}
+		else if( raw.indexOf(".")==0 && raw.lastIndexOf(".")==raw.indexOf(".") ) {
+			// No file name
+			fileName = null;
+			extension = raw.substr(1);
 		}
 		else {
 			// Normal filename
@@ -452,7 +457,9 @@ class FilePath {
 
 	@:noCompletion
 	public static function __test() {
+		// General
 		CiAssert.isNotNull( new FilePath() );
+		CiAssert.isTrue( FilePath.fromFile("/user/.htaccess").clone().full == FilePath.fromFile("/user/.htaccess").clone().full );
 
 		// Dirs
 		CiAssert.isTrue( FilePath.fromDir("/user/foo").directory=="/user/foo" );
@@ -481,8 +488,16 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").fileName=="foo" );
 		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").extension=="png" );
 		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").fileWithExt=="foo.png" );
-		CiAssert.isTrue( FilePath.fromFile(".htaccess").fileName=="" );
+		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").extWithDot==".png" );
+		CiAssert.isTrue( FilePath.fromFile("/user/foo").extWithDot==null );
+		CiAssert.isTrue( FilePath.fromFile(".htaccess").fileName==null );
 		CiAssert.isTrue( FilePath.fromFile(".htaccess").extension=="htaccess" );
+		CiAssert.isTrue( FilePath.fromFile("/user/test.foo.png").extension=="png" );
+		CiAssert.isTrue( FilePath.fromFile("/user/.foo.png").fileName==".foo" );
+		CiAssert.isTrue( FilePath.fromFile("/user/.foo.png").extension=="png" );
+		CiAssert.isTrue( FilePath.fromFile("/user/.foo.png").fileWithExt==".foo.png" );
+		CiAssert.isTrue( FilePath.fromFile("/user/.foo.").extension==null );
+		CiAssert.isTrue( FilePath.fromFile("/user/.foo.").fileName==".foo" );
 		CiAssert.isTrue( FilePath.fromFile("").directory == null );
 		CiAssert.isTrue( FilePath.fromFile("").fileName == "" );
 		CiAssert.isTrue( FilePath.fromFile("").extension == null );
@@ -517,22 +532,5 @@ class FilePath {
 		FilePath.SLASH_MODE = Preserve;
 		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").full == "c:\\windows\\system" );
 		CiAssert.isTrue( FilePath.fromDir("c:/windows/system").full == "c:/windows/system" );
-
-
-		// CiAssert.isTrue( FilePath.fromDir("c:\\windows\\system").getDirectoryArray().length==3 );
-		// CiAssert.isTrue( FilePath.fromFile("../a\\b/file.png").fileName=="file" );
-		// CiAssert.isTrue( FilePath.fromFile("a/b/file.png").extension=="png" );
-		// CiAssert.isTrue( FilePath.fromFile("a/b/file.png").directoryWithSlash=="a/b/" );
-		// CiAssert.isTrue( FilePath.fromFile("a/file.2.png").fileName=="file.2" );
-		// CiAssert.isTrue( FilePath.fromFile("f.png").directoryWithSlash==null );
-		// CiAssert.isTrue( FilePath.fromFile("").fileName=="" );
-		// CiAssert.isTrue( FilePath.fromFile("").extension==null );
-		// CiAssert.isTrue( FilePath.fromDir("").fileName==null );
-		// CiAssert.isTrue( FilePath.fromFile("./f.png").directory=="." );
-		// CiAssert.isTrue( FilePath.fromFile(".htaccess").fileName=="" );
-		// CiAssert.isTrue( FilePath.extractDirWithSlash("../a\\b/file.png")=="../a/b/" );
-
-		// trace(FilePath.fromDir("foo/bar/../../test").directory);
-		// CiAssert.isTrue()
 	}
 }
