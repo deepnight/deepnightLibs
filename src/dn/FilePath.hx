@@ -244,6 +244,14 @@ class FilePath {
 				else
 					directory = dirs.join( slash() );
 			}
+
+			// Sanitize dirs
+			if( directory!=slash() && directory!=null ) {
+				var dirs = getDirectoryArray();
+				for(i in 0...dirs.length)
+					dirs[i] = i==0 ? sanitize(dirs[i],true) : sanitize(dirs[i]);
+				directory = dirs.join( slash() );
+			}
 		}
 	}
 
@@ -252,9 +260,10 @@ class FilePath {
 		return backslashes ? "\\" : "/";
 	}
 
-	function sanitize(v:String) {
-		var r = ~/[~#%*{}\/:<>?|]/g;
-		return r.replace(v, "_");
+	function sanitize(v:String, ignoreDoubleDots=false) {
+		return ignoreDoubleDots
+			? ~/[~#%*{}\/<>?|]/g.replace( v, "_" )
+			: ~/[~#%*{}\/:<>?|]/g.replace( v, "_" );
 	}
 
 	function set_extension(v:Null<String>) {
@@ -474,6 +483,7 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromDir("").directoryWithSlash == null );
 		CiAssert.isTrue( FilePath.fromDir("").fileName == null );
 		CiAssert.isTrue( FilePath.fromDir("").extension == null );
+		CiAssert.isTrue( FilePath.fromDir("user/?/test").directory == "user/_/test");
 
 		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("", false) == null );
 		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("/", false) == "/" );
