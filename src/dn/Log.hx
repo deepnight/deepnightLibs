@@ -27,6 +27,7 @@ class Log {
 	public inline function fileOp(str:Dynamic)	add("file", str, Color.hexToInt("#c3b2ff"));
 	public inline function render(str:Dynamic)	add("render", str, Color.hexToInt("#a7db4f"));
 	public inline function debug(str:Dynamic)	add("debug", str, Color.hexToInt("#ff00ff"));
+	public inline function network(str:Dynamic)	add("network", str, Color.hexToInt("#00e1b9"));
 
 	public function dumpToH2dConsole(c:h2d.Console) {
 		for(l in log)
