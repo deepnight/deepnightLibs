@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.46",
+	"version": "1.0.47",
 	"classPath": "src/",
-	"releasenote": "Many fixes in FilePath (warning: fileName will now null in paths like '.htaccess'), better tests",
+	"releasenote": "Log class enhancements",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
