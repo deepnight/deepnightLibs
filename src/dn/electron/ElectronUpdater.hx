@@ -85,7 +85,7 @@ class ElectronUpdater {
 	**/
 	public static function initRenderer() {
 		if( IpcRenderer==null )
-			throw "Should only be called in electorn Renderer!";
+			throw "Should only be called in electron Renderer!";
 
 		var info : Null<UpdateInfo> = null;
 
