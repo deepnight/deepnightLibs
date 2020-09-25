@@ -52,39 +52,45 @@ class Log {
 		if( filePath==null )
 			throw "Missing log file path";
 
-		#if sys
+		try {
+			#if sys
 
-			var fo = sys.io.File.append(filePath, false);
-			for(l in log)
-				if( !l.flushed ) {
-					fo.writeString( getPrintableEntry(l,true)+"\n" );
-					l.flushed = true;
-				}
+				var fo = sys.io.File.append(filePath, false);
+				for(l in log)
+					if( !l.flushed ) {
+						fo.writeString( getPrintableEntry(l,true)+"\n" );
+						l.flushed = true;
+					}
 
-		#elseif hxnodejs
+			#elseif hxnodejs
 
-			var flushedLogs = log.filter( function(l) {
-				if( !l.flushed ) {
-					l.flushed = true;
-					return true;
-				}
-				return false;
-			});
+				var flushedLogs = log.filter( function(l) {
+					if( !l.flushed ) {
+						l.flushed = true;
+						return true;
+					}
+					return false;
+				});
 
-			js.node.Require.require("fs");
-			for(l in flushedLogs)
-				js.node.Fs.appendFileSync( filePath, js.node.Buffer.from( getPrintableEntry(l,true)+"\n") );
+				js.node.Require.require("fs");
+				for(l in flushedLogs)
+					js.node.Fs.appendFileSync( filePath, js.node.Buffer.from( getPrintableEntry(l,true)+"\n") );
 
-		#else
+			#else
 
-			throw "Unsupported on this platform";
+				// Unsupported on this platform
 
-		#end
+			#end
+		}
+		catch( e:Dynamic ) {}
 	}
 
 
 
 	function getPrintableEntry(l:LogEntry, forceDate=false) {
+		if( l.str.length==0 )
+			return "";
+
 		var date = formatDate(l.time);
 		return
 			'[${l.tag.toUpperCase()}]'
@@ -119,6 +125,7 @@ class Log {
 			printEntry( log[log.length-1] );
 	}
 
+	public inline function emptyEntry()			add("","");
 	public inline function general(str:Dynamic)	add("general", str, Color.hexToInt("#ffcc00") );
 	public inline function warning(str:Dynamic)	add("warning", str, Color.hexToInt("#ff9900") );
 	public inline function error(str:Dynamic)	add("error", str, Color.hexToInt("#ff0000") );
