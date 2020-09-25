@@ -73,6 +73,16 @@ class VersionNumber {
 			return 0;
 	}
 
+	/**
+		Return TRUE is both versions are equal (NOTE: label is ignored)
+	**/
+	public inline function equals(?vString:String, ?vClass:dn.VersionNumber) {
+		return
+			vString==null && vClass!=null ? compare(vClass)==0 :
+			vString!=null ? compare(vString)==0 :
+			false;
+	}
+
 
 	/**
 		Return TRUE is "cur" is greater than "than"
@@ -122,6 +132,12 @@ class VersionNumber {
 		CiAssert.isTrue( new VersionNumber("1.0.1").compare( new VersionNumber("1.0.2") ) == -1 );
 		CiAssert.isTrue( new VersionNumber("1.0.1-a").compare( new VersionNumber("1.0.0-b") ) == 1 );
 		CiAssert.isTrue( new VersionNumber("1.0.1-a").compare( new VersionNumber("1.0.1-b") ) == -1 );
+
+		CiAssert.isTrue( new VersionNumber("1.0.1-a").equals("1.0.1-a") );
+		CiAssert.isFalse( new VersionNumber("1.0.1-a").equals("1.0.1-b") );
+		CiAssert.isFalse( new VersionNumber("1.0.1-a").equals("1.2") );
+		CiAssert.isFalse( new VersionNumber("1.0.1-a").equals() );
+		CiAssert.isTrue( new VersionNumber("1.0.1-a").equals( new VersionNumber("1.0.1-a") ) );
 
 		CiAssert.isTrue( VersionNumber.isGreater("1.0.5", "0.9.9-alpha") );
 		CiAssert.isTrue( VersionNumber.isLower("1.0.5", "1.1.0-alpha") );
