@@ -50,7 +50,7 @@ class Log {
 			filePath = logFilePath;
 
 		if( filePath==null )
-			throw "Missing log file path";
+			return;
 
 		try {
 			#if sys
