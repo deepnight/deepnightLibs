@@ -114,7 +114,7 @@ class CiAssert {
 	#end
 
 	#if macro
-	static inline function getFilePos() {
+	static function getFilePos() {
 		var pos = Context.getPosInfos( Context.currentPos() );
 		var fi = sys.io.File.read(pos.file);
 		var line = fi.readString(pos.min).split("\n").length;
