@@ -1,0 +1,3 @@
+tests.base.hxml
+-hl tests/bin/test.hl
+--cmd hl tests/bin/test.hl

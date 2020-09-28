@@ -11,7 +11,8 @@ install:
   - haxelib list
 
 script:
-  - haxe tests.neko.hxml
+  - haxe tests.js.hxml
+  - haxe tests.hl.hxml
 
 notifications:
   email:

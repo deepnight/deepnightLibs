@@ -4,12 +4,28 @@
     "skipErrorMessage": true,
     "commands": [
       {
-        "text": "✪ Run tests",
-        "color": "orange",
-        "command": "haxe tests.neko.hxml  &&  neko tests/bin/test.n",
+        "text": "✪ JS tests",
+        "color": "yellow",
+        "command": "haxe tests.js.hxml",
         "alignment": "right",
         "skipTerminateQuickPick": false,
-        "priority": 5
+        "priority": -1
+      },
+      {
+        "text": "✪ HL tests",
+        "color": "orange",
+        "command": "haxe tests.hl.hxml",
+        "alignment": "right",
+        "skipTerminateQuickPick": false,
+        "priority": -2
+      },
+      {
+        "text": "✪ Neko tests",
+        "color": "cyan",
+        "command": "haxe tests.neko.hxml",
+        "alignment": "right",
+        "skipTerminateQuickPick": false,
+        "priority": -3
       },
       {
         "text": "➠ Submit to haxelib",
@@ -17,7 +33,7 @@
         "command": "start haxelib submit .",
         "alignment": "right",
         "skipTerminateQuickPick": false,
-        "priority": 0
+        "priority": -99
       }
     ]
   }

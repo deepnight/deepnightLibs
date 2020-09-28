@@ -1,0 +1,3 @@
+tests.base.hxml
+-js tests/bin/test.js
+--cmd node tests/bin/test.js
