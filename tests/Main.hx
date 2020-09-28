@@ -5,7 +5,7 @@ class Main {
 		// Assert itself
 		CiAssert.isTrue(true);
 		CiAssert.isFalse(false);
-		CiAssert.isNotNull(5);
+		CiAssert.isNotNull("a");
 
 		// Bresenham
 		CiAssert.noException(
@@ -132,7 +132,15 @@ class Main {
 		dn.Changelog.__test();
 
 		// Done!
-		Sys.println("");
-		Sys.println("Tests succcessfully completed!");
+		println("");
+		println("Tests succcessfully completed!");
+	}
+
+	static function println(str:String)	 {
+		#if js
+		js.html.Console.log(str);
+		#else
+		Sys.println(str);
+		#end
 	}
 }
