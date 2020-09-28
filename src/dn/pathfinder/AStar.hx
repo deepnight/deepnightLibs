@@ -168,6 +168,13 @@ class AStar<T> {
 	// UNIT TESTS
 	@:noCompletion
 	public static function __test() {
+		function println(str) {
+			#if js
+			js.html.Console.log(str);
+			#else
+			Sys.println(str);
+			#end
+		}
 		// Build a basic map for pathfinder
 		var matrix = [
 			"...#.",
@@ -181,7 +188,7 @@ class AStar<T> {
 		var hei = matrix.length;
 		var targetX = wid-1;
 		var targetY = 0;
-		Sys.println("\t"+matrix.join("\n\t"));
+		println("\t"+matrix.join("\n\t"));
 
 		// Pathfinder
 		var pf = new dn.pathfinder.AStar( function(x,y) return {x:x, y:y} );
@@ -190,7 +197,7 @@ class AStar<T> {
 			function(x,y) return x>=0 && y>=0 && x<wid && y<hei ? matrix[y].charAt(x)=="#" : true
 		);
 		var path = pf.getPath(0, 0, targetX, targetY);
-		Sys.println("	Path="+path.map( function(pt) return pt.x+","+pt.y ).join(" -> ") );
+		println("	Path="+path.map( function(pt) return pt.x+","+pt.y ).join(" -> ") );
 		CiAssert.isTrue( path.length>0 );
 		CiAssert.isTrue( path[path.length-1].x==targetX && path[path.length-1].y==targetY );
 	}
