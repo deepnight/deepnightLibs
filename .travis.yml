@@ -12,7 +12,6 @@ install:
 
 script:
   - haxe tests.js.hxml
-  - haxe tests.hl.hxml
 
 notifications:
   email:
