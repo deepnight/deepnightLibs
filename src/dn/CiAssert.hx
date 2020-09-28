@@ -16,6 +16,26 @@ class CiAssert {
 		};
 	}
 
+	public static macro function equals(codeA:Expr, codeB:Expr) {
+		var eCheck : Expr = {
+			expr: EBinop(OpEq, codeA, codeB),
+			pos: Context.currentPos(),
+		}
+
+		return macro {
+			if( $eCheck )
+				dn.CiAssert.printOk( $v{getCodeStr(eCheck)} );
+			else {
+				dn.CiAssert.fail(
+					$v{getFilePos()},
+					$v{getCodeStr(eCheck)},
+					"These 2 expressions should be EQUAL",
+					[ $codeA+" != "+$codeB ]
+				);
+			}
+		};
+	}
+
 	public static macro function isFalse(code:Expr) {
 		return macro {
 			if( !${buildIsTrueExpr(code)} )
@@ -65,7 +85,7 @@ class CiAssert {
 	}
 
 	// Print code expr in human-readable fashion
-	static function getCodeStr(code:Expr) : String {
+	static function getCodeStr(code:Expr, prefix=true) : String {
 		var printer = new haxe.macro.Printer();
 		var codeStr = printer.printExpr(code);
 		codeStr = StringTools.replace(codeStr,"\n","");
@@ -77,7 +97,10 @@ class CiAssert {
 			: Context.defined("hl") ? "HL"
 			: Context.defined("neko") ? "Neko"
 			: "Unknown";
-		return '[$build|${Context.getLocalModule()}] $codeStr';
+
+		return prefix
+			? '[$build|${Context.getLocalModule()}] $codeStr'
+			: codeStr;
 	}
 
 	static function getDescWithPrefix(str:String) : String {
@@ -115,12 +138,15 @@ class CiAssert {
 	}
 
 	@:noCompletion
-	public static function fail(filePos:{file:String, line:Int}, desc:String, reason:String) {
+	public static function fail(filePos:{file:String, line:Int}, desc:String, reason:String, ?extraInfos:Array<String>) {
 		var desc = Std.string(desc);
 		var sep = [ for(i in 0...desc.length+11) "*" ];
 
 		println(sep.join(""));
 		println(desc+"  <FAILED!>");
+		if( extraInfos!=null )
+			for( str in extraInfos )
+				println("\t"+str);
 		println("ERROR: "+reason);
 		println(sep.join(""));
 
