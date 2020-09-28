@@ -576,9 +576,17 @@ class FilePath {
 
 		// Drive letters
 		CiAssert.equals( FilePath.fromDir("c:/dir").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
+		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
+		CiAssert.equals( FilePath.fromDir("/dir").getDriveLetter(), null );
+		CiAssert.equals( FilePath.fromFile("c:/file.png").getDriveLetter(), "c" );
+
+		// Relative transformations
+		CiAssert.equals( FilePath.fromDir("/dir/foo/bar").makeRelativeTo("/dir").full, "foo/bar" );
+		CiAssert.equals( FilePath.fromDir("/dir/a").makeRelativeTo("/dir/b").full, "../a" );
+		CiAssert.equals( FilePath.fromDir("/dir/a1/a2").makeRelativeTo("/dir/b").full, "../a1/a2" );
+		CiAssert.equals( FilePath.fromDir("/dir/a1/a2").makeRelativeTo("/dir/b1/b2").full, "../../a1/a2" );
 		CiAssert.equals( FilePath.fromDir("c:/dir").makeRelativeTo("d:/dir").full, "c:/dir" );
-		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
-		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
-		CiAssert.equals( FilePath.fromFile("H:\\foodIcons_by_Henry_Software.png").getDriveLetter(), "H" );
+		CiAssert.equals( FilePath.fromDir("c:/").makeRelativeTo("d:/").full, "c:" );
 	}
 }
