@@ -128,13 +128,31 @@ class FilePath {
 		return StringTools.replace(path, "/", "\\");
 	}
 
+	/**
+		Extract Windows drive letter from directory
+	**/
+	public function getDriveLetter() : Null<String> {
+		var driveReg = ~/^([a-z]+):([\\\/]+|$)/gi;
+		if( directory!=null && driveReg.match(directory) )
+			return driveReg.matched(1);
+		else
+			return null;
+	}
+	public inline function hasDriveLetter() {
+		return getDriveLetter()!=null;
+	}
+
 
 	public function makeRelativeTo(dirPath:String) {
 		var cur = getDirectoryArray();
-		var ref = fromDir(dirPath).getDirectoryArray();
+		var other = fromDir(dirPath);
+		if( getDriveLetter() != other.getDriveLetter() )
+			return this;
+
+		var ref = other.getDirectoryArray();
 
 		if( cur[0]!=ref[0] )
-			return;
+			return this;
 
 		// Drop common elements
 		while( cur.length>0 && ref.length>0 && cur[0]==ref[0] ) {
@@ -149,6 +167,7 @@ class FilePath {
 		}
 
 		directory = cur.length==0 ? null : cur.join( slash() );
+		return this;
 	}
 
 
@@ -554,5 +573,12 @@ class FilePath {
 		FilePath.SLASH_MODE = Preserve;
 		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").full == "c:\\windows\\system" );
 		CiAssert.isTrue( FilePath.fromDir("c:/windows/system").full == "c:/windows/system" );
+
+		// Drive letters
+		CiAssert.equals( FilePath.fromDir("c:/dir").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromDir("c:/dir").makeRelativeTo("d:/dir").full, "c:/dir" );
+		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
+		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
+		CiAssert.equals( FilePath.fromFile("H:\\foodIcons_by_Henry_Software.png").getDriveLetter(), "H" );
 	}
 }
