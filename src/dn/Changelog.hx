@@ -31,7 +31,7 @@ class Changelog {
 	/**
 		Customizable title parser to recognize lines with a new version number
 	**/
-	public static var VERSION_TITLE_REG = ~/^[ \t]*##[ \t]+([0-9.a-z\-]+)[\- \t]*(.*)$/gim;
+	public static var VERSION_TITLE_REG = ~/^[ \t]*#[ \t]+([0-9.a-z\-]+)[\- \t]*(.*)$/gim;
 
 	/**
 		Changelog entries
@@ -138,11 +138,11 @@ class Changelog {
 	@:noCompletion
 	public static function __test() {
 		var markDown = "
-		## 0.9 - Not in proper position
+		# 0.9 - Not in proper position
 
 		Some note
 
-		## 1 - Release
+		# 1 - Release
 
 		Some note
 
@@ -150,7 +150,7 @@ class Changelog {
 		- list 2
 
 
-		## 0.7-beta - Some update
+		# 0.7-beta - Some update
 
 		Some note
 
@@ -158,7 +158,7 @@ class Changelog {
 		markdown
 		Some note
 
-		## 0.2-beta - Going beta
+		# 0.2-beta - Going beta
 
 		Some note
 		";
