@@ -154,7 +154,7 @@ class Changelog {
 
 		Some note
 
-		## 0.1-alpha - not in the right position
+		# 0.1-alpha - not in the right position
 		markdown
 		Some note
 
