@@ -131,15 +131,33 @@ class FilePath {
 	/**
 		Extract Windows drive letter from directory
 	**/
-	public function getDriveLetter() : Null<String> {
+	public function getDriveLetter(forceLowerCase=true) : Null<String> {
 		var driveReg = ~/^([a-z]+):([\\\/]+|$)/gi;
 		if( directory!=null && driveReg.match(directory) )
-			return driveReg.matched(1);
+			return forceLowerCase ? driveReg.matched(1).toLowerCase() : driveReg.matched(1);
 		else
 			return null;
 	}
+
+	/**
+		Return TRUE if the directory contains a drive letter (eg. "c:/someFolder/")
+	**/
 	public inline function hasDriveLetter() {
 		return getDriveLetter()!=null;
+	}
+
+	/**
+		Return TRUE if the 2 provided paths share the same drive letter.
+
+		The result is also TRUE if both don't have a letter.
+
+		The result is FALSE if one of them has a letter while the other hasn't.
+	**/
+	public static function sameDriveLetter(pathA:String, pathB:String) {
+		if( pathA==null || pathB==null )
+			return true;
+		else
+			return FilePath.fromDir(pathA).getDriveLetter() == FilePath.fromDir(pathB).getDriveLetter();
 	}
 
 
