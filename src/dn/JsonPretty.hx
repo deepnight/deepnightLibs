@@ -49,7 +49,7 @@ class JsonPretty {
 				if( floatReg.match(v) ) {
 					// Treat numbers ending with "f" as float-hinted values, which can be useful to keep int/float
 					// distinction in JSON files
-					// Examples: 0f, -65f, 1f etc.
+					// Examples: 0f -> 0.0, -65f -> -65.0, 1f -> 1.0 etc.
 					var v : String = v;
 					var f = Std.parseFloat( v.substr(0,v.length-1) );
 					var strFloat = f==Std.int(f) ? f+".0" : Std.string(f);
