@@ -812,12 +812,12 @@ class M {
 
 
 	/**
-		Print an integer as binary
+		Print a signed Integer as binary
 	**/
 	public static function intToBitString(v:Int, ?pad=8) {
 		var out = "";
-		var i = 0;
-		while( setBit(0, i) <= v )
+		var i : Int = 0;
+		while( setBit(0, i)<=v && i<31)
 			out = ( hasBit(v, i++) ? "1" : "0" ) + out;
 
 		while( out.length<pad )
@@ -827,20 +827,53 @@ class M {
 	}
 
 	/**
-		Set an integer bit to 1 (index starts from 0)
+		Print an unsigned Integer as binary
+	**/
+	public static function uIntToBitString(v:UInt, ?pad=8) {
+		var out = "";
+		var i : UInt = 0;
+		while( setUnsignedBit(0, i)<=v && i<=31)
+			out = ( hasUnsignedBit(v, i++) ? "1" : "0" ) + out;
+
+		while( out.length<pad )
+			out = "0"+out;
+
+		return out;
+	}
+
+	/**
+		Set a SIGNED integer bit to 1 (index starts from 0)
 	**/
 	public static inline function setBit(baseValue:Int, bitIdx:Int) : Int {
 		return baseValue | ( 1<<bitIdx );
 	}
 
 	/**
-		Check for bit presence (index starts from 0)
+		Check for bit presence in a SIGNED integer (index starts from 0)
 	**/
 	public static inline function hasBit(v:Int, bitIdx:Int) : Bool{
 		return v & ( 1<<bitIdx ) != 0;
 	}
 
+	/**
+		Set an UNSIGNED integer bit to 1 (index starts from 0)
+	**/
+	public static inline function setUnsignedBit(baseValue:UInt, bitIdx:Int) : UInt {
+		return baseValue | ( 1<<bitIdx );
+	}
 
+	/**
+		Check for bit presence in an UNSIGNED integer (index starts from 0)
+	**/
+	public static inline function hasUnsignedBit(v:UInt, bitIdx:Int) : Bool{
+		var one : UInt = 1;
+		return v & ( one<<bitIdx ) != 0;
+	}
+
+
+	/**
+		Return TRUE if `v` is a valid number (not null, NaN or infinite)
+	**/
 	public static inline function isValidNumber(v:Null<Float>) {
 		return v!=null && !Math.isNaN(v) && Math.isFinite(v);
 	}
@@ -857,5 +890,20 @@ class M {
 		CiAssert.isTrue( M.isValidNumber(1.5) );
 		CiAssert.isTrue( !M.isValidNumber(null) );
 		CiAssert.isTrue( !M.isValidNumber(1/0) );
+
+		// Bit tests
+		CiAssert.equals( M.setBit(0,0), 1 );
+		CiAssert.equals( M.setBit(0,3), 8 );
+		CiAssert.isTrue( M.hasBit(1,0) );
+		CiAssert.isTrue( M.hasBit(1073741824,30) );
+		var uIntWithBit31 = M.setUnsignedBit(0,31);
+		CiAssert.isTrue( M.hasUnsignedBit(uIntWithBit31,31) );
+		CiAssert.isTrue( uIntWithBit31>0 );
+		var intWithBit31 = M.setBit(0,31);
+		CiAssert.isTrue( M.hasUnsignedBit(intWithBit31,31) );
+		CiAssert.isTrue( intWithBit31<0 );
+		CiAssert.equals( intToBitString(17,8), "00010001" );
+		CiAssert.equals( uIntToBitString( M.setUnsignedBit(0,31) ), "10000000000000000000000000000000" );
+		CiAssert.equals( intToBitString( M.setUnsignedBit(0,31), 0 ), "" );
 	}
 }
