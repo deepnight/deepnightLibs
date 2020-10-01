@@ -6,11 +6,14 @@ typedef LogEntry = {
 	var str: String;
 	var color: UInt;
 	var flushed: Bool;
+	var critical: Bool;
 }
 
 class Log {
 	var maxEntries : Int;
-	public var log : Array<LogEntry> = [];
+
+	/** Array of log entries, SHOULD NOT BE EDITED MANUALLY **/
+	public var entries : Array<LogEntry> = [];
 
 	/**
 		Will be used as default path when calling flushToFile()
@@ -34,11 +37,32 @@ class Log {
 	public var outputConsole : Null<h2d.Console>;
 	#end
 
-
-
 	public function new(maxEntries:Int) {
-		log = [];
+		entries = [];
 		this.maxEntries = maxEntries;
+	}
+
+
+	/**
+		Clear log content
+	**/
+	public function clear() {
+		entries = [];
+	}
+
+
+	/**
+		Return TRUE if log is empty
+	**/
+	public inline function isEmpty() {
+		return entries.length==0;
+	}
+
+	public function containsAnyCriticalEntry() {
+		for(e in entries)
+			if( e.critical )
+				return true;
+		return false;
 	}
 
 
@@ -56,7 +80,7 @@ class Log {
 			#if sys
 
 				var fo = sys.io.File.append(filePath, false);
-				for(l in log)
+				for(l in entries)
 					if( !l.flushed ) {
 						fo.writeString( getPrintableEntry(l,true)+"\n" );
 						l.flushed = true;
@@ -64,7 +88,7 @@ class Log {
 
 			#elseif hxnodejs
 
-				var flushedLogs = log.filter( function(l) {
+				var flushedLogs = entries.filter( function(l) {
 					if( !l.flushed ) {
 						l.flushed = true;
 						return true;
@@ -107,28 +131,33 @@ class Log {
 	}
 
 
-	/** Add an entry, "color" is not support for all outputs. **/
+	/**
+		Add an entry, "color" is not support for all outputs.
 
-	public inline function add(tag:String, text:String, ?color=0xffffff) {
-		log.push({
+		`markAsCritical` is used to check if the whole log contains any "critical"
+	**/
+
+	public inline function add(tag:String, text:String, color=0xffffff, markAsCritical=false) {
+		entries.push({
 			time: Date.now().getTime(),
 			tag: tag,
 			str: text,
 			color: color,
-			flushed: false
+			flushed: false,
+			critical: markAsCritical
 		});
 
-		if( log.length>maxEntries )
-			log = log.splice(-maxEntries, maxEntries);
+		if( entries.length>maxEntries )
+			entries = entries.splice(-maxEntries, maxEntries);
 
 		if( printOnAdd )
-			printEntry( log[log.length-1] );
+			printEntry( entries[entries.length-1] );
 	}
 
 	public inline function emptyEntry()			add("","");
 	public inline function general(str:Dynamic)	add("general", str, Color.hexToInt("#ffcc00") );
 	public inline function warning(str:Dynamic)	add("warning", str, Color.hexToInt("#ff9900") );
-	public inline function error(str:Dynamic)	add("error", str, Color.hexToInt("#ff0000") );
+	public inline function error(str:Dynamic)	add("error", str, Color.hexToInt("#ff0000"), true);
 	public inline function fileOp(str:Dynamic)	add("file", str, Color.hexToInt("#c3b2ff"));
 	public inline function render(str:Dynamic)	add("render", str, Color.hexToInt("#a7db4f"));
 	public inline function debug(str:Dynamic)	add("debug", str, Color.hexToInt("#ff00ff"));
@@ -174,7 +203,7 @@ class Log {
 		Output all log entries to the default output.
 	**/
 	public function printAll() {
-		for(l in log)
+		for(l in entries)
 			printEntry(l);
 	}
 }
