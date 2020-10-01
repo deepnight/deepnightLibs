@@ -895,6 +895,8 @@ class M {
 		CiAssert.equals( M.setBit(0,0), 1 );
 		CiAssert.equals( M.setBit(0,3), 8 );
 		CiAssert.isTrue( M.hasBit(1,0) );
+		CiAssert.isTrue( M.hasBit(3,0) );
+		CiAssert.isTrue( M.hasBit(3,1) );
 		CiAssert.isTrue( M.hasBit(1073741824,30) );
 		var uIntWithBit31 = M.setUnsignedBit(0,31);
 		CiAssert.isTrue( M.hasUnsignedBit(uIntWithBit31,31) );
