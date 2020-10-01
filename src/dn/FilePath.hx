@@ -101,6 +101,12 @@ class FilePath {
 		return this;
 	}
 
+	public function appendDirectory(extraDirs:String) {
+		var fp = fromDir(extraDirs);
+		if( fp.directory!=null )
+			directory += slash() + fp.directory;
+	}
+
 	public inline function parseDirPath(dirPath:String) {
 		parse(dirPath, false);
 		return this;
