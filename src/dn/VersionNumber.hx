@@ -57,7 +57,7 @@ class VersionNumber {
 
 		Return 0 if versions are equal, 1 if this is greater than "with", -1 if this is lower than "with"
 	**/
-	public function compare(?with:VersionNumber, ?withStr:String) {
+	public function compare(?with:VersionNumber, ?withStr:String, ignoreLabel=false) {
 		if( with==null )
 			with = new VersionNumber(withStr);
 
@@ -67,19 +67,21 @@ class VersionNumber {
 			return Reflect.compare(minor, with.minor);
 		else if( patch!=with.patch )
 			return Reflect.compare(patch, with.patch);
-		else if( label!=with.label)
+		else if( !ignoreLabel && label!=with.label)
 			return Reflect.compare(label, with.label);
 		else
 			return 0;
 	}
 
 	/**
-		Return TRUE is both versions are equal (NOTE: label is ignored)
+		Return TRUE is both versions are strictly equal
+
+		@param ignoreLabel if TRUE, the label isn't compared (x-y-z-label)
 	**/
-	public inline function equals(?vString:String, ?vClass:dn.VersionNumber) {
+	public inline function equals(?vString:String, ?vClass:dn.VersionNumber, ignoreLabel=false) {
 		return
-			vString==null && vClass!=null ? compare(vClass)==0 :
-			vString!=null ? compare(vString)==0 :
+			vString==null && vClass!=null ? compare(vClass, ignoreLabel)==0 :
+			vString!=null ? compare(vString, ignoreLabel)==0 :
 			false;
 	}
 
