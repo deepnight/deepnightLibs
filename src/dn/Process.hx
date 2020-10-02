@@ -83,7 +83,7 @@ class Process {
 	// Graphic context (optional)
 	// -----------------------------------------------------------------------
 
-	public function createRoot( #if( heaps || h3d )    ?ctx:h2d.Object    #else    ?ctx:flash.display.Sprite   #end) {
+	public function createRoot( #if( heaps || h3d )    ?ctx:h2d.Object    #elseif flash    ?ctx:flash.display.Sprite   #end) {
 		if( root!=null )
 			throw this+": root already created!";
 
@@ -95,7 +95,7 @@ class Process {
 
 		#if( heaps || h3d )
 		root = new h2d.Layers(ctx);
-		#else
+		#elseif flash
 		root = new flash.display.Sprite();
 		ctx.addChild(root);
 		pt0 = new flash.geom.Point();
