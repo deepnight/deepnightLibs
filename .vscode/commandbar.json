@@ -29,7 +29,7 @@
       },
       {
         "text": "➠ Submit to haxelib",
-        "color": "yellow",
+        "color": "white",
         "command": "start haxelib submit .",
         "alignment": "right",
         "skipTerminateQuickPick": false,
