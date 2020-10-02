@@ -137,12 +137,12 @@ class Log {
 		`markAsCritical` is used to check if the whole log contains any "critical"
 	**/
 
-	public inline function add(tag:String, text:String, color=0xffffff, markAsCritical=false) {
+	public inline function add(tag:String, text:String, ?color:UInt, markAsCritical=false) {
 		entries.push({
 			time: Date.now().getTime(),
 			tag: tag,
 			str: text,
-			color: color,
+			color: color==null ? getTagColor(tag) : color,
 			flushed: false,
 			critical: markAsCritical
 		});
@@ -154,14 +154,28 @@ class Log {
 			printEntry( entries[entries.length-1] );
 	}
 
+	public var tagColors : Map<String,String> = [
+		"general" => "#c8c9e3",
+		"warning" => "#ff9900",
+		"error" => "#ff0000",
+		"file" => "#897eff",
+		"render" => "#54db8a",
+		"debug" => "#ff00ff",
+		"network" => "#9664ff",
+	];
+
+	public inline function getTagColor(tag:String) : UInt {
+		return tagColors.exists(tag) ? Color.hexToInt(tagColors.get(tag)) : 0xffffff;
+	}
+
 	public inline function emptyEntry()			add("","");
-	public inline function general(str:Dynamic)	add("general", str, Color.hexToInt("#ffcc00") );
-	public inline function warning(str:Dynamic)	add("warning", str, Color.hexToInt("#ff9900") );
-	public inline function error(str:Dynamic)	add("error", str, Color.hexToInt("#ff0000"), true);
-	public inline function fileOp(str:Dynamic)	add("file", str, Color.hexToInt("#c3b2ff"));
-	public inline function render(str:Dynamic)	add("render", str, Color.hexToInt("#a7db4f"));
-	public inline function debug(str:Dynamic)	add("debug", str, Color.hexToInt("#ff00ff"));
-	public inline function network(str:Dynamic)	add("network", str, Color.hexToInt("#00e1b9"));
+	public inline function general(str:Dynamic)	add("general", str);
+	public inline function warning(str:Dynamic)	add("warning", str);
+	public inline function error(str:Dynamic)	add("error", str, true);
+	public inline function fileOp(str:Dynamic)	add("file", str);
+	public inline function render(str:Dynamic)	add("render", str);
+	public inline function debug(str:Dynamic)	add("debug", str);
+	public inline function network(str:Dynamic)	add("network", str);
 
 	inline function formatDate(stamp:Float) {
 		return DateTools.format( Date.fromTime(stamp), "%Y-%m-%d %H:%M:%S" );
