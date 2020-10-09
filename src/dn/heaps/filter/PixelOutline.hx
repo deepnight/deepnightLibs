@@ -68,7 +68,7 @@ private class PixelOutlinePass extends h3d.pass.ScreenFx<PixelOutlineShader> {
 		shader.texture = src;
 		shader.outlineColor.setColor(color);
 		shader.pixelSize.set(1/src.width, 1/src.height);
-		shader.knockOut = knockOut?1:0;
+		shader.knockOutMul = knockOut ? 0 : 1;
 		render();
 
 		engine.popTarget();
@@ -82,7 +82,7 @@ private class PixelOutlineShader extends h3d.shader.ScreenShader {
 		@param var texture : Sampler2D;
 		@param var pixelSize : Vec2;
 		@param var outlineColor : Vec3;
-		@param var knockOut : Int;
+		@param var knockOutMul : Int;
 
 		function fragment() {
 			var curColor : Vec4 = texture.get(input.uv);
@@ -92,11 +92,9 @@ private class PixelOutlineShader extends h3d.shader.ScreenShader {
 				 || texture.get( vec2(input.uv.x, input.uv.y+pixelSize.y) ).a!=0
 				 || texture.get( vec2(input.uv.x, input.uv.y-pixelSize.y) ).a!=0 )
 					output.color = vec4(outlineColor, 1);
-				else if( knockOut==0 )
-					output.color = curColor;
 			}
-			else if( knockOut==0 )
-				output.color = curColor;
+			else
+				output.color = curColor * knockOutMul;
 		}
 	};
 }
