@@ -153,13 +153,14 @@ class JsonPretty {
 		// Add values to buffer
 		if( len<=70 ) {
 			// Single line
-			buf.add('[$space');
+			var arraySpace = arr.length<=5 ? "" : space;
+			buf.add('[$arraySpace');
 			for( i in 0...arr.length ) {
 				addValue( null, arr[i] );
 				if( i<arr.length-1 )
-					buf.add(',$space');
+					buf.add(',$arraySpace');
 			}
-			buf.add('$space]');
+			buf.add('$arraySpace]');
 		}
 		else {
 			// Multiline
