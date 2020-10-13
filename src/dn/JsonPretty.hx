@@ -1,6 +1,8 @@
 package dn;
 
 class JsonPretty {
+	static inline var APPROXIMATE_MAX_LINE_LENGTH = 85;
+
 	static var buf : StringBuf;
 	static var indent : Int;
 	static var needHeader : Bool;
@@ -87,7 +89,7 @@ class JsonPretty {
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
-		if( len<=70 && !needHeader ) {
+		if( len<=APPROXIMATE_MAX_LINE_LENGTH && !needHeader ) {
 			// Single line
 			buf.add('{$space');
 			for( i in 0...keys.length ) {
@@ -150,10 +152,19 @@ class JsonPretty {
 		if( name!=null )
 			buf.add('"$name"$preSpace:$postSpace');
 
+		var arrValueType = Type.typeof( arr[0] );
+		trace(name+" => "+arrValueType);
+
 		// Add values to buffer
-		if( len<=70 ) {
+		if( len<=APPROXIMATE_MAX_LINE_LENGTH ) {
 			// Single line
-			var arraySpace = arr.length<=5 ? "" : space;
+			var arraySpace =
+				switch arrValueType {
+					case TInt, TFloat: "";
+					case TBool: arr.length>5 ? "" : space;
+					case _: arr.length==1 ? "" : space;
+				}
+
 			buf.add('[$arraySpace');
 			for( i in 0...arr.length ) {
 				addValue( null, arr[i] );
