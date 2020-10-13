@@ -153,7 +153,6 @@ class JsonPretty {
 			buf.add('"$name"$preSpace:$postSpace');
 
 		var arrValueType = Type.typeof( arr[0] );
-		trace(name+" => "+arrValueType);
 
 		// Add values to buffer
 		if( len<=APPROXIMATE_MAX_LINE_LENGTH ) {
