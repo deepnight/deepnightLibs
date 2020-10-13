@@ -78,18 +78,31 @@ class VersionNumber {
 
 		@param ignoreLabel if TRUE, the label isn't compared (x-y-z-label)
 	**/
-	public inline function equals(?vString:String, ?vClass:dn.VersionNumber, ignoreLabel=false) {
+	public inline function isEqual(?vString:String, ?vClass:dn.VersionNumber, ignoreLabel=false) {
 		return
 			vString==null && vClass!=null ? compare(vClass, ignoreLabel)==0 :
 			vString!=null ? compare(vString, ignoreLabel)==0 :
 			false;
 	}
 
+	/**
+		Return TRUE if "x.y.\*.\*" parts are equal (patch and label are ignored)
+	**/
+	public inline function sameMajorAndMinor(?vString:String, ?vClass:dn.VersionNumber) {
+		if( vString==null && vClass==null )
+			return false;
+
+		if( vClass==null )
+			vClass = new VersionNumber(vString);
+
+		return vClass.major==major && vClass.minor==minor;
+	}
+
 
 	/**
 		Return TRUE is "cur" is greater than "than"
 	**/
-	public static inline function isGreater(cur:String, than:String) : Bool {
+	public static inline function isGreaterStr(cur:String, than:String) : Bool {
 		return new VersionNumber(cur).compare( new VersionNumber(than) ) > 0;
 	}
 
@@ -97,7 +110,7 @@ class VersionNumber {
 	/**
 		Return TRUE is "cur" is lower than "than"
 	**/
-	public static inline function isLower(cur:String, than:String) : Bool {
+	public static inline function isLowerStr(cur:String, than:String) : Bool {
 		return new VersionNumber(cur).compare( new VersionNumber(than) ) < 0;
 	}
 
@@ -105,7 +118,7 @@ class VersionNumber {
 	/**
 		Return TRUE is both versions are equal (NOTE: label is ignored)
 	**/
-	public static inline function isEqual(cur:String, than:String) : Bool return {
+	public static inline function isEqualStr(cur:String, than:String) : Bool return {
 		return new VersionNumber(cur).compare( new VersionNumber(than) ) == 0;
 	}
 
@@ -135,16 +148,18 @@ class VersionNumber {
 		CiAssert.isTrue( new VersionNumber("1.0.1-a").compare( new VersionNumber("1.0.0-b") ) == 1 );
 		CiAssert.isTrue( new VersionNumber("1.0.1-a").compare( new VersionNumber("1.0.1-b") ) == -1 );
 
-		CiAssert.isTrue( new VersionNumber("1.0.1-a").equals("1.0.1-a") );
-		CiAssert.isFalse( new VersionNumber("1.0.1-a").equals("1.0.1-b") );
-		CiAssert.isFalse( new VersionNumber("1.0.1-a").equals("1.2") );
-		CiAssert.isFalse( new VersionNumber("1.0.1-a").equals() );
-		CiAssert.isTrue( new VersionNumber("1.0.1-a").equals( new VersionNumber("1.0.1-a") ) );
+		CiAssert.isTrue( new VersionNumber("1.0.1-a").isEqual("1.0.1-a") );
+		CiAssert.isFalse( new VersionNumber("1.0.1-a").isEqual("1.0.1-b") );
+		CiAssert.isFalse( new VersionNumber("1.0.1-a").isEqual("1.2") );
+		CiAssert.isFalse( new VersionNumber("1.0.1-a").isEqual() );
+		CiAssert.isTrue( new VersionNumber("1.0.1-a").isEqual( new VersionNumber("1.0.1-a") ) );
+		CiAssert.isTrue( new VersionNumber("1.0.1-a").sameMajorAndMinor("1.0.2-b") );
+		CiAssert.isTrue( new VersionNumber("1.0.1-a").sameMajorAndMinor( new VersionNumber("1.0.2-b") ) );
 
-		CiAssert.isTrue( VersionNumber.isGreater("1.0.5", "0.9.9-alpha") );
-		CiAssert.isTrue( VersionNumber.isLower("1.0.5", "1.1.0-alpha") );
-		CiAssert.isTrue( VersionNumber.isEqual("1.0.5", "1.0.5") );
-		CiAssert.isFalse( VersionNumber.isEqual("1.0", "1.0-alpha") );
-		CiAssert.isTrue( VersionNumber.isEqual("1.0.5-a", "1.0.5-a") );
+		CiAssert.isTrue( VersionNumber.isGreaterStr("1.0.5", "0.9.9-alpha") );
+		CiAssert.isTrue( VersionNumber.isLowerStr("1.0.5", "1.1.0-alpha") );
+		CiAssert.isTrue( VersionNumber.isEqualStr("1.0.5", "1.0.5") );
+		CiAssert.isFalse( VersionNumber.isEqualStr("1.0", "1.0-alpha") );
+		CiAssert.isTrue( VersionNumber.isEqualStr("1.0.5-a", "1.0.5-a") );
 	}
 }
