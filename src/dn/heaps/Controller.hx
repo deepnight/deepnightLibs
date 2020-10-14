@@ -26,6 +26,7 @@ class Controller {
 	var primary : haxe.ds.IntMap<Int> = new haxe.ds.IntMap();
 	var secondary : haxe.ds.IntMap<Int> = new haxe.ds.IntMap();
 	var third : haxe.ds.IntMap<Int> = new haxe.ds.IntMap();
+	var fourth : haxe.ds.IntMap<Int> = new haxe.ds.IntMap();
 
 	public function new( s2d : h2d.Scene ){
 		ALL.push( this );
@@ -41,7 +42,7 @@ class Controller {
 	public inline function setKeyboard() mode = Keyboard;
 	public inline function setGamePad() mode = Pad;
 
-	public function bind(k:PadKey, keyboardKey:Int, ?alternate1:Int, ?alternate2:Int) {
+	public function bind(k:PadKey, keyboardKey:Int, ?alternate1:Int, ?alternate2:Int, ?alternate3:Int) {
 		primary.set(k.getIndex(), keyboardKey);
 
 		if( alternate1!=null )
@@ -49,6 +50,9 @@ class Controller {
 
 		if( alternate2!=null )
 			third.set(k.getIndex(), alternate2);
+
+		if( alternate3!=null )
+			fourth.set(k.getIndex(), alternate3);
 	}
 
 	public inline function getPrimaryKey(k:PadKey) : Null<Int> {
@@ -59,6 +63,9 @@ class Controller {
 	}
 	public inline function getThirdKey(k:PadKey) : Null<Int> {
 		return third.get( k.getIndex() );
+	}
+	public inline function getFourthKey(k:PadKey) : Null<Int> {
+		return fourth.get( k.getIndex() );
 	}
 
 	public inline function setDefaultDeadZone(v:Float) gc.deadZone = dn.M.fclamp(v,0,1);
@@ -88,7 +95,7 @@ class Controller {
 	function updateLongPress(k:PadKey) {
 		var idx = k.getIndex();
 
-		if( gc.isDown(k) || Key.isDown(getPrimaryKey(k)) || Key.isDown(getSecondaryKey(k)) || Key.isDown(getThirdKey(k)) ) {
+		if( gc.isDown(k) || Key.isDown(getPrimaryKey(k)) || Key.isDown(getSecondaryKey(k)) || Key.isDown(getThirdKey(k)) || Key.isDown(getFourthKey(k)) ) {
 			if( pressTimers.get(idx)==-1 )
 				pressTimers.set(idx, haxe.Timer.stamp());
 
@@ -190,8 +197,8 @@ class ControllerAccess {
 	public inline function locked() return manualLock || parent.isLocked() || ( parent.exclusiveId!=null && parent.exclusiveId!=id ) || haxe.Timer.stamp()<parent.suspendTimer;
 
 
-	public inline function isDown(k:PadKey)      return !locked() && ( isKeyboardDown(parent.getPrimaryKey(k)) || isKeyboardDown(parent.getSecondaryKey(k)) || isKeyboardDown(parent.getThirdKey(k)) || parent.gc.isDown(k) );
-	public inline function isPressed(k:PadKey)   return !locked() && ( isKeyboardPressed(parent.getPrimaryKey(k)) || isKeyboardPressed(parent.getSecondaryKey(k)) || isKeyboardPressed(parent.getThirdKey(k)) || parent.gc.isPressed(k) );
+	public inline function isDown(k:PadKey)      return !locked() && ( isKeyboardDown(parent.getPrimaryKey(k)) || isKeyboardDown(parent.getSecondaryKey(k)) || isKeyboardDown(parent.getThirdKey(k)) || isKeyboardDown(parent.getFourthKey(k)) || parent.gc.isDown(k) );
+	public inline function isPressed(k:PadKey)   return !locked() && ( isKeyboardPressed(parent.getPrimaryKey(k)) || isKeyboardPressed(parent.getSecondaryKey(k)) || isKeyboardPressed(parent.getThirdKey(k)) || isKeyboardPressed(parent.getFourthKey(k)) || parent.gc.isPressed(k) );
 
 	public inline function isShortPressed(k:PadKey)  return !locked() && parent.framePresses.get(k.getIndex())==1;
 	public inline function isLongPressed(k:PadKey)   return !locked() && parent.framePresses.get(k.getIndex())==2;
