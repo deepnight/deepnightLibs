@@ -144,8 +144,12 @@ class GetText {
 		var list = str.split("::");
 		var n = 0;
 		if(params!=null){
-			for (k in Reflect.fields(params)){
-				str = StringTools.replace(str, "::"+(k.charAt(0)=="_"?k.substr(1):k)+"::", Reflect.field(params, k));
+			for( k in Reflect.fields(params) ) {
+				str = StringTools.replace(
+					str,
+					"::"+(k.charAt(0)=="_"?k.substr(1):k)+"::",
+					Std.string( Reflect.field(params, k) )
+				);
 			}
 		}
 
