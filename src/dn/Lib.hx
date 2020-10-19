@@ -838,6 +838,18 @@ class Lib {
 		#end
 	}
 
+	/** Return array index of `v` in `arr` (-1 if not found) **/
+	public static function getArrayIdx<T>(v:T, arr:Array<T>) : Int {
+		if( arr.length==0 )
+			return -1;
+
+		for(i in 0...arr.length)
+			if( arr[i]==v )
+				return i;
+		
+		return -1;
+	}
+
 } // End of Lib
 
 
