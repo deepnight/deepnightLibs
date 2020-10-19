@@ -30,6 +30,23 @@ class GameFocusHelper extends dn.Process {
         // #end
     }
 
+    public static function isUseful() {
+        return switch hxd.System.platform {
+            case WebGL:
+                #if js
+                    var mobileReg = ~/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/gi;
+                    return !mobileReg.match( js.Browser.navigator.userAgent );
+                #else
+                    false;
+                #end
+
+            case IOS, Android: false;
+            case PC: false;
+            case Console: false;
+            case FlashPlayer: true;
+        }
+    }
+
     function suspendGame() {
         if( suspended )
             return;
