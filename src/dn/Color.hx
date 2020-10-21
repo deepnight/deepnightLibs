@@ -382,7 +382,7 @@ class Color {
 			return 0xffffff;
 		var csum = 0;
 		for(i in 0...k.length) csum+=k.charCodeAt(i);
-		return makeColorHsl( (csum%1000)/1000, 0.4+0.3*(csum%637)/637, 1 );
+		return makeColorHsl( (csum%100)/100, 0.3+0.3*(csum%210)/210, 1 );
 	}
 
 	public static inline function makeColorHsl(hue:Float, ?saturation=1.0, ?luminosity=1.0) : Int { // range : 0-1
