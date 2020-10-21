@@ -846,9 +846,17 @@ class Lib {
 		for(i in 0...arr.length)
 			if( arr[i]==v )
 				return i;
-		
+
 		return -1;
 	}
+
+	public static inline function prettyBytesSize(bytesCount:Int) : String {
+		return
+			bytesCount<=1024 ? '$bytesCount bytes'
+			: bytesCount<=1024*1024 ? '${M.pretty(bytesCount/1024)} Kb'
+			: '${M.pretty(bytesCount/(1024*1024))} Mb';
+	}
+
 
 } // End of Lib
 
