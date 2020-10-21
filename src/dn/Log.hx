@@ -110,6 +110,49 @@ class Log {
 	}
 
 
+	/**
+		Remove all lines above `maxLines` in existing log file.
+
+		@param maxLines If omited, `maxEntries` will be used
+		@param filePath If omited, `logFilePath` will be used
+	**/
+	public function trimFileLines(?maxLines:Int, ?filePath:String) {
+		if( maxLines==null )
+			maxLines = maxEntries;
+
+		if( filePath==null && logFilePath==null )
+			return false;
+
+		filePath = filePath==null ? logFilePath : filePath;
+
+		try {
+			var raw : String = null;
+
+			#if sys
+				raw = sys.io.File.getContent(filePath);
+			#elseif hxnodejs
+				js.node.Require.require("fs");
+				raw = js.node.Fs.readFileSync(filePath).toString();
+			#else
+				// Unsupported on this platform
+			#end
+
+			if( raw==null )
+				return false;
+
+			var lines = raw.split("\n");
+			if( lines.length>maxLines ) {
+				lines = lines.splice(0,maxLines);
+				sys.io.File.saveContent( filePath, lines.join("\n") );
+			}
+			return true;
+		}
+		catch( e:Dynamic ) {}
+
+		return false;
+	}
+
+
 
 	function getPrintableEntry(l:LogEntry, forceDate=false) {
 		if( l.str.length==0 )
