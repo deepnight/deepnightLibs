@@ -848,7 +848,18 @@ class M {
 		return baseValue | ( 1<<bitIdx );
 	}
 
-	public static function makeBits(
+	public static function makeBitsFromArray(bools:Array<Bool>) : Int {
+		if( bools.length>32 )
+			throw "Too many values (32bits max)";
+
+		var v = 0;
+		for(i in 0...bools.length)
+			if( bools[i]==true )
+				v = setBit(v, i);
+		return v;
+	}
+
+	public static function makeBitsFromBools(
 		b0=false,
 		b1=false,
 		b2=false,
@@ -931,9 +942,12 @@ class M {
 		CiAssert.equals( uIntToBitString( M.setUnsignedBit(0,31) ), "10000000000000000000000000000000" );
 		CiAssert.equals( intToBitString( M.setUnsignedBit(0,31), 0 ), "" );
 
-		CiAssert.equals( makeBits(), 0 );
-		CiAssert.equals( makeBits(true), 1 );
-		CiAssert.equals( makeBits(true,false,true), 5 );
-		CiAssert.equals( makeBits(true,true,true,true,true,true,true,true), 0xff );
+		CiAssert.equals( makeBitsFromBools(), 0 );
+		CiAssert.equals( makeBitsFromBools(true), 1 );
+		CiAssert.equals( makeBitsFromBools(true,false,true), 5 );
+		CiAssert.equals( makeBitsFromBools(true,true,true,true,true,true,true,true), 0xff );
+		CiAssert.equals( makeBitsFromArray([]), 0 );
+		CiAssert.equals( makeBitsFromArray([true]), 1 );
+		CiAssert.equals( makeBitsFromArray([true,true,true,true,true,true,true,true]), 0xff );
 	}
 }
