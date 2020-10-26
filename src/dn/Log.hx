@@ -142,7 +142,7 @@ class Log {
 
 			var lines = raw.split("\n");
 			if( lines.length>maxLines ) {
-				lines = lines.splice(0,maxLines);
+				lines = lines.splice(lines.length-maxLines, maxLines);
 				sys.io.File.saveContent( filePath, lines.join("\n") );
 			}
 			return true;
@@ -254,6 +254,15 @@ class Log {
 			trace(str);
 
 		#end
+	}
+
+
+	public function getLasts(maxCount:Int) {
+		if( maxCount>=entries.length )
+			return entries.map( e->getPrintableEntry(e) );
+		else
+			return entries.splice(entries.length-maxCount, maxCount).map( e->getPrintableEntry(e) );
+
 	}
 
 	/**
