@@ -13,17 +13,17 @@ class Dialogs {
 	}
 
 
-	public static function initMain() {
+	public static function initMain(browserWindow:electron.main.BrowserWindow) {
 		if( IpcMain==null )
 			throw "Should only be called in Main";
 
 		IpcMain.handle("openDialog", function(event, options) {
-			var filePaths = electron.main.Dialog.showOpenDialogSync(null, options);
+			var filePaths = electron.main.Dialog.showOpenDialogSync(browserWindow, options);
 			return filePaths==null ? null : filePaths[0];
 		});
 
 		IpcMain.handle("saveAsDialog", function(event, options) {
-			var filePaths = electron.main.Dialog.showSaveDialogSync(null, options);
+			var filePaths = electron.main.Dialog.showSaveDialogSync(browserWindow, options);
 			return filePaths==null ? null : filePaths;
 		});
 	}
