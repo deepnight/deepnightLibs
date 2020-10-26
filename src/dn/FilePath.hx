@@ -28,6 +28,20 @@ class FilePath {
 	public static var SLASH_MODE = Preserve;
 
 	/**
+		URI scheme part not including ":" nor slashes (eg. "file" in "file://localhost/c:/windows/foo.txt")
+
+		Can be null, always lowercase
+	**/
+	public var uriScheme(default,null) : Null<String>;
+
+	/**
+		URI authority part if it exists (eg. "localhost" in "file://localhost/c:/windows/foo.txt")
+
+		Can be null, always lowercase
+	**/
+	public var uriAuthority(default,null) : Null<String>;
+
+	/**
 		Directory
 
 		Can be null, no slash in the end.
@@ -135,21 +149,42 @@ class FilePath {
 	}
 
 	/**
-		Extract Windows drive letter from directory
+		Extract URI prefix from a directory (eg. file URI "file:///test.txt")
+	**/
+	// public function getUriPrefix(forceLowerCase=true) : Null<String> {
+	// 	var prefixReg = ~/^([a-z]+):\/\//gi;
+	// 	if( directory!=null && prefixReg.match(directory) )
+	// 		return forceLowerCase ? prefixReg.matched(1).toLowerCase() : prefixReg.matched(1);
+	// 	else
+	// 		return null;
+	// }
+
+	/**
+		Return TRUE if contains a Windows drive letter
+	**/
+	public inline function hasDriveLetter() {
+		return getDriveLetter()!=null;
+	}
+
+	/**
+		Extract the Windows OS drive letter from a path
 	**/
 	public function getDriveLetter(forceLowerCase=true) : Null<String> {
-		var driveReg = ~/^([a-z]+):([\\\/]+|$)/gi;
-		if( directory!=null && driveReg.match(directory) )
-			return forceLowerCase ? driveReg.matched(1).toLowerCase() : driveReg.matched(1);
+		var letterReg = uriScheme!=null
+			? ~/([^a-z]|^)([a-z])[:$][\/\\]?/gi // support file:///c$/foo/bar.txt
+			: ~/([^a-z]|^)([a-z]):[\/\\]?/gi;
+
+		if( directory!=null && letterReg.match(directory) )
+			return forceLowerCase ? letterReg.matched(2).toLowerCase() : letterReg.matched(2);
 		else
 			return null;
 	}
 
 	/**
-		Return TRUE if the directory contains a drive letter (eg. "c:/someFolder/")
+		Return TRUE if the directory contains URI prefix (eg. "file" in "file:///foo/bar.txt")
 	**/
-	public inline function hasDriveLetter() {
-		return getDriveLetter()!=null;
+	public inline function isUri() {
+		return uriScheme!=null;
 	}
 
 	/**
@@ -170,7 +205,7 @@ class FilePath {
 	public function makeRelativeTo(dirPath:String) {
 		var cur = getDirectoryArray();
 		var other = fromDir(dirPath);
-		if( getDriveLetter() != other.getDriveLetter() )
+		if( uriScheme != other.uriScheme || getDriveLetter() != other.getDriveLetter() )
 			return this;
 
 		var ref = other.getDirectoryArray();
@@ -249,6 +284,24 @@ class FilePath {
 			parseFileName(rawPath);
 		}
 		else {
+			// URI prefixes
+			var uriSchemeReg = ~/([a-z]{2,}):[\/]{2}(.*?)\/|([a-z]{2,}):[\/]{1}/gi;
+			if( uriSchemeReg.match(rawPath) ) {
+				if( uriSchemeReg.matched(3)!=null ) {
+					// No Authority provided, eg. "file:/path/foo/bar.txt"
+					uriScheme = uriSchemeReg.matched(3);
+					uriAuthority = null;
+				}
+				else {
+					// Authority is provided, eg. "file://localhost@domain.com/path/foo/bar.txt"
+					uriScheme = uriSchemeReg.matched(1);
+					uriAuthority = uriSchemeReg.matched(2);
+					if( uriAuthority=="" )
+						uriAuthority = null;
+				}
+				rawPath = uriSchemeReg.matchedRight();
+			}
+
 			// Clean up double-slashes
 			while( rawPath.indexOf( slash()+slash() ) >= 0 )
 				rawPath = StringTools.replace(rawPath, slash()+slash(), slash() );
@@ -290,9 +343,15 @@ class FilePath {
 
 			// Sanitize dirs
 			if( directory!=slash() && directory!=null ) {
+				var ignore = 0;
+				// if( hasUriScheme() )
+					// ignore++;
+				if( hasDriveLetter() )
+					ignore++;
+
 				var dirs = getDirectoryArray();
 				for(i in 0...dirs.length)
-					dirs[i] = i==0 ? sanitize(dirs[i],true) : sanitize(dirs[i]);
+					dirs[i] = i<ignore ? sanitize(dirs[i],true) : sanitize(dirs[i]);
 				directory = dirs.join( slash() );
 			}
 		}
@@ -353,6 +412,12 @@ class FilePath {
 
 	inline function get_full() {
 		return
+			// URI
+			( uriScheme!=null
+				? uriAuthority==null ? '$uriScheme:/' : '$uriScheme://$uriAuthority/'
+				: ""
+			)
+			+
 			// Directory
 			( directory==null
 				? ""
@@ -402,7 +467,7 @@ class FilePath {
 	}
 
 	public function debug() {
-		return 'dir=$directory, fileName=$fileName, ext=$extension';
+		return 'dir=$directory, fileName=$fileName, ext=$extension, uri=$uriScheme+$uriAuthority, drive=${getDriveLetter()}';
 	}
 
 
@@ -527,12 +592,12 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromDir("").fileName == null );
 		CiAssert.isTrue( FilePath.fromDir("").extension == null );
 		CiAssert.isTrue( FilePath.fromDir("user/?/test").directory == "user/_/test");
-		CiAssert.isTrue( FilePath.fromDir("/user/foo").full=="/user/foo" );
-		CiAssert.isTrue( FilePath.fromDir("/user/foo/").full=="/user/foo" );
-		CiAssert.isTrue( FilePath.fromDir("user//foo").full=="user/foo" );
-		CiAssert.isTrue( FilePath.fromDir("..").full==".." );
-		CiAssert.isTrue( FilePath.fromDir("/..").full=="/.." ); // non sense but well..
-		CiAssert.isTrue( FilePath.fromDir("a/../..").full==".." );
+		CiAssert.equals( FilePath.fromDir("/user/foo").full, "/user/foo" );
+		CiAssert.equals( FilePath.fromDir("/user/foo/").full, "/user/foo" );
+		CiAssert.equals( FilePath.fromDir("user//foo").full, "user/foo" );
+		CiAssert.equals( FilePath.fromDir("..").full, ".." );
+		CiAssert.equals( FilePath.fromDir("/..").full, "/.." ); // non sense but well..
+		CiAssert.equals( FilePath.fromDir("a/../..").full, ".." );
 
 		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("", false) == null );
 		CiAssert.isTrue( FilePath.extractDirectoryWithoutSlash("/", false) == "/" );
@@ -598,13 +663,6 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").full == "c:\\windows\\system" );
 		CiAssert.isTrue( FilePath.fromDir("c:/windows/system").full == "c:/windows/system" );
 
-		// Drive letters
-		CiAssert.equals( FilePath.fromDir("c:/dir").getDriveLetter(), "c" );
-		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
-		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
-		CiAssert.equals( FilePath.fromDir("/dir").getDriveLetter(), null );
-		CiAssert.equals( FilePath.fromFile("c:/file.png").getDriveLetter(), "c" );
-
 		// Relative transformations
 		CiAssert.equals( FilePath.fromDir("/dir/foo/bar").makeRelativeTo("/dir").full, "foo/bar" );
 		CiAssert.equals( FilePath.fromDir("/dir/a").makeRelativeTo("/dir/b").full, "../a" );
@@ -613,10 +671,38 @@ class FilePath {
 		CiAssert.equals( FilePath.fromDir("c:/dir").makeRelativeTo("d:/dir").full, "c:/dir" );
 		CiAssert.equals( FilePath.fromDir("c:/").makeRelativeTo("d:/").full, "c:" );
 
+		// Drive letters
+		CiAssert.equals( FilePath.fromDir("c:/dir").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
+		CiAssert.equals( FilePath.fromDir("c:/dir").directory, "c:/dir" );
+		CiAssert.isFalse( FilePath.fromDir("/dir").hasDriveLetter() );
+		CiAssert.equals( FilePath.fromFile("c:/file.png").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromFile("file://someone@domain.com:21/C:/foo/bar/pouet.txt").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromFile("file://localhost/c$/foo/bar.txt").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromFile("file:/c$/foo/bar.txt").getDriveLetter(), "c" );
+
 		// File URI test
-		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/file.txt").fileName, "file" );
-		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/file.txt").extension, "txt" );
-		trace( FilePath.fromFile("file:///C:/foo/bar/file.txt").directory );
-		CiAssert.isFalse( FilePath.fromFile("file:///C:/foo/bar/file.txt").hasDriveLetter() );
+		CiAssert.isTrue( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").isUri() );
+		CiAssert.isTrue( FilePath.fromFile("file:/C:/foo/bar/pouet.txt").isUri() );
+		CiAssert.isFalse( FilePath.fromFile("C:/foo/bar/pouet.txt").isUri() );
+		CiAssert.isFalse( FilePath.fromFile("C://foo///bar/pouet.txt").isUri() );
+		CiAssert.equals( FilePath.fromFile("file:/C:/foo/bar/pouet.txt").uriScheme, "file" );
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").fileName, "pouet" );
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").extension, "txt" );
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").getDriveLetter(), "c" );
+		CiAssert.equals( FilePath.fromFile("file:///foo/bar/pouet.txt").getDriveLetter(), null );
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").uriScheme, "file" );
+
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").uriAuthority, null );
+		CiAssert.equals( FilePath.fromFile("file://localhost/C:/foo/bar/pouet.txt").uriAuthority, "localhost" );
+		CiAssert.equals( FilePath.fromFile("file://a@b.com:21/C:/foo/bar/pouet.txt").uriAuthority, "a@b.com:21" );
+		CiAssert.equals( FilePath.fromFile("ftp://a@b.com:21/foo/bar//pouet.txt").uriScheme, "ftp" );
+		CiAssert.equals( FilePath.fromFile("ftp://a@b.com:21/foo/bar//pouet.txt").uriAuthority, "a@b.com:21" );
+		CiAssert.equals( FilePath.fromFile("https://domain.com/foo/bar//pouet.txt").uriScheme, "https" );
+		CiAssert.equals( FilePath.fromFile("https://domain.com/foo/bar//pouet.txt").uriAuthority, "domain.com" );
+
+		CiAssert.equals( FilePath.fromFile("file://localhost/foo//pouet.txt").full, "file://localhost/foo/pouet.txt" );
+		CiAssert.equals( FilePath.fromFile("file:/foo//pouet.txt").full, "file:/foo/pouet.txt" );
 	}
 }
