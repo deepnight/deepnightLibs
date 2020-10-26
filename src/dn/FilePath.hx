@@ -612,5 +612,11 @@ class FilePath {
 		CiAssert.equals( FilePath.fromDir("/dir/a1/a2").makeRelativeTo("/dir/b1/b2").full, "../../a1/a2" );
 		CiAssert.equals( FilePath.fromDir("c:/dir").makeRelativeTo("d:/dir").full, "c:/dir" );
 		CiAssert.equals( FilePath.fromDir("c:/").makeRelativeTo("d:/").full, "c:" );
+
+		// File URI test
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/file.txt").fileName, "file" );
+		CiAssert.equals( FilePath.fromFile("file:///C:/foo/bar/file.txt").extension, "txt" );
+		trace( FilePath.fromFile("file:///C:/foo/bar/file.txt").directory );
+		CiAssert.isFalse( FilePath.fromFile("file:///C:/foo/bar/file.txt").hasDriveLetter() );
 	}
 }
