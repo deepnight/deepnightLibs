@@ -6,7 +6,7 @@
 	"description": "The general personal libs I use in my Haxe projects.",
 	"version": "1.0.51",
 	"classPath": "src/",
-	"releasenote": "Updated Log, updated M, bug fixes",
+	"releasenote": "Fixed Log trimming, added URI support to FilePath, some renamings in VersionNumber API",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
