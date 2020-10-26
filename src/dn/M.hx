@@ -848,6 +848,29 @@ class M {
 		return baseValue | ( 1<<bitIdx );
 	}
 
+	public static function makeBits(
+		b0=false,
+		b1=false,
+		b2=false,
+		b3=false,
+		b4=false,
+		b5=false,
+		b6=false,
+		b7=false
+	) {
+
+		var v = 0;
+		if( b0 ) v = setBit(v,0);
+		if( b1 ) v = setBit(v,1);
+		if( b2 ) v = setBit(v,2);
+		if( b3 ) v = setBit(v,3);
+		if( b4 ) v = setBit(v,4);
+		if( b5 ) v = setBit(v,5);
+		if( b6 ) v = setBit(v,6);
+		if( b7 ) v = setBit(v,7);
+		return v;
+	}
+
 	/**
 		Check for bit presence in a SIGNED integer (index starts from 0)
 	**/
@@ -907,5 +930,10 @@ class M {
 		CiAssert.equals( intToBitString(17,8), "00010001" );
 		CiAssert.equals( uIntToBitString( M.setUnsignedBit(0,31) ), "10000000000000000000000000000000" );
 		CiAssert.equals( intToBitString( M.setUnsignedBit(0,31), 0 ), "" );
+
+		CiAssert.equals( makeBits(), 0 );
+		CiAssert.equals( makeBits(true), 1 );
+		CiAssert.equals( makeBits(true,false,true), 5 );
+		CiAssert.equals( makeBits(true,true,true,true,true,true,true,true), 0xff );
 	}
 }
