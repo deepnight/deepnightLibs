@@ -59,9 +59,10 @@ class ElectronUpdater {
 			hasDownloadedUpdate = true;
 		});
 
-		autoUpdater.on("error", function(_) {
+		autoUpdater.on("error", function(ev) {
+			var ev : js.lib.Error = cast ev;
 			if( isChecking )
-				win.webContents.send("updateError");
+				win.webContents.send("updateError", ev.message);
 			isChecking = false;
 		});
 
@@ -89,8 +90,8 @@ class ElectronUpdater {
 
 		var info : Null<UpdateInfo> = null;
 
-		IpcRenderer.on("updateError", function(ev) {
-			onError();
+		IpcRenderer.on("updateError", function(ev, errMsg:String) {
+			onError(errMsg);
 			onUpdateCheckComplete();
 		});
 
@@ -147,7 +148,7 @@ class ElectronUpdater {
 	public static dynamic function onUpdateFound(info:UpdateInfo) {}
 	public static dynamic function onUpdateDownloaded(info:UpdateInfo) {}
 	public static dynamic function onUpdateNotFound() {}
-	public static dynamic function onError() {}
+	public static dynamic function onError(msg:String) {}
 	public static dynamic function onUpdateCheckComplete() {}
 
 }
