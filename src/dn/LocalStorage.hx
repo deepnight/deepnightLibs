@@ -1,80 +1,145 @@
 package dn;
 
 class LocalStorage {
-	#if hl
-	public static var DEFAULT_FOLDER = "userSettings";
+
+	#if( sys || hl || hxnodejs )
+
+	/** Base path to the storage folder **/
+	public static var BASE_PATH : Null<String> =
+		try {
+			#if hxnodejs
+			js.node.Require.require("process").cwd();
+			#else
+			Sys.getCwd();
+			#end
+		} catch(e) null;
+
+	/** Default storage sub-folder **/
+	public static var SUB_FOLDER_NAME : Null<String> = "userSettings";
+
+	/** Return path to the storage file for specified storage name **/
+	static function getStoragePath(storageName:String) : dn.FilePath {
+		var fp = FilePath.fromFile(
+			( BASE_PATH==null ? "" : BASE_PATH+"/" )
+			+ ( SUB_FOLDER_NAME==null ? "" : SUB_FOLDER_NAME + "/" )
+			+ storageName + ".cfg"
+		);
+		fp.useSlashes();
+		return fp;
+	}
+
 	#end
 
-	static function _getCookieData(cookieName:String) : String {
+
+
+	/**
+		Read unparsed String for specified storage name
+	**/
+	static function _loadRawStorage(storageName:String) : Null<String> {
+		if( storageName==null )
+			return null;
+
 		return {
 			#if flash
-				try flash.net.SharedObject.getLocal( cookieName ).data.content catch(e:Dynamic) null;
-			#elseif hl
-				var path = Sys.getCwd()+"/"+DEFAULT_FOLDER+"/"+cookieName;
-				try sys.io.File.getContent(path) catch( e : Dynamic ) null;
+
+				try flash.net.SharedObject.getLocal( storageName ).data.content catch(e:Dynamic) null;
+
+			#elseif( sys || hl || hxnodejs )
+
+				var fp = getStoragePath(storageName);
+				#if hxnodejs
+				try js.node.Fs.readFileSync(fp.full).toString() catch(e) null;
+				#else
+				try sys.io.File.getContent(fp.full) catch( e : Dynamic ) null;
+				#end
+
 			#elseif js
-				var raw = js.Browser.window.localStorage.getItem(cookieName);
+
+				var raw = js.Browser.window.localStorage.getItem(storageName);
 				raw;
+
 			#else
+
 				throw "Platform not supported";
+
 			#end
 		}
 	}
 
-	public static function exists(cookieName:String) : Bool {
+	/**
+		Save raw storage data.
+	**/
+	static function _saveStorage(storageName:String, raw:String) : Bool {
 		try {
-			return _getCookieData(cookieName)!=null;
+			#if flash
+
+				var so = flash.net.SharedObject.getLocal( storageName );
+				so.data.content = raw;
+				so.flush();
+
+			#elseif( sys || hl || hxnodejs )
+
+				var fp = getStoragePath(storageName);
+
+				#if hxnodejs
+
+				if( !js.node.Fs.existsSync(fp.directory) )
+					js.node.Fs.mkdirSync(fp.directory);
+				js.node.Fs.writeFileSync( fp.full, raw );
+
+				#else
+
+				if( !sys.FileSystem.exists(fp.directory) )
+					sys.FileSystem.createDirectory(fp.directory);
+				sys.io.File.saveContent(fp.full, raw);
+
+				#end
+
+			#elseif js
+
+				js.Browser.window.localStorage.setItem(storageName, raw);
+
+			#else
+
+				throw "Platform not supported";
+
+			#end
+			return true;
 		}
 		catch( e:Dynamic ) {
 			return false;
 		}
 	}
 
-	public static function readString(cookieName:String, ?defValue:String) : String {
-		try {
-			var data = _getCookieData(cookieName);
-			var serializedReg = ~/^y[0-9]+:/gim;
-			if( serializedReg.match(data) ) // Fix old double-serialized data
-				data = try haxe.Unserializer.run(data) catch(e:Dynamic) data;
-			return data!=null ? data : defValue;
-		}
-		catch( e:Dynamic ) {
-			return defValue;
-		}
+	/**
+		Read the specified storage as a String.
+	**/
+	public static function readString(storageName:String, ?defValue:String) : Null<String> {
+		var raw = _loadRawStorage(storageName);
+		return raw==null ? defValue : raw;
 	}
 
-	public static function writeString(cookieName:String, value:String) {
-		try {
-			#if flash
-				var so = flash.net.SharedObject.getLocal( cookieName );
-				so.data.content = value;
-				so.flush();
-			#elseif hl
-				var d = Sys.getCwd()+"/"+DEFAULT_FOLDER;
-				if( !sys.FileSystem.exists(d) )
-					sys.FileSystem.createDirectory(d);
-
-				var file = Sys.getCwd()+"/"+DEFAULT_FOLDER+"/"+cookieName;
-				sys.io.File.saveContent(file, value);
-			#elseif js
-				js.Browser.window.localStorage.setItem(cookieName, value);
-			#else
-				throw "Platform not supported";
-			#end
-		}
-		catch( e:Dynamic ) {
-		}
+	/**
+		Save a String to specified storage.
+	**/
+	public static function writeString(storageName:String, raw:String) {
+		_saveStorage(storageName, raw);
 	}
 
-
-	public static function readObject<T>(cookieName:String, ?defValue:T) : T {
-		var raw = readString(cookieName);
+	/**
+		Read an anonymous object right from storage.
+	**/
+	public static function readObject<T>(storageName:String, isJsonStorage:Bool, ?defValue:T) : T {
+		var raw = _loadRawStorage(storageName);
 		if( raw==null )
 			return defValue;
 		else {
 			var obj =
-				try haxe.Unserializer.run(raw)
-				catch( err:Dynamic ) return defValue;
+				try isJsonStorage ? haxe.Json.parse(raw) : haxe.Unserializer.run(raw)
+				catch( err:Dynamic ) null;
+
+			if( obj==null )
+				return defValue;
 
 			// Remove old fields
 			for(k in Reflect.fields(obj))
@@ -90,42 +155,55 @@ class LocalStorage {
 		}
 	}
 
-	public static function writeObject<T>(cookieName:String, obj:T) {
-		writeString(cookieName, haxe.Serializer.run(obj));
+	/**
+		Write an anonymous object to specified storage name. If `storeAsJson` is FALSE, the object will be serialized.
+	**/
+	public static function writeObject<T>(storageName:String, storeAsJson:Bool, obj:T) {
+		if( storeAsJson )
+			_saveStorage( storageName, JsonPretty.stringify(obj) );
+		else
+			_saveStorage( storageName, haxe.Serializer.run(obj) );
 	}
 
 
-	public static function readJson(cookieName:String, ?defValue:Dynamic) : Dynamic {
-		var raw = readString(cookieName);
-		if( raw==null )
-			return defValue;
-		else {
-			return
-				try haxe.Json.parse(raw)
-				catch(err:Dynamic) defValue;
-
-		}
-	}
-
-	public static function writeJson(cookieName:String, json:Dynamic) {
-		writeString(cookieName, haxe.Json.stringify(json));
+	/**
+		Return TRUE if specified storage data exists.
+	**/
+	public static function exists(storageName:String) : Bool {
+		try return _loadRawStorage(storageName)!=null
+		catch( e:Dynamic ) return false;
 	}
 
 
-	public static function delete(cookieName:String) {
+	/**
+		Remove specified storage data.
+	**/
+	public static function delete(storageName:String) {
 		try {
 			#if flash
-				var so = flash.net.SharedObject.getLocal( cookieName );
+
+				var so = flash.net.SharedObject.getLocal( storageName );
 				if( so==null )
 					return;
 				so.clear();
-			#elseif hl
-				var file = Sys.getCwd()+"/"+DEFAULT_FOLDER+"/"+cookieName;
-				sys.FileSystem.deleteFile(file);
+
+			#elseif( sys || hl || hxnodejs )
+
+				var fp = getStoragePath(storageName);
+				#if hxnodejs
+				js.node.Fs.unlinkSync(fp.full);
+				#else
+				sys.FileSystem.deleteFile(fp.full);
+				#end
+
 			#elseif js
-				js.Browser.window.localStorage.removeItem(cookieName);
+
+				js.Browser.window.localStorage.removeItem(storageName);
+
 			#else
+
 				throw "Platform not supported";
+
 			#end
 		}
 		catch( e:Dynamic ) {
