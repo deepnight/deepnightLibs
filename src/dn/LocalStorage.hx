@@ -31,11 +31,12 @@ class LocalStorage {
 	#end
 
 
-	public static function isSupported() {
-		#if js
-		return js.Browser.getLocalStorage()!=null;
-		#elseif( hl || sys || nodejs || flash )
+	/** Return TRUE if this platform supports local storage **/
+	public static function isSupported() : Bool {
+		#if( hl || sys || hxnodejs || flash )
 		return true;
+		#elseif js
+		return js.Browser.getLocalStorage()!=null;
 		#else
 		return false;
 		#end
