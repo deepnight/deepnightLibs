@@ -130,6 +130,7 @@ class Main {
 		dn.VersionNumber.__test();
 		dn.M.__test();
 		dn.Changelog.__test();
+		dn.LocalStorage.__test();
 
 		// Done!
 		println("");
