@@ -46,6 +46,27 @@ class Color {
 		return Std.parseInt( "0x"+hex.substr(1,999) );
 	}
 
+	/** Turn an hex string to #rrggbb format (supports #rrggbb, #rgb and #v formats) **/
+	public static function sanitizeHexStr(hex:String, includeSharp=true) : Null<String> {
+		var reg = ~/^#*([0-9abcdef]{6})|^#*([0-9abcdef]{3})$|^#*([0-9abcdef]{1})$/gi;
+		if( reg.match(hex) ) {
+			return
+				( includeSharp ? "#" : "" )
+				+ ( reg.matched(3)!=null
+					? { var c = reg.matched(3); c+c + c+c + c+c; }
+					: reg.matched(2)!=null
+						? { var c = reg.matched(2); c.charAt(0)+c.charAt(0) + c.charAt(1)+c.charAt(1) + c.charAt(2)+c.charAt(2); }
+						: reg.matched(1)
+				);
+		}
+		else
+			return null;
+	}
+
+	public static inline function isValidHex(hex:String) {
+		return sanitizeHexStr(hex,false)!=null;
+	}
+
 	public static inline function hexToInta(hex:String) {
 		return Std.parseInt( "0xff"+hex.substr(1,999) );
 	}
