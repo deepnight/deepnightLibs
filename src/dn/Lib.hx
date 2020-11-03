@@ -191,103 +191,10 @@ class Lib {
 	}
 	#end
 
-	#if( flash9 || openfl || sys )
-	//public static function testCookies() {
-		//try {
-			//var cookie = flash.net.SharedObject.getLocal("cchk");
-			//Reflect.setField(cookie.data, "chk", 1);
-			//cookie.flush();
-			//var cookie = flash.net.SharedObject.getLocal("cchk");
-			//return Reflect.field(cookie.data, "chk") == 1;
-		//}
-		//catch( e:Dynamic ) {
-			//return false;
-		//}
-	//}
-	inline static function _getLocalCookie( cookieName ){
-		#if (flash || openfl)
-		return flash.net.SharedObject.getLocal( cookieName );
-		#elseif sys
-		return new LocalCookie( cookieName );
-		#end
-	}
-
-	public static function getCookie(cookieName:String, varName:String, ?defValue:Dynamic) : Dynamic {
-		try {
-			var cookie = _getLocalCookie(cookieName);
-			return
-				if ( Reflect.hasField(cookie.data, varName) )
-					Reflect.field(cookie.data, varName);
-				else
-					defValue;
-		}
-		catch( e:Dynamic ) {
-			return defValue;
-		}
-	}
-
-	public static function setCookie(cookieName:String, varName:String, value:Dynamic) {
-		try {
-			var cookie = _getLocalCookie(cookieName);
-			Reflect.setField(cookie.data, varName, value);
-			cookie.flush();
-			return true;
-		}
-		catch( e:Dynamic ) {
-			return false;
-		}
-	}
-
-	public static function removeCookie(cookieName:String, varName:String) {
-		try {
-			var cookie = _getLocalCookie(cookieName);
-			if( cookie!=null ) {
-				Reflect.deleteField(cookie.data, varName);
-				cookie.flush();
-			}
-			return true;
-		}
-		catch( e:Dynamic ) {
-			return false;
-		}
-	}
-
-	public static function resetCookie(cookieName:String, ?obj:Dynamic) {
-		try {
-			var cookie = _getLocalCookie(cookieName);
-			cookie.clear();
-			if (obj!=null)
-				for (key in Reflect.fields(obj))
-					Reflect.setField(cookie.data, key, Reflect.field(obj, key));
-			cookie.flush();
-			return true;
-		}
-		catch( e:Dynamic ) {
-			return false;
-		}
-	}
-	#end
-
-	#if (flash || openfl)
-	public static inline function constraintBox(o:flash.display.DisplayObject, maxWid, maxHei) {
-		var r = M.fmin( M.fmin(1, maxWid/o.width), M.fmin(1, maxHei/o.height) );
-		o.scaleX = r;
-		o.scaleY = r;
-		return r;
-	}
-
-	public static inline function isOverlap(a:flash.geom.Rectangle, b:flash.geom.Rectangle) : Bool {
-		return
-			b.x>=a.x-b.width && b.x<=a.right &&
-			b.y>=a.y-b.height && b.y<=a.bottom;
-	}
-	#end
-
-
 
 	/**
-	 * Shuffle an array in place
-	 */
+		Shuffle an array in place
+	**/
 	public static function shuffleArray<T>(arr:Array<T>, randFunc:Int->Int) {
 		// WARNING!! Now modifies the array itself (changed on Apr. 27 2016)
 		// Source: http://bost.ocks.org/mike/shuffle/
@@ -303,8 +210,8 @@ class Lib {
 	}
 
 	/**
-	 * Shuffle a vector in place
-	 */
+		Shuffle a vector in place
+	**/
 	public static function shuffleVector<T>(arr:haxe.ds.Vector<T>, randFunc:Int->Int) {
 		// Source: http://bost.ocks.org/mike/shuffle/
 		var m = arr.length;
@@ -319,6 +226,7 @@ class Lib {
 		}
 	}
 
+	/** Find a value in an Array **/
 	public static function findInArray<T>(arr:Array<T>, checkElement:T->Bool, ?defaultIfNotFound:Null<T>) : Null<T> {
 		for(e in arr)
 			if( checkElement(e) )
@@ -326,6 +234,7 @@ class Lib {
 		return defaultIfNotFound;
 	}
 
+	/** Score Array values and return best one **/
 	public static function findBestInArray<T>(arr:Array<T>, scoreElement:T->Float) : Null<T> {
 		if( arr.length==0 )
 			return null;
@@ -334,6 +243,38 @@ class Lib {
 		for(e in arr)
 			if( scoreElement(e) > scoreElement(best) )
 				best = e;
+		return best;
+	}
+
+	/**
+		Return most frequent value in given Array.
+
+		An equality check `isEqual` method should be provided for arrays containing non-standard types.
+	**/
+	public static function findMostFrequentValueInArray<T>(arr:Array<T>, ?isEqual:(a:T,b:T)->Bool) : Null<T> {
+		if( arr.length==0 )
+			return null;
+
+		trace(arr);
+		var bestCount = 1;
+		var best = arr[0];
+		for(e in arr) {
+			if( isEqual==null && e==best || isEqual!=null && isEqual(e,best) )
+				continue;
+
+			var count = 0;
+			for(ee in arr)
+				if( isEqual==null && ee==e || isEqual!=null && isEqual(e,ee) )
+					count++;
+
+			trace(e+" => x"+count);
+			if( count>bestCount ) {
+				trace("new best");
+				bestCount = count;
+				best = e;
+			}
+
+		}
 		return best;
 	}
 
@@ -726,6 +667,9 @@ class Lib {
 
 	#if heaps
 	static var fullscreenEnabled = false;
+	/**
+		Enable fullscreen button in bottom right corner
+	**/
 	public static function enableFullscreen(scene:h2d.Scene, p:dn.Process, ?alternativeKey:Int, button:Bool) {
 		if( fullscreenEnabled )
 			return;
@@ -800,6 +744,7 @@ class Lib {
 		#end
 	}
 
+	/** Return TRUE if in fullscreen (if supported) **/
 	public static inline function isFullscreen() {
 		#if js
 		return (cast js.Browser.document).fullscreen;
@@ -809,6 +754,8 @@ class Lib {
 		return false;
 		#end
 	}
+
+	/** Toggle client fullscreen, if supported **/
 	public static function toggleFullscreen() {
 		#if js
 		if( isFullscreen() )
@@ -850,46 +797,12 @@ class Lib {
 		return -1;
 	}
 
+	/** Return a pretty bytes size value (bytes, kilobytes, or megabytes)**/
 	public static inline function prettyBytesSize(bytesCount:Int) : String {
 		return
 			bytesCount<=1024 ? '$bytesCount bytes'
-			: bytesCount<=1024*1024 ? '${M.pretty(bytesCount/1024)} Kb'
-			: '${M.pretty(bytesCount/(1024*1024))} Mb';
+			: bytesCount<=1024*1024 ? '${ M.pretty( bytesCount/1024, 1 ) } Kb'
+			: '${ M.pretty( bytesCount/(1024*1024), 1 ) } Mb';
 	}
 
-
-} // End of Lib
-
-
-#if (!(flash||openfl) && sys)
-private class LocalCookie {
-	public var name : String;
-	public var data : Dynamic;
-
-	public function new( name : String ){
-		this.name = name;
-
-		var p = path();
-		if( sys.FileSystem.exists(p) )
-			data = try haxe.Unserializer.run(sys.io.File.getContent(path())) catch( e : Dynamic ) {};
-		else
-			clear();
-	}
-
-	public function flush(){
-		var d = Sys.getCwd()+"/_cookies";
-		if( !sys.FileSystem.exists(d) )
-			sys.FileSystem.createDirectory(d);
-
-		sys.io.File.saveContent(path(), haxe.Serializer.run(data));
-	}
-
-	public inline function clear(){
-		data = {};
-	}
-
-	inline function path(){
-		return Sys.getCwd()+"/_cookies/"+name;
-	}
 }
-#end
