@@ -189,6 +189,7 @@ class Log {
 			flushed: false,
 			critical: markAsCritical
 		});
+		onAdd( entries[entries.length-1] );
 
 		if( entries.length>maxEntries )
 			entries = entries.splice(-maxEntries, maxEntries);
@@ -272,4 +273,7 @@ class Log {
 		for(l in entries)
 			printEntry(l);
 	}
+
+
+	public dynamic function onAdd(e:LogEntry) {}
 }
