@@ -10,42 +10,66 @@ class Process {
 	static var ROOTS : Array<Process> = [];
 
 	public var uniqId : Int;
+	/** Elapsed frames from the client start **/
 	public var ftime(default, null) : Float; // elapsed frames
+
+	/** Elapsed frames from the client start, as 32bits Int **/
 	public var itime(get, never) : Int;
+
 	public var paused(default, null) : Bool;
+
+	/** TRUE if process was marked for removal during garbage collection phase. Most stuff should stop from happening if this flag is set! **/
 	public var destroyed(default, null) : Bool;
+
+	/** Optional parent process ref **/
 	var parent(default, null) : Process;
 
-	public var utmod : Float; // this tmod value is unaffected by the time multiplier
+	/** This `tmod` value is unaffected by the time multiplier **/
+	public var utmod : Float; //
+
+	/** Time modifier (1 if FPS is ok, >1 if some frames were lost, <1 if more frames are played than expected) **/
 	public var tmod(get,never) : Float; inline function get_tmod() return utmod * getComputedTimeMultiplier();
-	public var uftime(default, null) : Float; // elapsed frames not affected by time multiplier
+
+	/** Elapsed frames not affected by time multiplier **/
+	public var uftime(default, null) : Float;
 	var baseTimeMul = 1.0;
 
+	@:deprecated
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
+	/** Process display name **/
 	public var name : String;
+
 	var children : Array<Process>;
 
-	// Tools
+	/** Delayer allows for callbacks to be called in a future frame **/
 	public var delayer : dn.Delayer;
+
+	/** Cooldown allows to track various countdowns for tons of good reasons **/
 	public var cd : dn.Cooldown;
+
+	/** Tweenie tweens values **/
 	public var tw : dn.Tweenie;
 
-	// Tools not affected by timeMultiplier
+	/** Same as `delayer` but it isn't affected by time multiplier **/
 	public var udelayer : dn.Delayer;
+
+	/** Same as `cd` but it isn't affected by time multiplier **/
 	public var ucd : dn.Cooldown;
 
-	// Fixed update
+	/** FPS frequency of the `fixedUpdate` calls **/
 	public var fixedUpdateFps = 30;
 	var _fixedUpdateCounter = 0.;
 
 	// Optional graphic context
 	#if( heaps || h3d )
-	public var root			: Null<h2d.Layers>;
-	public var engine(get,never)	: h3d.Engine;
+		/** Graphic context, can be null **/
+		public var root : Null<h2d.Layers>;
+		public var engine(get,never) : h3d.Engine;
 	#elseif flash
-	public var root			: Null<flash.display.Sprite>;
-	var pt0					: flash.geom.Point;
+		/** Graphic context, can be null **/
+		public var root : Null<flash.display.Sprite>;
+		var pt0 : flash.geom.Point; // to reduce allocations
 	#end
 
 	public function new(?parent : Process) {
@@ -77,13 +101,11 @@ class Process {
 	}
 
 	var _initOnceDone = false;
+	/** This special initialization method is only called *once* and *before* any update. Useful if some other stuff need be initialized before this process **/
 	function initOnceBeforeUpdate() {}
 
-	// -----------------------------------------------------------------------
-	// Graphic context (optional)
-	// -----------------------------------------------------------------------
-
 	#if( heaps || flash )
+	/** Init graphic context **/
 	public function createRoot(
 		 #if heaps ?ctx:h2d.Object
 		 #elseif flash ?ctx:flash.display.Sprite #end
@@ -108,6 +130,7 @@ class Process {
 	#end
 
 	#if heaps
+	/** Init graphic context in specified `h2d.Layers` **/
 	public function createRootInLayers(ctx:h2d.Layers, plan:Int) {
 		if( root!=null )
 			throw this+": root already exists";
@@ -118,17 +141,29 @@ class Process {
 
 
 
-	// -----------------------------------------------------------------------
-	// overridable functions
-	// -----------------------------------------------------------------------
+	/** Called at the "beginning of the frame", before any Process update(), in declaration order **/
+	function preUpdate() {}
 
-	public function preUpdate() {}
-	public function update() {}
-	public function fixedUpdate() { }
-	public function postUpdate() { }
-	public function onResize() { }
-	public function onDispose() { }
+	/** Called in the "middle of the frame", after all preUpdates() in declaration order **/
+	function update() {}
 
+	/**
+		Called in the "middle of the frame", after all updates(), but only X times per seconds (see `fixedUpdateFps`), in declaration order.
+
+		Eg. if the client is running 60fps, and fixedUpdateFps if 30fps, this method will only be called 1 frame out of 2.
+	 **/
+	function fixedUpdate() { }
+
+	/** Called at the "end of the frame", after all updates()/fixedUpdates(), in declaration order. That's were graphic updates should probably happen. **/
+	function postUpdate() { }
+
+	/** Called when client window is resized. **/
+	function onResize() { }
+
+	/** Called when Process is garbaged, that's where all the cleanup should happen **/
+	function onDispose() { }
+
+	/** "Overridable at runtime" callbacks **/
 	public dynamic function onUpdateCb() {}
 	public dynamic function onFixedUpdateCb() {}
 	public dynamic function onDisposeCb() {}
@@ -161,28 +196,26 @@ class Process {
 
 	function getDefaultFrameRate() : Float {
 		#if heaps
-		return hxd.Timer.wantedFPS;
+			return hxd.Timer.wantedFPS;
 		#elseif flash
-		return flash.Lib.current.stage.frameRate;
+			return flash.Lib.current.stage.frameRate;
 		#else
-		return 30; // N/A
+			return 30; // N/A
 		#end
 	}
 
-
+	/** Set this process time multiplier, which will affect tmod, cd, delayers, etc. **/
 	public function setTimeMultiplier(v:Float) {
 		baseTimeMul = v;
 	}
 
+	/** Get "total" time multiplier, including parent processes **/
 	function getComputedTimeMultiplier() : Float {
 		return M.fmax(0, baseTimeMul * ( parent==null ? 1 : parent.getComputedTimeMultiplier() ) );
 	}
 
 
-	// -----------------------------------------------------------------------
-	// public api
-	// -----------------------------------------------------------------------
-
+	/** Get graphical context width **/
 	public inline function w(){
 		if( CUSTOM_STAGE_WIDTH > 0 )
 			return CUSTOM_STAGE_WIDTH;
@@ -194,6 +227,8 @@ class Process {
 		return 1;
 		#end
 	}
+
+	/** Get graphical context height **/
 	public inline function h(){
 		if( CUSTOM_STAGE_HEIGHT > 0 )
 			return CUSTOM_STAGE_HEIGHT;
@@ -208,8 +243,8 @@ class Process {
 
 	public function pause() paused = true;
 	public function resume() paused = false;
-	public inline function togglePause() paused ? resume() : pause();
-	public inline function destroy() destroyed = true;
+	public final inline function togglePause() paused ? resume() : pause();
+	public final inline function destroy() destroyed = true;
 
 	public function addChild( p : Process ) {
 		if (p.parent == null) ROOTS.remove(p);
