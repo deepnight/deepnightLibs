@@ -293,8 +293,7 @@ class LocalStorage {
 			delete(storageName);
 			CiAssert.isTrue( !exists(storageName) );
 		}
-		else {
+		else
 			CiAssert.println("WARNING: LocaleStorage isn't supported on this platform!");
-		}
 	}
 }
