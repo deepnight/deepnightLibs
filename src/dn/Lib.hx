@@ -2,15 +2,7 @@ package dn;
 
 import dn.M;
 
-#if( flash||nme||openfl )
-import flash.display.Bitmap;
-import flash.display.BitmapData;
-#if haxe3
-import haxe.ds.StringMap.StringMap;
-#end
-#end
-
-enum Day {
+enum WeekDay {
 	Sunday;
 	Monday;
 	Tuesday;
@@ -21,13 +13,13 @@ enum Day {
 }
 
 class Lib {
-	public static inline function countDaysUntil(now:Date, day:Day) {
+	public static inline function countDaysUntil(now:Date, day:WeekDay) {
 		var delta = Type.enumIndex(day) - now.getDay();
 		return if(delta<0) 7+delta else delta;
 	}
 
-	public static inline function getDay(date:Date) : Day {
-		return Type.createEnumIndex(Day, date.getDay());
+	public static inline function getWeekDay(date:Date) : WeekDay {
+		return Type.createEnumIndex(WeekDay, date.getDay());
 	}
 
 	public static inline function setTime(date:Date, h:Int, ?m=0,?s=0) {
@@ -35,9 +27,9 @@ class Lib {
 		return Date.fromString( DateTools.format(date, str) );
 	}
 
-	public static inline function countDeltaDays(now_:Date, next_:Date) {
-		var now = setTime(now_, 5);
-		var next = setTime(next_, 5);
+	public static inline function countDeltaDays(now:Date, next:Date) {
+		var now = setTime(now, 5);
+		var next = setTime(next, 5);
 		return M.floor( (next.getTime() - now.getTime()) / DateTools.days(1) );
 	}
 
@@ -74,32 +66,8 @@ class Lib {
 	}
 	#end
 
-	#if openfl
-	public static function redirectTraces(func:Dynamic->?haxe.PosInfos->Void) {
-		//throw "ERROR";
-		#if cpp return;#end
-		haxe.Log.trace = func;
-	}
-	#end
 
-
-	public static function redirectTracesToConsole(?customPrefix = "") {
-		#if ((flash || openfl) && !sys)
-		haxe.Log.trace = function(m, ?pos) {
-			try {
-				if ( pos != null && pos.customParams == null )
-					pos.customParams = ["debug"];
-
-				flash.external.ExternalInterface.call("console.log", pos.fileName + "(" + pos.lineNumber + ") : " + customPrefix + Std.string(m));
-			}
-			catch (e:Dynamic) {}
-		}
-		#else
-		trace("cannot redirect to console !");
-		#end
-	}
-
-	#if( h3d || heaps )
+	#if( heaps )
 	public static function redirectTracesToH2dConsole(c:h2d.Console) {
 		haxe.Log.trace = function(m, ?pos) {
 			if ( pos != null && pos.customParams == null )
@@ -147,47 +115,6 @@ class Lib {
 		engine.setRenderZone();
 
 		return new h2d.Bitmap(target);
-	}
-	#end
-
-
-	#if flash9
-	public static inline function isMac() {
-		return flash.system.Capabilities.os.indexOf("mac")>=0;
-	}
-
-	public static inline function isAndroid() {
-		return flash.system.Capabilities.version.indexOf("AND")>=0;
-	}
-
-	public static inline function isIos() {
-		return flash.system.Capabilities.version.indexOf("IOS")>=0;
-	}
-
-	public static inline function isAir() {
-		return flash.system.Capabilities.playerType=="Desktop";
-	}
-
-	public static function getFlashVersion() { // renvoie Float sous la forme "11.2"
-		var ver = flash.system.Capabilities.version.split(" ")[1].split(",");
-		return Std.parseFloat(ver[0]+"."+ver[1]);
-	}
-
-	public static function atLeastVersion(version:String) { // format : xx.xx.xx.xx ou xx,xx,xx,xx
-		var s = StringTools.replace(version, ",", ".");
-		var req = s.split(".");
-		var fv = flash.system.Capabilities.version;
-		var mine = fv.substr(fv.indexOf(" ")+1).split(",");
-		for (i in 0...req.length) {
-			if (mine[i]==null || req[i]==null)
-				break;
-			var m = Std.parseInt(mine[i]);
-			var r = Std.parseInt(req[i]);
-			if ( m>r )	return true;
-			if ( m<r )	return false;
-
-		}
-		return true;
 	}
 	#end
 
@@ -255,7 +182,6 @@ class Lib {
 		if( arr.length==0 )
 			return null;
 
-		trace(arr);
 		var bestCount = 1;
 		var best = arr[0];
 		for(e in arr) {
@@ -267,9 +193,7 @@ class Lib {
 				if( isEqual==null && ee==e || isEqual!=null && isEqual(e,ee) )
 					count++;
 
-			trace(e+" => x"+count);
 			if( count>bestCount ) {
-				trace("new best");
 				bestCount = count;
 				best = e;
 			}
@@ -278,6 +202,9 @@ class Lib {
 		return best;
 	}
 
+	/**
+		Randomly spread `total` in `nbStacks`.
+	**/
 	public static function randomSpread(total:Int, nbStacks:Int, ?maxStackValue:Null<Int>, randFunc:Int->Int) : Array<Int> {
 		if (total<=0 || nbStacks<=0)
 			return new Array();
@@ -315,21 +242,14 @@ class Lib {
 		return plist;
 	}
 
-
-	public static inline function constraint(n:Dynamic, min:Dynamic, max:Dynamic) {
-		return
-			if (n<min) min;
-			else if (n>max) max;
-			else n;
-	}
-
 	public static inline function replaceTag(str:String, char:String, open:String, close:String) {
 		var char = "\\"+char.split("").join("\\");
 		var re = char+"([^"+char+"]+)"+char;
 		return try { new EReg(re, "g").replace(str, open+"$1"+close); } catch (e:String) { str; }
 	}
 
-	public static inline function getNextPower2(n:Int) { // n est sur 32 bits
+	/** Return closest next power of 2, `n` being 32bits **/
+	public static inline function getNextPower2_32bits(n:Int) { // n est sur 32 bits
 		n--;
 		n |= n >> 1;
 		n |= n >> 2;
@@ -339,6 +259,7 @@ class Lib {
 		return n+1;
 	}
 
+	/** Return closest next power of 2, `n` being 8bits **/
 	public static inline function getNextPower2_8bits(n:Int) { // n est sur 8 bits
 		n--;
 		n |= n >> 1;
@@ -347,6 +268,7 @@ class Lib {
 		return n+1;
 	}
 
+	/** Random Float value **/
 	public static inline function rnd(min:Float, max:Float, sign=false) {
 		if( sign )
 			return (min + Math.random()*(max-min)) * (Std.random(2)*2-1);
@@ -354,6 +276,7 @@ class Lib {
 			return min + Math.random()*(max-min);
 	}
 
+	/** Random Integer value **/
 	public static inline function irnd(min:Int, max:Int, sign=false) {
 		if( sign )
 			return (min + Std.random(max-min+1)) * (Std.random(2)*2-1);
@@ -362,171 +285,7 @@ class Lib {
 	}
 
 
-	public static function splitUrl(url:String) {
-		if( url==null || url.length==0 )
-			return null;
-		var noProt = if( url.indexOf("://")<0 ) url else url.substr( url.indexOf("://")+3 );
-		return {
-			prot	: if( url.indexOf("://")<0 ) null else url.substr(0, url.indexOf("://")),
-			dom		: if( noProt.indexOf("/")<0 ) noProt else if( noProt.indexOf("/")==0 ) null else noProt.substr(0, noProt.indexOf("/")),
-			path	: if( noProt.indexOf("/")<0 ) "/" else noProt.substr(noProt.indexOf("/")),
-		}
-	}
-
-	public static function splitMail(mail:String) {
-		if (mail==null || mail.length==0)
-			return null;
-		if (mail.indexOf("@")<0)
-			return null;
-		else {
-			var a = mail.split("@");
-			if ( a[1].indexOf(".")<0 )
-				return null;
-			else
-				return {
-					usr	: a[0],
-					dom	: a[1].substr(0,a[1].indexOf(".")),
-					ext	: a[1].substr(a[1].indexOf(".")+1),
-				}
-		}
-	}
-
-	#if (flash9 || nme || openfl)
-	public static function flatten(o:flash.display.DisplayObject, padding=0.0, copyTransforms=false, ?quality) {
-		// Change quality
-		var qold = try { flash.Lib.current.stage.quality; } catch(e:Dynamic) { flash.display.StageQuality.MEDIUM; };
-		if( quality!=null )
-			try {
-				flash.Lib.current.stage.quality = quality;
-			} catch( e:Dynamic ) {
-				throw("Flatten quality error");
-			}
-
-		// Cancel transforms to draw into BitmapData
-		var b = o.getBounds(o);
-		var bmp = new flash.display.Bitmap( new flash.display.BitmapData(M.ceil(b.width+padding*2), M.ceil(b.height+padding*2), true, 0x0) );
-		var m = new flash.geom.Matrix();
-		m.translate(-b.x, -b.y);
-		m.translate(padding, padding);
-		bmp.bitmapData.draw(o, m, o.transform.colorTransform);
-
-		// Apply transforms to Bitmap parent
-		var m = new flash.geom.Matrix();
-		m.translate(b.x, b.y);
-		m.translate(-padding, -padding);
-		if( copyTransforms ) {
-			m.scale(o.scaleX, o.scaleY);
-			m.rotate( M.toRad(o.rotation) );
-			m.translate(o.x, o.y);
-		}
-		bmp.transform.matrix = m;
-
-		// Restore quality
-		if( quality!=null )
-			try {
-				flash.Lib.current.stage.quality = qold;
-			} catch( e:Dynamic ) {
-				throw("Flatten quality error");
-			}
-		return bmp;
-	}
-
-
-	public static function createTexture(source:flash.display.BitmapData, width:Float, height:Float, autoDisposeSource:Bool) {
-		var bd = new BitmapData(M.ceil(width), M.ceil(height), source.transparent, 0x0);
-		bd.lock();
-
-		var pt = new flash.geom.Point();
-		for(x in 0...M.ceil(width/source.width))
-			for(y in 0...M.ceil(height/source.height)) {
-				pt.x = x * source.width;
-				pt.y = y * source.height;
-				bd.copyPixels(source, source.rect, pt, source, true);
-			}
-
-		bd.unlock();
-
-		if( autoDisposeSource ) {
-			source.dispose();
-			source = null;
-		}
-		return bd;
-	}
-
-
-	public static function scaleBitmap(source:BitmapData, scale:Float, ?q:flash.display.StageQuality, disposeSource:Bool) {
-		var bd = new BitmapData( M.round(source.width*scale), M.round(source.height*scale), source.transparent, 0x0 );
-		var m = new flash.geom.Matrix();
-		m.scale(scale, scale);
-
-		#if (flash11_3 && !openfl)
-		if( q!=null )
-			bd.drawWithQuality(source, m, false, q);
-		else
-		#end
-			bd.draw(source, m);
-
-		if( disposeSource )
-			source.dispose();
-
-		return bd;
-	}
-
-
-	public static function flipBitmap(bd:BitmapData, flipX:Bool, flipY:Bool) {
-		var tmp = bd.clone();
-		var m = new flash.geom.Matrix();
-		if( flipX ) {
-			m.scale(-1, 1);
-			m.translate(bd.width, 0);
-		}
-		if( flipY ) {
-			m.scale(1, -1);
-			m.translate(0, bd.height);
-		}
-		bd.draw(tmp, m);
-		tmp.dispose();
-	}
-	#end
-
-
-
-	public static function makeXmlNode(name:String, ?attributes:Map<String, String>, ?inner:String) {
-		if( attributes==null && inner==null )
-			return '<$name/>';
-
-		var a = [];
-		for(k in attributes.keys())
-			a.push( k+"='"+attributes.get(k)+"'" );
-
-		var begin = '<$name ${a.join(" ")}';
-		var end = inner!=null ? '>$inner</$name>' : "/>";
-		return begin+end;
-	}
-
-
-	#if flash
-	public static function loadFile(onComplete:flash.utils.ByteArray->flash.net.FileReference->Void) {
-		var file = new flash.net.FileReference();
-		file.addEventListener(flash.events.Event.SELECT, function(_) {
-			file.load();
-		});
-		file.addEventListener(flash.events.Event.COMPLETE, function(_) {
-			onComplete(file.data, file);
-		});
-		file.browse();
-	}
-
-
-	public static function saveFile(defaultName:String, data:String, ?onComplete:Void->Void) {
-		var file = new flash.net.FileReference();
-		file.addEventListener(flash.events.Event.COMPLETE, function(_) if( onComplete!=null ) onComplete() );
-		file.save(data, defaultName);
-	}
-	#end
-
-
-
+	/** Return a pretty time value "HHh MMm SSs" from a timestamp or a duration (trying to guess) **/
 	public static inline function prettyTime(t:Float) : String {
 		if( t<=DateTools.days(365) ) {
 			// Duration
@@ -542,57 +301,9 @@ class Lib {
 		}
 	}
 
-
-	#if flash
-	static var LAST_COPY_CANCEL : Void->Void = null;
-	public static function h2dCopyToClipboard(o:Dynamic) {
-		if( LAST_COPY_CANCEL!=null )
-			LAST_COPY_CANCEL();
-
-		var s = new flash.display.Sprite();
-		flash.Lib.current.addChild(s);
-		s.graphics.beginFill(0x0080FF,1);
-		s.graphics.drawRect(10,10, 200,50);
-
-		var tf = new flash.text.TextField();
-		s.addChild(tf);
-		tf.text = "Press C to confirm copy";
-		tf.x = tf.y = 10;
-		tf.textColor = 0xFFFFFF;
-		tf.width = 200;
-		tf.selectable = tf.mouseEnabled = false;
-
-		var cancelRef = null;
-		function onKeyDown(e:flash.events.KeyboardEvent) {
-			if( e.keyCode==flash.ui.Keyboard.C )
-				flash.system.System.setClipboard( Std.string(o) );
-			cancelRef();
-		}
-
-		var t = 0;
-		function onEnterFrame(_) {
-			if( t>=flash.Lib.current.stage.frameRate*3 )
-				cancelRef();
-			else
-				t++;
-		}
-
-		function cancel() {
-			flash.Lib.current.stage.removeEventListener( flash.events.KeyboardEvent.KEY_DOWN, onKeyDown );
-			flash.Lib.current.stage.removeEventListener( flash.events.Event.ENTER_FRAME, onEnterFrame );
-			s.parent.removeChild(s);
-			s = null;
-			cancelRef = null;
-			LAST_COPY_CANCEL = null;
-		}
-		cancelRef = cancel;
-		LAST_COPY_CANCEL = cancel;
-
-		flash.Lib.current.stage.addEventListener( flash.events.Event.ENTER_FRAME, onEnterFrame );
-		flash.Lib.current.stage.addEventListener( flash.events.KeyboardEvent.KEY_DOWN, onKeyDown );
-	}
-	#end
-
+	/**
+		Crash client if it's hosted in some wrong place
+	**/
 	public static function ludumProtection(p:dn.Process, ?allowLocal=true) : Bool {
 		var ok = false;
 		var s = "d"+"e"+"e"+"p"+""+"n"+"i"+""+"g"+""+"h"+"t";
@@ -626,26 +337,7 @@ class Lib {
 		return ok;
 	}
 
-	public static function getUserAgent() : String {
-		#if flash
-		try{
-			var userAgent = flash.external.ExternalInterface.call("window.navigator.userAgent.toString");
-			return
-				if( userAgent.indexOf("Chrome") != -1 )			"chrome";
-				else if( userAgent.indexOf("Safari") != -1 )	"safari";
-				else if( userAgent.indexOf("Firefox") != -1 )	"firefox";
-				else if( userAgent.indexOf("MSIE") != -1 )		"ie";
-				else if( userAgent.indexOf("Opera") != -1 )		"opera";
-				else "unknown";
-		}
-		catch (e:Dynamic) {
-			// Could not access ExternalInterface in containing page
-			return "unknown";
-		}
-		#else
-		return "unknown";
-		#end
-	}
+
 
 	public static function getEnumMetaFloat<T:EnumValue>(e:T, varName:String, ?def=0.) : Float {
 		var meta = haxe.rtti.Meta.getFields( Type.getEnum(e) );
@@ -745,45 +437,45 @@ class Lib {
 	}
 
 	/** Return TRUE if in fullscreen (if supported) **/
-	public static inline function isFullscreen() {
+	public static inline function isFullscreen() : Bool {
 		#if js
-		return (cast js.Browser.document).fullscreen;
+			return (cast js.Browser.document).fullscreen;
 		#elseif hl
-		return h3d.Engine.getCurrent().fullScreen;
+			return h3d.Engine.getCurrent().fullScreen;
 		#else
-		return false;
+			return false;
 		#end
 	}
 
 	/** Toggle client fullscreen, if supported **/
 	public static function toggleFullscreen() {
 		#if js
-		if( isFullscreen() )
-			(cast js.Browser.document).exitFullscreen();
-		else
-			(cast js.Browser.document.getElementById("webgl")).requestFullscreen(); // Warning: only works if called from a user-generated event
+			if( isFullscreen() )
+				(cast js.Browser.document).exitFullscreen();
+			else
+				(cast js.Browser.document.getElementById("webgl")).requestFullscreen(); // Warning: only works if called from a user-generated event
 		#else
-		h3d.Engine.getCurrent().fullScreen = !h3d.Engine.getCurrent().fullScreen;
+			h3d.Engine.getCurrent().fullScreen = !h3d.Engine.getCurrent().fullScreen;
 		#end
 	}
 	#end
 
-	public static function preventBrowserGameKeyEvents() {
-		#if( heaps && js )
-		(@:privateAccess hxd.Window.getInstance().element).addEventListener("keydown", function(ev:js.html.KeyboardEvent) {
-			switch ev.keyCode {
-				case 37, 38, 39, 40, // Arrows
-					33, 34, // Page up/down
-					35, 36, // Home/end
-					8, // Backspace
-					16, // Shift
-					17 : // Ctrl
-						ev.preventDefault();
-				case _ :
-			}
-		});
-		#end
-	}
+	// public static function preventBrowserGameKeyEvents() {
+	// 	#if( heaps && js )
+	// 	(@:privateAccess hxd.Window.getInstance().element).addEventListener("keydown", function(ev:js.html.KeyboardEvent) {
+	// 		switch ev.keyCode {
+	// 			case 37, 38, 39, 40, // Arrows
+	// 				33, 34, // Page up/down
+	// 				35, 36, // Home/end
+	// 				8, // Backspace
+	// 				16, // Shift
+	// 				17 : // Ctrl
+	// 					ev.preventDefault();
+	// 			case _ :
+	// 		}
+	// 	});
+	// 	#end
+	// }
 
 	/** Return array index of `v` in `arr` (-1 if not found) **/
 	public static function getArrayIdx<T>(v:T, arr:Array<T>) : Int {
@@ -805,4 +497,23 @@ class Lib {
 			: '${ M.pretty( bytesCount/(1024*1024), 1 ) } Mb';
 	}
 
+
+
+
+	@:noCompletion
+	public static function __test() {
+		CiAssert.equals( findMostFrequentValueInArray([0,0,1,0,1]), 0 );
+		CiAssert.equals( findMostFrequentValueInArray([5,0,1,0,1]), 0 );
+		CiAssert.equals( findMostFrequentValueInArray([5,1,0,0,1]), 1 );
+		CiAssert.equals( findMostFrequentValueInArray(["a","b","c","b"]), "b" );
+		CiAssert.equals( findMostFrequentValueInArray([ {v:1}, {v:2}, {v:2} ], (a,b)->a.v==b.v ).v, 2 );
+		CiAssert.equals( findMostFrequentValueInArray([ {v:1}, {v:2}, {v:1} ], (a,b)->a.v==b.v ).v, 1 );
+
+		CiAssert.equals( getArrayIdx(7, [4,9,10,7,14]), 3 );
+		CiAssert.equals( leadingZeros(14,4), "0014" );
+		CiAssert.equals( leadingZeros(14,0), "14" );
+
+		CiAssert.equals( getWeekDay(Date.fromString("2020-11-03 10:44:37")), Tuesday );
+		CiAssert.equals( getWeekDay(Date.fromString("2020-11-04 00:00:00")), Wednesday );
+	}
 }
