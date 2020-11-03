@@ -1,4 +1,4 @@
-package dn.deprecated;
+package dn.legacy;
 
 import haxe.Serializer;
 import haxe.Unserializer;
