@@ -23,8 +23,8 @@ class Process {
 
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
-	public var name			: String;
-	var children			: Array<Process>;
+	public var name : String;
+	var children : Array<Process>;
 
 	// Tools
 	public var delayer : dn.Delayer;
@@ -83,7 +83,11 @@ class Process {
 	// Graphic context (optional)
 	// -----------------------------------------------------------------------
 
-	public function createRoot( #if( heaps || h3d )    ?ctx:h2d.Object    #elseif flash    ?ctx:flash.display.Sprite   #end) {
+	#if( heaps || flash )
+	public function createRoot(
+		 #if heaps ?ctx:h2d.Object
+		 #elseif flash ?ctx:flash.display.Sprite #end
+	) {
 		if( root!=null )
 			throw this+": root already created!";
 
@@ -94,13 +98,14 @@ class Process {
 		}
 
 		#if( heaps || h3d )
-		root = new h2d.Layers(ctx);
+			root = new h2d.Layers(ctx);
 		#elseif flash
-		root = new flash.display.Sprite();
-		ctx.addChild(root);
-		pt0 = new flash.geom.Point();
+			root = new flash.display.Sprite();
+			ctx.addChild(root);
+			pt0 = new flash.geom.Point();
 		#end
 	}
+	#end
 
 	#if heaps
 	public function createRootInLayers(ctx:h2d.Layers, plan:Int) {
@@ -110,6 +115,7 @@ class Process {
 		ctx.add(root, plan);
 	}
 	#end
+
 
 
 	// -----------------------------------------------------------------------
@@ -156,16 +162,11 @@ class Process {
 	function getDefaultFrameRate() : Float {
 		#if heaps
 		return hxd.Timer.wantedFPS;
-		#else
+		#elseif flash
 		return flash.Lib.current.stage.frameRate;
+		#else
+		return 30; // N/A
 		#end
-		//#if heaps
-		//return hxd.System.getDefaultFrameRate();
-		//#elseif h3d
-		//return hxd.Stage.getInstance().getFrameRate();
-		//#else
-		//return flash.Lib.current.stage.frameRate;
-		//#end
 	}
 
 
@@ -189,6 +190,8 @@ class Process {
 		return hxd.Window.getInstance().width;
 		#elseif (flash||openfl)
 		return flash.Lib.current.stage.stageWidth;
+		#else
+		return 1;
 		#end
 	}
 	public inline function h(){
@@ -198,6 +201,8 @@ class Process {
 		return hxd.Window.getInstance().height;
 		#elseif (flash||openfl)
 		return flash.Lib.current.stage.stageHeight;
+		#else
+		return 1;
 		#end
 	}
 
@@ -376,6 +381,7 @@ class Process {
 			ROOTS.remove(p);
 
 		// Graphic context
+		#if( heaps || flash )
 		if( p.root!=null ) {
 			#if( heaps || h3d )
 			p.root.remove();
@@ -383,6 +389,7 @@ class Process {
 			p.root.parent.removeChild(p.root);
 			#end
 		}
+		#end
 
 		// Callbacks
 		p.onDispose();
@@ -397,7 +404,7 @@ class Process {
 		p.tw = null;
 		#if( heaps || h3d )
 		p.root = null;
-		#else
+		#elseif flash
 		p.root = null;
 		p.pt0 = null;
 		#end
