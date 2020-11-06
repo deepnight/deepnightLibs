@@ -143,6 +143,7 @@ class VersionNumber {
 		CiAssert.equals( new VersionNumber("1.2.3-alpha.2").label, "alpha.2");
 		CiAssert.equals( new VersionNumber("1.2.3-alpha-2").label, "alpha-2");
 		CiAssert.equals( new VersionNumber("1.2.3-alpha-2.0-c").label, "alpha-2.0-c");
+		CiAssert.equals( new VersionNumber("0.5.1-rc.1").label, "rc.1");
 
 		CiAssert.isTrue( new VersionNumber("1.0.1").compare( new VersionNumber("1.0.1") ) == 0 );
 		CiAssert.isTrue( new VersionNumber("0.0.2").compare( new VersionNumber("0.0.1") ) == 1 );
