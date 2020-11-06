@@ -38,7 +38,7 @@ class Process {
 	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
 
 	/** Process display name **/
-	public var name : String;
+	public var name : Null<String>;
 
 	var children : Array<Process>;
 
@@ -82,7 +82,6 @@ class Process {
 	}
 
 	public function init(){
-		name = "process";
 		uniqId = UNIQ_ID++;
 		children = [];
 		paused = false;
@@ -140,6 +139,31 @@ class Process {
 	#end
 
 
+	/**
+		For debug purpose, print the hierarchy of all children processes of this one.
+	**/
+	public function rprintChildren() : String {
+
+		function _crawl(p:dn.Process, depth=0) {
+			var out = [];
+			var indent = depth>0 ? " |--- " : "";
+			indent = dn.Lib.repeatChar(" ",6*(depth-1)) + indent;
+			out.push( indent + p.toString() );
+			for( cp in p.children )
+				out = out.concat( _crawl(cp, depth+1) );
+			return out;
+		}
+
+		return _crawl(this).join("\n");
+	}
+
+	public static function rprintAll() {
+		var all = [];
+		for( p in ROOTS )
+			all.push( p.rprintChildren() );
+		return all.join("\n");
+	}
+
 
 	/** Called at the "beginning of the frame", before any Process update(), in declaration order **/
 	function preUpdate() {}
@@ -169,11 +193,18 @@ class Process {
 	public dynamic function onDisposeCb() {}
 
 
+	/** Get printable process instance name **/
+	@:keep
+	public function toString() {
+		return
+			'#$uniqId '
+			+ ( name==null ? Type.getClassName( Type.getClass(this) ) : name );
+	}
+
+
 	// -----------------------------------------------------------------------
 	// private api
 	// -----------------------------------------------------------------------
-
-	@:keep function toString() return name+":"+uniqId;
 	inline function get_itime() return Std.int(ftime);
 	#if( heaps || h3d )
 	inline function get_engine() return h3d.Engine.getCurrent();
@@ -184,9 +215,9 @@ class Process {
 	inline function rnd(min,max,?sign) return Lib.rnd(min,max,sign);
 	inline function irnd(min,max,?sign) return Lib.irnd(min,max,sign);
 	inline function rndSign() return Std.random(2)*2-1;
-	public inline function pretty(v:Float, ?precision=2) return M.pretty(v, precision);
 	inline function rndSecondsF(min,max,?sign) return secToFrames( Lib.rnd(min,max,sign) );
 	inline function irndSecondsF(min,max,?sign) return secToFrames( Lib.rnd(min,max,sign) );
+	public inline function pretty(v:Float, ?precision=2) return M.pretty(v, precision);
 
 	public function secToFrames(v:Float) return v*getDefaultFrameRate();
 	public function framesToSec(v:Float) return v/getDefaultFrameRate();
@@ -276,7 +307,6 @@ class Process {
 
 	public function createChildProcess( ?onUpdate:Process->Void, ?onDispose:Process->Void, ?runUpdateImmediatly=false ) : Process {
 		var p = new dn.Process(this);
-		p.name = "childProcess";
 		if( onUpdate!=null )
 			p.onUpdateCb = function() {
 				onUpdate(p);
