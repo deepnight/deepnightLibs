@@ -130,10 +130,12 @@ class Args {
 	public static function __test() {
 		// Checks
 		CiAssert.isTrue( new Args("-v=5").hasArg("-v") );
+		CiAssert.isTrue( new Args("--v=5").hasArg("--v") );
 		CiAssert.isTrue( new Args("-v=5 -i").hasArg("-i") );
 		CiAssert.isTrue( new Args("-v=5 --i").hasArg("--i") );
+		CiAssert.isFalse( new Args("-v=5 --i").hasArg("-i") );
 		CiAssert.isTrue( new Args("-v=5 --i='some string'").hasArg("--i") );
-		CiAssert.isTrue( new Args("-v=5 --some-var ").hasArg("--some-var") );
+		CiAssert.isTrue( new Args("-v=5 foo --some-var 'some string'").hasArg("--some-var") );
 
 		// Solo values
 		CiAssert.equals( new Args("-v=5 foo bar --some-var ").getSoloValue(0), "foo" );
@@ -142,15 +144,16 @@ class Args {
 		CiAssert.equals( new Args('-v=5 foo "bar bar -a" --some-var ').getSoloValue(1), "bar bar -a" );
 		CiAssert.equals( new Args("-v=5 foo 'bar bar -a' --some-var ").getSoloValue(1), "bar bar -a" );
 		CiAssert.equals( new Args('-v=5 foo "bar bar" --some-var ').getSoloValue(2), null );
+		CiAssert.equals( new Args('-v=5 foo bar --some-var').getFirstSoloValue(), "foo" );
+		CiAssert.equals( new Args('-v=5 foo bar --some-var').getLastSoloValue(), "bar" );
 
-		// Arg params
+		// Args with params
 		CiAssert.equals( new Args("-v=5").getArgParam("-v"), "5" );
 		CiAssert.equals( new Args("-v=5 -i").getArgParam("-i"), null );
 		CiAssert.equals( new Args("-v 1 -i", [ "-v"=>2 ]).getArgParam("-v",1), null );
 		CiAssert.equals( new Args("-v 1 -i", [ "-v"=>2 ]).hasArg("-i"), true );
 		CiAssert.equals( new Args("-v 1 2 -i", [ "-v"=>2 ]).getArgParam("-v",0), "1" );
 		CiAssert.equals( new Args("-v 1 2 -i", [ "-v"=>2 ]).getArgParam("-v",1), "2" );
-
 		CiAssert.equals( new Args("-v=5 foo bar", [ "-v"=>2 ]).getSoloValue(0), "bar" );
 	}
 }
