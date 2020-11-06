@@ -5,7 +5,7 @@ package dn;
 // See: https://semver.org/
 
 class VersionNumber {
-	static var VERSION_REG = ~/^[ \t]*([0-9]+)[.]*([0-9a-z]*)[.]*([0-9]*)\-*([a-z0-9]*)/gim;
+	static var VERSION_REG = ~/^[ \t]*([0-9]+)[.]*([0-9a-z]*)[.]*([0-9]*)\-*([a-z0-9.-]*)/gim;
 
 	public var major = 0;
 	public var minor = 0;
@@ -140,6 +140,9 @@ class VersionNumber {
 		CiAssert.isTrue( new VersionNumber("1.0.6-some tag").label == "some" );
 		CiAssert.isTrue( new VersionNumber("   1.2.3  ").full=="1.2.3" );
 		CiAssert.isTrue( new VersionNumber("1.2.3-alpha").numbers=="1.2.3" );
+		CiAssert.equals( new VersionNumber("1.2.3-alpha.2").label, "alpha.2");
+		CiAssert.equals( new VersionNumber("1.2.3-alpha-2").label, "alpha-2");
+		CiAssert.equals( new VersionNumber("1.2.3-alpha-2.0-c").label, "alpha-2.0-c");
 
 		CiAssert.isTrue( new VersionNumber("1.0.1").compare( new VersionNumber("1.0.1") ) == 0 );
 		CiAssert.isTrue( new VersionNumber("0.0.2").compare( new VersionNumber("0.0.1") ) == 1 );
