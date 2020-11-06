@@ -101,20 +101,47 @@ class Args {
 		return args.exists(arg) ? args.get(arg)[paramIndex] : null;
 	}
 
-	/** Get a solo value (ie. a value which isn't part of args, nor their parameters. **/
+	/**
+		Get specified solo value.
+
+		A solo value isn't an arg (eg. "-v"), nor an arg parameter.
+	**/
 	public inline function getSoloValue(index:Int) : Null<String> {
 		return soloValues[index];
 	}
 
-	/** Get 1st solo value, if any **/
+	/**
+		Get 1st solo value, if any.
+
+		A solo value isn't an arg (eg. "-v"), nor an arg parameter.
+	**/
 	public inline function getFirstSoloValue() : Null<String> {
 		return soloValues[0];
 	}
 
-	/** Get last solo value, if any **/
+	/**
+		Get last solo value, if any.
+
+		A solo value isn't an arg (eg. "-v"), nor an arg parameter.
+	**/
 	public inline function getLastSoloValue() : Null<String> {
 		return soloValues[ soloValues.length-1 ];
 	}
+
+	/**
+		Get a copy of existing solo values.
+
+		A solo value isn't an arg (eg. "-v"), nor an arg parameter.
+	**/
+	public inline function getAllSoloValues() return soloValues.copy();
+
+	/**
+		Return TRUE if any solo value exists
+
+		A solo value isn't an arg (eg. "-v"), nor an arg parameter.
+	**/
+	public inline function hasAnySoloValue() return soloValues.length>0;
+
 
 	@:keep
 	public function toString() {
