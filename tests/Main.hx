@@ -132,6 +132,7 @@ class Main {
 		dn.Changelog.__test();
 		dn.LocalStorage.__test();
 		dn.Lib.__test();
+		dn.Args.__test();
 
 		// Done!
 		println("");
