@@ -111,4 +111,25 @@ class Delayer {
 				i++;
 		}
 	}
+
+	@:noCompletion
+	public static function __test() {
+		var fps = 30;
+		var delayer = new Delayer(fps);
+		var done = false;
+		delayer.addS("test", function() done = true, 2);
+		CiAssert.isTrue( delayer.hasId("test") );
+		CiAssert.isFalse( done );
+
+		for(i in 0...fps) delayer.update(1);
+		CiAssert.isFalse( done );
+
+		for(i in 0...fps) delayer.update(1);
+		CiAssert.isFalse( delayer.hasId("test") );
+		CiAssert.isTrue( done );
+
+		delayer.addF("test", function() CiAssert.isFalse(true), 1);
+		delayer.cancelById("test");
+		delayer.update(1);
+	}
 }

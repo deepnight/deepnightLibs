@@ -424,5 +424,26 @@ class Cinematic {
 			curQueue = null;
 	}
 
+
+
+	@:noCompletion
+	public static function __test() {
+		var c = new Cinematic(30);
+		var v = 0;
+		c.create({
+			100;
+			v+=1;
+			100;
+			v+=1;
+		});
+		c.chainToLast({
+			200;
+			v+=1;
+		});
+		while( !c.isEmpty() )
+			c.update(1);
+		CiAssert.isTrue( v==3 );
+	}
+
 	#end
 }

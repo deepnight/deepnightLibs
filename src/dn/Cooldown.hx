@@ -347,4 +347,20 @@ class Cooldown {
 				i++;
 		}
 	}
+
+
+	@:noCompletion
+	public static function __test() {
+		#if !macro
+		var fps = 30;
+		var coolDown = new Cooldown(fps);
+		coolDown.setS("test",1);
+		CiAssert.isTrue( coolDown.has("test") );
+		CiAssert.isTrue( coolDown.getRatio("test") == 1 );
+
+		for(i in 0...fps) coolDown.update(1);
+		CiAssert.isFalse( coolDown.has("test") );
+		CiAssert.isTrue( coolDown.getRatio("test") == 0 );
+		#end
+	}
 }

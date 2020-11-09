@@ -104,4 +104,19 @@ class DecisionHelper<T> {
 		}
 		return null;
 	}
+
+
+	@:noCompletion
+	public static function __test() {
+		var arr = [ "a", "foo", "bar", "food", "hello" ];
+		var dh = new dn.DecisionHelper(arr);
+		dh.score( v -> StringTools.contains(v,"o") ? 1 : 0 );
+		dh.score( v -> v.length*0.1 );
+		dh.remove( v -> StringTools.contains(v,"h") );
+		dh.keepOnly( v -> v.length>1 );
+
+		CiAssert.equals( dh.countRemaining(), 3 );
+		CiAssert.equals( dh.getBest(), "food" );
+		CiAssert.equals( new DecisionHelper([]).getBest(), null );
+	}
 }
