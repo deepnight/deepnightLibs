@@ -1,6 +1,7 @@
 -cp src
 -cp tests
--lib heaps
 -lib castle
+--resource res/data.cdb@data
+--resource res/lang/fr.mo@frmo
 
 -main Main

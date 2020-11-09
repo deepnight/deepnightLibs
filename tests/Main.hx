@@ -136,10 +136,9 @@ class Main {
 
 		// GetText
 		println("Testing GetText");
-		hxd.Res.initEmbed();
-		Data.load( hxd.Res.data.entry.getText() );
+		Data.load(haxe.Resource.getString("data"));
 		var gt = new dn.data.GetText();
-		gt.readMo( hxd.Res.load("lang/fr.mo").entry.getBytes() );
+		gt.readMo(haxe.Resource.getBytes("frmo"));
 
 		println("------ Normal text in code ------");
 		println(gt._("Normal text"));
