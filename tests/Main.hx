@@ -134,6 +134,33 @@ class Main {
 		dn.Lib.__test();
 		dn.Args.__test();
 
+		// GetText
+		println("Testing GetText");
+		hxd.Res.initEmbed();
+		Data.load( hxd.Res.data.entry.getText() );
+		var gt = new dn.data.GetText();
+		gt.readMo( hxd.Res.load("lang/fr.mo").entry.getBytes() );
+
+		println("------ Normal text in code ------");
+		println(gt._("Normal text"));
+		CiAssert.isTrue(gt._("Normal text") == "Texte normal");
+		println(gt._("Text with commentary||I'm the commentary"));
+		CiAssert.isTrue(gt._("Text with commentary||I'm the commentary") == "Texte avec commentaire");
+		println(gt._("Text with parameters: ::param::", {param:"Test"}));
+		CiAssert.isTrue(gt._("Text with parameters: ::param::", {param:"Test"}) == "Texte avec paramètres: Test");
+		println(gt._("Text with parameters: ::param:: and commentary||Commentary", {param:"Test"}));
+		CiAssert.isTrue(gt._("Text with parameters: ::param:: and commentary||Commentary", {param:"Test"}) == "Texte avec paramètres: Test et commentaire");
+		
+		println("------ CDB Text ------");
+		println(gt.get(Data.texts.get(Data.TextsKind.test_1).text));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_1).text) == "Je suis un texte CDB");
+		println(gt.get(Data.texts.get(Data.TextsKind.test_2).text));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_2).text) == "Je suis un texte CDB avec commentaire");
+		println(gt.get(Data.texts.get(Data.TextsKind.test_3).text, {param:"Test"}));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_3).text, {param:"Test"}) == "Je suis un texte CDB avec paramètre: Test");
+		println(gt.get(Data.texts.get(Data.TextsKind.test_4).text, {param:"Test"}));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_4).text, {param:"Test"}) == "Je suis un texte CDB avec paramètre: Test et commentaire");
+
 		// Done!
 		println("");
 		println("Tests succcessfully completed!");

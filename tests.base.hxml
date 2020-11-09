@@ -1,4 +1,6 @@
 -cp src
 -cp tests
+-lib heaps
+-lib castle
 
 -main Main
