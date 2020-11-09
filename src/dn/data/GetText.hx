@@ -502,6 +502,42 @@ class GetText {
 
 	#end // end of potools
 
+
+	@:noCompletion
+	public static function __test() {
+		#if !macro
+		Lib.println("Testing GetText");
+
+		var res = haxe.Resource.getString("data");
+		CiAssert.isNotNull(res);
+		CiAssert.noException( "PO loading", { Data.load(res); } );
+
+		var gt = new GetText();
+		var res = haxe.Resource.getBytes("frmo");
+		CiAssert.isNotNull( res );
+		CiAssert.noException( "MO reading", { gt.readMo(res); });
+
+		Lib.println("------ Normal text in code ------");
+		Lib.println(gt._("Normal text"));
+		CiAssert.isTrue(gt._("Normal text") == "Texte normal");
+		Lib.println(gt._("Text with commentary||I'm the commentary"));
+		CiAssert.isTrue(gt._("Text with commentary||I'm the commentary") == "Texte avec commentaire");
+		Lib.println(gt._("Text with parameters: ::param::", {param:"Test"}));
+		CiAssert.isTrue(gt._("Text with parameters: ::param::", {param:"Test"}) == "Texte avec paramètres: Test");
+		Lib.println(gt._("Text with parameters: ::param:: and commentary||Commentary", {param:"Test"}));
+		CiAssert.isTrue(gt._("Text with parameters: ::param:: and commentary||Commentary", {param:"Test"}) == "Texte avec paramètres: Test et commentaire");
+
+		Lib.println("------ CDB Text ------");
+		Lib.println(gt.get(Data.texts.get(Data.TextsKind.test_1).text));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_1).text) == "Je suis un texte CDB");
+		Lib.println(gt.get(Data.texts.get(Data.TextsKind.test_2).text));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_2).text) == "Je suis un texte CDB avec commentaire");
+		Lib.println(gt.get(Data.texts.get(Data.TextsKind.test_3).text, {param:"Test"}));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_3).text, {param:"Test"}) == "Je suis un texte CDB avec paramètre: Test");
+		Lib.println(gt.get(Data.texts.get(Data.TextsKind.test_4).text, {param:"Test"}));
+		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_4).text, {param:"Test"}) == "Je suis un texte CDB avec paramètre: Test et commentaire");
+		#end
+	}
 }
 
 /**
