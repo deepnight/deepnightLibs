@@ -48,6 +48,7 @@ class Color {
 
 	/** Turn an hex string to #rrggbb format (supports #rrggbb, #rgb and #v formats) **/
 	public static function sanitizeHexStr(hex:String, includeSharp=true) : Null<String> {
+		hex = hex==null ? "" : StringTools.trim(hex);
 		var reg = ~/^#*([0-9abcdef]{6})|^#*([0-9abcdef]{3})$|^#*([0-9abcdef]{1})$/gi;
 		if( reg.match(hex) ) {
 			return
@@ -301,11 +302,11 @@ class Color {
 		return hslToRgb(hsl);
 	}
 
-	public static function getHue(c:Int) {
+	public static inline function getHue(c:Int) {
 		return intToHsl(c).h;
 	}
 
-	public static function getSaturation(c:Int) {
+	public static inline function getSaturation(c:Int) {
 		return intToHsl(c).s;
 	}
 
@@ -1060,5 +1061,34 @@ class Color {
 	}
 	#end // Fin IF FLASH9
 
+
+	@:noCompletion
+	public static function __test() {
+		// String Hex
+		CiAssert.equals( intToHex(0xff00ff), "#FF00FF" );
+		CiAssert.equals( hexToInt("#ff00ff"), 0xff00ff );
+		CiAssert.isTrue( isValidHex("#ff00ff") );
+		CiAssert.isFalse( isValidHex("#zff00ff") );
+		CiAssert.isFalse( isValidHex("#gf00ff") );
+		CiAssert.equals( sanitizeHexStr("#fc0"), "#ffcc00" );
+		CiAssert.equals( sanitizeHexStr("#a"), "#aaaaaa" );
+		CiAssert.equals( sanitizeHexStr("  #fc0 "), "#ffcc00" );
+		CiAssert.equals( sanitizeHexStr("#gf00ff"), null );
+
+		// HSL
+		CiAssert.equals( intToHsl(0xff0000).h, 0 );
+		CiAssert.equals( intToHsl(0xff0000).s, 1 );
+		CiAssert.equals( intToHsl(0xff0000).l, 1 );
+		CiAssert.equals( makeColorHsl(0, 1, 1), 0xff0000 );
+		CiAssert.equals( getSaturation(0xff0000), 1 );
+
+		// Luminosity
+		CiAssert.equals( getLuminosity(0xffffff), 1 );
+		CiAssert.equals( getLuminosity(0x00ff00), 1 );
+
+		// Transforms
+		CiAssert.equals( toWhite(0x112233, 1), 0xffffff );
+		CiAssert.equals( toBlack(0x112233, 1), 0x0 );
+	}
 }
 

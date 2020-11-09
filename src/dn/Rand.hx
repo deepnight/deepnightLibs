@@ -132,4 +132,19 @@ class Rand {
 		#end
 	}
 
+
+
+	public static function __test() {
+		var random = new Rand(0);
+		for(i in 0...20) {
+			var seed = Std.random(999999);
+			random.initSeed(seed);
+			var a = random.rand();
+			random.initSeed(seed);
+			Lib.println("Seed="+seed+":");
+			CiAssert.equals( random.rand(), a );
+		}
+
+	}
+
 }

@@ -82,4 +82,23 @@ class RandDeck<T> {
 			a.push( elements[i] );
 		return a;
 	}
+
+
+	@:noCompletion
+	public static function __test() {
+		var randDeck = new RandDeck();
+		randDeck.push(0, 2);
+		randDeck.push(1, 5);
+		randDeck.push(2, 10);
+		randDeck.shuffle();
+		CiAssert.isTrue( randDeck.countRemaining()==17 );
+		CiAssert.noException("RandDeck.draw() check", {
+			for(i in 0...200) {
+				var v = randDeck.draw();
+				if( v==null || v<0 || v>2 )
+					throw "Value "+v+" is incorrect";
+			}
+		});
+
+	}
 }

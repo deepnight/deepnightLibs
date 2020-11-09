@@ -396,5 +396,24 @@ class Bresenham {
 		}
 	}
 
+
+	@:noCompletion
+	public static function __test() {
+		CiAssert.noException(
+			"Bresenham disc radius",
+			iterateDisc(0,0, 2, function(x,y) {
+				if( M.floor( Math.sqrt( x*x + y*y ) ) > 2 )
+					throw 'Failed at $x,$y';
+			})
+		);
+		CiAssert.noException(
+			"Bresenham circle radius",
+			iterateCircle(0,0, 2, function(x,y) {
+				if( M.round( Math.sqrt( x*x + y*y ) ) != 2 )
+					throw 'Failed at $x,$y';
+			})
+		);
+
+	}
 }
 

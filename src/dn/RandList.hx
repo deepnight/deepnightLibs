@@ -193,5 +193,20 @@ class RandList<T> {
 
 		return a;
 	}
+
+
+	@:noCompletion
+	public static function __test() {
+		var randList = new RandList([0,1,2,3]);
+		CiAssert.noException("RandList.draw() check", {
+			for(i in 0...200) {
+				var v = randList.draw();
+				if( v==null || v<0 || v>3 )
+					throw "Value "+v+" is incorrect";
+			}
+		});
+		CiAssert.isTrue( randList.getProbaPct(2)==25 );
+		CiAssert.isTrue( randList.contains(3) );
+	}
 }
 

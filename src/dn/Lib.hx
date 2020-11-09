@@ -498,6 +498,16 @@ class Lib {
 	}
 
 
+	public static function println(str:Dynamic) {
+		#if js
+			js.html.Console.log( Std.string(str) );
+		#elseif sys
+			Sys.println( Std.string(str) );
+		#else
+			trace( Std.string(str) );
+		#end
+	}
+
 
 
 	@:noCompletion
