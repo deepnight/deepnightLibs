@@ -10,7 +10,7 @@ class Args {
 	var soloValues(default,null) : Array<String> = [];
 
 	/**
-		Parse arguments in given String. Supported args format: -v, --v, -v=5 and solo (isolated) values.
+		Parse arguments in given String. Supported args format: -v, --v, -v=5, -v:5 and solo (isolated) values.
 
 		`knownArgs` is a map of known args with X expected following parameters. It is required to parse properly args like `-v foo bar`, where foo and bar should be considered as the 2 following parameters of -v.
 	**/
@@ -182,5 +182,6 @@ class Args {
 		CiAssert.equals( new Args("-v 1 2 -i", [ "-v"=>2 ]).getArgParam("-v",0), "1" );
 		CiAssert.equals( new Args("-v 1 2 -i", [ "-v"=>2 ]).getArgParam("-v",1), "2" );
 		CiAssert.equals( new Args("-v=5 foo bar", [ "-v"=>2 ]).getSoloValue(0), "bar" );
+		CiAssert.equals( new Args("-v:5 foo bar", [ "-v"=>2 ]).getArgParam("-v"), "5" );
 	}
 }
