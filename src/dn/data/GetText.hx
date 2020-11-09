@@ -505,7 +505,7 @@ class GetText {
 
 	@:noCompletion
 	public static function __test() {
-		#if !macro
+		#if( !macro && deepnightLibsTests )
 		Lib.println("Testing GetText");
 
 		var res = haxe.Resource.getString("data");

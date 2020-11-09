@@ -3,5 +3,6 @@
 -lib castle
 --resource res/data.cdb@data
 --resource res/lang/fr.mo@frmo
+-D deepnightLibsTests
 
 -main Main
