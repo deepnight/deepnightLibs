@@ -410,25 +410,32 @@ class GetText {
 					return;
 
 				var cleanedStr = str;
-				var comment : String = StringTools.trim(id);
+				var comment : String = "";
 				if( cleanedStr.indexOf(CONTEXT)>=0 ) {
 					var parts = cleanedStr.split(CONTEXT);
 					if( parts.length!=2 ) {
 						error(file,idx,"Malformed translator comment");
 					}
-					comment = StringTools.trim(parts[1]) + "\n" +comment;
+					comment = StringTools.trim(parts[1]);
 					cleanedStr = cleanedStr.substr(0,cleanedStr.indexOf(CONTEXT));
 				}
 				cleanedStr = POTools.escape(StringTools.rtrim(cleanedStr));
 
 				if( !strMap.exists(cleanedStr) ) {
 					strMap.set(cleanedStr, true);
-					data.push({
-						id			: cleanedStr,
-						str			: "",
-						cRef		: idx,
-						cExtracted	: comment,
-					});
+					if (comment.length > 0)
+						data.push({
+							id			: cleanedStr,
+							str			: "",
+							cRef		: idx,
+							cExtracted	: comment,
+						});
+					else
+						data.push({
+							id			: cleanedStr,
+							str			: "",
+							cRef		: idx,
+						});
 				}else{
 					var previous = Lambda.find(data,function(e) return e.id==cleanedStr);
 					if( previous != null )
