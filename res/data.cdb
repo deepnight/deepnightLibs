@@ -1,0 +1,40 @@
+{
+	"sheets": [
+		{
+			"name": "texts",
+			"columns": [
+				{
+					"typeStr": "0",
+					"name": "id"
+				},
+				{
+					"typeStr": "1",
+					"name": "text",
+					"kind": "localizable"
+				}
+			],
+			"lines": [
+				{
+					"id": "test_1",
+					"text": "I'm a CDB text"
+				},
+				{
+					"id": "test_2",
+					"text": "I'm a CDB text with commentary||Commentary"
+				},
+				{
+					"id": "test_3",
+					"text": "I'm a CDB text with param: ::param::"
+				},
+				{
+					"id": "test_4",
+					"text": "I'm a CDB text with param: ::param:: and commentary||Commentary"
+				}
+			],
+			"separators": [],
+			"props": {}
+		}
+	],
+	"customTypes": [],
+	"compress": false
+}

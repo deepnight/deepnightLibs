@@ -1,0 +1,9 @@
+-cp src
+-cp tests
+-main LangParser
+-lib castle
+-D potools
+-hl tests/bin/langParser.hl
+
+--next
+-cmd hl tests/bin/langParser.hl
