@@ -157,7 +157,7 @@ class Process {
 		return _crawl(this).join("\n");
 	}
 
-	public static function rprintAll() {
+	public static function rprintAll() : String {
 		var all = [];
 		for( p in ROOTS )
 			all.push( p.rprintChildren() );
