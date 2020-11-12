@@ -174,11 +174,35 @@ class Color {
 		return matrix;
 	}
 
-	public static inline function intToHex(c:Int, ?leadingZeros=6) : String {
-		var h = StringTools.hex(c);
-		while (h.length<leadingZeros)
-			h="0"+h;
-		return "#"+h;
+	public static inline function intToHex(c:Int, leadingZeros=6, includeSharp=true) : String {
+		return ( includeSharp ? "#" : "" ) + StringTools.hex(c, leadingZeros);
+	}
+
+	public static inline function intToHex3(c:Int) : String {
+		var hexChars = "0123456789ABCDEF";
+		var h = StringTools.hex(c,6);
+		return hexChars.charAt( M.round( getR(c)*15 ) )
+			+ hexChars.charAt( M.round( getG(c)*15 ) )
+			+ hexChars.charAt( M.round( getB(c)*15 ) );
+	}
+
+	public static inline function intToARGBHex3(c:Int) : String {
+		var hexChars = "0123456789ABCDEF";
+		var h = StringTools.hex(c,8);
+		return hexChars.charAt( M.round( getA(c)*15 ) )
+			+ hexChars.charAt( M.round( getR(c)*15 ) )
+			+ hexChars.charAt( M.round( getG(c)*15 ) )
+			+ hexChars.charAt( M.round( getB(c)*15 ) );
+	}
+
+	public static inline function ARGBHex3ToInt(argbHex:String) : UInt {
+		return Std.parseInt(
+			"0x"
+			+ argbHex.charAt(0)+argbHex.charAt(0)
+			+ argbHex.charAt(1)+argbHex.charAt(1)
+			+ argbHex.charAt(2)+argbHex.charAt(2)
+			+ argbHex.charAt(3)+argbHex.charAt(3)
+		);
 	}
 
 	public static inline function intToRgb(c:Int) : Col {
