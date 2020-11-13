@@ -122,6 +122,7 @@ class PixelGrid extends h2d.Object {
 			var h = 0;
 			var dx = 0;
 			var dones = new Map();
+			var same = true;
 			for(x in 0...wid)
 			for(y in 0...hei) {
 				if( hasPixel(x,y) && !dones.exists( coordId(x,y) ) ) {
@@ -135,12 +136,18 @@ class PixelGrid extends h2d.Object {
 					}
 					// Expand vertically
 					h = 1;
-					while( true ) {
+					while( isValid(x,y+h) && pixels.get(coordId(x,y+h))==c ) {
 						dx = 0;
-						while( isValid(x+dx,y+h) && getPixelARGB(x+dx, y+h)==c && !dones.exists(coordId(x+dx,y+h)) )
+						same = true;
+						while( dx<w && isValid(x+dx,y+h) ) {
+							if( pixels.get(coordId(x+dx, y+h))!=c || dones.exists(coordId(x+dx,y+h)) ) {
+								same = false;
+								break;
+							}
 							dx++;
+						}
 
-						if( dx==w ) {
+						if( same ) {
 							for(x in x...x+w)
 								dones.set(coordId(x, y+h), true);
 							h++;
