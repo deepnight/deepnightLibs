@@ -497,7 +497,15 @@ class Lib {
 			: '${ M.pretty( bytesCount/(1024*1024), 1 ) } Mb';
 	}
 
+	public static inline function parseSignedInt(v:String) : Int {
+		#if js
+		return ( cast Std.parseInt(v):Int ) & 0xffffffff;
+		#else
+		return Std.parseInt(v);
+		#end
+	}
 
+	/** Print a line to standard output, if any **/
 	public static function println(str:Dynamic) {
 		#if js
 			js.html.Console.log( Std.string(str) );
@@ -507,7 +515,6 @@ class Lib {
 			trace( Std.string(str) );
 		#end
 	}
-
 
 
 	@:noCompletion
@@ -522,6 +529,11 @@ class Lib {
 		CiAssert.equals( getArrayIdx(7, [4,9,10,7,14]), 3 );
 		CiAssert.equals( leadingZeros(14,4), "0014" );
 		CiAssert.equals( leadingZeros(14,0), "14" );
+
+		CiAssert.equals( parseSignedInt("0xaaffcc00"), 0xaaffcc00 );
+		CiAssert.equals( parseSignedInt("0xffffffff"), 0xffffffff );
+		CiAssert.equals( parseSignedInt("0xffffff"), 0xffffff );
+		CiAssert.equals( parseSignedInt("0x00ffffff"), 0x00ffffff );
 
 		CiAssert.equals( getWeekDay(Date.fromString("2020-11-03 10:44:37")), Tuesday );
 		CiAssert.equals( getWeekDay(Date.fromString("2020-11-04 00:00:00")), Wednesday );
