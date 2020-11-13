@@ -22,6 +22,7 @@ typedef Pal = Array<Col>;
 typedef PalInt = Array<Int>;
 
 class Color {
+	static var HEX_CHARS = "0123456789abcdef";
 	public static var BLACK = intToRgb(0x0);
 	public static var WHITE = intToRgb(0xffffff);
 	public static var MEDIAN_GRAY = intToRgb(0x808080);
@@ -179,30 +180,42 @@ class Color {
 	}
 
 	public static inline function intToHex3(c:Int) : String {
-		var hexChars = "0123456789ABCDEF";
 		var h = StringTools.hex(c,6);
-		return hexChars.charAt( M.round( getR(c)*15 ) )
-			+ hexChars.charAt( M.round( getG(c)*15 ) )
-			+ hexChars.charAt( M.round( getB(c)*15 ) );
+		return HEX_CHARS.charAt( M.round( getR(c)*15 ) )
+			+ HEX_CHARS.charAt( M.round( getG(c)*15 ) )
+			+ HEX_CHARS.charAt( M.round( getB(c)*15 ) );
 	}
 
-	public static inline function intToARGBHex3(c:Int) : String {
-		var hexChars = "0123456789ABCDEF";
+	/** Returns a 4-chars String using format "argb" (WARNING: color precision will be reduced!) */
+	public static inline function intToHex3_ARGB(c:Int) : String {
 		var h = StringTools.hex(c,8);
-		return hexChars.charAt( M.round( getA(c)*15 ) )
-			+ hexChars.charAt( M.round( getR(c)*15 ) )
-			+ hexChars.charAt( M.round( getG(c)*15 ) )
-			+ hexChars.charAt( M.round( getB(c)*15 ) );
+		return HEX_CHARS.charAt( M.round( getA(c)*15 ) )
+			+ HEX_CHARS.charAt( M.round( getR(c)*15 ) )
+			+ HEX_CHARS.charAt( M.round( getG(c)*15 ) )
+			+ HEX_CHARS.charAt( M.round( getB(c)*15 ) );
 	}
 
-	public static inline function ARGBHex3ToInt(argbHex:String) : UInt {
-		return Std.parseInt(
-			"0x"
-			+ argbHex.charAt(0)+argbHex.charAt(0)
-			+ argbHex.charAt(1)+argbHex.charAt(1)
-			+ argbHex.charAt(2)+argbHex.charAt(2)
-			+ argbHex.charAt(3)+argbHex.charAt(3)
-		);
+	/** Parse a 4-chars String using format "argb" (expanded to "aarrggbb") **/
+	public static inline function hex3ToInt_ARGB(argbHex:String) : Int {
+		if( argbHex==null )
+			return 0x0;
+		else if( argbHex.length==4 )
+			return Lib.parseSignedInt(
+				"0x"
+				+ argbHex.charAt(0)+argbHex.charAt(0)
+				+ argbHex.charAt(1)+argbHex.charAt(1)
+				+ argbHex.charAt(2)+argbHex.charAt(2)
+				+ argbHex.charAt(3)+argbHex.charAt(3)
+			);
+		else if( argbHex.length==3 )
+			return Lib.parseSignedInt(
+				"0xff"
+				+ argbHex.charAt(0)+argbHex.charAt(0)
+				+ argbHex.charAt(1)+argbHex.charAt(1)
+				+ argbHex.charAt(2)+argbHex.charAt(2)
+			);
+		else
+			return 0x0;
 	}
 
 	public static inline function intToRgb(c:Int) : Col {
@@ -213,10 +226,18 @@ class Color {
 		}
 	}
 
+	/** Get Alpha as 0-1 float from 0xaarrggbb **/
 	public static inline function getA(c:Int) : Float return ((c>>24)&0xFF)/255;
+
+	/** Get Red as 0-1 float from 0x[aa]rrggbb **/
 	public static inline function getR(c:Int) : Float return ((c>>16)&0xFF)/255;
+
+	/** Get Green as 0-1 float from 0x[aa]rrggbb **/
 	public static inline function getG(c:Int) : Float return ((c>>8)&0xFF)/255;
+
+	/** Get Blue as 0-1 float from 0x[aa]rrggbb **/
 	public static inline function getB(c:Int) : Float return (c&0xFF)/255;
+
 
 	#if( h3d || heaps )
 	public static inline function intToVector(c:Int) : h3d.Vector {
@@ -404,10 +425,10 @@ class Color {
 		return addAlphaF( removeAlpha(c), a );
 	}
 
-	public static inline function addAlphaF(c:Int, ?a=1.0) : #if (flash || openfl) UInt #else Int #end {
+	public static inline function addAlphaF(c:Int, ?a=1.0) : UInt {
 		return Std.int(a*255)<<24 | c;
 	}
-	public static inline function addAlphaI(c:Int, ?a=255) : #if (flash || openfl) UInt #else Int #end {
+	public static inline function addAlphaI(c:Int, ?a=255) : UInt {
 		return a<<24 | c;
 	}
 
@@ -1098,6 +1119,13 @@ class Color {
 		CiAssert.equals( sanitizeHexStr("#a"), "#aaaaaa" );
 		CiAssert.equals( sanitizeHexStr("  #fc0 "), "#ffcc00" );
 		CiAssert.equals( sanitizeHexStr("#gf00ff"), null );
+		CiAssert.equals( intToHex3(0xffcc00), "fc0" );
+		CiAssert.equals( intToHex3(0xDfCf0f), "dc1" );
+		CiAssert.equals( intToHex3_ARGB(0xaaffcc00), "afc0" );
+		CiAssert.equals( intToHex3_ARGB(0xffcc00), "0fc0" );
+		CiAssert.equals( hex3ToInt_ARGB("afc0"), 0xaaffcc00 );
+		CiAssert.equals( hex3ToInt_ARGB("fc0"), 0xffffcc00 );
+
 
 		// HSL
 		CiAssert.equals( intToHsl(0xff0000).h, 0 );
