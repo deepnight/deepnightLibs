@@ -8,7 +8,7 @@ typedef ChangelogEntry = {
 	/**
 		Version with format x.y.z[-label]
 	**/
-	var version : dn.VersionNumber;
+	var version : dn.Version;
 
 	/**
 		Version title
@@ -97,10 +97,10 @@ class Changelog {
 				var rawVersion = VERSION_TITLE_REG.matched(1);
 
 				// Parse version number according to SemVer format
-				if( !VersionNumber.isValid(rawVersion) )
+				if( !Version.isValid(rawVersion) )
 					throw "Version number "+rawVersion+" in changelog doesn't comply to SemVer semantics";
 
-				var ver = new VersionNumber(rawVersion);
+				var ver = new Version(rawVersion);
 				cur = {
 					version: ver,
 					title: VERSION_TITLE_REG.matched(2)=="" ? null : VERSION_TITLE_REG.matched(2),

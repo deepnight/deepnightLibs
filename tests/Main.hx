@@ -20,7 +20,7 @@ class Main {
 		Bresenham.__test();
 		FilePath.__test();
 		dn.pathfinder.AStar.__test();
-		VersionNumber.__test();
+		Version.__test();
 		M.__test();
 		Changelog.__test();
 		LocalStorage.__test();
