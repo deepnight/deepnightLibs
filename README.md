@@ -8,11 +8,15 @@ The general purpose personal libs I use in all my Haxe projects.
 
 ## Stable
 
+Use this version if you plan to use the libs for your own projects. 
+
 ```bash
 haxelib install deepnightLibs
 ```
 
 ## Latest Git version (mostly stable)
+
+Use this version if you're building one of my own projects, such as LDtk or one of my gamejam entry.
 
 ```bash
 haxelib git deepnightLibs https://github.com/deepnight/deepnightLibs
