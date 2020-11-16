@@ -478,7 +478,7 @@ class Lib {
 	// }
 
 	/** Return array index of `v` in `arr` (-1 if not found) **/
-	public static function getArrayIdx<T>(v:T, arr:Array<T>) : Int {
+	public static function getArrayIndex<T>(v:T, arr:Array<T>) : Int {
 		if( arr.length==0 )
 			return -1;
 
@@ -526,7 +526,7 @@ class Lib {
 		CiAssert.equals( findMostFrequentValueInArray([ {v:1}, {v:2}, {v:2} ], (a,b)->a.v==b.v ).v, 2 );
 		CiAssert.equals( findMostFrequentValueInArray([ {v:1}, {v:2}, {v:1} ], (a,b)->a.v==b.v ).v, 1 );
 
-		CiAssert.equals( getArrayIdx(7, [4,9,10,7,14]), 3 );
+		CiAssert.equals( getArrayIndex(7, [4,9,10,7,14]), 3 );
 		CiAssert.equals( leadingZeros(14,4), "0014" );
 		CiAssert.equals( leadingZeros(14,0), "14" );
 
