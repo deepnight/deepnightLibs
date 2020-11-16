@@ -168,7 +168,9 @@ class Version {
 
 		// Statics
 		CiAssert.isTrue( Version.greater("1.0.5", "0.9.9-alpha") );
+		CiAssert.isTrue( Version.greater("0.6.0-alpha", "0.5.9-beta-debug") );
 		CiAssert.isTrue( Version.lower("1.0.5", "1.1.0-alpha") );
+		CiAssert.isTrue( Version.lower("0.5.9-beta-debug", "0.6") );
 
 		CiAssert.isTrue( Version.equal("1.0.5", "1.0.5") );
 		CiAssert.isFalse( Version.equal("1.0", "1.0-alpha") );
