@@ -517,6 +517,26 @@ class Lib {
 	}
 
 
+	/**
+		Return TRUE if rectangle A overlaps rectangle B, or if A touches B.
+	**/
+	public static inline function rectangleTouches(aX:Float, aY:Float, aWid:Float, aHei:Float, bX:Float, bY:Float, bWid:Float, bHei:Float) {
+		/*
+		Source: https://www.baeldung.com/java-check-if-two-rectangles-overlap
+
+		"The two given rectangles won't overlap if either of the below conditions is true:
+			One of the two rectangles is above the top edge of the other rectangle
+			One of the two rectangles is on the left side of the left edge of the other rectangle"
+		*/
+		if( aY+aHei < bY || bY+bHei < aY )
+			return false;
+		else if( aX+aWid < bX || bX+bWid < aX )
+			return false;
+		else
+			return true;
+}
+
+
 	@:noCompletion
 	public static function __test() {
 		CiAssert.equals( findMostFrequentValueInArray([0,0,1,0,1]), 0 );
@@ -537,5 +557,12 @@ class Lib {
 
 		CiAssert.equals( getWeekDay(Date.fromString("2020-11-03 10:44:37")), Tuesday );
 		CiAssert.equals( getWeekDay(Date.fromString("2020-11-04 00:00:00")), Wednesday );
+
+		CiAssert.isTrue( rectangleTouches(0,0,5,5, 0,5,1,1) );
+		CiAssert.isTrue( rectangleTouches(0,0,5,5, 5,5,1,1) );
+		CiAssert.isTrue( rectangleTouches(0,0,5,5, 2,2,1,1) );
+		CiAssert.isTrue( rectangleTouches(2,2,1,1, 0,0,5,5) );
+		CiAssert.isFalse( rectangleTouches(0,0,5,5, 0,6,1,1) );
+		CiAssert.isFalse( rectangleTouches(0,0,5,5, -3,-3,1,1) );
 	}
 }
