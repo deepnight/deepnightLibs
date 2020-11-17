@@ -518,7 +518,7 @@ class Lib {
 
 
 	/**
-		Return TRUE if rectangle A overlaps rectangle B, or if A touches B.
+		Return TRUE if rectangle A touches or overlaps rectangle B.
 	**/
 	public static inline function rectangleTouches(aX:Float, aY:Float, aWid:Float, aHei:Float, bX:Float, bY:Float, bWid:Float, bHei:Float) {
 		/*
@@ -534,7 +534,27 @@ class Lib {
 			return false;
 		else
 			return true;
-}
+	}
+
+
+	/**
+		Return TRUE if rectangle A overlaps (NOT just touches) rectangle B.
+	**/
+	public static inline function rectangleOverlaps(aX:Float, aY:Float, aWid:Float, aHei:Float, bX:Float, bY:Float, bWid:Float, bHei:Float) {
+		/*
+		Source: https://www.baeldung.com/java-check-if-two-rectangles-overlap
+
+		"The two given rectangles won't overlap if either of the below conditions is true:
+			One of the two rectangles is above the top edge of the other rectangle
+			One of the two rectangles is on the left side of the left edge of the other rectangle"
+		*/
+		if( aY+aHei <= bY || bY+bHei <= aY )
+			return false;
+		else if( aX+aWid <= bX || bX+bWid <= aX )
+			return false;
+		else
+			return true;
+	}
 
 
 	@:noCompletion
@@ -564,5 +584,10 @@ class Lib {
 		CiAssert.isTrue( rectangleTouches(2,2,1,1, 0,0,5,5) );
 		CiAssert.isFalse( rectangleTouches(0,0,5,5, 0,6,1,1) );
 		CiAssert.isFalse( rectangleTouches(0,0,5,5, -3,-3,1,1) );
+
+		CiAssert.isFalse( rectangleOverlaps(0,0,5,5, 0,5,1,1) );
+		CiAssert.isFalse( rectangleOverlaps(0,0,5,5, -1,0,1,1) );
+		CiAssert.isTrue( rectangleOverlaps(0,0,5,5, 2,2,1,1) );
+		CiAssert.isTrue( rectangleOverlaps(2,2,1,1, 0,0,5,5) );
 	}
 }
