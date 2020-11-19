@@ -120,6 +120,7 @@ class Atlas {
 
 		var frameReg = ~/(.*?)(_?)([0-9]+)$/gi;
 		var numReg = ~/^[0-9]+$/;
+		var notZeroBasedWildcard = notZeroBaseds.exists('*');
 		for( groupName in bestVariants.keys() ) {
 			var rawName = bestVariants.get(groupName).rawName;
 
@@ -135,7 +136,7 @@ class Atlas {
 				if( frameReg.match(k) ) {
 					k = frameReg.matched(1);
 					f = Std.parseInt(frameReg.matched(3));
-					if( notZeroBaseds.exists('*') || notZeroBaseds.exists(k) )
+					if( notZeroBasedWildcard || notZeroBaseds.exists(k) )
 						f--;
 
 					// register frameData under both names for 'idle0', not for 'idle_0'
