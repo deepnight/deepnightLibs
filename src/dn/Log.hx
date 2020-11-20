@@ -37,7 +37,7 @@ class Log {
 	public var outputConsole : Null<h2d.Console>;
 	#end
 
-	public function new(maxEntries:Int) {
+	public function new(maxEntries=500) {
 		entries = [];
 		this.maxEntries = maxEntries;
 	}
