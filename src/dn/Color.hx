@@ -480,23 +480,35 @@ class Color {
 		if( uniqueColors.length==0 )
 			initUniqueColors();
 
+		// Build string "kind-of checksum"
 		var csum = 0;
 		for(i in 0...str.length)
 			csum += str.charCodeAt(i) - 31;
 		var idx = csum % uniqueColors.length;
+		trace(str+" => idx="+idx+" assigned="+assignedUniqueColors.get(idx));
 
-		if( assignedUniqueColors.get(idx)!=str ) {
+		if( !assignedUniqueColors.exists(idx) ) {
+			// Unused unique color index
+			assignedUniqueColors.set(idx,str);
+		}
+		else if( assignedUniqueColors.get(idx)!=str ) {
+			// Color index in use, but by another string
 			var limit = uniqueColors.length;
-			while( limit-->0 && assignedUniqueColors.exists(idx) ) {
+			while( limit-->0 && assignedUniqueColors.exists(idx) && assignedUniqueColors.get(idx)!=str ) {
 				idx++;
 				if( idx>=uniqueColors.length )
 					idx = 0;
 			}
-			if( limit<=0 )
+			if( limit<=0 ) {
+				// Palette limit exceeded, use default index
 				idx = csum % uniqueColors.length;
+			}
+			else {
+				// Self-assign the unused index found
+				assignedUniqueColors.set(idx,str);
+			}
 		}
 
-		assignedUniqueColors.set(idx,str);
 		return uniqueColors[idx];
 	}
 
