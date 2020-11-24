@@ -452,6 +452,54 @@ class Color {
 		return makeColorHsl( (csum%100)/100, 0.3+0.3*(csum%210)/210, 1 );
 	}
 
+
+	/** Init the "unique" color palette used by `pickUniqueColorFor()` **/
+	static var uniqueColors : Array<UInt> = [];
+	public static function initUniqueColors(mixedColor=0x493a7d) {
+		assignedUniqueColors = new Map();
+
+		// Init palette
+		uniqueColors = [];
+		var n = 12;
+		for(i in 0...n) {
+			var hue = i/n;
+			var sat = (0.6+0.4*(1-hue)) * 0.8;
+			var lum = i%2==0 ? 0.65 : 0.45;
+			var c = makeColorHsl(hue, sat, lum);
+			c = interpolateInt(c, mixedColor, 0.6);
+			uniqueColors.push(c);
+		}
+
+		var rseed = new dn.Rand(197);
+		dn.Lib.shuffleArray(uniqueColors, rseed.random);
+	}
+
+	/** Pick a random color based on a string. Try to avoid color repetitions, as long as the "unique" colors palette isn't depleted. **/
+	static var assignedUniqueColors : Map<Int,String> = new Map();
+	public static function pickUniqueColorFor(str:String) {
+		if( uniqueColors.length==0 )
+			initUniqueColors();
+
+		var csum = 0;
+		for(i in 0...str.length)
+			csum += str.charCodeAt(i) - 31;
+		var idx = csum % uniqueColors.length;
+
+		if( assignedUniqueColors.get(idx)!=str ) {
+			var limit = uniqueColors.length;
+			while( limit-->0 && assignedUniqueColors.exists(idx) ) {
+				idx++;
+				if( idx>=uniqueColors.length )
+					idx = 0;
+			}
+			if( limit<=0 )
+				idx = csum % uniqueColors.length;
+		}
+
+		assignedUniqueColors.set(idx,str);
+		return uniqueColors[idx];
+	}
+
 	public static inline function makeColorHsl(hue:Float, ?saturation=1.0, ?luminosity=1.0) : Int { // range : 0-1
 		var hsl : ColHsl = {
 			h : hue,
