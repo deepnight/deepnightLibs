@@ -237,16 +237,16 @@ class Color {
 	}
 
 	/** Get Alpha as 0-1 float from 0xaarrggbb **/
-	public static inline function getA(c:Int) : Float return ((c>>24)&0xFF)/255;
+	public static inline function getA(c:Int) : Float return getAi(c)/255;
 
 	/** Get Red as 0-1 float from 0x[aa]rrggbb **/
-	public static inline function getR(c:Int) : Float return ((c>>16)&0xFF)/255;
+	public static inline function getR(c:Int) : Float return getRi(c)/255;
 
 	/** Get Green as 0-1 float from 0x[aa]rrggbb **/
-	public static inline function getG(c:Int) : Float return ((c>>8)&0xFF)/255;
+	public static inline function getG(c:Int) : Float return getGi(c)/255;
 
 	/** Get Blue as 0-1 float from 0x[aa]rrggbb **/
-	public static inline function getB(c:Int) : Float return (c&0xFF)/255;
+	public static inline function getB(c:Int) : Float return getBi(c)/255;
 
 
 	/** Get Alpha as 0-255 integer from 0xaarrggbb **/
@@ -1207,7 +1207,21 @@ class Color {
 		CiAssert.equals( intToHex3_ARGB(0xffcc00), "0fc0" );
 		CiAssert.equals( hex3ToInt_ARGB("afc0"), 0xaaffcc00 );
 		CiAssert.equals( hex3ToInt_ARGB("fc0"), 0xffffcc00 );
+		CiAssert.equals( intToHexARGB(0x11223344), "#11223344" );
+		CiAssert.equals( intToHexRGBA(0x11223344), "#22334411" );
 
+		// Channel getters
+		CiAssert.equals( getR(0xff0000), 1 );
+		CiAssert.equals( getR(0x330000), 0.2 );
+		CiAssert.equals( getG(0x00ff00), 1 );
+		CiAssert.equals( getB(0x0000ff), 1 );
+		CiAssert.equals( getA(0xff00ff), 0 );
+		CiAssert.equals( getA(0xffff00ff), 1 );
+		CiAssert.equals( getA(0x33ff0080), 0.2 );
+		CiAssert.equals( getAi(0x33ff0080), 51 );
+		CiAssert.equals( getRi(0x33ff0080), 255 );
+		CiAssert.equals( getGi(0x33ff0080), 0 );
+		CiAssert.equals( getBi(0x33ff0080), 128 );
 
 		// HSL
 		CiAssert.equals( intToHsl(0xff0000).h, 0 );
