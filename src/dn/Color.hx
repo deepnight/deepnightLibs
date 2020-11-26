@@ -485,7 +485,6 @@ class Color {
 		for(i in 0...str.length)
 			csum += str.charCodeAt(i) - 31;
 		var idx = csum % uniqueColors.length;
-		trace(str+" => idx="+idx+" assigned="+assignedUniqueColors.get(idx));
 
 		if( !assignedUniqueColors.exists(idx) ) {
 			// Unused unique color index
