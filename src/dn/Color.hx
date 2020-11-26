@@ -179,6 +179,16 @@ class Color {
 		return ( includeSharp ? "#" : "" ) + StringTools.hex(c, leadingZeros);
 	}
 
+	public static inline function intToHexARGB(c:Int, includeSharp=true) : String {
+		return ( includeSharp ? "#" : "" ) + StringTools.hex(c, 8);
+	}
+
+	public static inline function intToHexRGBA(c:Int, includeSharp=true) : String {
+		return ( includeSharp ? "#" : "" )
+			+ StringTools.hex(removeAlpha(c), 6)
+			+ StringTools.hex(getAlpha(c), 2);
+	}
+
 	public static inline function intToHex3(c:Int) : String {
 		var h = StringTools.hex(c,6);
 		return HEX_CHARS.charAt( M.round( getR(c)*15 ) )
@@ -237,6 +247,19 @@ class Color {
 
 	/** Get Blue as 0-1 float from 0x[aa]rrggbb **/
 	public static inline function getB(c:Int) : Float return (c&0xFF)/255;
+
+
+	/** Get Alpha as 0-255 integer from 0xaarrggbb **/
+	public static inline function getAi(c:Int) : Int return (c>>24)&0xFF;
+
+	/** Get Red as 0-255 integer from 0x[aa]rrggbb **/
+	public static inline function getRi(c:Int) : Int return (c>>16)&0xFF;
+
+	/** Get Green as 0-255 integer from 0x[aa]rrggbb **/
+	public static inline function getGi(c:Int) : Int return (c>>8)&0xFF;
+
+	/** Get Blue as 0-255 integer from 0x[aa]rrggbb **/
+	public static inline function getBi(c:Int) : Int return c&0xFF;
 
 
 	#if( h3d || heaps )
