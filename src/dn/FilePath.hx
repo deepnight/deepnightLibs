@@ -285,7 +285,7 @@ class FilePath {
 		}
 		else {
 			// URI prefixes
-			var uriSchemeReg = ~/([a-z]{2,}):[\/]{2}(.*?)\/|([a-z]{2,}):[\/]{1}/gi;
+			var uriSchemeReg = ~/^([a-z]{2,}):[\/]{2}(.*?)\/|^([a-z]{2,}):[\/]{1}/gi;
 			if( uriSchemeReg.match(rawPath) ) {
 				if( uriSchemeReg.matched(3)!=null ) {
 					// No Authority provided, eg. "file:/path/foo/bar.txt"
@@ -364,8 +364,8 @@ class FilePath {
 
 	function sanitize(v:String, ignoreDoubleDots=false) {
 		return ignoreDoubleDots
-			? ~/[~#%*{}\/<>?|]/g.replace( v, "_" )
-			: ~/[~#%*{}\/:<>?|]/g.replace( v, "_" );
+			? ~/[*{}\/\\<>?|]/g.replace( v, "_" )
+			: ~/[*{}\/\\<>?|:]/g.replace( v, "_" );
 	}
 
 	function set_extension(v:Null<String>) {
@@ -635,6 +635,11 @@ class FilePath {
 		CiAssert.isTrue( FilePath.extractFileName("/user/test.png") == "test" );
 		CiAssert.isTrue( FilePath.extractExtension("/user/test.png") == "png" );
 		CiAssert.isTrue( FilePath.extractExtension("/user/test") == null );
+
+		// Special characters
+		CiAssert.equals( FilePath.fromFile("/some/Dir~#%/foo.txt").full, "/some/Dir~#%/foo.txt" );
+		CiAssert.equals( FilePath.fromFile("/some/Dir:/foo.txt").full, "/some/Dir_/foo.txt" );
+		CiAssert.equals( FilePath.fromFile("/some/Dir*?:/foo.txt").full, "/some/Dir___/foo.txt" );
 
 		// Simplification
 		CiAssert.isTrue( FilePath.fromDir("foo/bar/../../test").directory=="test" );
