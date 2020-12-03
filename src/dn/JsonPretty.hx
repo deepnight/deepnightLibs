@@ -38,7 +38,7 @@ class JsonPretty {
 
 
 	static var floatReg = ~/^([-0-9.]+)f$/g;
-	static function addValue(name:Null<String>, v:Dynamic) : Void {
+	static function addValue(name:Null<String>, v:Dynamic, forceMultilines=false) : Void {
 		switch Type.typeof(v) {
 			case TNull, TInt, TBool:
 				name==null ? buf.add(Std.string(v)) : buf.add('"$name"$preSpace:$postSpace$v');
@@ -61,10 +61,10 @@ class JsonPretty {
 					name==null ? buf.add('"$v"') : buf.add('"$name"$preSpace:$postSpace"$v"');
 
 			case TClass(Array):
-				addArray(name, v);
+				addArray(name, v, forceMultilines);
 
 			case TObject:
-				addObject(name, v);
+				addObject(name, v, forceMultilines);
 
 			case _:
 				throw 'Unknown value type $name=$v ('+Type.typeof(v)+')';
@@ -72,7 +72,7 @@ class JsonPretty {
 	}
 
 
-	static function addObject(name:Null<String>, o:Dynamic) {
+	static function addObject(name:Null<String>, o:Dynamic, forceMultilines=false) {
 		var keys = Reflect.fields(o);
 		if( keys.length==0 ) {
 			if( name==null )
@@ -89,7 +89,7 @@ class JsonPretty {
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
-		if( len<=APPROXIMATE_MAX_LINE_LENGTH && !needHeader ) {
+		if( len<=APPROXIMATE_MAX_LINE_LENGTH && !needHeader && !forceMultilines ) {
 			// Single line
 			buf.add('{$space');
 			for( i in 0...keys.length ) {
@@ -129,7 +129,7 @@ class JsonPretty {
 
 		switch Type.typeof(header) {
 			case TObject, TClass(String):
-				addValue("__header__", header);
+				addValue("__header__", header, true);
 
 			case _:
 				throw "Unsupported header type";
@@ -137,7 +137,7 @@ class JsonPretty {
 
 	}
 
-	static function addArray(name:Null<String>, arr:Array<Dynamic>) {
+	static function addArray(name:Null<String>, arr:Array<Dynamic>, forceMultilines=false) {
 		if( arr.length==0 ) {
 			if( name==null )
 				buf.add('[]');
@@ -155,7 +155,7 @@ class JsonPretty {
 		var arrValueType = Type.typeof( arr[0] );
 
 		// Add values to buffer
-		if( len<=APPROXIMATE_MAX_LINE_LENGTH ) {
+		if( len<=APPROXIMATE_MAX_LINE_LENGTH && !forceMultilines ) {
 			// Single line
 			var arraySpace =
 				switch arrValueType {
