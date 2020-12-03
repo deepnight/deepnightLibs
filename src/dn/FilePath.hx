@@ -95,6 +95,10 @@ class FilePath {
 		extension = null;
 	}
 
+	public inline function isEmpty() {
+		return full.length==0;
+	}
+
 	public inline function clone() : FilePath {
 		var p = new FilePath();
 		p.backslashes = backslashes;
@@ -262,6 +266,9 @@ class FilePath {
 	**/
 	function parse(rawPath:String, containsFileName:Bool) {
 		init();
+
+		if( rawPath==null || rawPath.length==0 )
+			return;
 
 		switch SLASH_MODE {
 			case Preserve:
