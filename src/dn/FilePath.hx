@@ -598,6 +598,9 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromDir("").directoryWithSlash == null );
 		CiAssert.isTrue( FilePath.fromDir("").fileName == null );
 		CiAssert.isTrue( FilePath.fromDir("").extension == null );
+		CiAssert.isTrue( FilePath.fromDir("").isEmpty() );
+		CiAssert.isTrue( FilePath.fromDir(null).isEmpty() );
+		CiAssert.isTrue( FilePath.fromFile(null).isEmpty() );
 		CiAssert.isTrue( FilePath.fromDir("user/?/test").directory == "user/_/test");
 		CiAssert.equals( FilePath.fromDir("/user/foo").full, "/user/foo" );
 		CiAssert.equals( FilePath.fromDir("/user/foo/").full, "/user/foo" );
@@ -633,7 +636,7 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromFile("/user/").fileName==null );
 		CiAssert.isTrue( FilePath.fromFile("/user/").extension==null );
 		CiAssert.isTrue( FilePath.fromFile("").directory == null );
-		CiAssert.isTrue( FilePath.fromFile("").fileName == "" );
+		CiAssert.isTrue( FilePath.fromFile("").fileName == null );
 		CiAssert.isTrue( FilePath.fromFile("").extension == null );
 		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").full=="/user/foo.png" );
 		CiAssert.isTrue( FilePath.fromFile("/user/").full=="/user" );
