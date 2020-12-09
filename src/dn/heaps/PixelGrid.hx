@@ -61,6 +61,15 @@ class PixelGrid extends h2d.Object {
 				removePixelMap(x,y);
 	}
 
+	/** Draw a hollow rectangle **/
+	public inline function lineRect(x, y, w:Int, h:Int, rgb:Int, alpha=1.0) {
+		var c = Color.addAlphaF(rgb, alpha);
+		line(x, y, x+w-1, y, rgb, alpha);
+		line(x, y+h-1, x+w-1, y+h-1, rgb, alpha);
+		line(x, y, x, y+h-1, rgb, alpha);
+		line(x+w-1, y, x+w-1, y+h-1, rgb, alpha);
+	}
+
 	/** Fill all pixels **/
 	public inline function fill(rgb:Int, alpha=1.0) {
 		var c = Color.addAlphaF(rgb, alpha);
@@ -77,21 +86,13 @@ class PixelGrid extends h2d.Object {
 		Bresenham.iterateThinLine( x1,y1,x2,y2, (x,y)->setPixel(x,y, c, a) );
 	}
 
-	public inline function lines(pts:Array<{x:Int, y:Int}>, c:UInt, a=1.0, loop=false) {
+	public function lines(pts:Array<{x:Int, y:Int}>, c:UInt, a=1.0, loop=false) {
 		if( pts.length>=2 ) {
-			for(i in 1...pts.length+1)
-				Bresenham.iterateThinLine(
-					pts[i-1].x, pts[i-1].y,
-					pts[i].x, pts[i].y,
-					(x,y)->setPixel(x,y, c, a)
-				);
+			for(i in 1...pts.length)
+				line( pts[i-1].x, pts[i-1].y, pts[i].x, pts[i].y, c, a );
 
 			if( loop )
-				Bresenham.iterateThinLine(
-					pts[0].x, pts[0].y,
-					pts[pts.length-1].x, pts[pts.length-1].y,
-					(x,y)->setPixel(x,y, c, a)
-				);
+				line( pts[0].x, pts[0].y, pts[pts.length-1].x, pts[pts.length-1].y, c, a );
 		}
 	}
 
