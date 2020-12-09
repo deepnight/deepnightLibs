@@ -14,6 +14,8 @@ class PixelGrid extends h2d.Object {
 	/** Height in cells **/
 	public var hei(default,null) : Int;
 
+	public var gridSize(default,set) : Int;
+
 	var tg : h2d.TileGroup;
 	var pixelTile : h2d.Tile;
 	var pixels : Map<Int,Int> = new Map();
@@ -28,7 +30,7 @@ class PixelGrid extends h2d.Object {
 		pixelTile = h2d.Tile.fromColor(0xffffff, 1, 1);
 		tg = new h2d.TileGroup(pixelTile, this);
 
-		setGridSize(gridSize);
+		this.gridSize = gridSize;
 	}
 
 	inline function isValid(x,y) return x>=0 && x<wid && y>=0 && y<hei;
@@ -71,9 +73,32 @@ class PixelGrid extends h2d.Object {
 	}
 
 
-	/** Set grid size, in pixels **/
-	public inline function setGridSize(gridSize:Int) {
-		tg.scaleX = tg.scaleY = gridSize;
+	public inline function line(x1:Int, y1:Int, x2:Int, y2:Int, c:UInt, a=1.0) {
+		Bresenham.iterateThinLine( x1,y1,x2,y2, (x,y)->setPixel(x,y, c, a) );
+	}
+
+	public inline function lines(pts:Array<{x:Int, y:Int}>, c:UInt, a=1.0, loop=false) {
+		if( pts.length>=2 ) {
+			for(i in 1...pts.length+1)
+				Bresenham.iterateThinLine(
+					pts[i-1].x, pts[i-1].y,
+					pts[i].x, pts[i].y,
+					(x,y)->setPixel(x,y, c, a)
+				);
+
+			if( loop )
+				Bresenham.iterateThinLine(
+					pts[0].x, pts[0].y,
+					pts[pts.length-1].x, pts[pts.length-1].y,
+					(x,y)->setPixel(x,y, c, a)
+				);
+		}
+	}
+
+
+	inline function set_gridSize(g:Int) {
+		tg.scaleX = tg.scaleY = g;
+		return gridSize = g;
 	}
 
 	/** Clear all pixels **/
