@@ -21,6 +21,9 @@ class PixelGrid extends h2d.Object {
 	var pixels : Map<Int,Int> = new Map();
 	var invalidated = true;
 
+	/** If TRUE, contiguous pixels sharing the same color+alpha will be rendered as single rectangles to reduce the amount of display objects. **/
+	public var optimize = true;
+
 	public function new(gridSize:Int, wid:Int, hei:Int, ?parent:h2d.Object) {
 		super(parent);
 
@@ -105,7 +108,6 @@ class PixelGrid extends h2d.Object {
 	/** Clear all pixels **/
 	public function clear() {
 		pixels = new Map();
-		tg.clear();
 		invalidated = true;
 	}
 
@@ -142,53 +144,69 @@ class PixelGrid extends h2d.Object {
 	/** Optimize and render **/
 	override function sync(ctx:h2d.RenderContext) {
 		if( invalidated ) {
-			// Try to detect rectangles of identical contiguous pixels
-			var c = 0;
-			var w = 0;
-			var h = 0;
-			var dx = 0;
-			var dones = new Map();
-			var same = true;
-			for(y in 0...hei)
-			for(x in 0...wid) {
-				if( hasPixel(x,y) && !dones.exists( coordId(x,y) ) ) {
-					dones.set( coordId(x,y), true );
-					c = pixels.get( coordId(x,y) );
-					w = 1;
-					// Expand horizontally
-					while( isValid(x+w,y) && getPixelARGB(x+w, y)==c && !dones.exists( coordId(x+w,y) ) ) {
-						dones.set(coordId(x+w, y), true);
-						w++;
-					}
-					// Expand vertically
-					h = 1;
-					while( isValid(x,y+h) && pixels.get(coordId(x,y+h))==c ) {
-						dx = 0;
-						same = true;
-						while( dx<w && isValid(x+dx,y+h) ) {
-							if( pixels.get(coordId(x+dx, y+h))!=c ) {
-								same = false;
-								break;
+			invalidated = false;
+
+			if( optimize ) {
+				// Optimized render: contiguous identical pixels are grouped in rectangles
+				tg.clear();
+				var c = 0;
+				var w = 0;
+				var h = 0;
+				var dx = 0;
+				var dones = new Map();
+				var same = true;
+				for(y in 0...hei)
+				for(x in 0...wid) {
+					if( hasPixel(x,y) && !dones.exists( coordId(x,y) ) ) {
+						dones.set( coordId(x,y), true );
+						c = pixels.get( coordId(x,y) );
+						w = 1;
+						// Expand horizontally
+						while( isValid(x+w,y) && getPixelARGB(x+w, y)==c && !dones.exists( coordId(x+w,y) ) ) {
+							dones.set(coordId(x+w, y), true);
+							w++;
+						}
+						// Expand vertically
+						h = 1;
+						while( isValid(x,y+h) && pixels.get(coordId(x,y+h))==c ) {
+							dx = 0;
+							same = true;
+							while( dx<w && isValid(x+dx,y+h) ) {
+								if( pixels.get(coordId(x+dx, y+h))!=c ) {
+									same = false;
+									break;
+								}
+								dx++;
 							}
-							dx++;
+
+							if( same ) {
+								for(x in x...x+w)
+									dones.set(coordId(x, y+h), true);
+								h++;
+							}
+							else
+								break;
 						}
 
-						if( same ) {
-							for(x in x...x+w)
-								dones.set(coordId(x, y+h), true);
-							h++;
-						}
-						else
-							break;
+						// Fill rect
+						tg.setDefaultColor( c, Color.getA(c) );
+						tg.addTransform( x, y, w, h, 0, pixelTile );
 					}
-
-					// Fill rect
-					tg.setDefaultColor( c, Color.getA(c) );
-					tg.addTransform( x, y, w, h, 0, pixelTile );
 				}
 			}
-
-			invalidated = false;
+			else {
+				// Un-optimized render: 1 grid pixel => 1 tilegroup object
+				tg.clear();
+				var c = 0;
+				for(y in 0...hei)
+				for(x in 0...wid) {
+					if( !hasPixel(x,y) )
+						continue;
+					c = getPixelARGB(x,y);
+					tg.setDefaultColor( c, Color.getA(c) );
+					tg.add(x,y, pixelTile);
+				}
+			}
 		}
 
 		super.sync(ctx);
