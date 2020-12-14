@@ -9,7 +9,7 @@ class Scaler {
 
 
 	/** Fit `wid`x`hei` in current viewport, optionally snapping to closest Integer scale value (for pixel perfect rendering) **/
-	public static function fitInside(widPx:Int, heiPx:Int, integerScale=true) : Float {
+	public static function bestFit(widPx:Int, heiPx:Int, integerScale=true) : Float {
 		var sx = getViewportWidth()/widPx;
 		var sy = getViewportHeight()/heiPx;
 		if( integerScale ) {
