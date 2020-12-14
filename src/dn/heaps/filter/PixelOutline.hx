@@ -1,11 +1,16 @@
 package dn.heaps.filter;
 
-// --- Filter -------------------------------------------------------------------------------
+
 class PixelOutline extends h2d.filter.Filter {
+	/** Outline color (0xRRGGBB) **/
 	public var color(default, set) : Int;
+
+	/** If TRUE, the original object pixels are discarded, and only the outline remains **/
 	public var knockOut(default,set) : Bool;
+
 	var pass : PixelOutlinePass;
 
+	/** Add a pixel-perfect outline around a h2d.Object using a shader filter **/
 	public function new(color=0x0, knockOut=false) {
 		super();
 		pass = new PixelOutlinePass(color);
@@ -92,12 +97,12 @@ private class PixelOutlineShader extends h3d.shader.ScreenShader {
 				+ vec4(outlineColor,1)
 					* ( // Get outline color multiplier based on transparent surrounding pixels
 						( 1-curColor.a ) * max(
-							texture.get( vec2(input.uv.x+pixelSize.x, input.uv.y) ).a,
+							texture.get( vec2(input.uv.x+pixelSize.x, input.uv.y) ).a, // left outline
 							max(
-								texture.get( vec2(input.uv.x-pixelSize.x, input.uv.y) ).a,
+								texture.get( vec2(input.uv.x-pixelSize.x, input.uv.y) ).a, // right outline
 								max(
-									texture.get( vec2(input.uv.x, input.uv.y+pixelSize.y) ).a,
-									texture.get( vec2(input.uv.x, input.uv.y-pixelSize.y) ).a
+									texture.get( vec2(input.uv.x, input.uv.y+pixelSize.y) ).a, // top outline
+									texture.get( vec2(input.uv.x, input.uv.y-pixelSize.y) ).a // bottom outline
 								)
 							)
 						)
