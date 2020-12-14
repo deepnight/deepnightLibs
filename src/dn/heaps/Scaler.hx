@@ -1,4 +1,4 @@
-package dn;
+package dn.heaps;
 
 class Scaler {
 	/** Can be replaced with other methods to change how reference "viewport" width is determined **/
