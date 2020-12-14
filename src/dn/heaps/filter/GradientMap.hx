@@ -13,7 +13,7 @@ private enum AffectedLuminanceRange {
 **/
 class GradientMap extends h2d.filter.Shader<InternalShader> {
 
-	public function new(gradientMap:h3d.mat.Texture, intensity=1.0, mode:AffectedLuminanceRange = Full) {
+	public function new(gradientMap:h3d.mat.Texture, mode:AffectedLuminanceRange = Full, intensity=1.0) {
 		var s = new InternalShader();
 		s.gradientMap = gradientMap;
 		s.intensity = M.fclamp(intensity,0,1);
