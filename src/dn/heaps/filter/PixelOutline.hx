@@ -86,15 +86,22 @@ private class PixelOutlineShader extends h3d.shader.ScreenShader {
 
 		function fragment() {
 			var curColor : Vec4 = texture.get(input.uv);
-			if( curColor.a==0 ) {
-				if( texture.get( vec2(input.uv.x + pixelSize.x, input.uv.y) ).a!=0
-				 || texture.get( vec2(input.uv.x - pixelSize.x, input.uv.y) ).a!=0
-				 || texture.get( vec2(input.uv.x, input.uv.y+pixelSize.y) ).a!=0
-				 || texture.get( vec2(input.uv.x, input.uv.y-pixelSize.y) ).a!=0 )
-					output.color = vec4(outlineColor, 1);
-			}
-			else
-				output.color = curColor * knockOutMul;
+
+			output.color =
+				curColor * knockOutMul * curColor.a // non transparent pixel
+				+ vec4(outlineColor,1)
+					* ( // Get outline color multiplier based on transparent surrounding pixels
+						( 1-curColor.a ) * max(
+							texture.get( vec2(input.uv.x+pixelSize.x, input.uv.y) ).a,
+							max(
+								texture.get( vec2(input.uv.x-pixelSize.x, input.uv.y) ).a,
+								max(
+									texture.get( vec2(input.uv.x, input.uv.y+pixelSize.y) ).a,
+									texture.get( vec2(input.uv.x, input.uv.y-pixelSize.y) ).a
+								)
+							)
+						)
+					);
 		}
 	};
 }
