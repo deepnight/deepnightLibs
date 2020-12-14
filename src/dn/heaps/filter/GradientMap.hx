@@ -1,21 +1,27 @@
 package dn.heaps.filter;
 
-enum GradientMapMode {
-	Full;
+private enum AffectedLuminanceRange {
+	Full; // Default
 	OnlyLights;
 	OnlyShadows;
 }
 
-// --- Filter -------------------------------------------------------------------------------
+/**
+	@param gradientMap This texture is expected to be a **linear horizontal** color gradient, where left is darkest map color, and right is lightest color.
+	@param intensity Gradient map intensity factor (0-1)
+	@param mode Determine which range of luminance should be affected: Full (default), OnlyLights, OnlyShadows.
+**/
 class GradientMap extends h2d.filter.Shader<InternalShader> {
-	public function new(tex:h3d.mat.Texture, intensity=1.0, mode:GradientMapMode=Full) {
+
+	public function new(gradientMap:h3d.mat.Texture, intensity=1.0, mode:AffectedLuminanceRange = Full) {
 		var s = new InternalShader();
-		s.gradientMap = tex;
-		s.intensity = intensity;
+		s.gradientMap = gradientMap;
+		s.intensity = M.fclamp(intensity,0,1);
 		s.mode = mode.getIndex();
 
 		super(s);
 	}
+
 }
 
 
@@ -33,14 +39,16 @@ private class InternalShader extends h3d.shader.ScreenShader {
 
 		function fragment() {
 			var pixel : Vec4 = texture.get(calculatedUV);
+
 			if( intensity>0 ) {
 				var lum = getLum(pixel.rgb);
 				var rep = gradientMap.get( vec2(lum, 0) );
-				if( mode==0 )
+
+				if( mode==0 ) // Full gradient map
 					pixelColor = vec4( mix(pixel.rgb, rep.rgb, intensity ), pixel.a);
-				else if( mode==1 )
+				else if( mode==1 ) // Only lights
 					pixelColor = vec4( mix(pixel.rgb, rep.rgb, intensity*lum ), pixel.a);
-				else
+				else // Only shadows
 					pixelColor = vec4( mix(pixel.rgb, rep.rgb, intensity*(1-lum) ), pixel.a);
 			}
 			else
