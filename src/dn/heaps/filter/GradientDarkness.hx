@@ -41,14 +41,14 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 		super(s);
 	}
 
-	/** Replace existing **Light map** using a whole new one. Ideally, for perf reasons, the existing `Texture` provided to the constructor should just be updated. **/
+	/** Replace existing **Light map** using a whole new one. Ideally, for perf reasons, the existing `Texture` provided to the constructor should be updated directly. **/
 	public inline function replaceLightMap(t, disposePrevious=true) {
 		if( disposePrevious )
 			shader.lightMap.dispose();
 		shader.lightMap = t;
 	}
 
-	/** Replace existing **Gradient map** using a whole new one. Ideally, for perf reasons, the existing `Texture` provided to the constructor should just be updated. **/
+	/** Replace existing **Gradient map** using a whole new one. Ideally, for perf reasons, the existing `Texture` provided to the constructor should be updated directly. **/
 	public inline function replaceGradientMap(t, disposePrevious=true) {
 		if( disposePrevious )
 			shader.gradientMap.dispose();
