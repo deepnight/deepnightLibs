@@ -2,13 +2,17 @@ package dn.heaps.filter;
 
 class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 	/** Max distance  (in pixels) for horizontal darkness distorsion. 0 to disable. **/
-	public var xDistorPx = 0.;
+	public var xDistortPx = 0.;
 
 	/** Length (in pixels) of the cos wave for darkness distorsion. **/
 	public var xDistortWaveLenPx = 16.;
 
 	/** Speed multiplier for darkness distorsion **/
 	public var xDistortSpeed = 1.0;
+
+	/** Keep this value updated to compensate camera X scrolling, making distortion relative to camera instead of window **/
+	public var xDistortCameraPx = 0.;
+
 
 
 	/** Max distance (in pixels) for vertical darkness distorsion. 0 to disable. **/
@@ -23,6 +27,8 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 	/** All colors in darkness will be multiplied by this factor. Values lower than 1 will make colors in darkness darker, before applying the gradient map. **/
 	public var darknessColorMul  = 1.0;
 
+	/** Keep this value updated to compensate camera Y scrolling, making distortion relative to camera instead of window **/
+	public var yDistortCameraPx = 0.;
 
 
 	/**
@@ -59,14 +65,18 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 		super.sync(ctx, s);
 
 		// Update X distorsion values
-		shader.xDist = xDistorPx * (1/shader.lightMap.width);
+		var pixelSize = (1/shader.lightMap.width);
+		shader.xDist = xDistortPx * pixelSize;
 		shader.xWaveLen = M.PI2 * shader.lightMap.width / xDistortWaveLenPx;
 		shader.xTime = hxd.Timer.frameCount * 0.03 * xDistortSpeed;
+		shader.xCam = xDistortCameraPx * pixelSize;
 
 		// Update Y distorsion values
-		shader.yDist = yDistortPx * (1/shader.lightMap.height);
+		pixelSize = (1/shader.lightMap.height);
+		shader.yDist = yDistortPx * pixelSize;
 		shader.yWaveLen = M.PI2 * shader.lightMap.height / yDistortWaveLenPx;
 		shader.yTime = hxd.Timer.frameCount * 0.03 * yDistortSpeed;
+		shader.yCam = yDistortCameraPx * pixelSize;
 
 		shader.colorMul = darknessColorMul;
 	}
@@ -84,14 +94,16 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var colorMul : Float = 1.0;
 
 		// X darkness distorsion
+		@param var xDist: Float = 0;
 		@param var xTime: Float = 0;
 		@param var xWaveLen: Float = 0;
-		@param var xDist: Float = 0;
+		@param var xCam: Float = 0;
 
 		// Y darkness distorsion
 		@param var yTime: Float = 0;
 		@param var yWaveLen: Float = 0;
 		@param var yDist: Float = 0;
+		@param var yCam: Float = 0;
 
 
 		inline function getLum(col:Vec3) : Float {
@@ -103,8 +115,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			var lightPow = lightMap.get(calculatedUV).r;
 
 			// Distort (offset UV) in darkness
-			calculatedUV.x += intensity * (1-lightPow) * xDist * sin( calculatedUV.x*xWaveLen + xTime );
-			calculatedUV.y += intensity * (1-lightPow) * yDist * sin( calculatedUV.y*yWaveLen + yTime );
+			calculatedUV.x += intensity * (1-lightPow) * xDist * sin( (calculatedUV.x + xCam) * xWaveLen + xTime );
+			calculatedUV.y += intensity * (1-lightPow) * yDist * sin( (calculatedUV.y + yCam) * yWaveLen + yTime );
 
 			// Colorize darkness
 			var curColor : Vec4 = texture.get(calculatedUV);
