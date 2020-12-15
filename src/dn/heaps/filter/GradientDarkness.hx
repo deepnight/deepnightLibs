@@ -1,9 +1,31 @@
 package dn.heaps.filter;
 
 class GradientDarkness extends h2d.filter.Shader<InternalShader> {
+	/** Offset (in pixels) for horizontal darkness distorsion. 0 to disable. **/
+	public var xDistortOffsetPx = 0.;
+
+	/** Length (in pixels) of the cos wave for darkness distorsion. **/
+	public var xDistortWaveLenPx = 16.;
+
+	/** Speed multiplier for darkness distorsion **/
+	public var xDistortSpeed = 1.0;
+
+
+	/** Offset (in pixels) for vertical darkness distorsion. 0 to disable. **/
+	public var yDistortOffsetPx = 0.;
+
+	/** Length (in pixels) of the sin wave for darkness distorsion. **/
+	public var yDistortWaveLenPx = 16.;
+
+	/** Speed multiplier for darkness distorsion **/
+	public var yDistortSpeed = 1.0;
+
+
 
 	/**
-		@param lightMap A black & white texture, where black means "in shadows".
+		Add this filter to a display object, like a Scene, or a game wrapper) to colorize it (and optionally distort it), based on a lightning map.
+
+		@param lightMap A black & white texture, where black means "in shadows". It should have the exact same size as the object affected by the filter.
 		@param shadowGradientMap The gradient map to apply to areas in darkness.
 		@param gradientIntensity The intensity of the gradient map applied to dark areas (0-1)
 	**/
@@ -14,6 +36,34 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 		s.intensity = M.fclamp(gradientIntensity,0,1);
 
 		super(s);
+	}
+
+	/** Replace existing **Light map** using a whole new one. Ideally, for perf reasons, the existing `Texture` provided to the constructor should just be updated. **/
+	public inline function replaceLightMap(t, disposePrevious=true) {
+		if( disposePrevious )
+			shader.lightMap.dispose();
+		shader.lightMap = t;
+	}
+
+	/** Replace existing **Gradient map** using a whole new one. Ideally, for perf reasons, the existing `Texture` provided to the constructor should just be updated. **/
+	public inline function replaceGradientMap(t, disposePrevious=true) {
+		if( disposePrevious )
+			shader.gradientMap.dispose();
+		shader.gradientMap = t;
+	}
+
+	override function sync(ctx:h2d.RenderContext, s:h2d.Object) {
+		super.sync(ctx, s);
+
+		// Update X distorsion values
+		shader.xOffset = xDistortOffsetPx * (1/shader.lightMap.width);
+		shader.xWaveLen = M.PI2 * shader.lightMap.width / xDistortWaveLenPx;
+		shader.xTime = hxd.Timer.frameCount * 0.03 * xDistortSpeed;
+
+		// Update Y distorsion values
+		shader.yOffset = yDistortOffsetPx * (1/shader.lightMap.height);
+		shader.yWaveLen = M.PI2 * shader.lightMap.height / yDistortWaveLenPx;
+		shader.yTime = hxd.Timer.frameCount * 0.03 * yDistortSpeed;
 	}
 
 }
@@ -27,19 +77,39 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var gradientMap : Sampler2D;
 		@param var intensity : Float;
 
+		// X darkness distorsion
+		@param var xTime: Float = 0;
+		@param var xWaveLen: Float = 0;
+		@param var xOffset: Float = 0;
+
+		// Y darkness distorsion
+		@param var yTime: Float = 0;
+		@param var yWaveLen: Float = 0;
+		@param var yOffset: Float = 0;
+
+
 		inline function getLum(col:Vec3) : Float {
 			return col.rgb.dot( vec3(0.2126, 0.7152, 0.0722) );
 		}
 
 		function fragment() {
-			var pixel : Vec4 = texture.get(calculatedUV);
-			var lightPixel = lightMap.get(calculatedUV);
-			var light = lightPixel.r;
+			// Get light intensity
+			var lightPow = lightMap.get(calculatedUV).r;
 
-			var lumi = getLum(pixel.rgb);
-			var rep = gradientMap.get( vec2(lumi, 0) );
+			// Distort (offset UV) in darkness
+			calculatedUV.x += intensity * (1-lightPow) * xOffset * sin( calculatedUV.x*xWaveLen + xTime );
+			calculatedUV.y += intensity * (1-lightPow) * yOffset * sin( calculatedUV.y*yWaveLen + yTime );
 
-			pixelColor = vec4( pixel.rgb*(1-intensity) + intensity * (pixel.rgb*light + rep.rgb*(1-light)), pixel.a );
+			// Colorize darkness
+			var curColor : Vec4 = texture.get(calculatedUV);
+			var curLuminance = getLum(curColor.rgb);
+			var rep = gradientMap.get( vec2(curLuminance, 0) );
+
+			// Final pixel color
+			pixelColor = vec4(
+				curColor.rgb*(1-intensity) + intensity * (curColor.rgb*lightPow + rep.rgb*(1-lightPow)),
+				curColor.a
+			);
 		}
 	};
 }
