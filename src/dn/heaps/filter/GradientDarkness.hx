@@ -1,8 +1,8 @@
 package dn.heaps.filter;
 
 class GradientDarkness extends h2d.filter.Shader<InternalShader> {
-	/** Offset (in pixels) for horizontal darkness distorsion. 0 to disable. **/
-	public var xDistortOffsetPx = 0.;
+	/** Max distance  (in pixels) for horizontal darkness distorsion. 0 to disable. **/
+	public var xDistorPx = 0.;
 
 	/** Length (in pixels) of the cos wave for darkness distorsion. **/
 	public var xDistortWaveLenPx = 16.;
@@ -11,8 +11,8 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 	public var xDistortSpeed = 1.0;
 
 
-	/** Offset (in pixels) for vertical darkness distorsion. 0 to disable. **/
-	public var yDistortOffsetPx = 0.;
+	/** Max distance (in pixels) for vertical darkness distorsion. 0 to disable. **/
+	public var yDistortPx = 0.;
 
 	/** Length (in pixels) of the sin wave for darkness distorsion. **/
 	public var yDistortWaveLenPx = 16.;
@@ -59,12 +59,12 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 		super.sync(ctx, s);
 
 		// Update X distorsion values
-		shader.xOffset = xDistortOffsetPx * (1/shader.lightMap.width);
+		shader.xDist = xDistorPx * (1/shader.lightMap.width);
 		shader.xWaveLen = M.PI2 * shader.lightMap.width / xDistortWaveLenPx;
 		shader.xTime = hxd.Timer.frameCount * 0.03 * xDistortSpeed;
 
 		// Update Y distorsion values
-		shader.yOffset = yDistortOffsetPx * (1/shader.lightMap.height);
+		shader.yDist = yDistortPx * (1/shader.lightMap.height);
 		shader.yWaveLen = M.PI2 * shader.lightMap.height / yDistortWaveLenPx;
 		shader.yTime = hxd.Timer.frameCount * 0.03 * yDistortSpeed;
 
@@ -86,12 +86,12 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		// X darkness distorsion
 		@param var xTime: Float = 0;
 		@param var xWaveLen: Float = 0;
-		@param var xOffset: Float = 0;
+		@param var xDist: Float = 0;
 
 		// Y darkness distorsion
 		@param var yTime: Float = 0;
 		@param var yWaveLen: Float = 0;
-		@param var yOffset: Float = 0;
+		@param var yDist: Float = 0;
 
 
 		inline function getLum(col:Vec3) : Float {
@@ -103,8 +103,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			var lightPow = lightMap.get(calculatedUV).r;
 
 			// Distort (offset UV) in darkness
-			calculatedUV.x += intensity * (1-lightPow) * xOffset * sin( calculatedUV.x*xWaveLen + xTime );
-			calculatedUV.y += intensity * (1-lightPow) * yOffset * sin( calculatedUV.y*yWaveLen + yTime );
+			calculatedUV.x += intensity * (1-lightPow) * xDist * sin( calculatedUV.x*xWaveLen + xTime );
+			calculatedUV.y += intensity * (1-lightPow) * yDist * sin( calculatedUV.y*yWaveLen + yTime );
 
 			// Colorize darkness
 			var curColor : Vec4 = texture.get(calculatedUV);
