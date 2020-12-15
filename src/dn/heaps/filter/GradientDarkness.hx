@@ -20,6 +20,9 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 	/** Speed multiplier for darkness distorsion **/
 	public var yDistortSpeed = 1.0;
 
+	/** All colors in darkness will be multiplied by this factor. Values lower than 1 will make colors in darkness darker, before applying the gradient map. **/
+	public var darknessColorMul  = 1.0;
+
 
 
 	/**
@@ -64,6 +67,8 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 		shader.yOffset = yDistortOffsetPx * (1/shader.lightMap.height);
 		shader.yWaveLen = M.PI2 * shader.lightMap.height / yDistortWaveLenPx;
 		shader.yTime = hxd.Timer.frameCount * 0.03 * yDistortSpeed;
+
+		shader.colorMul = darknessColorMul;
 	}
 
 }
@@ -76,6 +81,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var lightMap : Sampler2D;
 		@param var gradientMap : Sampler2D;
 		@param var intensity : Float;
+		@param var colorMul : Float = 1.0;
 
 		// X darkness distorsion
 		@param var xTime: Float = 0;
@@ -102,6 +108,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 
 			// Colorize darkness
 			var curColor : Vec4 = texture.get(calculatedUV);
+			curColor.rgb = mix(curColor.rgb, vec3(0), (1-colorMul)*(1-lightPow));
 			var curLuminance = getLum(curColor.rgb);
 			var rep = gradientMap.get( vec2(curLuminance, 0) );
 
