@@ -81,7 +81,7 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 
 		shader.colorMul = darknessColorMul;
 		shader.notEdgeMul = 1 - M.fclamp(darknessEdgeEnhance,0,1);
-		shader.texelSize = new hxsl.Types.Vec( 1/t.width, 1/t.height );
+		shader.texelSize.set( 1/t.width, 1/t.height );
 
 		return super.draw(ctx, t);
 	}
