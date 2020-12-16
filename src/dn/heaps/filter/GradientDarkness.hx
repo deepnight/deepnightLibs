@@ -127,8 +127,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		/** Return 1 if cur is contrasted with c, and cur is brighter. 0 otherwise.**/
 		inline function hasContrast(cur:Vec4, c:Vec4) : Float {
 			return
-				step( getLum(c), getLum(cur) ) // 1 if "cur" is brighter than "c"
-				* step( 1.5, getContrast(cur, c) );
+				// step( getLum(c), getLum(cur) ) // 1 if "cur" is brighter than "c"
+				step( 1.5, getContrast(cur, c) );
 		}
 
 
