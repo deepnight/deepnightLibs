@@ -72,7 +72,7 @@ private class PixelOutlinePass extends h3d.pass.ScreenFx<PixelOutlineShader> {
 
 		shader.texture = src;
 		shader.outlineColor.setColor(color);
-		shader.pixelSize.set(1/src.width, 1/src.height);
+		shader.texelSize.set(1/src.width, 1/src.height);
 		shader.knockOutMul = knockOut ? 0 : 1;
 		render();
 
@@ -85,9 +85,9 @@ private class PixelOutlinePass extends h3d.pass.ScreenFx<PixelOutlineShader> {
 private class PixelOutlineShader extends h3d.shader.ScreenShader {
 	static var SRC = {
 		@param var texture : Sampler2D;
-		@param var pixelSize : Vec2;
-		@param var outlineColor : Vec3;
-		@param var knockOutMul : Int;
+		@param var texelSize : Vec2;
+		@const var outlineColor : Vec3;
+		@const var knockOutMul : Int;
 
 		function fragment() {
 			var curColor : Vec4 = texture.get(input.uv);
@@ -97,12 +97,12 @@ private class PixelOutlineShader extends h3d.shader.ScreenShader {
 				+ vec4(outlineColor,1)
 					* ( // Get outline color multiplier based on transparent surrounding pixels
 						( 1-curColor.a ) * max(
-							texture.get( vec2(input.uv.x+pixelSize.x, input.uv.y) ).a, // left outline
+							texture.get( vec2(input.uv.x+texelSize.x, input.uv.y) ).a, // left outline
 							max(
-								texture.get( vec2(input.uv.x-pixelSize.x, input.uv.y) ).a, // right outline
+								texture.get( vec2(input.uv.x-texelSize.x, input.uv.y) ).a, // right outline
 								max(
-									texture.get( vec2(input.uv.x, input.uv.y+pixelSize.y) ).a, // top outline
-									texture.get( vec2(input.uv.x, input.uv.y-pixelSize.y) ).a // bottom outline
+									texture.get( vec2(input.uv.x, input.uv.y+texelSize.y) ).a, // top outline
+									texture.get( vec2(input.uv.x, input.uv.y-texelSize.y) ).a // bottom outline
 								)
 							)
 						)
