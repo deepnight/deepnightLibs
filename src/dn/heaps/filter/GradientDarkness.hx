@@ -1,6 +1,9 @@
 package dn.heaps.filter;
 
 class GradientDarkness extends h2d.filter.Shader<InternalShader> {
+	/** Enhance edges in darkness: 0=no enhancement (default), 1=only show edges in darkness **/
+	public var darknessEdgeEnhance = 0.;
+
 	/** Max distance  (in pixels) for horizontal darkness distorsion. 0 to disable. **/
 	public var xDistortPx = 0.;
 
@@ -61,24 +64,26 @@ class GradientDarkness extends h2d.filter.Shader<InternalShader> {
 		shader.gradientMap = t;
 	}
 
-	override function sync(ctx:h2d.RenderContext, s:h2d.Object) {
-		super.sync(ctx, s);
-
+	override function draw(ctx:h2d.RenderContext, t:h2d.Tile):h2d.Tile {
 		// Update X distorsion values
-		var pixelSize = (1/shader.lightMap.width);
-		shader.xDist = xDistortPx * pixelSize;
+		var texelSize = (1/shader.lightMap.width);
+		shader.xDist = xDistortPx * texelSize;
 		shader.xWaveLen = M.PI2 * shader.lightMap.width / xDistortWaveLenPx;
 		shader.xTime = hxd.Timer.frameCount * 0.03 * xDistortSpeed;
-		shader.xCam = xDistortCameraPx * pixelSize;
+		shader.xCam = xDistortCameraPx * texelSize;
 
 		// Update Y distorsion values
-		pixelSize = (1/shader.lightMap.height);
-		shader.yDist = yDistortPx * pixelSize;
+		texelSize = (1/shader.lightMap.height);
+		shader.yDist = yDistortPx * texelSize;
 		shader.yWaveLen = M.PI2 * shader.lightMap.height / yDistortWaveLenPx;
 		shader.yTime = hxd.Timer.frameCount * 0.03 * yDistortSpeed;
-		shader.yCam = yDistortCameraPx * pixelSize;
+		shader.yCam = yDistortCameraPx * texelSize;
 
 		shader.colorMul = darknessColorMul;
+		shader.notEdgeMul = 1 - M.fclamp(darknessEdgeEnhance,0,1);
+		shader.texelSize = new hxsl.Types.Vec( 1/t.width, 1/t.height );
+
+		return super.draw(ctx, t);
 	}
 
 }
@@ -92,6 +97,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var gradientMap : Sampler2D;
 		@param var intensity : Float;
 		@param var colorMul : Float = 1.0;
+		@param var texelSize : Vec2;
+		@param var notEdgeMul : Float;
 
 		// X darkness distorsion
 		@param var xDist: Float = 0;
@@ -106,27 +113,75 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var yCam: Float = 0;
 
 
-		inline function getLum(col:Vec3) : Float {
+		inline function getLum(col:Vec4) : Float {
 			return col.rgb.dot( vec3(0.2126, 0.7152, 0.0722) );
 		}
 
+		/** Get contrast ratio between 2 colors in range [1-21] **/
+		inline function getContrast(c1:Vec4, c2:Vec4) : Float {
+			var lum1 = getLum(c1);
+			var lum2 = getLum(c2);
+			return ( max(lum1,lum2) + 0.05 ) / ( min(lum1,lum2) + 0.05 );
+		}
+
+		/** Return 1 if cur is contrasted with c, and cur is brighter. 0 otherwise.**/
+		inline function hasContrast(cur:Vec4, c:Vec4) : Float {
+			return
+				step( getLum(c), getLum(cur) ) // 1 if "cur" is brighter than "c"
+				* step( 1.5, getContrast(cur, c) );
+		}
+
+
 		function fragment() {
+			var uv = calculatedUV;
+			var curColor : Vec4 = texture.get(uv);
+
 			// Get light intensity
-			var lightPow = lightMap.get(calculatedUV).r;
+			var lightPow = lightMap.get(uv).r;
 
-			// Distort (offset UV) in darkness
-			calculatedUV.x += intensity * (1-lightPow) * xDist * sin( (calculatedUV.x + xCam) * xWaveLen + xTime );
-			calculatedUV.y += intensity * (1-lightPow) * yDist * sin( (calculatedUV.y + yCam) * yWaveLen + yTime );
 
-			// Colorize darkness
-			var curColor : Vec4 = texture.get(calculatedUV);
+			/** DISTORSION ******************************/
+
+			uv.x += intensity * (1-lightPow) * xDist * sin( (uv.x + xCam) * xWaveLen + xTime );
+			uv.y += intensity * (1-lightPow) * yDist * sin( (uv.y + yCam) * yWaveLen + yTime );
+
+
+			/** EDGE DETECTION ******************************/
+
+			if( notEdgeMul<1 ) {
+				// Read nearby texels
+				var above = texture.get( vec2(uv.x, uv.y-texelSize.y) );
+				var below = texture.get( vec2(uv.x, uv.y+texelSize.y) );
+				var left = texture.get( vec2(uv.x-texelSize.x, uv.y) );
+				var right = texture.get( vec2(uv.x+texelSize.x, uv.y) );
+
+				// This value 1 if current texel is detected as an edge
+				var edge = max(
+					max( hasContrast(curColor,above), hasContrast(curColor,below) ),
+					max( hasContrast(curColor,left), hasContrast(curColor,right) )
+				);
+
+				curColor.rgb *= mix(max( edge, notEdgeMul ), 1, lightPow );
+			}
+
+
+			/** DARKNESS GRADIENT MAPPING ******************************/
+
+			// Apply darkness mul
 			curColor.rgb = mix(curColor.rgb, vec3(0), (1-colorMul)*(1-lightPow));
-			var curLuminance = getLum(curColor.rgb);
-			var rep = gradientMap.get( vec2(curLuminance, 0) );
 
-			// Final pixel color
+			// Gradient map
+			var rep = gradientMap.get( vec2(getLum(curColor), 0) );
+
+
+			/** FINAL TEXEL COLOR ******************************/
+
 			pixelColor = vec4(
-				curColor.rgb*(1-intensity) + intensity * (curColor.rgb*lightPow + rep.rgb*(1-lightPow)),
+				curColor.rgb*(1-intensity) // Original color
+					+ intensity * (
+						curColor.rgb*lightPow // color in light
+						+ rep.rgb*(1-lightPow) // color in darkness
+					),
 				curColor.a
 			);
 		}
