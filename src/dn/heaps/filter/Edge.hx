@@ -2,18 +2,24 @@ package dn.heaps.filter;
 
 class Edge extends h2d.filter.Shader<InternalShader> {
 	/**
-		Contrast threshold required between 2 colors, to be considered as an edge. Value is in [1-21] range: 1=identical, 1.5=some contrast (default), 21=black vs white.
+		Contrast threshold required between 2 colors to be considered as an "edge". Value is in [1-21] range: 1=identical, 1.5=some contrast (default), 21=black vs white.
 		See: https://contrast-ratio.com
 	**/
 	public var contrastThreshold(null,set) : Float;
-	// public var notEdgeMultiplier(null,set) : Float;
 
-	public function new() {
+	/** Multiplier to RGB of pixels that are not detected as "edges". **/
+	public var notEdgeRgbMul(null,set) : Float;
+
+	/** Multiplier to Alpha of pixels that are not detected as "edges". **/
+	public var notEdgeAlphaMul(null,set) : Float;
+
+	public function new(notEdgeMultiplier=0.5) {
 		super( new InternalShader() );
 	}
 
-	// inline function set_notEdgeMultiplier(v) return shader.notEdgeMul = v;
 	inline function set_contrastThreshold(v) return shader.contrastThreshold = v;
+	inline function set_notEdgeRgbMul(v) return shader.notEdgeRgbMul = v;
+	inline function set_notEdgeAlphaMul(v) return shader.notEdgeAlphaMul = v;
 
 	override function draw(ctx:h2d.RenderContext, t:h2d.Tile):h2d.Tile {
 		shader.pixelSize = hxsl.Types.Vec.fromArray([ 1/t.width, 1/t.height ]);
@@ -27,8 +33,9 @@ private class InternalShader extends h3d.shader.ScreenShader {
 	static var SRC = {
 		@param var texture : Sampler2D;
 		@param var pixelSize : Vec2;
-		// @param var notEdgeMul : Float = 0.66;
 		@param var contrastThreshold : Float = 1.5;
+		@param var notEdgeRgbMul : Float;
+		@param var notEdgeAlphaMul : Float;
 
 		/** Get color luminance **/
 		inline function getLum(col:Vec4) : Float {
@@ -54,6 +61,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			var uv = calculatedUV;
 			var curColor = texture.get(uv);
 
+			// Read nearby texels
 			var above = texture.get( vec2(uv.x, uv.y-pixelSize.y) );
 			var below = texture.get( vec2(uv.x, uv.y+pixelSize.y) );
 			var left = texture.get( vec2(uv.x-pixelSize.x, uv.y) );
@@ -65,7 +73,10 @@ private class InternalShader extends h3d.shader.ScreenShader {
 				max( hasContrast(curColor,left), hasContrast(curColor,right) )
 			);
 
-			pixelColor = vec4( curColor.rgb*edge, curColor.a );
+			pixelColor = vec4(
+				curColor.rgb * max(edge, notEdgeRgbMul),
+				curColor.a * max(edge, notEdgeAlphaMul)
+			);
 		}
 	};
 }
