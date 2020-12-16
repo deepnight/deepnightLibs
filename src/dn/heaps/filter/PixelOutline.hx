@@ -89,7 +89,7 @@ private class PixelOutlineShader extends h3d.shader.ScreenShader {
 	static var SRC = {
 		@param var texture : Sampler2D;
 		@param var texelSize : Vec2;
-		@const var outlineColor : Vec3;
+		@param var outlineColor : Vec3;
 		@const var knockOutMul : Int;
 
 		function fragment() {
