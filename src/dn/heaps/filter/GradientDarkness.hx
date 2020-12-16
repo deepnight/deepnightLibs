@@ -134,16 +134,17 @@ private class InternalShader extends h3d.shader.ScreenShader {
 
 		function fragment() {
 			var uv = calculatedUV;
-			var curColor : Vec4 = texture.get(uv);
 
 			// Get light intensity
 			var lightPow = lightMap.get(uv).r;
-
 
 			/** DISTORSION ******************************/
 
 			uv.x += intensity * (1-lightPow) * xDist * sin( (uv.x + xCam) * xWaveLen + xTime );
 			uv.y += intensity * (1-lightPow) * yDist * sin( (uv.y + yCam) * yWaveLen + yTime );
+
+			var curColor : Vec4 = texture.get(uv);
+
 
 
 			/** EDGE DETECTION ******************************/
