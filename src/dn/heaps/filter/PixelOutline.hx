@@ -1,6 +1,9 @@
 package dn.heaps.filter;
 
 
+/**
+	Add a 1px pixel-perfect outline around h2d.Object
+**/
 class PixelOutline extends h2d.filter.Filter {
 	/** Outline color (0xRRGGBB) **/
 	public var color(default, set) : Int;
