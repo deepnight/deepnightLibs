@@ -1,29 +1,46 @@
 package dn.heaps.filter;
 
 enum BevelType {
+	/** Classic bevel (white on top-left, black on bottom-right)**/
 	Classic;
+
+	/** Low alpha on dark sides **/
 	Soft;
+
+	/** Only white at top of block **/
 	Top;
+
+	/** 2px wide bevel **/
 	Deep;
 }
 
 // --- Filter -------------------------------------------------------------------------------
 class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
+	/** Opacity (0-1) of the bevel texture **/
 	public var alpha(get,set) : Float;
+
+	/** Width & height of bevel grid blocks **/
 	public var bevelSize(default,set) : Int;
+
+	/** Bevel type (see `BevelType` enum)**/
 	public var bevelType(default,set) : BevelType;
+
 
 	var overlayTex : hxsl.Types.Sampler2D;
 	var invalidated = true;
 
-	public function new(?type:BevelType, ?size=2) {
+	/**
+		@param type Type of bevel, see `BevelType` enum
+		@param sizePx Width & height of the bevel grid blocks
+	**/
+	public function new(type:BevelType = Classic, sizePx=2) {
 		super( new OverlayBlendShader() );
 		alpha = 1;
-		bevelType = type==null ? Classic : type;
-		bevelSize = size;
+		bevelType = type;
+		bevelSize = sizePx;
 	}
 
-	public inline function invalidate() invalidated = true;
+	inline function invalidate() invalidated = true;
 
 	inline function set_bevelSize(v) {
 		if( bevelSize!=v )
@@ -47,11 +64,11 @@ class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
 
 		if( invalidated ) {
 			invalidated = false;
-			render(ctx.scene.width, ctx.scene.height);
+			renderBevelTexture(ctx.scene.width, ctx.scene.height);
 		}
 	}
 
-	function render(screenWid:Float, screenHei:Float) {
+	function renderBevelTexture(screenWid:Float, screenHei:Float) {
 		// Cleanup
 		if( overlayTex!=null )
 			overlayTex.dispose();
