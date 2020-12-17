@@ -119,7 +119,7 @@ class Color {
 			c.r = c.g = c.b = Math.round(hsl.l*255);
 		else {
 			var h = hsl.h*6;
-			var i = Math.floor(h);
+			var i = M.floor(h);
 			var c1 = hsl.l * (1 - hsl.s);
 			var c2 = hsl.l * (1 - hsl.s * (h-i));
 			var c3 = hsl.l * (1 - hsl.s * (1 - (h-i)));
@@ -130,40 +130,68 @@ class Color {
 			else if( i==3 )		{ r = c1; g = c2; b = hsl.l; }
 			else if( i==4 )		{ r = c3; g = c1; b = hsl.l; }
 			else 				{ r = hsl.l; g = c1; b = c2; }
-			c.r = Math.round(r*255);
-			c.g = Math.round(g*255);
-			c.b = Math.round(b*255);
+			c.r = M.round(r*255);
+			c.g = M.round(g*255);
+			c.b = M.round(b*255);
 		}
 
 		return c;
 	}
 
 
-	//public static inline function hslToInt(hsl:ColHsl) : Int {
-		//var r = 0.;
-		//var g = 0.;
-		//var b = 0.;
-//
-		//if( hsl.l==0 )
-			//return 0x0;
-		//else if( hsl.s==0 )
-			//r = g = b = hsl.l;
-		//else {
-			//var h = hsl.h*6;
-			//var i = Math.floor(h);
-			//var c1 = hsl.l * (1 - hsl.s);
-			//var c2 = hsl.l * (1 - hsl.s * (h-i));
-			//var c3 = hsl.l * (1 - hsl.s * (1 - (h-i)));
-//
-			//if( i==0 || i==6 )	{ r = hsl.l; g = c3; b = c1; }
-			//else if( i==1 )		{ r = c2; g = hsl.l; b = c1; }
-			//else if( i==2 )		{ r = c1; g = hsl.l; b = c3; }
-			//else if( i==3 )		{ r = c1; g = c2; b = hsl.l; }
-			//else if( i==4 )		{ r = c3; g = c1; b = hsl.l; }
-			//else 				{ r = hsl.l; g = c1; b = c2; }
-		//}
-		//return (Math.round(r*255) << 16) | (Math.round(g*255)<<8 ) | Math.round(b*255);
-	//}
+	public static inline function hslToInt(h:Float, s:Float, l:Float) : Int {
+		if( l<=0 )
+			return 0x0;
+		if( s<=0 )
+			return makeColorRgb(l,l,l);
+		else {
+			var r = 0.;
+			var g = 0.;
+			var b = 0.;
+
+			h*=6;
+			var i = M.floor(h);
+			var c1 = l * (1 - s);
+			var c2 = l * (1 - s * (h-i));
+			var c3 = l * (1 - s * (1 - (h-i)));
+
+			if( i==0 || i==6 )	{ r = l; g = c3; b = c1; }
+			else if( i==1 )		{ r = c2; g = l; b = c1; }
+			else if( i==2 )		{ r = c1; g = l; b = c3; }
+			else if( i==3 )		{ r = c1; g = c2; b = l; }
+			else if( i==4 )		{ r = c3; g = c1; b = l; }
+			else 				{ r = l; g = c1; b = c2; }
+
+			return makeColorRgb(r,g,b);
+		}
+	}
+
+
+	static inline function hslStructToInt(hsl:ColHsl) : Int {
+		var r = 0.;
+		var g = 0.;
+		var b = 0.;
+
+		if( hsl.l>0 ) {
+			if( hsl.s==0 )
+				r = g = b = hsl.l;
+			else {
+				var h = hsl.h*6;
+				var i = Math.floor(h);
+				var c1 = hsl.l * (1 - hsl.s);
+				var c2 = hsl.l * (1 - hsl.s * (h-i));
+				var c3 = hsl.l * (1 - hsl.s * (1 - (h-i)));
+
+				if( i==0 || i==6 )	{ r = hsl.l; g = c3; b = c1; }
+				else if( i==1 )		{ r = c2; g = hsl.l; b = c1; }
+				else if( i==2 )		{ r = c1; g = hsl.l; b = c3; }
+				else if( i==3 )		{ r = c1; g = c2; b = hsl.l; }
+				else if( i==4 )		{ r = c3; g = c1; b = hsl.l; }
+				else 				{ r = hsl.l; g = c1; b = c2; }
+			}
+		}
+		return makeColorRgb(r,g,b);
+	}
 
 
 	public static inline function rgbToMatrix(c:Col) {
@@ -288,9 +316,6 @@ class Color {
 	public static inline function intToHsl(c:Int) : ColHsl {
 		return rgbToHsl( intToRgb(c) );
 	}
-	public static inline function hslToInt(c:ColHsl) : UInt {
-		return rgbToInt( hslToRgb(c) );
-	}
 
 	public static inline function rgbaToInt(c:Col32) : Int {
 		return (c.a << 24) | (c.r<<16 ) | (c.g<<8) | c.b;
@@ -338,11 +363,11 @@ class Color {
 		var hsl = intToHsl(cint);
 		if( hsl.l>maxLum ) {
 			hsl.l = maxLum;
-			return hslToInt(hsl);
+			return hslStructToInt(hsl);
 		}
 		else if( hsl.l<minLum ) {
 			hsl.l = minLum;
-			return hslToInt(hsl);
+			return hslStructToInt(hsl);
 		}
 		else
 			return cint;
@@ -359,7 +384,7 @@ class Color {
 		var hsl = intToHsl(c);
 		if( hsl.s>sat ) hsl.s = sat;
 		if( hsl.l>lum ) hsl.l = lum;
-		return hslToInt(hsl);
+		return hslStructToInt(hsl);
 	}
 
 	public static function hue(c:Col, f:Float) {
@@ -391,7 +416,7 @@ class Color {
 		if( sat!=null )
 			hsl.s = sat;
 
-		return hslToInt(hsl);
+		return hslStructToInt(hsl);
 	}
 
 	public static function brightnessInt(cint:Int, delta:Float) {
@@ -455,8 +480,8 @@ class Color {
 		return a<<24 | c;
 	}
 
-	public static inline function randomColor(?hue:Float, ?sat=1.0, ?lum=1.0) {
-		return makeColorHsl(hue==null ? Math.random() : hue,sat,lum);
+	public static inline function randomColor(?hue:Float, sat=1.0, lum=1.0) {
+		return makeColorHsl(hue==null ? Math.random() : hue, sat, lum);
 	}
 
 	public static inline function fromString(k:String) {
@@ -535,12 +560,7 @@ class Color {
 	}
 
 	public static inline function makeColorHsl(hue:Float, ?saturation=1.0, ?luminosity=1.0) : Int { // range : 0-1
-		var hsl : ColHsl = {
-			h : hue,
-			s : saturation,
-			l : luminosity,
-		}
-		return hslToInt(hsl);
+		return hslToInt(hue,saturation,luminosity);
 	}
 
 	@:noCompletion
@@ -603,14 +623,14 @@ class Color {
 		var hsl = intToHsl(c);
 		hsl.s = sat;
 		hsl.l = lum;
-		return hslToInt(hsl);
+		return hslStructToInt(hsl);
 	}
 
 	public static inline function changeHslInt(c:Int, lum:Float, sat:Float) {
 		var hsl = intToHsl(c);
 		hsl.l = lum;
 		hsl.s = sat;
-		return hslToInt(hsl);
+		return hslStructToInt(hsl);
 	}
 
 	public static inline function addHslInt(c:Int, hDelta:Float, sDelta:Float, lDelta:Float) {
@@ -618,13 +638,13 @@ class Color {
 		hsl.h = M.fclamp( hsl.h + hDelta, 0, 1 );
 		hsl.s = M.fclamp( hsl.s + sDelta, 0, 1 );
 		hsl.l = M.fclamp( hsl.l + lDelta, 0, 1 );
-		return hslToInt(hsl);
+		return hslStructToInt(hsl);
 	}
 
 	public static inline function setLuminosityInt(c:Int, lum:Float) {
 		var hsl = intToHsl(c);
 		hsl.l = lum;
-		return hslToInt(hsl);
+		return hslStructToInt(hsl);
 	}
 
 	public static inline function offsetColor(c:Col, delta:Int) : Col {
@@ -1246,13 +1266,18 @@ class Color {
 		CiAssert.equals( intToHsl(0xff0000).h, 0 );
 		CiAssert.equals( intToHsl(0xff0000).s, 1 );
 		CiAssert.equals( intToHsl(0xff0000).l, 1 );
+		CiAssert.equals( hslToInt(0,1,1), 0xff0000 );
+		CiAssert.equals( hslToInt(0,0,1), 0xffffff );
+		CiAssert.equals( hslToInt(0.5,1,1), 0x00ffff );
+		CiAssert.equals( getSaturation(0xff0000), 1 );
+
+		// Make color
+		CiAssert.equals( makeColorHsl(0, 1, 1), 0xff0000 );
 		CiAssert.equals( makeColorRgb(1, 0, 0), 0xff0000 );
 		CiAssert.equals( makeColorRgb(0, 1, 0), 0x00ff00 );
 		CiAssert.equals( makeColorRgb(0, 0, 1), 0x0000ff );
 		CiAssert.equals( makeColorRgba(0, 0, 0, 1), 0xff000000 );
 		CiAssert.equals( makeColorRgba(0, 0.5, 0, 1), 0xff007f00 );
-		CiAssert.equals( makeColorHsl(0, 1, 1), 0xff0000 );
-		CiAssert.equals( getSaturation(0xff0000), 1 );
 
 		// Luminosity
 		CiAssert.equals( getLuminosity(0xffffff), 1 );
