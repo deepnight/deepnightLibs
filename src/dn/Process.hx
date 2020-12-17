@@ -34,8 +34,8 @@ class Process {
 	public var uftime(default, null) : Float;
 	var baseTimeMul = 1.0;
 
-	@:deprecated
-	public var dt(get,never) : Float; inline function get_dt() return tmod; // deprecated, kept for Dead Cells prod version in January 2019
+	@:deprecated("Use tmod instead")
+	public var dt(get,never) : Float; inline function get_dt() return tmod;
 
 	/** Process display name **/
 	public var name : Null<String>;
