@@ -127,6 +127,8 @@ class CiAssert {
 	public static function println(v:Dynamic) {
 		#if js
 		js.html.Console.log( Std.string(v) );
+		#elseif flash
+		trace(v);
 		#else
 		Sys.println( Std.string(v) );
 		#end
@@ -153,6 +155,8 @@ class CiAssert {
 		// Stop
 		#if js
 		throw new js.lib.Error('Failed in ${filePos.file}');
+		#elseif flash
+		throw reason;
 		#else
 		Sys.stderr().writeString('${filePos.file}:${filePos.line}: characters 1-999 : $reason\n');
 		Sys.exit(1);
