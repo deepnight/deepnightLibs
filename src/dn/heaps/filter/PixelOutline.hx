@@ -13,7 +13,7 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 	public var knockOut(default,set) : Bool;
 
 	/** Add a pixel-perfect outline around a h2d.Object using a shader filter **/
-	public function new(color=0x0, ?a=1.0, knockOut=false) {
+	public function new(color=0x0, a=1.0, knockOut=false) {
 		super( new InternalShader() );
 		this.color = color;
 		alpha = a;
@@ -36,7 +36,7 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 
 	inline function set_knockOut(v) {
 		knockOut = v;
-		shader.knockOutMul = knockOut ? 0 : 1;
+		shader.knockOutThreshold = knockOut ? 0 : 1;
 		return v;
 	}
 
@@ -58,7 +58,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var texture : Sampler2D;
 		@param var texelSize : Vec2;
 		@param var outlineColor : Vec4;
-		@const var knockOutMul : Int;
+		@param var knockOutThreshold : Float;
 
 		function fragment() {
 			var curColor : Vec4 = texture.get(input.uv);
@@ -77,7 +77,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			);
 
 			// Apply color, including outline alpha
-			var a = max(onEdge*outlineColor.a, curColor.a);
+			var a = max(onEdge*outlineColor.a, min(knockOutThreshold, curColor.a));
 			output.color = vec4(
 				mix( curColor.rgb, outlineColor.rgb, onEdge )*a,
 				a
