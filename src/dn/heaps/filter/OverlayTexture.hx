@@ -25,6 +25,8 @@ class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
 	/** Bevel type (see `BevelType` enum)**/
 	public var bevelType(default,set) : BevelType;
 
+	/** Define this method to automatically update texture bevel size based on your own criterions. It should return the expected bevel size. **/
+	public var autoUpdateSize: Null< Void->Int > = null;
 
 	var overlayTex : hxsl.Types.Sampler2D;
 	var invalidated = true;
@@ -58,6 +60,9 @@ class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
 
 	override function sync(ctx:h2d.RenderContext, s:h2d.Object) {
 		super.sync(ctx, s);
+
+		if( autoUpdateSize!=null && bevelSize!=autoUpdateSize() )
+			bevelSize = autoUpdateSize();
 
 		if( !Std.is(s, h2d.Scene) )
 			throw "OverlayTextureFilter should only be attached to a 2D Scene";
