@@ -64,6 +64,16 @@ class StatsBox extends dn.Process {
 		fpsChart.visible = showFpsChart;
 	}
 
+	public inline function show() {
+		root.visible = true;
+	}
+	public inline function hide() {
+		root.visible = false;
+	}
+	public inline function toggle() {
+		root.visible = !root.visible;
+	}
+
 
 	override function postUpdate() {
 		super.postUpdate();
@@ -81,7 +91,7 @@ class StatsBox extends dn.Process {
 		super.update();
 
 		if( K.isPressed(K.S) && K.isDown(K.ALT) )
-			root.visible = !root.visible;
+			toggle();
 
 		if( root.visible && !cd.hasSetS("tick",updateFrequencyS) ) {
 			var v = hxd.Timer.fps();
