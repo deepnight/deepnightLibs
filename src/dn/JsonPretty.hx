@@ -21,6 +21,7 @@ class JsonPretty {
 	static var indent : Int;
 	static var needHeader : Bool;
 	static var header : Dynamic;
+	static var inlineHeader : Bool;
 
 	static var space : String;
 	static var preSpace : String; // Spaces before ":"
@@ -31,8 +32,10 @@ class JsonPretty {
 
 	/**
 		Transform an Object into a Json String, with an optional "header" Object that will be added at the beginning of the output Json. The `prettyLevel` can be either Compact (default; adds line breaks & indentation when required), Full (ie. line breaks & indentation everywhere) or Minified (no space nor indentation).
+
+		If `inlineHeader` is FALSE (default), the header object will be add in a `__header__` object at the beginning of the Json. If TRUE, the header fields will be directly added at the beginning of the Json.
 	**/
-	public static function stringify(o:Dynamic, prettyLevel=Compact, ?headerObject:Dynamic) {
+	public static function stringify(o:Dynamic, prettyLevel=Compact, ?headerObject:Dynamic, inlineHeader=false) {
 		level = prettyLevel;
 		indent = 0;
 		buf = new StringBuf();
@@ -42,6 +45,7 @@ class JsonPretty {
 		tab = level==Minified ? "" : "\t";
 		lineBreak = level==Minified ? "" : "\n";
 
+		JsonPretty.inlineHeader = inlineHeader;
 		header = headerObject;
 		needHeader = headerObject!=null;
 		if( headerObject!=null )
@@ -164,7 +168,12 @@ class JsonPretty {
 
 		switch Type.typeof(header) {
 			case TObject, TClass(String):
-				addValue("__header__", header, true);
+				if( inlineHeader ) {
+					for( k in Reflect.fields(header) )
+						addValue(k, Reflect.field(header, k), true);
+				}
+				else
+					addValue("__header__", header, true);
 
 			case _:
 				throw "Unsupported header type";
