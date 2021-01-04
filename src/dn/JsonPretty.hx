@@ -169,8 +169,15 @@ class JsonPretty {
 		switch Type.typeof(header) {
 			case TObject, TClass(String):
 				if( inlineHeader ) {
-					for( k in Reflect.fields(header) )
+					var i = 0;
+					var all = Reflect.fields(header);
+					for( k in all ) {
 						addValue(k, Reflect.field(header, k), true);
+						if( i++<all.length-1 ) {
+							buf.add(',$lineBreak');
+							addIndent();
+						}
+					}
 				}
 				else
 					addValue("__header__", header, true);
