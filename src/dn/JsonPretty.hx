@@ -1,7 +1,21 @@
 package dn;
 
+enum JsonPrettyLevel {
+	/** No pretty at all, no space or indentation **/
+	Minified;
+
+	/** Default pretty level, which tries to keep things a little bit more compact (ie. small arrays are kept on 1 line, etc.) **/
+	Compact;
+
+	/** Full pretty mode: line breaks and indentation everywhere! **/
+	Full;
+}
+
 class JsonPretty {
+	/** Used for "Compact" pretty level, when deciding between single or multi lines output. **/
 	static inline var APPROXIMATE_MAX_LINE_LENGTH = 85;
+
+	static var level : JsonPrettyLevel;
 
 	static var buf : StringBuf;
 	static var indent : Int;
@@ -14,14 +28,19 @@ class JsonPretty {
 	static var tab : String;
 	static var lineBreak : String;
 
-	public static function stringify(minified=false, o:Dynamic, ?headerObject:Dynamic) {
+
+	/**
+		Transform an Object into a Json String, with an optional "header" Object that will be added at the beginning of the output Json. The `prettyLevel` can be either Compact (default; adds line breaks & indentation when required), Full (ie. line breaks & indentation everywhere) or Minified (no space nor indentation).
+	**/
+	public static function stringify(o:Dynamic, prettyLevel=Compact, ?headerObject:Dynamic) {
+		level = prettyLevel;
 		indent = 0;
 		buf = new StringBuf();
-		space = minified ? "" : " ";
+		space = level==Minified ? "" : " ";
 		preSpace = "";
-		postSpace = minified ? "" : " ";
-		tab = minified ? "" : "\t";
-		lineBreak = minified ? "" : "\n";
+		postSpace = level==Minified ? "" : " ";
+		tab = level==Minified ? "" : "\t";
+		lineBreak = level==Minified ? "" : "\n";
 
 		header = headerObject;
 		needHeader = headerObject!=null;
@@ -97,13 +116,15 @@ class JsonPretty {
 		}
 
 		// Evaluate length for multiline option
-		var len = evaluateLength(o);
+		var len = level==Compact ? evaluateLength(o) : 0;
+
+		// Prepend name
 		if( name!=null )
 			buf.add('"$name"$preSpace:$postSpace');
 
 		// Add fields to buffer
 		var keys = Reflect.fields(o);
-		if( len<=APPROXIMATE_MAX_LINE_LENGTH && !needHeader && !forceMultilines ) {
+		if( level!=Full && len<=APPROXIMATE_MAX_LINE_LENGTH && !needHeader && !forceMultilines ) {
 			// Single line
 			buf.add('{$space');
 			for( i in 0...keys.length ) {
@@ -161,7 +182,7 @@ class JsonPretty {
 		}
 
 		// Evaluate length for multiline option
-		var len = evaluateLength(arr);
+		var len = level==Compact ? evaluateLength(arr) : 0;
 
 		if( name!=null )
 			buf.add('"$name"$preSpace:$postSpace');
@@ -169,7 +190,7 @@ class JsonPretty {
 		var arrValueType = Type.typeof( arr[0] );
 
 		// Add values to buffer
-		if( len<=APPROXIMATE_MAX_LINE_LENGTH && !forceMultilines ) {
+		if( level!=Full && len<=APPROXIMATE_MAX_LINE_LENGTH && !forceMultilines ) {
 			// Single line
 			var arraySpace =
 				switch arrValueType {
