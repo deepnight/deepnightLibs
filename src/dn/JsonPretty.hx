@@ -47,7 +47,7 @@ class JsonPretty {
 
 		JsonPretty.inlineHeader = inlineHeader;
 		header = headerObject;
-		needHeader = headerObject!=null;
+		needHeader = headerObject!=null && Reflect.fields(header).length>0;
 		if( headerObject!=null )
 			switch Type.typeof(headerObject) {
 				case TObject:
