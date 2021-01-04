@@ -49,19 +49,33 @@ class JsonPretty {
 
 			case TClass(String):
 				if( floatReg.match(v) ) {
-					// Treat numbers ending with "f" as float-hinted values, which can be useful to keep int/float
-					// distinction in JSON files
-					// Examples: 0f -> 0.0, -65f -> -65.0, 1f -> 1.0 etc.
+					/**
+						Treat numbers ending with "f" as float-hinted values, which can be useful to keep int/float distinction in JSON files
+						Examples: 0f -> 0.0, -65f -> -65.0, 1f -> 1.0 etc.
+					**/
 					var v : String = v;
 					var f = Std.parseFloat( v.substr(0,v.length-1) );
 					var strFloat = f==Std.int(f) ? f+".0" : Std.string(f);
 					name==null ? buf.add(strFloat) : buf.add('"$name"$preSpace:$postSpace$strFloat');
 				}
-				else
+				else {
+					// Normal string
+					v = StringTools.replace(v, "\n", " ");
+					v = StringTools.replace(v, "\r", "");
+					v = StringTools.replace(v, "\t", " ");
+					v = StringTools.replace(v, "\"", "\\\"");
 					name==null ? buf.add('"$v"') : buf.add('"$name"$preSpace:$postSpace"$v"');
+				}
 
 			case TClass(Array):
 				addArray(name, v, forceMultilines);
+
+			case TClass(haxe.ds.StringMap):
+				var map : haxe.ds.StringMap<Dynamic> = v;
+				var obj = {};
+				for( mv in map.keyValueIterator() )
+					Reflect.setField(obj, mv.key, mv.value);
+				addObject(name, obj);
 
 			case TObject:
 				addObject(name, v, forceMultilines);
