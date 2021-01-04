@@ -86,7 +86,7 @@ class JsonPretty {
 					v = StringTools.replace(v, "\n", " ");
 					v = StringTools.replace(v, "\r", "");
 					v = StringTools.replace(v, "\t", " ");
-					v = StringTools.replace(v, "\"", "\\\"");
+					v = StringTools.replace(v, '"', '\\"');
 					name==null ? buf.add('"$v"') : buf.add('"$name"$preSpace:$postSpace"$v"');
 				}
 
