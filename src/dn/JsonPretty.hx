@@ -47,11 +47,11 @@ class JsonPretty {
 
 		JsonPretty.inlineHeader = inlineHeader;
 		header = headerObject;
-		needHeader = headerObject!=null && Reflect.fields(header).length>0;
 		if( headerObject!=null )
 			switch Type.typeof(headerObject) {
-				case TObject:
-				case TClass(String):
+				case TObject: needHeader = Reflect.fields(header).length>0;
+				case TClass(String): needHeader = header.length>0;
+				case TClass(haxe.ds.StringMap): needHeader = Lambda.count(header)>0;
 				case _: throw "Only Anonymous Objects or Strings are supported as JSON headers";
 			}
 
@@ -174,6 +174,22 @@ class JsonPretty {
 					for( k in all ) {
 						addValue(k, Reflect.field(header, k), true);
 						if( i++<all.length-1 ) {
+							buf.add(',$lineBreak');
+							addIndent();
+						}
+					}
+				}
+				else
+					addValue("__header__", header, true);
+
+			case TClass(haxe.ds.StringMap):
+				if( inlineHeader ) {
+					var i = 0;
+					var map : Map<String,Dynamic> = header;
+					var n = Lambda.count(map);
+					for(f in map.keyValueIterator()) {
+						addValue(f.key, f.value, true);
+						if( i++<n-1 ) {
 							buf.add(',$lineBreak');
 							addIndent();
 						}
