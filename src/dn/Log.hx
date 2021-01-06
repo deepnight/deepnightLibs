@@ -258,7 +258,7 @@ class Log {
 
 		#else
 
-			trace(str);
+			haxe.Log.trace(str);
 
 		#end
 	}
