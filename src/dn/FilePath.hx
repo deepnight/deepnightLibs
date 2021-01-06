@@ -697,6 +697,9 @@ class FilePath {
 		CiAssert.equals( FilePath.fromFile("file://localhost/c$/foo/bar.txt").getDriveLetter(), "c" );
 		CiAssert.equals( FilePath.fromFile("file:/c$/foo/bar.txt").getDriveLetter(), "c" );
 
+		var filePath = "file://someone@domain.com:21/C:/foo/bar/pouet.txt";
+		CiAssert.equals( FilePath.fromFile(filePath).full, filePath );
+
 		// File URI test
 		CiAssert.isTrue( FilePath.fromFile("file:///C:/foo/bar/pouet.txt").isUri() );
 		CiAssert.isTrue( FilePath.fromFile("file:/C:/foo/bar/pouet.txt").isUri() );
