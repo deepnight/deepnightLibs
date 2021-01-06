@@ -198,6 +198,12 @@ class Log {
 			printEntry( entries[entries.length-1] );
 	}
 
+	/** Add a `LogEntry` object **/
+	public inline function addLogEntry(l:LogEntry) {
+		add(l.tag, l.str, l.color, l.critical);
+	}
+
+
 	public var tagColors : Map<String,String> = [
 		"general" => "#c8c9e3",
 		"warning" => "#ff9900",
