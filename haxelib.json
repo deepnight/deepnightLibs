@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.55",
+	"version": "1.0.56",
 	"classPath": "src/",
-	"releasenote": "Better PixelGrid draw methods, updated Color, various other fixes & updates",
+	"releasenote": "Added shader filters, Added StatsBox, various JsonPretty fixes",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
