@@ -468,6 +468,14 @@ class FilePath {
 		return arr[arr.length-1];
 	}
 
+	public function removeLastDirectory() {
+		if( directory==null )
+			return;
+		var arr = getDirectoryArray();
+		arr.pop();
+		directory = arr.join( slash() );
+	}
+
 
 	@:keep public function toString() {
 		return full;
