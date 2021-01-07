@@ -180,7 +180,7 @@ class LocalStorage {
 	**/
 	public static function writeObject<T>(storageName:String, storeAsJson:Bool, obj:T) {
 		if( storeAsJson )
-			_saveStorage( storageName, JsonPretty.stringify(obj) );
+			_saveStorage( storageName, JsonPretty.stringify(obj, Full) );
 		else
 			_saveStorage( storageName, haxe.Serializer.run(obj) );
 	}
