@@ -7,6 +7,9 @@ using haxe.macro.TypeTools;
 #end
 
 class CiAssert {
+	/** If FALSE, only errors are printed **/
+	public static var VERBOSE = false;
+
 	public static macro function isTrue(code:Expr) {
 		return macro {
 			if( ${buildIsTrueExpr(code)} )
@@ -136,7 +139,8 @@ class CiAssert {
 
 	@:noCompletion
 	public static inline function printOk(v:Dynamic) {
-		println(Std.string(v)+"  <Ok>");
+		if( VERBOSE )
+			println(Std.string(v)+"  <Ok>");
 	}
 
 	@:noCompletion
