@@ -31,7 +31,7 @@ class Changelog {
 	/**
 		Customizable title parser to recognize lines with a new version number
 	**/
-	public static var VERSION_TITLE_REG = ~/^[ \t]*#[ \t]+([0-9.a-z\-]+)[\- \t]*(.*)$/gim;
+	public static var VERSION_TITLE_REG = ~/^[ \t]*#[ \t]+v?([0-9]+[0-9.a-z\-]*)[\- \t]*(.*)$/gim;
 
 	/**
 		Changelog entries
@@ -98,7 +98,7 @@ class Changelog {
 
 				// Parse version number according to SemVer format
 				if( !Version.isValid(rawVersion) )
-					throw "Version number "+rawVersion+" in changelog doesn't comply to SemVer semantics";
+					throw 'Version number "$rawVersion" in changelog do not comply to SemVer semantics';
 
 				var ver = new Version(rawVersion);
 				cur = {
