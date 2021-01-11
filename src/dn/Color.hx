@@ -503,18 +503,19 @@ class Color {
 
 	/** Init the "unique" color palette used by `pickUniqueColorFor()` **/
 	static var uniqueColors : Array<UInt> = [];
-	public static function initUniqueColors(mixedColor=0x493a7d) {
+	public static function initUniqueColors(count=12, ?mixedColor:Null<Int>, mixIntensity=0.5) {
 		assignedUniqueColors = new Map();
 
 		// Init palette
 		uniqueColors = [];
-		var n = 12;
-		for(i in 0...n) {
-			var hue = i/n;
-			var sat = (0.6+0.4*(1-hue)) * 0.8;
-			var lum = i%2==0 ? 0.65 : 0.45;
+		for(i in 0...count) {
+			var hue = i/count;
+			hue = Math.pow(hue, 1.5);
+			var sat = (0.6+0.4*(1-hue)) * ( i%2==0 ? 1 : 0.6 ) ;
+			var lum = i%2==0 ? 1 : 0.6;
 			var c = makeColorHsl(hue, sat, lum);
-			c = interpolateInt(c, mixedColor, 0.6);
+			if( mixedColor!=null )
+				c = interpolateInt(c, mixedColor, mixIntensity);
 			uniqueColors.push(c);
 		}
 
