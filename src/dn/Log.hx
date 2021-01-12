@@ -219,13 +219,13 @@ class Log {
 	}
 
 	public inline function emptyEntry()			add("","");
-	public inline function general(str:Dynamic)	add("general", str);
-	public inline function warning(str:Dynamic)	add("warning", str);
-	public inline function error(str:Dynamic)	add("error", str, true);
-	public inline function fileOp(str:Dynamic)	add("file", str);
-	public inline function render(str:Dynamic)	add("render", str);
-	public inline function debug(str:Dynamic)	add("debug", str);
-	public inline function network(str:Dynamic)	add("network", str);
+	public inline function general(str:Dynamic)	add( "general", Std.string(str) );
+	public inline function warning(str:Dynamic)	add( "warning", Std.string(str) );
+	public inline function error(str:Dynamic)	add( "error", Std.string(str) , true);
+	public inline function fileOp(str:Dynamic)	add( "file", Std.string(str) );
+	public inline function render(str:Dynamic)	add( "render", Std.string(str) );
+	public inline function debug(str:Dynamic)	add("debug", Std.string(str));
+	public inline function network(str:Dynamic)	add( "network", Std.string(str) );
 
 	inline function formatDate(stamp:Float) {
 		return DateTools.format( Date.fromTime(stamp), "%Y-%m-%d %H:%M:%S" );
