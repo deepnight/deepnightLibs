@@ -127,20 +127,14 @@ class CiAssert {
 	#end
 
 	@:noCompletion
-	public static function println(v:Dynamic) {
-		#if js
-		js.html.Console.log( Std.string(v) );
-		#elseif flash
-		trace(v);
-		#else
-		Sys.println( Std.string(v) );
-		#end
-	}
-
-	@:noCompletion
 	public static inline function printOk(v:Dynamic) {
 		if( VERBOSE )
-			println(Std.string(v)+"  <Ok>");
+			Lib.println(Std.string(v)+"  <Ok>");
+	}
+
+	public static inline function printIfVerbose(v:Dynamic) {
+		if( VERBOSE )
+			Lib.println(v);
 	}
 
 	@:noCompletion
@@ -148,13 +142,13 @@ class CiAssert {
 		var desc = Std.string(desc);
 		var sep = [ for(i in 0...desc.length+11) "*" ];
 
-		println(sep.join(""));
-		println(desc+"  <FAILED!>");
+		Lib.println(sep.join(""));
+		Lib.println(desc+"  <FAILED!>");
 		if( extraInfos!=null )
 			for( str in extraInfos )
-				println("\t"+str);
-		println("ERROR: "+reason);
-		println(sep.join(""));
+				Lib.println("\t"+str);
+		Lib.println("ERROR: "+reason);
+		Lib.println(sep.join(""));
 
 		// Stop
 		#if js

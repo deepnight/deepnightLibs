@@ -237,7 +237,7 @@ class LocalStorage {
 		delete(storageName);
 		CiAssert.isTrue( !exists(storageName) );
 
-		CiAssert.println("LocaleStorage for Strings:");
+		CiAssert.printIfVerbose("LocaleStorage for Strings:");
 
 		// Object: default value
 		var v = readString(storageName, "foo");
@@ -255,7 +255,7 @@ class LocalStorage {
 			delete(storageName);
 		}
 
-		CiAssert.println("LocaleStorage for objects:");
+		CiAssert.printIfVerbose("LocaleStorage for objects:");
 
 		// Object: default value
 		var obj = readObject(storageName, false, { a:0, b:10, str:"foo" });
@@ -272,7 +272,7 @@ class LocalStorage {
 			obj.str = null;
 
 			// Json format
-			CiAssert.println("Json format:");
+			CiAssert.printIfVerbose("Json format:");
 			writeObject(storageName, true, obj);
 			CiAssert.isTrue( exists(storageName) );
 			var obj = readObject(storageName, true);
@@ -281,7 +281,7 @@ class LocalStorage {
 			CiAssert.equals( obj.str, null );
 
 			// Serialized format
-			CiAssert.println("Serialized format:");
+			CiAssert.printIfVerbose("Serialized format:");
 			delete(storageName);
 			writeObject(storageName, false, obj);
 			CiAssert.isTrue( exists(storageName) );
@@ -294,6 +294,6 @@ class LocalStorage {
 			CiAssert.isTrue( !exists(storageName) );
 		}
 		else
-			CiAssert.println("WARNING: LocaleStorage isn't supported on this platform!");
+			CiAssert.printIfVerbose("WARNING: LocaleStorage isn't supported on this platform!");
 	}
 }

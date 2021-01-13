@@ -141,7 +141,7 @@ class Rand {
 			random.initSeed(seed);
 			var a = random.rand();
 			random.initSeed(seed);
-			Lib.println("Seed="+seed+":");
+			CiAssert.printIfVerbose("Seed="+seed+":");
 			CiAssert.equals( random.rand(), a );
 		}
 
