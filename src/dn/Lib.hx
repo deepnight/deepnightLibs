@@ -506,13 +506,15 @@ class Lib {
 	}
 
 	/** Print a line to standard output, if any **/
-	public static function println(str:Dynamic) {
+	public static function println(v:Dynamic) {
 		#if js
-			js.html.Console.log( Std.string(str) );
+			js.html.Console.log( Std.string(v) );
+		#elseif flash
+			trace( Std.string(v) );
 		#elseif sys
-			Sys.println( Std.string(str) );
+			Sys.println( Std.string(v) );
 		#else
-			trace( Std.string(str) );
+			trace( Std.string(v) );
 		#end
 	}
 
