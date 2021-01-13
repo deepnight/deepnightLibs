@@ -13,6 +13,23 @@ enum WeekDay {
 }
 
 class Lib {
+
+	/** Print a line to standard output, if any **/
+	public static function println(v:Dynamic) {
+		#if js
+			js.html.Console.log( Std.string(v) );
+		#elseif flash
+			trace( Std.string(v) );
+		#elseif sys
+			Sys.println( Std.string(v) );
+		#else
+			trace( Std.string(v) );
+		#end
+	}
+
+
+	#if !macro
+
 	public static inline function countDaysUntil(now:Date, day:WeekDay) {
 		var delta = Type.enumIndex(day) - now.getDay();
 		return if(delta<0) 7+delta else delta;
@@ -505,19 +522,6 @@ class Lib {
 		#end
 	}
 
-	/** Print a line to standard output, if any **/
-	public static function println(v:Dynamic) {
-		#if js
-			js.html.Console.log( Std.string(v) );
-		#elseif flash
-			trace( Std.string(v) );
-		#elseif sys
-			Sys.println( Std.string(v) );
-		#else
-			trace( Std.string(v) );
-		#end
-	}
-
 
 	/**
 		Return TRUE if rectangle A touches or overlaps rectangle B.
@@ -592,4 +596,6 @@ class Lib {
 		CiAssert.isTrue( rectangleOverlaps(0,0,5,5, 2,2,1,1) );
 		CiAssert.isTrue( rectangleOverlaps(2,2,1,1, 0,0,5,5) );
 	}
+
+	#end // End of "if macro"
 }
