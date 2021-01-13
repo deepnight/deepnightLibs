@@ -444,8 +444,8 @@ class FilePath {
 				: directory + slash();
 	}
 
-
-	public function getDirectoryArray() {
+	/** Return directory fragments as array (c:/some/foo/file.txt returns [c:,some,foo])**/
+	public function getDirectoryArray() : Array<String> {
 		if( directory==null )
 			return [];
 		else if( directory==slash() )
@@ -454,6 +454,31 @@ class FilePath {
 			return directory.split(slash());
 	}
 
+	/**
+		Return full "sub" directories as array.
+		- with `discardDriveLetter`==FALSE: "`c:/some/foo/file.txt`" returns [ c:, c:/some, c:/some/foo ]
+		- with `discardDriveLetter`==TRUE: "`c:/some/foo/file.txt`" returns [ c:/some, c:/some/foo ]
+
+	**/
+	public function getSubDirectories(discardDriveLetter:Bool) : Array<String> {
+		var parts = getDirectoryArray();
+		if( parts.length==0 )
+			return [];
+
+		var subs = [];
+		for(i in 0...parts.length) {
+			if( discardDriveLetter && i==0 && hasDriveLetter() ) // discard drive letter
+				continue;
+
+			var sub = [];
+			for(j in 0...i+1)
+				sub.push( parts[j] );
+			subs.push( sub.join( slash() ) );
+		}
+		return subs;
+	}
+
+	/** Return directory fragments as array (c:/some/foo/file.txt returns [c:,some,foo,file.txt])**/
 	public function getDirectoryAndFileArray() {
 		var out = getDirectoryArray();
 		if( fileWithExt!=null )
@@ -595,21 +620,19 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromFile("/user/.htaccess").clone().full == FilePath.fromFile("/user/.htaccess").clone().full );
 
 		// Dirs
-		CiAssert.isTrue( FilePath.fromDir("/user/foo").directory=="/user/foo" );
-		CiAssert.isTrue( FilePath.fromDir("/user/foo.png").directory=="/user/foo.png" );
-		CiAssert.isTrue( FilePath.fromDir("/").directory=="/" );
-		CiAssert.isTrue( FilePath.fromDir("c:").getDirectoryArray().length==1 );
-		CiAssert.isTrue( FilePath.fromDir("/user").getDirectoryArray().length==2 );
-		CiAssert.isTrue( FilePath.fromDir("/user").directoryWithSlash == "/user/" );
-		CiAssert.isTrue( FilePath.fromDir("/").directoryWithSlash == "/" );
-		CiAssert.isTrue( FilePath.fromDir("").directory == null );
-		CiAssert.isTrue( FilePath.fromDir("").directoryWithSlash == null );
-		CiAssert.isTrue( FilePath.fromDir("").fileName == null );
-		CiAssert.isTrue( FilePath.fromDir("").extension == null );
+		CiAssert.equals( FilePath.fromDir("/user/foo").directory, "/user/foo" );
+		CiAssert.equals( FilePath.fromDir("/user/foo.png").directory, "/user/foo.png" );
+		CiAssert.equals( FilePath.fromDir("/").directory, "/" );
+		CiAssert.equals( FilePath.fromDir("/").directoryWithSlash, "/" );
+		CiAssert.equals( FilePath.fromDir("").directory, null );
+		CiAssert.equals( FilePath.fromDir("").directoryWithSlash, null );
+		CiAssert.equals( FilePath.fromDir("/user").directoryWithSlash, "/user/" );
+		CiAssert.equals( FilePath.fromDir("").fileName, null );
+		CiAssert.equals( FilePath.fromDir("").extension, null );
 		CiAssert.isTrue( FilePath.fromDir("").isEmpty() );
 		CiAssert.isTrue( FilePath.fromDir(null).isEmpty() );
 		CiAssert.isTrue( FilePath.fromFile(null).isEmpty() );
-		CiAssert.isTrue( FilePath.fromDir("user/?/test").directory == "user/_/test");
+		CiAssert.equals( FilePath.fromDir("user/?/test").directory, "user/_/test");
 		CiAssert.equals( FilePath.fromDir("/user/foo").full, "/user/foo" );
 		CiAssert.equals( FilePath.fromDir("/user/foo/").full, "/user/foo" );
 		CiAssert.equals( FilePath.fromDir("user//foo").full, "user/foo" );
@@ -624,6 +647,16 @@ class FilePath {
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("", false) == null );
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("..", false) == "../" );
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("user", false) == "user/" );
+
+		// Dir array
+		CiAssert.equals( FilePath.fromDir("c:").getDirectoryArray().length, 1 );
+		CiAssert.equals( FilePath.fromDir("/user").getDirectoryArray().length, 2 );
+
+		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(true).length, 2 );
+		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(false).length, 3 );
+		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(false)[0], "c:" );
+		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(true)[0], "c:/foo" );
+		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(true)[1], "c:/foo/bar" );
 
 		// Files
 		CiAssert.isTrue( FilePath.fromFile("/user/foo").directory=="/user" );
