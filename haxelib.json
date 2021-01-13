@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.56",
+	"version": "1.0.57",
 	"classPath": "src/",
-	"releasenote": "Added shader filters, Added StatsBox, various JsonPretty fixes",
+	"releasenote": "Various fixes and minor changes (FilePath, Color, unit tests)",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
