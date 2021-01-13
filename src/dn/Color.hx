@@ -465,6 +465,10 @@ class Color {
 		return (c>>>24) / 255.0;
 	}
 
+	public static inline function hasAlpha(c:Int) : Bool {
+		return ( c>>>24 ) > 0;
+	}
+
 	public static inline function removeAlpha(col32:UInt) : UInt {
 		return col32 & 0xffffff;
 	}
@@ -721,11 +725,15 @@ class Color {
 	}
 
 	public static inline function toBlack(c:Int, ratio:Float) : Int {
-		return rgbToInt( interpolate(intToRgb(c), BLACK, ratio) );
+		return hasAlpha(c)
+			? addAlphaF( interpolateInt(c, 0x0, ratio), getAlphaF(c) )
+			: interpolateInt(c, 0x0, ratio);
 	}
 
 	public static inline function toWhite(c:Int, ratio:Float) : Int {
-		return rgbToInt( interpolate(intToRgb(c), WHITE, ratio) );
+		return hasAlpha(c)
+			? addAlphaF( interpolateInt(c, 0xffffff, ratio), getAlphaF(c) )
+			: interpolateInt(c, 0xffffff, ratio);
 	}
 
 
@@ -1286,7 +1294,9 @@ class Color {
 
 		// Transforms
 		CiAssert.equals( toWhite(0x112233, 1), 0xffffff );
+		CiAssert.equals( toWhite(0xaa112233, 1), 0xaaffffff );
 		CiAssert.equals( toBlack(0x112233, 1), 0x0 );
+		CiAssert.equals( toBlack(0xaa112233, 1), 0xaa000000 );
 	}
 }
 
