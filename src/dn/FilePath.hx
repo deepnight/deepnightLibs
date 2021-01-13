@@ -444,6 +444,7 @@ class FilePath {
 				: directory + slash();
 	}
 
+
 	/** Return directory fragments as array (c:/some/foo/file.txt returns [c:,some,foo])**/
 	public function getDirectoryArray() : Array<String> {
 		if( directory==null )
@@ -453,6 +454,7 @@ class FilePath {
 		else
 			return directory.split(slash());
 	}
+
 
 	/**
 		Return full "sub" directories as array.
@@ -473,10 +475,15 @@ class FilePath {
 			var sub = [];
 			for(j in 0...i+1)
 				sub.push( parts[j] );
-			subs.push( sub.join( slash() ) );
+
+			var p = sub.join( slash() );
+			if( p=="" )
+				p = slash();
+			subs.push(p);
 		}
 		return subs;
 	}
+
 
 	/** Return directory fragments as array (c:/some/foo/file.txt returns [c:,some,foo,file.txt])**/
 	public function getDirectoryAndFileArray() {
@@ -657,6 +664,9 @@ class FilePath {
 		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(false)[0], "c:" );
 		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(true)[0], "c:/foo" );
 		CiAssert.equals( FilePath.fromDir("c:/foo/bar").getSubDirectories(true)[1], "c:/foo/bar" );
+		CiAssert.equals( FilePath.fromDir("/").getSubDirectories(false)[0], "/" );
+		CiAssert.equals( FilePath.fromDir("/user").getSubDirectories(false)[0], "/" );
+		CiAssert.equals( FilePath.fromDir("/user").getSubDirectories(false)[1], "/user" );
 
 		// Files
 		CiAssert.isTrue( FilePath.fromFile("/user/foo").directory=="/user" );
