@@ -67,7 +67,8 @@ class ElectronUpdater {
 		});
 
 		IpcMain.handle("checkUpdate", function(event,args) {
-			autoUpdater.checkForUpdates();
+			var prom = autoUpdater.checkForUpdates();
+			prom.then(()->{}, (err)->{});
 		});
 
 		IpcMain.handle("installUpdate", function(event) {
