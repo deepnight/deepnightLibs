@@ -98,6 +98,8 @@ class Delayer {
 		haxe.ds.ArraySort.sort(delays, cmp);
 	}
 
+	public inline function hasAny() return !isDestroyed() && delays.length>0;
+
 	public function update(dt:Float) {
 		var i = 0;
 		while( i<delays.length ) {
