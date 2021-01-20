@@ -30,6 +30,17 @@ class Version {
 	}
 
 	/**
+		Version string in format `x[.y[.z]]` (discard trailing zeros and without label). If `keepMinor` is TRUE, the ouput is `x.y[.z]`.
+	**/
+	public function getTrimmedNumbers(keepMinor:Bool) {
+		return patch==0
+			? minor==0 && !keepMinor
+				? '$major'
+				: '$major.$minor'
+			: '$major.$minor.$patch';
+	}
+
+	/**
 		Set version using "x.y.z[-label]" format.
 	**/
 	public function set(v:String) {
