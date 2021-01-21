@@ -128,11 +128,11 @@ class ElectronUpdater {
 		haxe.Timer.delay( function() {
 			onUpdateFound(info);
 			onUpdateCheckComplete();
-		}, 800 );
+		}, 500 );
 
 		haxe.Timer.delay( function() {
 			onUpdateDownloaded(info);
-		}, 2000 );
+		}, 1000 );
 	}
 
 	public static function checkNow() {
