@@ -688,12 +688,11 @@ class Color {
 	}
 
 	public static inline function interpolateInt(from:Int, to:Int, ratio:Float) : Int {
-		//return (c.r << 16) | (c.g<<8 ) | c.b;
 		return
-			( interpolateR(from,to,ratio) << 16 ) |
-			( interpolateG(from,to,ratio) << 8 ) |
-			( interpolateB(from,to,ratio) );
-		//return rgbToInt( interpolate(intToRgb(from), intToRgb(to), ratio) );
+			( M.round( 255 * M.lerp( getA(from), getA(to), ratio ) ) << 24 ) |
+			( M.round( 255 * M.lerp( getR(from), getR(to), ratio ) ) << 16 ) |
+			( M.round( 255 * M.lerp( getG(from), getG(to), ratio ) ) << 8 ) |
+			( M.round( 255 * M.lerp( getB(from), getB(to), ratio ) ) );
 	}
 
 	public static inline function mix<T>(from:T, to:T, ratio:Float) {
@@ -725,15 +724,11 @@ class Color {
 	}
 
 	public static inline function toBlack(c:Int, ratio:Float) : Int {
-		return hasAlpha(c)
-			? addAlphaF( interpolateInt(c, 0x0, ratio), getAlphaF(c) )
-			: interpolateInt(c, 0x0, ratio);
+		return interpolateInt(c, addAlphaF(0x0, getA(c)), ratio);
 	}
 
 	public static inline function toWhite(c:Int, ratio:Float) : Int {
-		return hasAlpha(c)
-			? addAlphaF( interpolateInt(c, 0xffffff, ratio), getAlphaF(c) )
-			: interpolateInt(c, 0xffffff, ratio);
+		return interpolateInt(c, addAlphaF(0xffffff, getA(c)), ratio);
 	}
 
 
@@ -754,10 +749,6 @@ class Color {
 		}
 	}
 
-	public static inline function interpolateR(from:UInt, to:UInt, r:Float) return M.round( M.lerp( from>>16, to>>16, r ) );
-	public static inline function interpolateG(from:UInt, to:UInt, r:Float) return M.round( M.lerp( (from>>8)&0xFF, (to>>8)&0xFF, r ) );
-	public static inline function interpolateB(from:UInt, to:UInt, r:Float) return M.round( M.lerp( from&0xFF, to&0xFF, r ) );
-
 	#if(h3d||heaps)
 	public static inline function applyH2dContrast(e:h2d.Drawable, ratio:Float) {
 		var m = 1+ratio*1.5;
@@ -776,9 +767,12 @@ class Color {
 	}
 
 	public static inline function colorizeBatchElement(e:h2d.SpriteBatch.BatchElement, c:UInt, ratio=1.0) {
-		e.r = interpolateR(0xFFFFFF, c, ratio) / 255;
-		e.g = interpolateG(0xFFFFFF, c, ratio) / 255;
-		e.b = interpolateB(0xFFFFFF, c, ratio) / 255;
+		e.r = M.lerp( 0xffffff, getR(c), ratio );
+		e.g = M.lerp( 0xffffff, getG(c), ratio );
+		e.b = M.lerp( 0xffffff, getB(c), ratio );
+		// e.r = interpolateR(0xFFFFFF, c, ratio) / 255;
+		// e.g = interpolateG(0xFFFFFF, c, ratio) / 255;
+		// e.b = interpolateB(0xFFFFFF, c, ratio) / 255;
 	}
 	#end
 
@@ -1292,11 +1286,27 @@ class Color {
 		CiAssert.equals( getLuminosity(0xffffff), 1 );
 		CiAssert.equals( getLuminosity(0x00ff00), 1 );
 
+		// Alpha
+		CiAssert.equals( hasAlpha(0xaa112233), true );
+		CiAssert.equals( hasAlpha(0x112233), false );
+
 		// Transforms
+		CiAssert.equals( interpolateInt(0x0, 0xffffff, 0), 0x0 );
+		CiAssert.equals( interpolateInt(0x0, 0xffffff, 0.5), 0x808080 );
+		CiAssert.equals( interpolateInt(0x0, 0xffffff, 1), 0xffffff );
+		CiAssert.equals( interpolateInt(0xaa000000, 0xaaffffff, 0.5), 0xaa808080 );
+
 		CiAssert.equals( toWhite(0x112233, 1), 0xffffff );
 		CiAssert.equals( toWhite(0xaa112233, 1), 0xaaffffff );
+		CiAssert.equals( toWhite(0xaa112233, 0), 0xaa112233 );
+		CiAssert.equals( toWhite(0x000000, 0.5), 0x808080);
+		CiAssert.equals( toWhite(0xaa000000, 0.5), 0xaa808080);
+
 		CiAssert.equals( toBlack(0x112233, 1), 0x0 );
 		CiAssert.equals( toBlack(0xaa112233, 1), 0xaa000000 );
+		CiAssert.equals( toBlack(0xaa112233, 0), 0xaa112233 );
+		CiAssert.equals( toBlack(0xffffff, 0.5), 0x808080);
+		CiAssert.equals( toBlack(0xaaffffff, 0.5), 0xaa808080);
 	}
 }
 
