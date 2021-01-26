@@ -30,6 +30,11 @@ class Log {
 	**/
 	public var printDate = false;
 
+	var currentIndent = 0;
+
+	/** Character to add before indented entries, in addition of spaces **/
+	public var indentBullet : Null<String> = "-";
+
 	#if heaps
 	/**
 		Optional output Console used by printEntry()
@@ -181,6 +186,9 @@ class Log {
 	**/
 
 	public inline function add(tag:String, text:String, ?color:UInt, markAsCritical=false) {
+		if( currentIndent>0 )
+			text = Lib.repeatChar("  ",currentIndent) + (indentBullet==null ? "" : indentBullet+" ") + text;
+
 		entries.push({
 			time: Date.now().getTime(),
 			tag: tag,
@@ -226,6 +234,15 @@ class Log {
 	public inline function render(str:Dynamic)	add( "render", Std.string(str) );
 	public inline function debug(str:Dynamic)	add("debug", Std.string(str));
 	public inline function network(str:Dynamic)	add( "network", Std.string(str) );
+
+	/** Increase indentation for all following entries **/
+	public inline function indentMore() currentIndent++;
+
+	/** Decrease indentation for all following entries **/
+	public inline function indentLess() currentIndent = M.imax( currentIndent-1, 0 );
+
+	/** Clear indentation level for all following entries **/
+	public inline function clearIndent() currentIndent = 0;
 
 	inline function formatDate(stamp:Float) {
 		return DateTools.format( Date.fromTime(stamp), "%Y-%m-%d %H:%M:%S" );
