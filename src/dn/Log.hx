@@ -281,5 +281,14 @@ class Log {
 	}
 
 
+	/**
+		Print all entries into another log
+	**/
+	public function printAllToLog(target:Log) {
+		for(e in entries)
+			target.addLogEntry(e);
+	}
+
+
 	public dynamic function onAdd(e:LogEntry) {}
 }
