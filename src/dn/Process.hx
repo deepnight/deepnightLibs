@@ -165,6 +165,23 @@ class Process {
 	}
 
 
+	public static function destroyAllExcept(excepts:Array<Process>) {
+		for(p in ROOTS) {
+			if( p.destroyed )
+				continue;
+
+			var keep = false;
+			for(e in excepts)
+				if( e==p ) {
+					keep = true;
+					break;
+				}
+			if( !keep )
+				p.destroy();
+		}
+	}
+
+
 	/** Called at the "beginning of the frame", before any Process update(), in declaration order **/
 	function preUpdate() {}
 
