@@ -40,6 +40,12 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 		return v;
 	}
 
+	public function setPartialKnockout(alphaMul:Float) {
+		alphaMul = M.fclamp(alphaMul, 0, 1);
+		knockOut = alphaMul<1;
+		shader.knockOutThreshold = alphaMul;
+	}
+
 	override function sync(ctx : h2d.RenderContext, s : h2d.Object) {
 		super.sync(ctx, s);
 		boundsExtend = 1;
