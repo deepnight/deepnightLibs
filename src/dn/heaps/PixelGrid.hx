@@ -48,6 +48,14 @@ class PixelGrid extends h2d.Object {
 			removePixelMap(x,y);
 	}
 
+	/** Fill a pixel **/
+	public inline function setPixel24(x:Int, y:Int, argb:Int) {
+		if( alpha>0 )
+			setPixelMap(x,y, argb);
+		else
+			removePixelMap(x,y);
+	}
+
 	/** Clear a pixel **/
 	public inline function removePixel(x:Int, y:Int) {
 		removePixelMap(x,y);
