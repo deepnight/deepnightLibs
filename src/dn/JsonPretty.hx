@@ -237,21 +237,21 @@ class JsonPretty {
 
 		var arrValueType = Type.typeof( arr[0] );
 
-		if( level!=Minified && arrValueType==TInt && !forceMultilines && arr.length>APPROXIMATE_MAX_LINE_LENGTH ) {
-			// Int grid (nicer for CSV data)
+		if( level!=Minified && ( arrValueType==TInt || arrValueType==TFloat ) && !forceMultilines && arr.length>APPROXIMATE_MAX_LINE_LENGTH ) {
+			// Number grid (nicer for CSV data)
 			buf.add('[$lineBreak');
 			indent++;
 			addIndent();
-			var line = 0;
+			var lineLimit = 0;
 			for( i in 0...arr.length ) {
 				addValue( null, arr[i] );
 				if( i<arr.length-1 )
 					buf.add(',');
-				line++;
-				if( line>=20 ) {
+				lineLimit++;
+				if( lineLimit>=20 ) {
 					buf.add(lineBreak);
 					addIndent();
-					line = 0;
+					lineLimit = 0;
 				}
 			}
 			indent--;
