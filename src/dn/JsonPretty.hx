@@ -248,7 +248,7 @@ class JsonPretty {
 				if( i<arr.length-1 )
 					buf.add(',');
 				lineLimit++;
-				if( lineLimit>=20 ) {
+				if( lineLimit>=35 ) {
 					buf.add(lineBreak);
 					addIndent();
 					lineLimit = 0;
