@@ -14,6 +14,7 @@ enum JsonPrettyLevel {
 class JsonPretty {
 	/** Used for "Compact" pretty level, when deciding between single or multi lines output. **/
 	static inline var APPROXIMATE_MAX_LINE_LENGTH = 85;
+	static var customFormaters : Map<String, (value:Dynamic, buf:StringBuf)->Void> = new Map();
 
 	static var level : JsonPrettyLevel;
 
@@ -60,8 +61,23 @@ class JsonPretty {
 	}
 
 
+	public static function removeAllCustomFormaters() {
+		customFormaters = new Map();
+	}
+	public static function addCustomPrettyFormater(valueName:String, formater:(value:Dynamic, buf:StringBuf)->Void) {
+		if( valueName!=null )
+			customFormaters.set(valueName, formater);
+	}
+
+
 	static var floatReg = ~/^([-0-9.]+)f$/g;
 	static function addValue(name:Null<String>, v:Dynamic, forceMultilines=false) : Void {
+		if( level!=Minified && name!=null && customFormaters.exists(name) ) {
+			buf.add('"$name"$preSpace:$postSpace');
+			customFormaters.get(name)(v, buf);
+			return;
+		}
+
 		switch Type.typeof(v) {
 			case TNull, TInt, TBool:
 				name==null ? buf.add(Std.string(v)) : buf.add('"$name"$preSpace:$postSpace$v');
@@ -221,8 +237,29 @@ class JsonPretty {
 
 		var arrValueType = Type.typeof( arr[0] );
 
-		// Add values to buffer
-		if( level!=Full && len<=APPROXIMATE_MAX_LINE_LENGTH && !forceMultilines ) {
+		if( level!=Minified && arrValueType==TInt && !forceMultilines && arr.length>APPROXIMATE_MAX_LINE_LENGTH ) {
+			// Int grid (nicer for CSV data)
+			buf.add('[$lineBreak');
+			indent++;
+			addIndent();
+			var line = 0;
+			for( i in 0...arr.length ) {
+				addValue( null, arr[i] );
+				if( i<arr.length-1 )
+					buf.add(',');
+				line++;
+				if( line>=20 ) {
+					buf.add(lineBreak);
+					addIndent();
+					line = 0;
+				}
+			}
+			indent--;
+			buf.add(lineBreak);
+			addIndent();
+			buf.add("]");
+		}
+		else if( level!=Full && len<=APPROXIMATE_MAX_LINE_LENGTH && !forceMultilines ) {
 			// Single line
 			var arraySpace =
 				switch arrValueType {
