@@ -40,7 +40,7 @@ class PixelGrid extends h2d.Object {
 	inline function coordId(x,y) return x + y*wid;
 
 
-	/** Fill a pixel **/
+	/** Fill a pixel using a 0xRRGGBB color, with optional alpha in a separate parameter **/
 	public inline function setPixel(x:Int, y:Int, rgb:Int, alpha=1.0) {
 		if( alpha>0 )
 			setPixelMap(x,y, Color.addAlphaF(rgb,alpha));
@@ -48,7 +48,7 @@ class PixelGrid extends h2d.Object {
 			removePixelMap(x,y);
 	}
 
-	/** Fill a pixel **/
+	/** Fill a pixel using a 0xAARRGGBB color **/
 	public inline function setPixel24(x:Int, y:Int, argb:Int) {
 		if( alpha>0 )
 			setPixelMap(x,y, argb);
