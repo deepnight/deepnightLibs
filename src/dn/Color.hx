@@ -569,9 +569,15 @@ class Color {
 	}
 
 	@:noCompletion
-	@:deprecated("Please use makeColorRgba instead")
+	@:deprecated("Please use makeColorArgb instead")
 	public static inline function makeColor(r:Float, g:Float, b:Float, a=1.0) : UInt { // range : 0-1
-		return makeColorRgba(r,g,b,a);
+		return makeColorArgb(r,g,b,a);
+	}
+
+	@:noCompletion
+	@:deprecated("Please use makeColorArgb instead")
+	public static inline function makeColorRgba(r:Float, g:Float, b:Float, a=1.0) : UInt {
+		return makeColorArgb(r,g,b,a);
 	}
 
 	public static inline function makeColorRgb(r:Float, g:Float, b:Float) : UInt { // range : 0-1
@@ -582,7 +588,8 @@ class Color {
 		// return rgbaToInt({ r:Std.int(r*255), g:Std.int(g*255), b:Std.int(b*255), a:Std.int(a*255) });
 	}
 
-	public static inline function makeColorRgba(r:Float, g:Float, b:Float, a=1.0) : UInt { // range : 0-1
+
+	public static inline function makeColorArgb(r:Float, g:Float, b:Float, a=1.0) : UInt { // range : 0-1
 		return
 			( Std.int(a*255) << 24)
 			| ( Std.int(r*255) << 16)
@@ -1279,8 +1286,8 @@ class Color {
 		CiAssert.equals( makeColorRgb(1, 0, 0), 0xff0000 );
 		CiAssert.equals( makeColorRgb(0, 1, 0), 0x00ff00 );
 		CiAssert.equals( makeColorRgb(0, 0, 1), 0x0000ff );
-		CiAssert.equals( makeColorRgba(0, 0, 0, 1), 0xff000000 );
-		CiAssert.equals( makeColorRgba(0, 0.5, 0, 1), 0xff007f00 );
+		CiAssert.equals( makeColorArgb(0, 0, 0, 1), 0xff000000 );
+		CiAssert.equals( makeColorArgb(0, 0.5, 0, 1), 0xff007f00 );
 
 		// Luminosity
 		CiAssert.equals( getLuminosity(0xffffff), 1 );
