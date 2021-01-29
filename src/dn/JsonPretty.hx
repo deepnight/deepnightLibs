@@ -3,18 +3,29 @@ package dn;
 enum JsonPrettyLevel {
 	/** No pretty at all, no space or indentation **/
 	Minified;
-
 	/** Default pretty level, which tries to keep things a little bit more compact (ie. small arrays are kept on 1 line, etc.) **/
 	Compact;
-
 	/** Full pretty mode: line breaks and indentation everywhere! **/
 	Full;
 }
 
+enum JsonEnumSupport {
+	/** Throw an exception when encountering enum values **/
+	UnsupportedEnums;
+	/** Store enum value name as String **/
+	UseEnumName;
+	/** Store enum value index as Int **/
+	UseEnumIndex;
+}
+
 class JsonPretty {
+
 	/** Used for "Compact" pretty level, when deciding between single or multi lines output. **/
 	static inline var APPROXIMATE_MAX_LINE_LENGTH = 85;
 	static var customFormaters : Map<String, (value:Dynamic, buf:StringBuf)->Void> = new Map();
+
+	/** Define how to behave when finding Enum values. Default is "Unsupported". "**/
+	static var enumSupport : JsonEnumSupport;
 
 	static var level : JsonPrettyLevel;
 
@@ -35,8 +46,10 @@ class JsonPretty {
 		Transform an Object into a Json String, with an optional "header" Object that will be added at the beginning of the output Json. The `prettyLevel` can be either Compact (default; adds line breaks & indentation when required), Full (ie. line breaks & indentation everywhere) or Minified (no space nor indentation).
 
 		If `inlineHeader` is FALSE (default), the header object will be add in a `__header__` object at the beginning of the Json. If TRUE, the header fields will be directly added at the beginning of the Json.
+
+		enumSupport defines how to behave when encountering Enum values (UnsupportedEnums, UseEnumName, UseEnumIndex). Parametered enums are not supported.
 	**/
-	public static function stringify(o:Dynamic, prettyLevel=Compact, ?headerObject:Dynamic, inlineHeader=false) {
+	public static function stringify(o:Dynamic, prettyLevel=Compact, ?headerObject:Dynamic, inlineHeader=false, enumSupport=UnsupportedEnums) {
 		level = prettyLevel;
 		indent = 0;
 		buf = new StringBuf();
@@ -45,8 +58,9 @@ class JsonPretty {
 		postSpace = level==Minified ? "" : " ";
 		tab = level==Minified ? "" : "\t";
 		lineBreak = level==Minified ? "" : "\n";
-
+		JsonPretty.enumSupport = enumSupport;
 		JsonPretty.inlineHeader = inlineHeader;
+
 		header = headerObject;
 		if( headerObject!=null )
 			switch Type.typeof(headerObject) {
@@ -118,6 +132,24 @@ class JsonPretty {
 
 			case TObject:
 				addObject(name, v, forceMultilines);
+
+			case TEnum(e):
+				switch enumSupport {
+					case UnsupportedEnums:
+						throw 'Unsupported enum value $name : ${e.getName()}';
+
+					case UseEnumName:
+						var ev : EnumValue = cast v;
+						if( ev.getParameters().length>0 )
+							throw 'Unsupported parametered enum $name : ${e.getName()}';
+						addValue( name, ev.getName() );
+
+					case UseEnumIndex:
+						var ev : EnumValue = cast v;
+						if( ev.getParameters().length>0 )
+							throw 'Unsupported parametered enum $name : ${e.getName()}';
+						addValue( name, ev.getIndex() );
+				}
 
 			case _:
 				throw 'Unknown value type $name=$v ('+Type.typeof(v)+')';
