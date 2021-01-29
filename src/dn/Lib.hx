@@ -562,6 +562,45 @@ class Lib {
 			return true;
 	}
 
+	static function iterateArrayRec( arr:Array<Dynamic>, cb:(value:Dynamic, setter:Dynamic->Void)->Void ) {
+		trace("->ARRAY");
+		for(i in 0...arr.length) {
+			switch Type.typeof( arr[i] ) {
+				case TObject:
+					iterateObjectRec(arr[i], cb);
+
+				case TClass(Array):
+					iterateArrayRec(arr[i], cb);
+
+				case _:
+			}
+			cb(arr[i], (v)->arr[i]=v);
+		}
+
+	}
+
+	public static function iterateObjectRec( obj:Dynamic, cb:(value:Dynamic, setter:Dynamic->Void)->Void ) {
+		if( obj==null )
+			return;
+
+		trace("OBJECT");
+		trace(obj);
+		for( k in Reflect.fields(obj) ) {
+			trace("->"+k);
+			var f = Reflect.field(obj,k);
+			switch Type.typeof(f) {
+				case TObject:
+					iterateObjectRec( f, cb );
+
+				case TClass(Array):
+					iterateArrayRec(f, cb);
+
+				case _:
+			}
+			cb(f, (v)->Reflect.setField(obj, k, v));
+		}
+	}
+
 
 	@:noCompletion
 	public static function __test() {

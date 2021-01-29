@@ -171,6 +171,25 @@ class LocalStorage {
 				if( !Reflect.hasField(obj,k) )
 					Reflect.setField(obj, k, Reflect.field(defValue,k));
 
+			// Remap JsonPretty enums
+			if( isJsonStorage ) {
+				var enumError = false;
+				Lib.iterateObjectRec(obj, (v,setter)->{
+					if( Type.typeof(v)==TObject && v.__jsonEnum!=null ) {
+						try {
+							var e = Type.resolveEnum(v.__jsonEnum);
+							var ev = e.createByName(v.v, v.p);
+							setter(ev);
+						}
+						catch(err:Dynamic) {
+							enumError = true;
+						}
+					}
+				});
+				if( enumError )
+					return defValue;
+			}
+
 			return obj;
 		}
 	}
@@ -180,7 +199,7 @@ class LocalStorage {
 	**/
 	public static function writeObject<T>(storageName:String, storeAsJson:Bool, obj:T) {
 		if( storeAsJson )
-			_saveStorage( storageName, JsonPretty.stringify(obj, Full, UseEnumName) );
+			_saveStorage( storageName, JsonPretty.stringify(obj, Full, UseEnumObject) );
 		else
 			_saveStorage( storageName, haxe.Serializer.run(obj) );
 	}

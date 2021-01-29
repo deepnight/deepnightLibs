@@ -12,6 +12,8 @@ enum JsonPrettyLevel {
 enum JsonEnumSupport {
 	/** Throw an exception when encountering enum values **/
 	UnsupportedEnums;
+	/** Store enum value name as Object **/
+	UseEnumObject;
 	/** Store enum value name as String **/
 	UseEnumName;
 	/** Store enum value index as Int **/
@@ -137,6 +139,10 @@ class JsonPretty {
 				switch enumSupport {
 					case UnsupportedEnums:
 						throw 'Unsupported enum value $name : ${e.getName()}';
+
+					case UseEnumObject:
+						var ev : EnumValue = cast v;
+						addValue( name, { __jsonEnum:e.getName(), v:ev.getName(), p:ev.getParameters() } );
 
 					case UseEnumName:
 						var ev : EnumValue = cast v;
