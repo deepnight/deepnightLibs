@@ -123,6 +123,7 @@ class Process {
 
 		#if( heaps || h3d )
 			root = new h2d.Layers(ctx);
+			root.name = getDisplayName();
 		#elseif flash
 			root = new flash.display.Sprite();
 			ctx.addChild(root);
@@ -137,6 +138,7 @@ class Process {
 		if( root!=null )
 			throw this+": root already exists";
 		root = new h2d.Layers();
+		root.name = getDisplayName();
 		ctx.add(root, plan);
 	}
 	#end
