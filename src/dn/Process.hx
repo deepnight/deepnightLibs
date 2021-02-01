@@ -61,6 +61,7 @@ class Process {
 	public var fixedUpdateFps = 30;
 	var _fixedUpdateCounter = 0.;
 
+
 	// Optional graphic context
 	#if( heaps || h3d )
 		/** Graphic context, can be null **/
@@ -71,6 +72,8 @@ class Process {
 		public var root : Null<flash.display.Sprite>;
 		var pt0 : flash.geom.Point; // to reduce allocations
 	#end
+
+
 
 	public function new(?parent : Process) {
 		init();
@@ -182,6 +185,55 @@ class Process {
 	}
 
 
+
+	/** Set to TRUE to enabled Process timing profiling (warning: this will reduce performances)**/
+	public static var PROFILING = false;
+
+	/** List of current profiling times **/
+	public static var PROFILER_TIMES : Map<String,Float> = new Map();
+
+	var tmpProfilerTimes = new Map();
+
+	/** Clear current profiling times **/
+	public static inline function clearProfilingTimes() {
+		PROFILER_TIMES = new Map();
+	}
+
+	inline function markProfilingStart(id:String) {
+		if( PROFILING ) {
+			id = getDisplayName()+"."+id;
+			tmpProfilerTimes.set(id, haxe.Timer.stamp());
+		}
+	}
+
+	inline function markProfilingEnd(id:String) {
+		if( PROFILING ) {
+			id = getDisplayName()+"."+id;
+			if( tmpProfilerTimes.exists(id) ) {
+				var t = haxe.Timer.stamp()-tmpProfilerTimes.get(id);
+				tmpProfilerTimes.remove(id);
+				if( !PROFILER_TIMES.exists(id) )
+					PROFILER_TIMES.set(id,t);
+				else
+					PROFILER_TIMES.set(id, PROFILER_TIMES.get(id)+t);
+			}
+		}
+	}
+
+	/**
+		Return the current profiling times, sorted from highest to lowest
+	**/
+	public static function getSortedProfilerTimes() {
+		var all = [];
+		for(i in PROFILER_TIMES.keyValueIterator())
+			all.push(i);
+		all.sort( (a,b)->-Reflect.compare(a.value,b.value));
+		return all;
+	}
+
+
+
+
 	/** Called at the "beginning of the frame", before any Process update(), in declaration order **/
 	function preUpdate() {}
 
@@ -213,9 +265,12 @@ class Process {
 	/** Get printable process instance name **/
 	@:keep
 	public function toString() {
-		return
-			'#$uniqId '
-			+ ( name==null ? Type.getClassName( Type.getClass(this) ) : name );
+		return '#$uniqId ${getDisplayName()}';
+	}
+
+	/** Some human readable name for this Process instance **/
+	public inline function getDisplayName() {
+		return name!=null ? name : Type.getClassName( Type.getClass(this) );
 	}
 
 
@@ -392,9 +447,11 @@ class Process {
 		if( !canRun(p) )
 			return;
 
+		p.markProfilingStart("update");
 		p.update();
 		if( p.onUpdateCb!=null )
 			p.onUpdateCb();
+		p.markProfilingEnd("update");
 
 		if( canRun(p) )
 			for (p in p.children)
@@ -405,6 +462,7 @@ class Process {
 		if( !canRun(p) )
 			return;
 
+		p.markProfilingStart("fixed");
 		p._fixedUpdateCounter+=p.tmod;
 		while( p._fixedUpdateCounter >= p.getDefaultFrameRate() / p.fixedUpdateFps ) {
 			p._fixedUpdateCounter -= p.getDefaultFrameRate() / p.fixedUpdateFps;
@@ -414,6 +472,7 @@ class Process {
 					p.onFixedUpdateCb();
 			}
 		}
+		p.markProfilingEnd("fixed");
 
 		if( canRun(p) )
 			for (p in p.children)
@@ -424,7 +483,9 @@ class Process {
 		if( !canRun(p) )
 			return;
 
+		p.markProfilingStart("post");
 		p.postUpdate();
+		p.markProfilingEnd("post");
 
 		if( !p.destroyed )
 			for (c in p.children)
