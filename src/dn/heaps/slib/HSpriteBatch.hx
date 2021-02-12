@@ -8,7 +8,7 @@ class HSpriteBatch extends h2d.SpriteBatch {
 		super.onAdd();
 		var c = first;
 		while( c != null ){
-			if( Std.is(c,HSpriteBE) )
+			if( Std.isOfType(c,HSpriteBE) )
 				(cast c:HSpriteBE).onAdd();
 			c = c.next;
 		}
@@ -18,7 +18,7 @@ class HSpriteBatch extends h2d.SpriteBatch {
 		super.onRemove();
 		var c = first;
 		while( c != null ){
-			if( Std.is(c,HSpriteBE) )
+			if( Std.isOfType(c,HSpriteBE) )
 				(cast c:HSpriteBE).onRemove();
 			c = c.next;
 		}
@@ -26,14 +26,14 @@ class HSpriteBatch extends h2d.SpriteBatch {
 
 	override function add( e : BatchElement, before=false ){
 		e = super.add(e,before);
-		if( allocated && Std.is(e,HSpriteBE) )
+		if( allocated && Std.isOfType(e,HSpriteBE) )
 			(cast e:HSpriteBE).onAdd();
 		return e;
 	}
 
 	override function delete( e : BatchElement ){
 		super.delete(e);
-		if( allocated && Std.is(e,HSpriteBE) )
+		if( allocated && Std.isOfType(e,HSpriteBE) )
 			(cast e:HSpriteBE).onRemove();
 	}
 
