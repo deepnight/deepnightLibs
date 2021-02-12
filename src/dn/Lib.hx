@@ -362,7 +362,7 @@ class Lib {
 			return def;
 
 		var f = Reflect.field(meta, Type.enumConstructor(e));
-		if( f==null || !Reflect.hasField(f,varName) || !Std.is(Reflect.field(f,varName)[0], Float) )
+		if( f==null || !Reflect.hasField(f,varName) || !Std.isOfType(Reflect.field(f,varName)[0], Float) )
 			return def;
 
 		var v : Float = Reflect.field(f,varName)[0];
