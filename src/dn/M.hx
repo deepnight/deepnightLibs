@@ -424,7 +424,7 @@ class M {
 	}
 
 	/**
-	 * Rounds x to the iterval y.
+	 * Rounds x to the interval y.
 	 */
 	inline public static function roundTo(x:Float, y:Int):Int {
 		return round(x / y) * y;
