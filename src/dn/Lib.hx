@@ -563,7 +563,6 @@ class Lib {
 	}
 
 	static function iterateArrayRec( arr:Array<Dynamic>, cb:(value:Dynamic, setter:Dynamic->Void)->Void ) {
-		trace("->ARRAY");
 		for(i in 0...arr.length) {
 			switch Type.typeof( arr[i] ) {
 				case TObject:
@@ -583,10 +582,7 @@ class Lib {
 		if( obj==null )
 			return;
 
-		trace("OBJECT");
-		trace(obj);
 		for( k in Reflect.fields(obj) ) {
-			trace("->"+k);
 			var f = Reflect.field(obj,k);
 			switch Type.typeof(f) {
 				case TObject:
