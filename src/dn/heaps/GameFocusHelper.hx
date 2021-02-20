@@ -17,7 +17,7 @@ class GameFocusHelper extends dn.Process {
         createRoot(scene);
         root.visible = false;
 
-        #if js
+        #if (js && !nodejs)
         showIntro = true;
         suspendGame();
         #else
@@ -123,7 +123,7 @@ class GameFocusHelper extends dn.Process {
     }
 
     inline function isFocused() {
-        #if flash
+        #if (flash || nodejs)
         return true;
         #else
         var w = hxd.Window.getInstance();
