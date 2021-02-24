@@ -16,7 +16,12 @@ class Process {
 	/** Elapsed frames from the client start, as 32bits Int **/
 	public var itime(get, never) : Int;
 
-	public var paused(default, null) : Bool;
+	@:noCompletion
+	@:deprecated("Use isPaused() here")
+	public var paused(get,never) : Bool; inline function get_paused() return _manuallyPaused;
+
+	/** TRUE if this process was directly manually paused **/
+	var _manuallyPaused: Bool;
 
 	/** TRUE if process was marked for removal during garbage collection phase. Most stuff should stop from happening if this flag is set! **/
 	public var destroyed(default, null) : Bool;
@@ -87,7 +92,7 @@ class Process {
 	public function init(){
 		uniqId = UNIQ_ID++;
 		children = [];
-		paused = false;
+		_manuallyPaused = false;
 		destroyed = false;
 		ftime = 0;
 		uftime = 0;
@@ -267,7 +272,7 @@ class Process {
 	/** Get printable process instance name **/
 	@:keep
 	public function toString() {
-		return '#$uniqId ${getDisplayName()}${paused?" [PAUSED]":""}';
+		return '#$uniqId ${getDisplayName()}${isPaused()?" [PAUSED]":""}';
 	}
 
 	/** Some human readable name for this Process instance **/
@@ -346,9 +351,18 @@ class Process {
 		#end
 	}
 
-	public function pause() paused = true;
-	public function resume() paused = false;
-	public final inline function togglePause() paused ? resume() : pause();
+	inline function anyParentPaused() {
+		return parent!=null ? parent.isPaused() : false;
+	}
+	public inline function isPaused() {
+		if( _manuallyPaused )
+			return true;
+		else
+			return anyParentPaused();
+	}
+	public function pause() _manuallyPaused = true;
+	public function resume() _manuallyPaused = false;
+	public final inline function togglePause() _manuallyPaused ? resume() : pause();
 	public final inline function destroy() destroyed = true;
 
 	public function addChild( p : Process ) {
@@ -408,7 +422,7 @@ class Process {
 	// Internals statics
 	// -----------------------------------------------------------------------
 
-	static inline function canRun(p:Process) return !p.paused && !p.destroyed;
+	static inline function canRun(p:Process) return !p.isPaused() && !p.destroyed;
 
 	static inline function _doPreUpdate(p:Process, utmod:Float) {
 		if( !canRun(p) )
