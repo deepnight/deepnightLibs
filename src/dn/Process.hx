@@ -29,16 +29,17 @@ class Process {
 	/** Optional parent process ref **/
 	var parent(default, null) : Process;
 
-	/** This `tmod` value is unaffected by the time multiplier **/
-	public var utmod : Float; //
-
-	/** Time modifier (1 if FPS is ok, >1 if some frames were lost, <1 if more frames are played than expected) **/
+	/** Time modifier (1.0 if FPS is ok, >1 if some frames were lost, <1 if more frames are played than expected) **/
 	public var tmod(get,never) : Float; inline function get_tmod() return utmod * getComputedTimeMultiplier();
+
+	/** This `tmod` value is unaffected by the time multiplier **/
+	public var utmod : Float;
 
 	/** Elapsed frames not affected by time multiplier **/
 	public var uftime(default, null) : Float;
 	var baseTimeMul = 1.0;
 
+	@:noCompletion
 	@:deprecated("Use tmod instead")
 	public var dt(get,never) : Float; inline function get_dt() return tmod;
 
