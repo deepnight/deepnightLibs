@@ -267,7 +267,7 @@ class Process {
 	/** Get printable process instance name **/
 	@:keep
 	public function toString() {
-		return '#$uniqId ${getDisplayName()}';
+		return '#$uniqId ${getDisplayName()}${paused?" [PAUSED]":""}';
 	}
 
 	/** Some human readable name for this Process instance **/
