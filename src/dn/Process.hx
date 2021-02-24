@@ -363,7 +363,13 @@ class Process {
 	}
 	public function pause() _manuallyPaused = true;
 	public function resume() _manuallyPaused = false;
-	public final inline function togglePause() _manuallyPaused ? resume() : pause();
+	public final inline function togglePause() : Bool {
+		if( _manuallyPaused )
+			resume();
+		else
+			pause();
+		return _manuallyPaused;
+	}
 	public final inline function destroy() destroyed = true;
 
 	public function addChild( p : Process ) {
@@ -601,5 +607,51 @@ class Process {
 	public static function resizeAll() {
 		for ( p in ROOTS )
 			_resizeProcess(p);
+	}
+
+
+	@:noCompletion
+	public static function __test() {
+		var root = new Process();
+		CiAssert.isNotNull(root);
+		CiAssert.isNotNull(root.cd);
+		CiAssert.isNotNull(root.ucd);
+		CiAssert.isNotNull(root.delayer);
+		CiAssert.isNotNull(root.udelayer);
+		CiAssert.isNotNull(root.tw);
+		CiAssert.equals( root.tmod, 1 );
+
+		// Pause management
+		CiAssert.equals( root.togglePause(), true );
+		CiAssert.equals( root.togglePause(), false );
+
+		var c1 = new Process(root);
+		CiAssert.isNotNull(c1);
+		CiAssert.equals(root.children.length, 1);
+		CiAssert.isFalse( c1.isPaused() );
+		root.pause();
+		CiAssert.isTrue( c1.isPaused() );
+		root.resume();
+
+		var c2 = new Process(root);
+		CiAssert.isNotNull(c2);
+		CiAssert.equals(root.children.length, 2);
+		CiAssert.equals(c2.parent, root);
+		CiAssert.isFalse( c2.isPaused() );
+		root.pause();
+		CiAssert.isTrue( c2.isPaused() );
+
+		// Destruction
+		c2.destroy();
+		updateAll(1); // force GC
+		CiAssert.isFalse( c1.destroyed );
+		CiAssert.isTrue( c2.destroyed );
+		CiAssert.isFalse( root.destroyed );
+		CiAssert.equals(root.children.length, 1);
+		root.destroy();
+		updateAll(1); // force GC
+		CiAssert.isTrue( c1.destroyed );
+		CiAssert.isTrue( c2.destroyed );
+		CiAssert.isTrue( root.destroyed );
 	}
 }

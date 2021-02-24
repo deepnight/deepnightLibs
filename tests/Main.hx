@@ -4,6 +4,7 @@ import dn.Lib;
 class Main {
 	#if !macro
 	public static function main() {
+		// CiAssert.VERBOSE = true;
 
 		// Assert itself
 		CiAssert.isTrue(true);
@@ -29,6 +30,7 @@ class Main {
 		dn.Changelog.__test();
 		dn.LocalStorage.__test();
 		dn.Args.__test();
+		dn.Process.__test();
 
 		// Done!
 		Lib.println("");
