@@ -135,6 +135,54 @@ class ElectronUpdater {
 		}, 1000 );
 	}
 
+	public static function fetchLatestGitHubReleaseVersion(author:String, repo:String, onLoad:(ver:Null<Version>)->Void) {
+		fetchLatestGitHubReleaseTag(author, repo, (?t)->{
+			if( t==null ) {
+				onLoad(null);
+				return;
+			}
+			var reg = ~/([0-9]+\.[0-9.]*)/gi;
+			if( reg.match(t) )
+				onLoad( new dn.Version(reg.matched(1)) );
+			else
+				onLoad(null);
+		});
+	}
+
+	public static function fetchLatestGitHubReleaseTag(author:String, repo:String, onLoad:(tag:Null<String>)->Void) {
+		author = StringTools.urlEncode(author);
+		repo = StringTools.urlEncode(repo);
+
+		var options : js.node.Https.HttpsRequestOptions = {
+			hostname: 'api.github.com',
+			path: '/repos/$author/$repo/releases/latest',
+			method: "GET",
+			headers: { 'User-Agent': 'Electron/LDtk' },
+		}
+		js.node.Https.get( options, (res)->{
+			if( res.aborted || res.statusCode<200 || res.statusCode>=400 ) {
+				onLoad(null);
+				return;
+			}
+
+			var full = "";
+			res.on("data", (raw)->{
+				full+=raw;
+			});
+			res.on("end", ()->{
+				if( full.length==0 )
+					onLoad(null);
+				else {
+					var json : Dynamic = try haxe.Json.parse(full) catch(e:Dynamic) null;
+					if( json==null || json.tag_name==null )
+						onLoad(null);
+					else
+						onLoad( Std.string( json.tag_name ) );
+				}
+			});
+		}).on( "error", ()->onLoad(null) );
+	}
+
 	public static function checkNow() {
 		IpcRenderer.invoke("checkUpdate");
 	}
