@@ -19,6 +19,9 @@ class Process {
 	/** Elapsed frames from the client start, as 32bits Int **/
 	public var itime(get, never) : Int;
 
+	/** Elapsed seconds from the client start **/
+	public var stime(get, never) : Float;
+
 	@:noCompletion
 	@:deprecated("Use isPaused() here")
 	public var paused(get,never) : Bool; inline function get_paused() return _manuallyPaused;
@@ -287,6 +290,7 @@ class Process {
 	// private api
 	// -----------------------------------------------------------------------
 	inline function get_itime() return Std.int(ftime);
+	inline function get_stime() return ftime/getDefaultFrameRate();
 	#if( heaps || h3d )
 	inline function get_engine() return h3d.Engine.getCurrent();
 	#end
