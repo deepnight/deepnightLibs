@@ -3,6 +3,9 @@ package dn;
 import dn.Lib;
 
 class Process {
+	/** FPS frequency of the `fixedUpdate` calls **/
+	public static var FIXED_UPDATE_FPS = 30;
+
 	public static var CUSTOM_STAGE_WIDTH  = -1;
 	public static var CUSTOM_STAGE_HEIGHT = -1;
 
@@ -63,8 +66,6 @@ class Process {
 	/** Same as `cd` but it isn't affected by time multiplier **/
 	public var ucd : dn.Cooldown;
 
-	/** FPS frequency of the `fixedUpdate` calls **/
-	public var fixedUpdateFps = 30;
 	var _fixedUpdateCounter = 0.;
 
 
@@ -487,8 +488,8 @@ class Process {
 
 		p.markProfilingStart("fixed");
 		p._fixedUpdateCounter+=p.tmod;
-		while( p._fixedUpdateCounter >= p.getDefaultFrameRate() / p.fixedUpdateFps ) {
-			p._fixedUpdateCounter -= p.getDefaultFrameRate() / p.fixedUpdateFps;
+		while( p._fixedUpdateCounter >= p.getDefaultFrameRate() / FIXED_UPDATE_FPS ) {
+			p._fixedUpdateCounter -= p.getDefaultFrameRate() / FIXED_UPDATE_FPS;
 			if( canRun(p) ) {
 				p.fixedUpdate();
 				if( p.onFixedUpdateCb!=null )
