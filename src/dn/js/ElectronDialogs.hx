@@ -1,4 +1,4 @@
-package dn.electron;
+package dn.js;
 
 #if !electron
 #error "HaxeLib \"electron\" is required";
@@ -7,7 +7,7 @@ package dn.electron;
 import electron.main.IpcMain;
 import electron.renderer.IpcRenderer;
 
-class Dialogs {
+class ElectronDialogs {
 	static function isWindows() {
 		return js.Node.process.platform.toLowerCase().indexOf("win")==0;
 	}

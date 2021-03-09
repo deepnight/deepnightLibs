@@ -1,4 +1,4 @@
-package dn.electron;
+package dn.js;
 
 import electron.main.IpcMain;
 import electron.renderer.IpcRenderer;

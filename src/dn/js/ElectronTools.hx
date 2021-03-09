@@ -1,4 +1,4 @@
-package dn.electron;
+package dn.js;
 
 #if !electron
 #error "HaxeLib \"electron\" is required";
@@ -19,7 +19,7 @@ typedef SubMenuItem = {
 }
 
 
-class Tools {
+class ElectronTools {
 	static var mainWindow : electron.main.BrowserWindow;
 
 	/**
@@ -48,6 +48,11 @@ class Tools {
 	/** Return TRUE in electron "renderer" process **/
 	public static inline function isRenderer() {
 		return electron.main.App==null;
+	}
+
+	/** Return TRUE on Windows **/
+	public static function isWindows() {
+		return js.Node.process.platform.toLowerCase().indexOf("win")==0;
 	}
 
 
@@ -123,6 +128,22 @@ class Tools {
 			electron.main.Dialog.showErrorBox("Fatal error", err);
 			App.quit();
 		}
+	}
+
+
+	public static function locateFile(path:String, isFile:Bool) {
+		var fp = isFile ? dn.FilePath.fromFile(path) : dn.FilePath.fromDir(path);
+
+		if( isWindows() )
+			fp.useBackslashes();
+
+		if( !NodeTools.fileExists(fp.full) )
+			fp.fileWithExt = null;
+
+		if( fp.fileWithExt==null )
+			electron.Shell.openPath(fp.full);
+		else
+			electron.Shell.showItemInFolder(fp.full);
 	}
 
 
