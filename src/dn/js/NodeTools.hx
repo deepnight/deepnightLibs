@@ -3,6 +3,9 @@ package dn.js;
 import js.node.Fs;
 
 class NodeTools {
+	public static inline function isWindows() return js.node.Os.platform()=="win32";
+	public static inline function isMacOs() return js.node.Os.platform()=="darwin";
+	public static inline function isLinux() return js.node.Os.platform()=="linux";
 
 	/** Return TRUE if given path exists **/
 	public static function fileExists(path:String) {

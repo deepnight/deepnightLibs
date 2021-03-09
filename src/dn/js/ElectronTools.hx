@@ -50,12 +50,6 @@ class ElectronTools {
 		return electron.main.App==null;
 	}
 
-	/** Return TRUE on Windows **/
-	public static function isWindows() {
-		return js.Node.process.platform.toLowerCase().indexOf("win")==0;
-	}
-
-
 	/** Close app **/
 	public static function exitApp()
 		isRenderer() ? IpcRenderer.invoke("exitApp") : App.exit();
@@ -134,7 +128,7 @@ class ElectronTools {
 	public static function locateFile(path:String, isFile:Bool) {
 		var fp = isFile ? dn.FilePath.fromFile(path) : dn.FilePath.fromDir(path);
 
-		if( isWindows() )
+		if( NodeTools.isWindows() )
 			fp.useBackslashes();
 
 		if( !NodeTools.fileExists(fp.full) )
