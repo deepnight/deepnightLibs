@@ -89,18 +89,18 @@ class NodeTools {
 	/** Return TRUE if the directory contains anything: file or sub-dirs (even empty ones) **/
 	public static function dirContainsAnything(path:String) {
 		if( !fileExists(path) )
-			return true;
-
-		for( f in js.node.Fs.readdirSync(path) )
 			return false;
 
-		return true;
+		for( f in js.node.Fs.readdirSync(path) )
+			return true;
+
+		return false;
 	}
 
 	/** Return TRUE if the directory contains any file (empty sub-dirs will be ignored) **/
-	public static function dirContainsNoFile(path:String) {
+	public static function dirContainsAnyFile(path:String) {
 		if( !fileExists(path) )
-			return true;
+			return false;
 
 		var pendings = [ path ];
 		while( pendings.length>0 ) {
@@ -108,16 +108,16 @@ class NodeTools {
 			for( f in Fs.readdirSync(fp.full) ) {
 				var inf = Fs.lstatSync(fp.full+"/"+f);
 				if( !inf.isDirectory() )
-					return false;
+					return true;
 				else if( !inf.isSymbolicLink() ) {}
 					pendings.push( fp.full+"/"+f );
 			}
 		}
 
-		return true;
+		return false;
 	}
 
-	/** Delete all files in directory AND its sub-dirs **/
+	/** Delete all FILES in directory AND its sub-dirs **/
 	public static function removeAllFiles(path:String, ?onlyExts:Array<String>) {
 		if( !fileExists(path) )
 			return;
