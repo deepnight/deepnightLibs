@@ -15,7 +15,7 @@ class Dialogs {
 
 	public static function initMain(browserWindow:electron.main.BrowserWindow) {
 		if( IpcMain==null )
-			throw "Should only be called in Main";
+			throw "Should only be called in Electron Main";
 
 		IpcMain.handle("openDialog", function(event, options) {
 			var filePaths = electron.main.Dialog.showOpenDialogSync(browserWindow, options);
