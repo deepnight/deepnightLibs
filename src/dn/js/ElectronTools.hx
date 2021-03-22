@@ -38,6 +38,7 @@ class ElectronTools {
 		// SendSync()/on()
 		IpcMain.on("getScreenWidth", ev->ev.returnValue = getScreenWidth());
 		IpcMain.on("getScreenHeight", ev->ev.returnValue = getScreenHeight());
+		IpcMain.on("getPixelRatio", ev->ev.returnValue = getPixelRatio());
 		IpcMain.on("getRawArgs", ev->ev.returnValue = getRawArgs());
 		IpcMain.on("getAppResourceDir", ev->ev.returnValue = getAppResourceDir());
 		IpcMain.on("getExeDir", ev->ev.returnValue = getExeDir());
@@ -82,6 +83,12 @@ class ElectronTools {
 			? IpcRenderer.sendSync("getScreenHeight")
 			: electron.main.Screen.getPrimaryDisplay().size.height;
 
+	/** Get primary display pixel density **/
+	public static function getPixelRatio() : Float
+		return isRenderer()
+			? IpcRenderer.sendSync("getPixelRatio")
+			: electron.main.Screen.getPrimaryDisplay().scaleFactor;
+
 	/** Get the root of the app resources (where `package.json` is) **/
 	public static function getAppResourceDir() : String
 		return isRenderer() ? IpcRenderer.sendSync("getAppResourceDir") : App.getAppPath();
@@ -108,9 +115,12 @@ class ElectronTools {
 		return new dn.Args( raw.join(" ") );
 	}
 
-	/** Get zoom factor need to fit provided width/height **/
-	public static function getZoomToFit(targetWid:Float, targetHei:Float) : Float {
-		return dn.M.fmax(0, dn.M.fmin( getScreenWidth()/targetWid, getScreenHeight()/targetHei) );
+	/** Get zoom factor need to fit provided fittedWid/Hei. If container wid/hei aren't provided, the `mainWindow` inner client area size will be used instead. **/
+	public static function getZoomToFit(fittedWid:Float, fittedHei:Float, ?containerWid:Float, ?containerHei:Float) : Float {
+		return dn.M.fmax( 1/getPixelRatio(), dn.M.fmin(
+			( containerWid==null ? mainWindow.getContentSize()[0] : containerWid ) / fittedWid,
+			( containerHei==null ? mainWindow.getContentSize()[1] : containerHei) / fittedHei
+		));
 	}
 
 
