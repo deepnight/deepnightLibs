@@ -126,10 +126,12 @@ class FilePath {
 				directory = fp.directory;
 			else
 				directory += slash() + fp.directory;
+		return this;
 	}
 
 	public function setDirectory(dir:Null<String>) {
 		directory = dir;
+		return this;
 	}
 
 	public inline function parseDirPath(dirPath:String) {
@@ -661,6 +663,12 @@ class FilePath {
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("", false) == null );
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("..", false) == "../" );
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("user", false) == "user/" );
+
+		// Append/set dirs
+		CiAssert.equals( FilePath.fromFile("test.txt").appendDirectory("foo").directory, "foo" );
+		CiAssert.equals( FilePath.fromFile("bar/test.txt").appendDirectory("foo").directory, "bar/foo" );
+		CiAssert.equals( FilePath.fromFile("test.txt").setDirectory("foo").directory, "foo" );
+		CiAssert.equals( FilePath.fromFile("bar/test.txt").setDirectory("foo").directory, "foo" );
 
 		// Dir array
 		CiAssert.equals( FilePath.fromDir("c:").getDirectoryArray().length, 1 );
