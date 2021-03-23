@@ -32,6 +32,8 @@ class ElectronTools {
 		IpcMain.handle("exitApp", exitApp);
 		IpcMain.handle("reloadWindow", reloadWindow);
 		IpcMain.handle("toggleDevTools", toggleDevTools);
+		IpcMain.handle("openDevTools", openDevTools);
+		IpcMain.handle("closeDevTools", closeDevTools);
 		IpcMain.handle("setFullScreen", (ev,flag)->setFullScreen(flag));
 		IpcMain.handle("setWindowTitle", (ev,str)->setWindowTitle(str));
 		IpcMain.handle("fatalError", (ev,str)->fatalError(str));
@@ -63,6 +65,14 @@ class ElectronTools {
 	/** Toggle browser dev tools **/
 	public static function toggleDevTools()
 		isRenderer() ? IpcRenderer.invoke("toggleDevTools") : mainWindow.webContents.toggleDevTools();
+
+	/** Open browser dev tools **/
+	public static function openDevTools()
+		isRenderer() ? IpcRenderer.invoke("openDevTools") : mainWindow.webContents.openDevTools();
+
+	/** Close browser dev tools **/
+	public static function closeDevTools()
+		isRenderer() ? IpcRenderer.invoke("closeDevTools") : mainWindow.webContents.closeDevTools();
 
 	/** Set fullscreen mode **/
 	public static function setFullScreen(full:Bool)
@@ -180,7 +190,7 @@ class ElectronTools {
 				},
 				{
 					label: "Dev tools",
-					click: function() mainWindow.webContents.toggleDevTools(),
+					click: toggleDevTools,
 					accelerator: "CmdOrCtrl+Shift+I",
 				},
 				{
