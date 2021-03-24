@@ -41,6 +41,7 @@ class ElectronTools {
 		// SendSync()/on()
 		IpcMain.on("getScreenWidth", ev->ev.returnValue = getScreenWidth());
 		IpcMain.on("getScreenHeight", ev->ev.returnValue = getScreenHeight());
+		IpcMain.on("getZoom", ev->ev.returnValue = getZoom());
 		IpcMain.on("getPixelRatio", ev->ev.returnValue = getPixelRatio());
 		IpcMain.on("getRawArgs", ev->ev.returnValue = getRawArgs());
 		IpcMain.on("getAppResourceDir", ev->ev.returnValue = getAppResourceDir());
@@ -137,6 +138,11 @@ class ElectronTools {
 			( containerHei==null ? mainWindow.getContentSize()[1] : containerHei) / fittedHei
 		));
 	}
+
+	/** Get window zoom factor **/
+	public static function getZoom() : Float
+		return isRenderer() ? IpcRenderer.sendSync("getZoom") : mainWindow.webContents.getZoomFactor();
+
 
 
 	/** Stop with an error message then close **/
