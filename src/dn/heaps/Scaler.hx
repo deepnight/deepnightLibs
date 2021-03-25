@@ -21,7 +21,7 @@ class Scaler {
 
 
 	/** Fit `wid`x`hei` in current viewport, while keeping scaling value as Int **/
-	public static inline function bestFit_i(widPx:Float, heiPx:Float) : Int {
-		return Std.int( bestFit_f(widPx, heiPx, true) );
+	public static inline function bestFit_i(widPx:Float, heiPx:Float, ?contextWid:Float, ?contextHei:Float) : Int {
+		return Std.int( bestFit_f(widPx, heiPx, contextWid, contextHei, true) );
 	}
 }
