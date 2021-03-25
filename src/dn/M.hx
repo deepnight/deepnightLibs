@@ -913,6 +913,19 @@ class M {
 	}
 
 
+	/**
+		Parse a String to an Int. If the parsing result is not a valid number, returns the provided default value.
+	 **/
+	public static inline function parseInt(str:String, defaultIfInvalid:Int) {
+		if( str==null )
+			return defaultIfInvalid;
+		else {
+			var v = Std.parseInt(str);
+			return isValidNumber(v) ? v : defaultIfInvalid;
+		}
+	}
+
+
 	@:noCompletion
 	public static function __test() {
 		// TODO more tests
@@ -949,5 +962,12 @@ class M {
 		CiAssert.equals( makeBitsFromArray([]), 0 );
 		CiAssert.equals( makeBitsFromArray([true]), 1 );
 		CiAssert.equals( makeBitsFromArray([true,true,true,true,true,true,true,true]), 0xff );
+
+		CiAssert.equals( parseInt("59", -1), 59 );
+		CiAssert.equals( parseInt("??", -1), -1 );
+		CiAssert.equals( parseInt("59foo", -1), 59 );
+		CiAssert.equals( parseInt("foo59bar", -1), -1 );
+		CiAssert.equals( parseInt("1.9", -1), 1 );
+		CiAssert.equals( parseInt("-99", -1), -99 );
 	}
 }
