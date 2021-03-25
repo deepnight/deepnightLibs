@@ -621,6 +621,10 @@ class Color {
 		return getPerceivedLuminosityInt(c)>=0.5 ? ifLight : ifDark;
 	}
 
+	public static inline function autoContrastCustom(c:Int, lumiThreshold:Float, ?ifLight=0x0, ?ifDark=0xffffff) { // returns ifLight color if c is light, ifDark otherwise
+		return getPerceivedLuminosityInt(c)>=lumiThreshold ? ifLight : ifDark;
+	}
+
 	public static inline function getLuminosity(?c:Col, ?cint:Int) { // 0-1, valeur HSL
 		return ( c!=null ) ? rgbToHsl(c).l : intToHsl(cint).l;
 	}
