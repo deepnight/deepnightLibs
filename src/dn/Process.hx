@@ -46,6 +46,12 @@ class Process {
 	var baseTimeMul = 1.0;
 
 	@:noCompletion
+	@:deprecated("Use baseTimeMul instead")
+	var speedMod(get,set) : Float;
+		@:noCompletion inline function get_speedMod() return baseTimeMul;
+		@:noCompletion inline function set_speedMod(v) return baseTimeMul = v;
+
+	@:noCompletion
 	@:deprecated("Use tmod instead")
 	public var dt(get,never) : Float; inline function get_dt() return tmod;
 
