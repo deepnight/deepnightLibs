@@ -62,6 +62,14 @@ class StatsBox extends dn.Process {
 		fps = new h2d.Text(hxd.res.DefaultFont.get(), flow);
 		fpsChart = new h2d.Graphics(flow);
 		fpsChart.visible = showFpsChart;
+
+		onResize();
+	}
+
+	override function onResize() {
+		super.onResize();
+		var s = Scaler.bestFit_i(chartWid, chartHei, Scaler.getViewportWidth()*0.1, Scaler.getViewportHeight()*0.1 );
+		root.setScale(s);
 	}
 
 	public inline function show() {
