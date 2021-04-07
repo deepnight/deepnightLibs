@@ -28,7 +28,7 @@ class ElectronDialogs {
 		});
 	}
 
-	public static function open(?extWithDots:Array<String>, rootDir:String, onLoad:(filePath:String)->Void) {
+	public static function openFile(?extWithDots:Array<String>, rootDir:String, onLoad:(filePath:String)->Void) {
 		if( isWindows() )
 			rootDir = FilePath.convertToBackslashes(rootDir);
 
@@ -45,7 +45,7 @@ class ElectronDialogs {
 	}
 
 
-	public static function saveAs(?extWithDots:Array<String>, rootDir:String, onFileSelect:(filePath:String)->Void) {
+	public static function saveFileAs(?extWithDots:Array<String>, rootDir:String, onFileSelect:(filePath:String)->Void) {
 		if( isWindows() )
 			rootDir = FilePath.convertToBackslashes(rootDir);
 
