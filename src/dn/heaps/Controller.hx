@@ -42,17 +42,34 @@ class Controller {
 	public inline function setKeyboard() mode = Keyboard;
 	public inline function setGamePad() mode = Pad;
 
-	public function bind(k:PadKey, keyboardKey:Int, ?alternate1:Int, ?alternate2:Int, ?alternate3:Int) {
-		primary.set(k.getIndex(), keyboardKey);
+	public function bind(k:PadKey, keyboardKey1:Int, ?keyboardKey2:Int, ?keyboardKey3:Int, ?keyboardKey4:Int, unbindExisting=true) {
+		if( unbindExisting ) {
+			unbindKeyboard(keyboardKey1);
+			unbindKeyboard(keyboardKey2);
+			unbindKeyboard(keyboardKey3);
+			unbindKeyboard(keyboardKey4);
+		}
 
-		if( alternate1!=null )
-			secondary.set(k.getIndex(), alternate1);
+		primary.set(k.getIndex(), keyboardKey1);
 
-		if( alternate2!=null )
-			third.set(k.getIndex(), alternate2);
+		if( keyboardKey2!=null )
+			secondary.set(k.getIndex(), keyboardKey2);
 
-		if( alternate3!=null )
-			fourth.set(k.getIndex(), alternate3);
+		if( keyboardKey3!=null )
+			third.set(k.getIndex(), keyboardKey3);
+
+		if( keyboardKey4!=null )
+			fourth.set(k.getIndex(), keyboardKey4);
+	}
+
+	public function unbindKeyboard(key:Null<Int>) {
+		if( key==null )
+			return;
+
+		for(binding in [primary, secondary, third, fourth])
+		for(k in binding.keys())
+			if( binding.get(k)==key )
+				binding.remove(k);
 	}
 
 	public inline function getPrimaryKey(k:PadKey) : Null<Int> {
