@@ -19,11 +19,19 @@ typedef SubMenuItem = {
 }
 
 
+/**
+	Various useful methods for Electron based apps.
+
+	USAGE:
+	. add `ElectronTools.initMain(..)` to Main process (after the creation of the BrowserWindow instance)
+	. RECOMMENDED: add `import ElectronTools as ET` to `import.hx`
+**/
+
 class ElectronTools {
 	static var mainWindow : electron.main.BrowserWindow;
 
 	/**
-		This MUST be called after the creation of the BrowserWindow instance in "Main" process.
+		This init MUST be called after the creation of the BrowserWindow instance in "Main" process.
 	**/
 	public static function initMain(win:electron.main.BrowserWindow) {
 		mainWindow = win;
