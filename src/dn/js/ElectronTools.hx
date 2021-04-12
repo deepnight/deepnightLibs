@@ -164,7 +164,7 @@ class ElectronTools {
 	}
 
 
-	public static function locateFile(path:String, isFile:Bool) {
+	public static function locate(path:String, isFile:Bool) {
 		var fp = isFile ? dn.FilePath.fromFile(path) : dn.FilePath.fromDir(path);
 
 		if( NodeTools.isWindows() )
