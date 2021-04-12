@@ -1,14 +1,14 @@
 # About
 
-The general purpose personal libs I use in all my Haxe projects.
+The general purpose libs I use in all my Haxe projects. If you want to build one of [my project](https://github.com/deepnight/), you will need them.
 
-[![Build Status](https://travis-ci.com/deepnight/deepnightLibs.svg?branch=master)](https://travis-ci.com/deepnight/deepnightLibs)
+[![Unit tests](https://github.com/deepnight/deepnightLibs/actions/workflows/runUnitTests.yml/badge.svg)](https://github.com/deepnight/deepnightLibs/actions/workflows/runUnitTests.yml)
 
 # Install
 
 ## Stable
 
-Use this version if you plan to use the libs for your own projects. 
+Use this version if you plan to use the libs for your own projects.
 
 ```bash
 haxelib install deepnightLibs
@@ -16,7 +16,9 @@ haxelib install deepnightLibs
 
 ## Latest Git version (mostly stable)
 
-Use this version if you're building one of my own projects, such as LDtk or one of my gamejam entry.
+This is the version I use and update very frequently.
+
+Pick this version if you're building one of my GitHub projects, such as LDtk or one of my gamejam entry.
 
 ```bash
 haxelib git deepnightLibs https://github.com/deepnight/deepnightLibs
