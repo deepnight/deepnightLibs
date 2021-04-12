@@ -2,6 +2,11 @@ package dn.js;
 
 import js.node.Fs;
 
+/**
+	Many useful methods from NodeJS.
+
+	RECOMMENDED: add `import NodeTools as NT;` to your `import.hx` file.
+**/
 class NodeTools {
 	public static inline function isWindows() return js.node.Os.platform()=="win32";
 	public static inline function isMacOs() return js.node.Os.platform()=="darwin";
