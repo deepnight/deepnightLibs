@@ -32,5 +32,5 @@ jobs:
       - run: haxelib list
 
       # Run tests
-      - run: haxe tests.js.hxml
+      - run: haxe tests.js.hxml -D verbose
 
