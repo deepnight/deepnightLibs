@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - master
+      - githubActionTests
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [windows-latest]
+        haxe: [4.2.0]
+      fail-fast: true
+    runs-on: windows-latest
+
+    steps:
+      # Checkout & install haxe
+      - uses: actions/checkout@v2
+      - uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.2.0
+      - run: haxe -version
+
+      # Install libs
+      - run: haxelib git castle https://github.com/deepnight/castle
+      - run: haxelib list
+
+      # Run tests
+      - run: haxe tests.js.hxml
+
