@@ -164,19 +164,33 @@ class ElectronTools {
 	}
 
 
-	public static function locate(path:String, isFile:Bool) {
+	/** Open system file explorer on target file or dir. Return FALSE if something didn't work. **/
+	public static function locate(path:String, isFile:Bool) : Bool {
+		if( path==null )
+			return false;
+
 		var fp = isFile ? dn.FilePath.fromFile(path) : dn.FilePath.fromDir(path);
 
 		if( NodeTools.isWindows() )
 			fp.useBackslashes();
 
-		if( !NodeTools.fileExists(fp.full) )
+		// Try to open parent folder
+		if( isFile && !NodeTools.fileExists(fp.full) ) {
+			isFile = false;
 			fp.fileWithExt = null;
+		}
 
+		// Not found
+		if( !NodeTools.fileExists(fp.full) )
+			return false;
+
+		// Open
 		if( fp.fileWithExt==null )
 			electron.Shell.openPath(fp.full);
 		else
 			electron.Shell.showItemInFolder(fp.full);
+
+		return true;
 	}
 
 
