@@ -357,6 +357,22 @@ class FilePath {
 					directory = dirs.join( slash() );
 			}
 
+			// Remove useless "."
+			var dirs = getDirectoryArray();
+			if( dirs.length>1 ) {
+				var i = 1; // keep first "."
+				while( i<dirs.length ) {
+					if( dirs[i]=="." )
+						dirs.splice(i, 1);
+					else
+						i++;
+				}
+				if( dirs.length==0 )
+					directory = null;
+				else
+					directory = dirs.join( slash() );
+			}
+
 			// Sanitize dirs
 			if( directory!=slash() && directory!=null ) {
 				var ignore = 0;
@@ -545,6 +561,14 @@ class FilePath {
 		var p = new FilePath();
 		p.parseDirPath(path);
 		return p;
+	}
+
+	/**
+		Cleanup a path by parsing it/returning it.
+	**/
+	public static inline function cleanUp(path:String, isFile:Bool) {
+		var p = isFile ? fromFile(path) : fromDir(path);
+		return p.full;
 	}
 
 	/**
@@ -788,5 +812,12 @@ class FilePath {
 
 		CiAssert.equals( FilePath.fromFile("file://localhost/foo//pouet.txt").full, "file://localhost/foo/pouet.txt" );
 		CiAssert.equals( FilePath.fromFile("file:/foo//pouet.txt").full, "file:/foo/pouet.txt" );
+
+		// Cleanup
+		CiAssert.equals( FilePath.cleanUp("/home//dir/./foo.txt",true), "/home/dir/foo.txt" );
+		CiAssert.equals( FilePath.cleanUp("./home//\\dir/./foo.txt",true), "./home/dir/foo.txt" );
+		CiAssert.equals( FilePath.cleanUp("//home/dir/foo.txt",true), "/home/dir/foo.txt" );
+		CiAssert.equals( FilePath.cleanUp("file://home/dir/foo.txt",true), "file://home/dir/foo.txt" );
+		CiAssert.equals( FilePath.cleanUp("https://domain.com/foo/bar//pouet.txt",true), "https://domain.com/foo/bar/pouet.txt" );
 	}
 }
