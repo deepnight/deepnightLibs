@@ -26,6 +26,11 @@ class Log {
 	public var printOnAdd = false;
 
 	/**
+		NOT RECOMMENDED. If TRUE, every add() call will also call flushToFile(). WARNING: this setting might increase disk usage a lot!
+	**/
+	public var flushOnAdd = false;
+
+	/**
 		If TRUE, the date will also be visible in printEntry()
 	**/
 	public var printDate = false;
@@ -204,6 +209,9 @@ class Log {
 
 		if( printOnAdd )
 			printEntry( entries[entries.length-1] );
+
+		if( flushOnAdd )
+			flushToFile();
 	}
 
 	/** Add a `LogEntry` object **/
