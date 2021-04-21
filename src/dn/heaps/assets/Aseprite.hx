@@ -36,15 +36,13 @@ class Aseprite {
 			}
 
 			// Define animation
-			if( frames.length>1 ) {
-				var animFrames = [];
-				for(f in frames) {
-					var animFrameCount = dn.M.round( dn.M.fmax(1, $v{fps} * f.duration/1000) );
-					for( i in 0...animFrameCount ) // HACK Spritelib anims are frame-based, which is bad :(
-						animFrames.push(f.index-baseIndex);
-				}
-				slib.__defineAnim(tag.name, animFrames);
+			var animFrames = [];
+			for(f in frames) {
+				var animFrameCount = dn.M.round( dn.M.fmax(1, $v{fps} * f.duration/1000) );
+				for( i in 0...animFrameCount ) // HACK Spritelib anims are frame-based, which is bad :(
+					animFrames.push(f.index-baseIndex);
 			}
+			slib.__defineAnim(tag.name, animFrames);
 		}
 
 		return slib;
