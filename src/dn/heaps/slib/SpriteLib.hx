@@ -24,6 +24,9 @@ class FrameData {
 	#if !macro
 	public var tile    : Null<h2d.Tile>;
 	#end
+
+	@:keep
+	public function toString() return 'P.$page $x,$y $wid x $hei (real: $realX,$realY $realWid x $realHei)';
 }
 
 @:structInit
