@@ -83,6 +83,8 @@ private class Transition {
 
 
 class AnimManager {
+	static final ANYTHING = "*";
+
 	var spr : SpriteInterface;
 
 	var overlap : Null<AnimInstance>;
@@ -416,7 +418,16 @@ class AnimManager {
 
 	function alwaysTrue() return true;
 
+	/**
+		Register a transition anim between 2 existing anims. `from` or `to` can be equal to "*", which means "any animation". Example:
+		```haxe
+		registerTransition("*", "idle", "toIdle"); // means: play "toIdle" before "idle" starts
+		```
+	**/
 	public function registerTransition(from:String, to:String, animId:String, ?spd=1.0, ?reverse=false, ?cond:Void->Bool) {
+		if( from==ANYTHING && to==ANYTHING )
+			throw "* is not allowed for both from and to animations.";
+
 		for(t in transitions)
 			if( t.from==from && t.to==to ) {
 				t.anim = animId;
@@ -437,10 +448,9 @@ class AnimManager {
 		return false;
 	}
 
-	var S_STAR = "*";
 	function getTransition(from:String, to:String) : Null<Transition> {
 		for(t in transitions)
-			if( (t.from==S_STAR || t.from==from) && (t.to==S_STAR || t.to==to) && t.cond() )
+			if( (t.from==ANYTHING || t.from==from) && (t.to==ANYTHING || t.to==to) && t.cond() )
 				return t;
 
 		return null;
