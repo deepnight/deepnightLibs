@@ -256,7 +256,7 @@ class FilePath {
 			fileName = raw;
 			extension = null;
 		}
-		else if( raw.indexOf(".")==0 && raw.lastIndexOf(".")==raw.indexOf(".") ) {
+		else if( raw.indexOf(".")==0 && raw.lastIndexOf(".")==0 ) {
 			// No file name
 			fileName = null;
 			extension = raw.substr(1);
@@ -518,6 +518,7 @@ class FilePath {
 		return out;
 	}
 
+	/** Return last directory name, if any **/
 	public function getLastDirectory() : Null<String> {
 		if( directory==null )
 			return null;
@@ -525,12 +526,49 @@ class FilePath {
 		return arr[arr.length-1];
 	}
 
+	/** Remove last directory, if any **/
 	public function removeLastDirectory() {
 		if( directory==null )
-			return;
+			return this;
 		var arr = getDirectoryArray();
 		arr.pop();
-		directory = arr.join( slash() );
+		if( arr.length==0 )
+			directory = null;
+		else
+			directory = arr.join( slash() );
+
+		return this;
+	}
+
+	/** Return first directory name, if any **/
+	public function getFirstDirectory() : Null<String> {
+		if( directory==null )
+			return null;
+
+		var arr = getDirectoryArray();
+		if( hasDriveLetter() )
+			return arr[1];
+		else
+			return arr[0];
+	}
+
+	/** Remove first directory, if any **/
+	public function removeFirstDirectory() {
+		if( directory==null )
+			return this;
+
+		var arr = getDirectoryArray();
+
+		if( hasDriveLetter() )
+			arr.splice(1,1);
+		else
+			arr.shift();
+
+		if( arr.length==0 )
+			directory = null;
+		else
+			directory = arr.join( slash() );
+		return this;
 	}
 
 
@@ -767,6 +805,23 @@ class FilePath {
 		FilePath.SLASH_MODE = Preserve;
 		CiAssert.isTrue( FilePath.fromDir("c:\\windows/system\\/").full == "c:\\windows\\system" );
 		CiAssert.isTrue( FilePath.fromDir("c:/windows/system").full == "c:/windows/system" );
+
+		// First/last dir
+		CiAssert.equals( FilePath.fromFile("c:/windows/system/foo.txt").getFirstDirectory(), "windows" );
+		CiAssert.equals( FilePath.fromFile("/windows/system/foo.txt").getFirstDirectory(), "" );
+		CiAssert.equals( FilePath.fromFile("./windows/system/foo.txt").getFirstDirectory(), "." );
+		CiAssert.equals( FilePath.fromFile("ftp://a@b.com:21/foo/bar/pouet.txt").getFirstDirectory(), "foo" );
+
+
+		CiAssert.equals( FilePath.fromDir("c:/windows/system").getLastDirectory(), "system" );
+		CiAssert.equals( FilePath.fromFile("c:/windows/system/foo.txt").getLastDirectory(), "system" );
+		CiAssert.equals( FilePath.fromFile("c:/windows/system/./foo.txt").getLastDirectory(), "system" );
+		CiAssert.equals( FilePath.fromFile("c:/windows/system/../foo.txt").getLastDirectory(), "windows" );
+
+		CiAssert.equals( FilePath.fromFile("foo/bar/file.txt").removeFirstDirectory().full, "bar/file.txt" );
+		CiAssert.equals( FilePath.fromFile("foo/bar/file.txt").removeLastDirectory().full, "foo/file.txt" );
+		CiAssert.equals( FilePath.fromFile("c:/windows/system/foo.txt").removeFirstDirectory().full, "c:/system/foo.txt" );
+		CiAssert.equals( FilePath.fromFile("ftp://a@b.com:21/foo/bar/pouet.txt").removeFirstDirectory().full, "ftp://a@b.com:21/bar/pouet.txt" );
 
 		// Relative transformations
 		CiAssert.equals( FilePath.fromDir("/dir/foo/bar").makeRelativeTo("/dir").full, "foo/bar" );
