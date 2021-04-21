@@ -13,7 +13,12 @@ using haxe.macro.TypeTools;
 
 class Aseprite {
 	/**
-		Read Aseprite file and creates a dedicated SpriteLib class from it
+		Read Aseprite file and creates a dedicated specific SpriteLib class from it.
+		This SpriteLib class will have all fields from normal class, plus an "all" field which contains all Tags found in Aseprite file. Using this structure will ensure that tags in your code will always match tags in Aseprite file. Example:
+		```
+		var myLib = Aseprite.convertToSLib(60, "myFile.aseprite");
+		myLib.all.walk;  // equals to String "walk"
+		```
 	**/
 	macro public static function convertToSLib(fps:Int, resPath:String) {
 		var pos = haxe.macro.Context.currentPos();
@@ -98,18 +103,18 @@ class Aseprite {
 
 
 		// Build tags dictionary in class
-		var dictInits : Array<ObjectField> = [];
-		for( t in allTags )
-			dictInits.push({
-				field: t,
-				expr: macro $v{t},
-			});
+		var dictDecl : Array<Field> = allTags.map( function(tag:String) : Field {
+			return { name:tag,  kind:FVar(macro:String), pos:pos }
+		});
+		var dictInits : Array<ObjectField> = allTags.map( function(tag:String) : ObjectField {
+			return { field: tag,  expr: macro $v{tag} }
+		});
 
 		classType.fields.push({
 			name: "all",
 			pos: pos,
 			access: [ APublic ],
-			kind: FVar(null, { expr:EObjectDecl(dictInits), pos:pos }),
+			kind: FVar( TAnonymous(dictDecl), { expr:EObjectDecl(dictInits), pos:pos } ),
 		});
 
 
