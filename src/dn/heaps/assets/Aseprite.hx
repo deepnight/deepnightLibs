@@ -12,36 +12,65 @@ using haxe.macro.TypeTools;
 #end
 
 class Aseprite {
+
+	#if !macro
+	public static function convertToSLib(fps:Int, aseRes:aseprite.Aseprite) {
+		var slib = new dn.heaps.slib.SpriteLib([ aseRes.toTile() ]);
+
+		// Parse all tags
+		for(tag in aseRes.tags) {
+			// Read and store frames
+			var frames = aseRes.getTag(tag.name);
+			if( frames.length==0 )
+				continue;
+
+			var baseIndex = frames[0].index;
+			for(f in frames) {
+				final t = f.tile;
+				trace("slice "+tag.name+": "+t.ix+","+t.iy);
+				slib.sliceCustom(
+					tag.name,0, f.index-baseIndex,
+					t.ix, t.iy, t.iwidth, t.iheight,
+					0,0, t.iwidth, t.iheight
+				);
+			}
+
+			// Define animation
+			if( frames.length>1 ) {
+				var animFrames = [];
+				for(f in frames) {
+					var animFrameCount = dn.M.round( dn.M.fmax(1, $v{fps} * f.duration/1000) );
+					for( i in 0...animFrameCount ) // HACK Spritelib anims are frame-based, which is bad :(
+						animFrames.push(f.index-baseIndex);
+				}
+				slib.__defineAnim(tag.name, animFrames);
+			}
+		}
+
+		return slib;
+	}
+	#end
+
+
 	/**
-		Read Aseprite file and creates a dedicated specific SpriteLib class from it.
-		This SpriteLib class will have all fields from normal class, plus an "all" field which contains all Tags found in Aseprite file. Using this structure will ensure that tags in your code will always match tags in Aseprite file. Example:
-		```
-		var myLib = Aseprite.convertToSLib(60, "myFile.aseprite");
-		myLib.all.walk;  // equals to String "walk"
+		Build an anonymous object containing all unique "tags" found in given Aseprite file. Example:
+		```haxe
+			var allAnims = Aseprite.extractDictionary("assets/myCharacter.aseprite");
+			// ...will look like:
+			{ run:"run", idle:"idle", attackA:"attackA" }
 		```
 	**/
-	macro public static function convertToSLib(fps:Int, resPath:String) {
-		var pos = haxe.macro.Context.currentPos();
-		var rawMod = Context.getLocalModule();
-		var modPack = rawMod.split(".");
-		var modName = modPack.pop();
+	macro public static function extractDictionary(asepritePath:String) {
+		var pos = Context.currentPos();
 
 		// Check file existence
-		var fullPath = resPath;
-		if( !sys.FileSystem.exists(fullPath) )
-			haxe.macro.Context.fatalError('File not found: $fullPath', pos);
-
-		// Turn into "res" relative path
-		var fp = FilePath.fromFile(resPath);
-		if( fp.getFirstDirectory()=="res" )
-			fp.removeFirstDirectory();
-		var resPath = fp.full;
-
+		if( !sys.FileSystem.exists(asepritePath) )
+			haxe.macro.Context.fatalError('File not found: $asepritePath', pos);
 
 		// Parse file to list all tags
-		var bytes = sys.io.File.getBytes(fullPath);
+		var bytes = sys.io.File.getBytes(asepritePath);
 		var ase = ase.Ase.fromBytes(bytes);
-		var allTags = [];
+		var allTags : Map<String,Bool> = new Map();
 		final tagMagic = 0x2018;
 		for(f in ase.frames) {
 			if( !f.chunkTypes.exists(tagMagic) )
@@ -49,80 +78,14 @@ class Aseprite {
 			var tags : Array<ase.chunks.TagsChunk> = cast f.chunkTypes.get(tagMagic);
 			for( tc in tags )
 				for(t in tc.tags)
-					allTags.push(t.tagName);
+					allTags.set(t.tagName, true);
 		}
 
+		// Create anonymous object
+		var dictInits : Array<ObjectField> = [];
+		for( tag in allTags.keys() )
+			dictInits.push({ field: tag,  expr: macro $v{tag} });
 
-		// Create specific SpriteLib class
-		var className = ( ~/([^0-9a-z])/gi ).replace( FilePath.fromFile(fullPath).fileName, "_" );
-		var parentTypePath : TypePath = { pack:["dn","heaps","slib"], name:"SpriteLib" }
-		var aseResExpr = macro hxd.Res.load( $v{resPath} ).to( aseprite.Aseprite );
-		var classType : TypeDefinition = {
-			pos : pos,
-			name : "SpriteLib_"+className,
-			pack : modPack,
-			kind : TDClass(parentTypePath),
-			fields : (macro class {
-
-				override public function new() {
-					// Init parent SpriteLib
-					var aseRes = $aseResExpr;
-					var tile = aseRes.toTile();
-					super([tile]);
-
-					// Parse all tags
-					for(tag in aseRes.tags) {
-						// Read and store frames
-						var frames = aseRes.getTag(tag.name);
-						if( frames.length==0 )
-							continue;
-
-						var baseIndex = frames[0].index;
-						for(f in frames) {
-							final t = f.tile;
-							sliceCustom(
-								tag.name,0, f.index-baseIndex,
-								t.ix, t.iy, t.iwidth, t.iheight,
-								0,0, t.iwidth, t.iheight
-							);
-						}
-
-						// Define animation
-						var animFrames = [];
-						for(f in frames) {
-							var animFrameCount = dn.M.round( dn.M.fmax(1, $v{fps} * f.duration/1000) );
-							for( i in 0...animFrameCount ) // HACK Spritelib anims are frame-based, which is bad :(
-								animFrames.push(f.index-baseIndex);
-						}
-						__defineAnim(tag.name, animFrames);
-					}
-
-				}
-			}).fields,
-		}
-
-
-		// Build tags dictionary in class
-		var dictDecl : Array<Field> = allTags.map( function(tag:String) : Field {
-			return { name:tag,  kind:FVar(macro:String), pos:pos }
-		});
-		var dictInits : Array<ObjectField> = allTags.map( function(tag:String) : ObjectField {
-			return { field: tag,  expr: macro $v{tag} }
-		});
-
-		classType.fields.push({
-			name: "all",
-			pos: pos,
-			access: [ APublic ],
-			kind: FVar( TAnonymous(dictDecl), { expr:EObjectDecl(dictInits), pos:pos } ),
-		});
-
-
-		// Register class
-		Context.defineModule(rawMod, [classType]);
-
-		// Create SpriteLib instance
-		var classPath : TypePath = { pack:classType.pack, name:classType.name }
-		return macro new $classPath();
+		return { expr:EObjectDecl(dictInits), pos:pos }
 	}
 }
