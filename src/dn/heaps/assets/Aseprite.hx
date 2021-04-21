@@ -53,11 +53,15 @@ class Aseprite {
 
 
 	/**
-		Build an anonymous object containing all unique "tags" found in given Aseprite file. Example:
+		Build an anonymous object containing all "tags" and "slices" found in given Aseprite file. Example:
 		```haxe
-			var allAnims = Aseprite.extractDictionary("assets/myCharacter.aseprite");
+			var dict = Aseprite.extractDictionary("assets/myCharacter.aseprite");
 			// ...will look like:
-			{ run:"run", idle:"idle", attackA:"attackA" }
+			{
+				_slices: { mySlice:"mySlice" }, // all your slices
+				_tags: { run:"run", idle:"idle" }, // all your tags
+				run:"run", idle:"idle", mySlice:"mySlice" // everything mixed
+			}
 		```
 	**/
 	macro public static function extractDictionary(asepritePath:String) {
@@ -67,25 +71,68 @@ class Aseprite {
 		if( !sys.FileSystem.exists(asepritePath) )
 			haxe.macro.Context.fatalError('File not found: $asepritePath', pos);
 
-		// Parse file to list all tags
+		// Break cache if file changes
+		Context.registerModuleDependency(Context.getLocalModule(), asepritePath);
+
+		// Parse file
 		var bytes = sys.io.File.getBytes(asepritePath);
 		var ase = ase.Ase.fromBytes(bytes);
+
+		inline function cleanUpIdentifier(v:String) {
+			return ( ~/[^a-z0-9_]/gi ).replace(v, "_");
+		}
+
+		// List all tags
 		var allTags : Map<String,Bool> = new Map();
-		final tagMagic = 0x2018;
+		final magicId = 0x2018;
 		for(f in ase.frames) {
-			if( !f.chunkTypes.exists(tagMagic) )
+			if( !f.chunkTypes.exists(magicId) )
 				continue;
-			var tags : Array<ase.chunks.TagsChunk> = cast f.chunkTypes.get(tagMagic);
+			var tags : Array<ase.chunks.TagsChunk> = cast f.chunkTypes.get(magicId);
 			for( tc in tags )
 				for(t in tc.tags)
 					allTags.set(t.tagName, true);
 		}
 
-		// Create anonymous object
-		var dictInits : Array<ObjectField> = [];
-		for( tag in allTags.keys() )
-			dictInits.push({ field: tag,  expr: macro $v{tag} });
+		// List all slices
+		var allSlices : Map<String,Bool> = new Map();
+		final magicId = 0x2022;
+		for(f in ase.frames) {
+			if( !f.chunkTypes.exists(magicId) )
+				continue;
+			var slices : Array<ase.chunks.SliceChunk> = cast f.chunkTypes.get(magicId);
+			for(s in slices)
+				allSlices.set(s.name, true);
+		}
 
-		return { expr:EObjectDecl(dictInits), pos:pos }
+
+		var done = new Map(); // avoid duplicates
+		var aggregatedFields : Array<ObjectField> = []; // contains both tags & slices
+
+		// Create "tags" anonymous structure
+		var tagFields : Array<ObjectField> = [];
+		for( tag in allTags.keys() ) {
+			if( !done.exists(tag) ) {
+				done.set(tag,true);
+				aggregatedFields.push({ field: cleanUpIdentifier(tag),  expr: macro $v{tag} });
+			}
+			tagFields.push({ field: cleanUpIdentifier(tag),  expr: macro $v{tag} });
+		}
+		aggregatedFields.push({ field:"_tags", expr: { expr:EObjectDecl(tagFields), pos:pos } });
+
+		// Create "slices" anonymous structure
+		var sliceFields : Array<ObjectField> = [];
+		for( slice in allSlices.keys() ) {
+			if( !done.exists(slice) ) {
+				done.set(slice,true);
+				aggregatedFields.push({ field: cleanUpIdentifier(slice),  expr: macro $v{slice} });
+			}
+			sliceFields.push({ field: cleanUpIdentifier(slice),  expr: macro $v{slice} });
+		}
+		aggregatedFields.push({ field:"_slices", expr: { expr:EObjectDecl(sliceFields), pos:pos } });
+
+		// Return anonymous structure
+		return { expr:EObjectDecl(aggregatedFields), pos:pos }
 	}
+
 }
