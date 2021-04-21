@@ -138,7 +138,6 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 	}
 
 	public function setFrame(f:Int) {
-		var old = frame;
 		frame = f;
 
 		if( isReady() ) {
