@@ -1,7 +1,7 @@
 package dn;
 
 typedef DecodedImage = {
-	var decodedBytes: haxe.io.Bytes;
+	var decodedBytes: haxe.io.Bytes; // pixels in BGRA format
 	var width: Int;
 	var height: Int;
 }
@@ -13,6 +13,15 @@ class ImageDecoder {
 			case Png: decodePng(fileContent);
 			case Gif: decodeGif(fileContent);
 			case Jpeg: decodeJpeg(fileContent);
+
+			case Aseprite:
+				#if "heaps-aseprite"
+					decodeAsepriteMainTexture(fileContent);
+				#else
+					trace('[ImageDecoder] Aseprite decoding requires both "heaps-aseprite" and "ase" libs (run "haxelib install ase" and "haxelib install heaps-aseprite").');
+					null;
+				#end
+
 			case _: null;
 		}
 		catch( err:String ) {
@@ -151,4 +160,31 @@ class ImageDecoder {
 
 		#end
 	}
+
+
+	/** Thanks to Austin East lib "heaps-aseprite" **/
+	#if "heaps-aseprite"
+	static function decodeAsepriteMainTexture(encoded:haxe.io.Bytes) : Null<DecodedImage> {
+
+		try {
+			// Read Aseprite file
+			var ase = new aseprite.Aseprite(encoded);
+
+			// Extract pixels as BGRA
+			var pixels = ase.toTexture().capturePixels();
+			pixels.convert(BGRA);
+
+			return {
+				decodedBytes: pixels.bytes,
+				width: pixels.width,
+				height: pixels.height,
+			}
+		}
+		catch(_) {
+			return null;
+		}
+
+	}
+	#end
+
 }
