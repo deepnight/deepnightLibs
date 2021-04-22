@@ -63,8 +63,8 @@ class Aseprite {
 		var ase = readAseprite(asepritePath);
 
 		// List all tags
-		var all : Map<String,Bool> = new Map();
 		final magicId = 0x2018;
+		var all : Map<String,Bool> = new Map(); // "Map" type avoids duplicates
 		for(f in ase.frames) {
 			if( !f.chunkTypes.exists(magicId) )
 				continue;
@@ -96,8 +96,8 @@ class Aseprite {
 		var ase = readAseprite(asepritePath);
 
 		// List all slices
-		var all : Map<String,Bool> = new Map();
 		final magicId = 0x2022;
+		var all : Map<String,Bool> = new Map(); // "Map" type avoids duplicates
 		for(f in ase.frames) {
 			if( !f.chunkTypes.exists(magicId) )
 				continue;
@@ -117,28 +117,32 @@ class Aseprite {
 
 
 	#if macro
+
 	/** Cleanup a string to make a valid Haxe identifier **/
 	static inline function cleanUpIdentifier(v:String) {
 		return ( ~/[^a-z0-9_]/gi ).replace(v, "_");
 	}
 
-	static function readAseprite(path:String) : ase.Ase {
+
+	/** Parse Aseprite file from path **/
+	static function readAseprite(filePath:String) : ase.Ase {
 		var pos = Context.currentPos();
+
 		// Check file existence
-		if( !sys.FileSystem.exists(path) ) {
-			path = try Context.resolvePath(path)
-				catch(_) haxe.macro.Context.fatalError('File not found: $path', pos);
+		if( !sys.FileSystem.exists(filePath) ) {
+			filePath = try Context.resolvePath(filePath)
+				catch(_) haxe.macro.Context.fatalError('File not found: $filePath', pos);
 		}
 
 		// Break cache if file changes
-		Context.registerModuleDependency(Context.getLocalModule(), path);
+		Context.registerModuleDependency(Context.getLocalModule(), filePath);
 
 		// Parse file
-		var bytes = sys.io.File.getBytes(path);
+		var bytes = sys.io.File.getBytes(filePath);
 		var ase = try ase.Ase.fromBytes(bytes)
 			catch(err:Dynamic) Context.fatalError("Failed to read Aseprite file: "+err, pos);
 		return ase;
 	}
-	#end
 
+	#end
 }
