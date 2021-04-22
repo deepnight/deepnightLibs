@@ -61,8 +61,9 @@ class Identify {
 
 
 	static function matchHeader(b:haxe.io.Bytes, h:FileHeader) {
+		var skip = h.skipBytes==null ? 0 : h.skipBytes;
 		for( i in 0...h.magic.length )
-			if( i+h.skipBytes>=b.length  ||  h.magic[i]>=0  &&  h.magic[i] != b.get(i+h.skipBytes) )
+			if( i+skip>=b.length  ||  h.magic[i]>=0  &&  h.magic[i] != b.get(i+skip) )
 				return false;
 
 		return true;
