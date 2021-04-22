@@ -15,7 +15,7 @@ class ImageDecoder {
 			case Jpeg: decodeJpeg(fileContent);
 
 			case Aseprite:
-				#if "heaps-aseprite"
+				#if heaps_aseprite
 					decodeAsepriteMainTexture(fileContent);
 				#else
 					trace('[ImageDecoder] Aseprite decoding requires both "heaps-aseprite" and "ase" libs (run "haxelib install ase" and "haxelib install heaps-aseprite").');
@@ -163,7 +163,7 @@ class ImageDecoder {
 
 
 	/** Thanks to Austin East lib "heaps-aseprite" **/
-	#if "heaps-aseprite"
+	#if heaps_aseprite
 	static function decodeAsepriteMainTexture(encoded:haxe.io.Bytes) : Null<DecodedImage> {
 
 		try {
