@@ -7,8 +7,10 @@ typedef DecodedImage = {
 }
 
 class ImageDecoder {
+	public static var lastError : Null<String>;
 
 	public static function decode(fileContent:haxe.io.Bytes) : Null<DecodedImage> {
+		lastError = null;
 		return try switch dn.Identify.getType(fileContent) {
 			case Png: decodePng(fileContent);
 			case Gif: decodeGif(fileContent);
@@ -18,13 +20,14 @@ class ImageDecoder {
 				#if heaps_aseprite
 					decodeAsepriteMainTexture(fileContent);
 				#else
-					trace('[ImageDecoder] Aseprite decoding requires both "heaps-aseprite" and "ase" libs (run "haxelib install ase" and "haxelib install heaps-aseprite").');
+					throw('[ImageDecoder] Aseprite decoding requires both "heaps-aseprite" and "ase" libs (run "haxelib install ase" and "haxelib install heaps-aseprite").');
 					null;
 				#end
 
 			case _: null;
 		}
 		catch( err:String ) {
+			lastError = err;
 			return null;
 		}
 	}
@@ -180,7 +183,8 @@ class ImageDecoder {
 				height: pixels.height,
 			}
 		}
-		catch(_) {
+		catch(e:Dynamic) {
+			lastError = Std.string(e);
 			return null;
 		}
 
