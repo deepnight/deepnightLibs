@@ -51,86 +51,94 @@ class Aseprite {
 
 
 	/**
-		Build an anonymous object containing all "tags" and "slices" found in given Aseprite file. Example:
+		Build an anonymous object containing all "tags" names found in given Aseprite file. Example:
 		```haxe
-			var dict = Aseprite.extractDictionary("assets/myCharacter.aseprite");
-			// ...will look like:
-			{
-				_slices: { mySlice:"mySlice" }, // all your slices
-				_tags: { run:"run", idle:"idle" }, // all your tags
-				run:"run", idle:"idle", mySlice:"mySlice" // everything mixed
-			}
+		var dict = Aseprite.extractTagsDictionary("assets/myCharacter.aseprite");
+		someAnimManager.play( dict.run ); // if the tag name changes, compilation will show an error, which is cool
+		trace(dict); // { run:"run", idle:"idle", attackA:"attackA" }
 		```
 	**/
-	macro public static function extractDictionary(asepritePath:String) {
+	macro public static function extractTagsDictionary(asepritePath:String) {
 		var pos = Context.currentPos();
-
-		// Check file existence
-		if( !sys.FileSystem.exists(asepritePath) )
-			haxe.macro.Context.fatalError('File not found: $asepritePath', pos);
-
-		// Break cache if file changes
-		Context.registerModuleDependency(Context.getLocalModule(), asepritePath);
-
-		// Parse file
-		var bytes = sys.io.File.getBytes(asepritePath);
-		var ase = ase.Ase.fromBytes(bytes);
-
-		inline function cleanUpIdentifier(v:String) {
-			return ( ~/[^a-z0-9_]/gi ).replace(v, "_");
-		}
+		var ase = readAseprite(asepritePath);
 
 		// List all tags
-		var allTags : Map<String,Bool> = new Map();
+		var all : Map<String,Bool> = new Map();
 		final magicId = 0x2018;
 		for(f in ase.frames) {
 			if( !f.chunkTypes.exists(magicId) )
 				continue;
 			var tags : Array<ase.chunks.TagsChunk> = cast f.chunkTypes.get(magicId);
 			for( tc in tags )
-				for(t in tc.tags)
-					allTags.set(t.tagName, true);
+			for( t in tc.tags )
+				all.set(t.tagName, true);
 		}
 
+		// Create "tags" anonymous structure
+		var tagFields : Array<ObjectField> = [];
+		for( tag in all.keys() )
+			tagFields.push({ field: cleanUpIdentifier(tag),  expr: macro $v{tag} });
+
+		// Return anonymous structure
+		return { expr:EObjectDecl(tagFields), pos:pos }
+	}
+
+
+	/**
+		Build an anonymous object containing all "slices" names found in given Aseprite file. Example:
+		```haxe
+		var dict = Aseprite.extractSlicesDictionary("assets/myCharacter.aseprite");
+		trace(dict); // { mySlice:"mySlice", grass1:"grass1", stoneWall:"stoneWall" }
+		```
+	**/
+	macro public static function extractSlicesDictionary(asepritePath:String) {
+		var pos = Context.currentPos();
+		var ase = readAseprite(asepritePath);
+
 		// List all slices
-		var allSlices : Map<String,Bool> = new Map();
+		var all : Map<String,Bool> = new Map();
 		final magicId = 0x2022;
 		for(f in ase.frames) {
 			if( !f.chunkTypes.exists(magicId) )
 				continue;
-			var slices : Array<ase.chunks.SliceChunk> = cast f.chunkTypes.get(magicId);
-			for(s in slices)
-				allSlices.set(s.name, true);
+			var chunk : Array<ase.chunks.SliceChunk> = cast f.chunkTypes.get(magicId);
+			for( s in chunk )
+				all.set(s.name, true);
 		}
 
-
-		var done = new Map(); // avoid duplicates
-		var aggregatedFields : Array<ObjectField> = []; // contains both tags & slices
-
-		// Create "tags" anonymous structure
-		var tagFields : Array<ObjectField> = [];
-		for( tag in allTags.keys() ) {
-			if( !done.exists(tag) ) {
-				done.set(tag,true);
-				aggregatedFields.push({ field: cleanUpIdentifier(tag),  expr: macro $v{tag} });
-			}
-			tagFields.push({ field: cleanUpIdentifier(tag),  expr: macro $v{tag} });
-		}
-		aggregatedFields.push({ field:"_tags", expr: { expr:EObjectDecl(tagFields), pos:pos } });
-
-		// Create "slices" anonymous structure
-		var sliceFields : Array<ObjectField> = [];
-		for( slice in allSlices.keys() ) {
-			if( !done.exists(slice) ) {
-				done.set(slice,true);
-				aggregatedFields.push({ field: cleanUpIdentifier(slice),  expr: macro $v{slice} });
-			}
-			sliceFields.push({ field: cleanUpIdentifier(slice),  expr: macro $v{slice} });
-		}
-		aggregatedFields.push({ field:"_slices", expr: { expr:EObjectDecl(sliceFields), pos:pos } });
+		// Create anonymous structure fields
+		var fields : Array<ObjectField> = [];
+		for( e in all.keys() )
+			fields.push({ field: cleanUpIdentifier(e),  expr: macro $v{e} });
 
 		// Return anonymous structure
-		return { expr:EObjectDecl(aggregatedFields), pos:pos }
+		return { expr:EObjectDecl(fields), pos:pos }
 	}
+
+
+	#if macro
+	/** Cleanup a string to make a valid Haxe identifier **/
+	static inline function cleanUpIdentifier(v:String) {
+		return ( ~/[^a-z0-9_]/gi ).replace(v, "_");
+	}
+
+	static function readAseprite(path:String) : ase.Ase {
+		var pos = Context.currentPos();
+		// Check file existence
+		if( !sys.FileSystem.exists(path) ) {
+			path = try Context.resolvePath(path)
+				catch(_) haxe.macro.Context.fatalError('File not found: $path', pos);
+		}
+
+		// Break cache if file changes
+		Context.registerModuleDependency(Context.getLocalModule(), path);
+
+		// Parse file
+		var bytes = sys.io.File.getBytes(path);
+		var ase = try ase.Ase.fromBytes(bytes)
+			catch(err:Dynamic) Context.fatalError("Failed to read Aseprite file: "+err, pos);
+		return ase;
+	}
+	#end
 
 }
