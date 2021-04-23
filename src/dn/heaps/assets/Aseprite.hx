@@ -8,7 +8,7 @@ using haxe.macro.TypeTools;
 #end
 
 #if !heaps-aseprite
-#error "Requires haxelib heaps-aseprite"
+#error "Requires 'heaps-aseprite' lib"
 #end
 
 class Aseprite {
@@ -27,7 +27,6 @@ class Aseprite {
 			var baseIndex = frames[0].index;
 			for(f in frames) {
 				final t = f.tile;
-				trace("slice "+tag.name+": "+t.ix+","+t.iy);
 				slib.sliceCustom(
 					tag.name,0, f.index-baseIndex,
 					t.ix, t.iy, t.iwidth, t.iheight,
