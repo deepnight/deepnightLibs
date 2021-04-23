@@ -171,10 +171,10 @@ class ImageDecoder {
 
 		try {
 			// Read Aseprite file
-			var ase = new aseprite.Aseprite(encoded);
+			var ase = aseprite.Aseprite.fromBytes(encoded);
 
 			// Extract pixels as BGRA
-			var pixels = ase.toTexture().capturePixels();
+			var pixels = ase.getTexture().capturePixels();
 			pixels.convert(BGRA);
 
 			return {
