@@ -38,6 +38,8 @@ class StatsBox extends dn.Process {
 	var fps : h2d.Text;
 	var fpsChart : h2d.Graphics;
 
+	var components : Array<{ f:h2d.Flow, update:(f:h2d.Flow)->Void}> = [];
+
 	var fpsHistory = new haxe.ds.Vector(HISTORY_CHUNK*3);
 	var histCursor = 0;
 
@@ -53,17 +55,34 @@ class StatsBox extends dn.Process {
 		anchor = new h2d.col.Point();
 
 		flow = new h2d.Flow(root);
-		flow.layout = Horizontal;
+		flow.layout = Vertical;
 		flow.horizontalSpacing = 8;
 		flow.backgroundTile = h2d.Tile.fromColor(0x0,1,1, 0.7);
 		flow.padding = 4;
-		flow.verticalAlign = Middle;
+		flow.horizontalAlign = Right;
+		flow.verticalSpacing = 4;
 
-		fps = new h2d.Text(hxd.res.DefaultFont.get(), flow);
-		fpsChart = new h2d.Graphics(flow);
+		var f = new h2d.Flow(flow);
+		f.layout = Horizontal;
+		f.verticalAlign = Middle;
+		fps = new h2d.Text(hxd.res.DefaultFont.get(), f);
+		fpsChart = new h2d.Graphics(f);
 		fpsChart.visible = showFpsChart;
 
 		onResize();
+	}
+
+	public function addComponent( update:(f:h2d.Flow)->Void ) {
+		var f = new h2d.Flow();
+		flow.addChildAt(f,0);
+		f.layout = Horizontal;
+		components.push({ f:f, update:update });
+	}
+
+	public function removeAllComponents() {
+		for(c in components)
+			c.f.remove();
+		components = [];
 	}
 
 	override function onResize() {
@@ -92,6 +111,9 @@ class StatsBox extends dn.Process {
 			flow.x = anchor.x - flow.outerWidth * anchorRatioX;
 			flow.y = anchor.y - flow.outerHeight * anchorRatioY;
 		}
+
+		for(c in components)
+			c.update(c.f);
 	}
 
 
