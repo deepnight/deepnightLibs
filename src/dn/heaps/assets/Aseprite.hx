@@ -56,7 +56,7 @@ class Aseprite {
 			slib.sliceCustom(
 				slice.name,0, 0,
 				t.ix, t.iy, t.iwidth, t.iheight,
-				t.ix, t.iy, t.iwidth, t.iheight
+				0,0, t.iwidth, t.iheight
 			);
 
 			// Slice using trimmed name (ie. without leading number)
