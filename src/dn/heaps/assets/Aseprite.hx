@@ -49,7 +49,6 @@ class Aseprite {
 		// Parse all slices
 		for(slice in aseRes.slices) {
 			var s = aseRes.getSlice(slice.name, 0);
-			trace(slice.name+" "+s.index+" "+s.tile);
 			var t = s.tile;
 
 			// Slice using original name
