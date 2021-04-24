@@ -54,4 +54,56 @@ class MacroTools {
 			haxe.macro.Compiler.include(p);
 		return macro {}
 	}
+
+
+
+	#if macro
+
+	/**
+	Try to resolve a `hxd.Res` expression (eg. hxd.Res.dir.myFile) to an actual file path (eg. "res/dir/myFile.aseprite").
+	The approach is a bit dirty but it should work in 99% non-exotic cases.
+	**/
+	public static function resolveResToPath(resExpr:Expr) : Null<String> {
+		switch resExpr.expr {
+			case EField(_):
+			case _:
+			Context.fatalError("Expected Resource identifier (eg. hxd.Res.myResource)", resExpr.pos);
+		}
+
+		// Turn Res expression to a string (eg. "hxd.Res.dir.myFile")
+		var idents = new haxe.macro.Printer("").printExpr( resExpr ).split(".");
+		if( idents[0]=="hxd" )
+			idents.shift(); // remove hxd package
+		if( idents.length==0 || !( ~/^_*[A-Z]/g ).match(idents[0]) )
+			Context.fatalError("Expected Resource identifier (eg. hxd.Res.myResource)", resExpr.pos);
+		idents.shift(); // remove Res class, whatever it is called
+		if( idents.length==0 )
+			Context.fatalError("Expected Resource identifier (eg. hxd.Res.myResource)", resExpr.pos);
+
+		// Guess "res" dir
+		var resPath = Context.definedValue("resourcesPath");
+		if( resPath==null )
+			resPath = "res";
+		if( !sys.FileSystem.exists(resPath) )
+			Context.fatalError("Res dir not found: "+resPath, Context.currentPos());
+
+		// Look for file
+		for(ext in [ "ase", "aseprite" ]) {
+			var path = resPath+"/"+idents.join("/")+"."+ext;
+			if( sys.FileSystem.exists(path) )
+				return path;
+		}
+
+		// If everything fails, check if Res ident was renamed due to duplicate names
+		var path = resPath+"/"+idents.join("/");
+		var extensionReg = ~/(.+)_([a-z0-9]*)$/gi;
+		extensionReg.replace(path,"$1.$2");
+		if( sys.FileSystem.exists(path) )
+			return path;
+
+		Context.fatalError("Couldn't locate file for resource: "+idents.join("."), resExpr.pos);
+		return null;
+	}
+
+	#end
 }
