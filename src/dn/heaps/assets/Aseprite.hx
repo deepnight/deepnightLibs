@@ -63,7 +63,7 @@ class Aseprite {
 				slib.sliceCustom(
 					leadingIdxReg.matched(1),0,  Std.parseInt(leadingIdxReg.matched(3)),
 					t.ix, t.iy, t.iwidth, t.iheight,
-					t.ix, t.iy, t.iwidth, t.iheight
+					0,0, t.iwidth, t.iheight
 				);
 			}
 		}
