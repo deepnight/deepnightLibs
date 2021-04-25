@@ -443,6 +443,10 @@ class HParticle extends BatchElement {
 		dn.Color.colorizeBatchElement(this, c, ratio);
 	}
 
+	public inline function colorizeRandom(min:UInt, max:UInt) {
+		dn.Color.colorizeBatchElement(this, dn.Color.interpolateInt(min,max,rnd(0,1)), 1);
+	}
+
 	public function fade(targetAlpha:Float, fadeInSpd=1.0, fadeOutSpd=1.0) {
 		this.alpha = 0;
 		maxAlpha = targetAlpha;
