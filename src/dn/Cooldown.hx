@@ -267,8 +267,10 @@ class Cooldown {
 		}
 		else {
 			fastCheck.set(k, true);
-			if( cur != null )
+			if( cur != null ) {
 				cur.frames = frames;
+				cur.initial = frames;
+			}
 			else
 				cdList.push( new CdInst(k,frames) );
 				//cdList.push({k:k, v:v, initial:v, cb:null});
