@@ -791,6 +791,10 @@ class M {
 		return fabs( radSubstract(a,b) );
 	}
 
+	public static inline function radCloseTo(curAng:Float, target:Float, maxAngDist:Float) {
+		return radDistance(curAng, target) <= M.fabs(maxAngDist);
+	}
+
 	public static inline function radSubstract(a:Float,b:Float) { // returns a-b (normalized)
 		a = normalizeRad(a);
 		b = normalizeRad(b);
