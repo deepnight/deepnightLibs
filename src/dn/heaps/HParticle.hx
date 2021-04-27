@@ -267,6 +267,10 @@ class HParticle extends BatchElement {
 	public var killOnLifeOut	: Bool;
 	public var killed			: Bool;
 
+	/** If greater than 0, particle will keep its rotation aligned with movement. 1 means always strictly equal to current direction, below 1 means slower rotation tracking. **/
+	public var autoRotateSpeed(default,set) : Float;
+		inline function set_autoRotateSpeed(v) return autoRotateSpeed = M.fclamp(v,0,1);
+
 	public var userData : Dynamic;
 
 	var fromColor : UInt;
@@ -398,6 +402,7 @@ class HParticle extends BatchElement {
 		killOnLifeOut = false;
 		groundY = null;
 		groupId = null;
+		autoRotateSpeed = 0;
 
 		// Callbacks
 		onStart = null;
@@ -668,6 +673,9 @@ class HParticle extends BatchElement {
 					ds     *= optimPow(dsFrict, tmod);
 					dsX    *= optimPow(dsFrict, tmod);
 					dsY    *= optimPow(dsFrict, tmod);
+
+					if( autoRotateSpeed!=0 )
+						rotation += ( getMoveAng() - rotation ) * M.fmin(1,autoRotateSpeed*tmod);
 
 					// Color animation
 					if( !Math.isNaN(rColor) ) {
