@@ -675,7 +675,7 @@ class HParticle extends BatchElement {
 					dsY    *= optimPow(dsFrict, tmod);
 
 					if( autoRotateSpeed!=0 )
-						rotation += ( getMoveAng() - rotation ) * M.fmin(1,autoRotateSpeed*tmod);
+						rotation += M.radSubstract( getMoveAng(), rotation ) * M.fmin(1,autoRotateSpeed*tmod);
 
 					// Color animation
 					if( !Math.isNaN(rColor) ) {
