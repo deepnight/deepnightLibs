@@ -33,6 +33,7 @@ class Main {
 		dn.LocalStorage.__test();
 		dn.Args.__test();
 		dn.Process.__test();
+		dn.RandomTools.__test();
 
 		// Done!
 		Lib.println("");

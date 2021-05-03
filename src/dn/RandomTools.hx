@@ -1,0 +1,107 @@
+package dn;
+
+/**
+	This class should be imported with an alias for easier use.
+	```haxe
+	import RandomTools as R;
+	```
+**/
+
+class RandomTools {
+
+	/** Random Float value within specified range. If `sign` is true, the value will be either between [min,max] or [-max,-min].**/
+	public static inline function rng(min:Float, max:Float, sign=false) {
+		if( sign )
+			return (min + Math.random()*(max-min)) * (Std.random(2)*2-1);
+		else
+			return min + Math.random()*(max-min);
+	}
+
+	/** Random Integer value within specified range. If `sign` is true, the value will be either between [min,max] or [-max,-min].**/
+	public static inline function irng(min:Int, max:Int, sign=false) {
+		if( sign )
+			return (min + Std.random(max-min+1)) * (Std.random(2)*2-1);
+		else
+			return min + Std.random(max-min+1);
+	}
+
+	/** Randomly variate given value `v` in +/- `pct`% **/
+	public static inline function around(v:Float, pct=10) {
+		return v * ( 1 + rng(0,pct/100,true) );
+	}
+
+	/** Randomly variate given value `v` in +/- `pct`%, and ensures result is in range [0,1] **/
+	public static inline function aroundZTO(v:Float, pct=10) {
+		return M.fclamp( v * ( 1 + rng(0,pct/100,true) ), 0, 1 );
+	}
+
+	/** Random float value in range [0,v]. If `sign` is true, the value will be in [-v,v]. **/
+	public static inline function zeroTo(v:Float, sign=false) {
+		return rng(0,v,sign);
+	}
+
+	/** Random float in range [0,1]. If `sign` is true, the value will be in [-1,1]. **/
+	public static inline function zto(sign=false) {
+		return rng(0,1, sign);
+	}
+
+	/** Random color by interpolating R, G & B components **/
+	public static inline function colorMix(minColor:UInt, maxColor:UInt) : UInt {
+		return dn.Color.interpolateInt( minColor, maxColor, rng(0,1) );
+	}
+
+	/** Create a color with optional HSL parameters. If `hue` is omitted, it will be random. **/
+	public static inline function color(?hue:Float, sat=1.0, lum=1.0) {
+		return dn.Color.makeColorHsl( hue==null ? zto() : hue, sat, lum );
+	}
+
+
+
+	/**
+		Randomly spread `value` in `nbStacks` stacks. Example:
+	**/
+	public static function spreadInStacks(value:Int, nbStacks:Int, ?maxStackValue:Null<Int>, randFunc:Int->Int) : Array<Int> {
+		if( value<=0 || nbStacks<=0 )
+			return new Array();
+
+		if( maxStackValue!=null && value/nbStacks>maxStackValue ) {
+			var a = [];
+			for(i in 0...nbStacks)
+				a.push(maxStackValue);
+			return a;
+		}
+
+		if( nbStacks>value ) {
+			var a = [];
+			for(i in 0...value)
+				a.push(1);
+			return a;
+		}
+
+		var plist = new Array();
+		for (i in 0...nbStacks)
+			plist[i] = 1;
+
+		var remain = value-plist.length;
+		while (remain>0) {
+			var move = M.ceil(value*(randFunc(8)+1)/100);
+			if (move>remain)
+				move = remain;
+
+			var p = randFunc(nbStacks);
+			if( maxStackValue!=null && plist[p]+move>maxStackValue )
+				move = maxStackValue - plist[p];
+			plist[p]+=move;
+			remain-=move;
+		}
+		return plist;
+	}
+
+
+
+	@:noCompletion
+	public static function __test() {
+		// TODO
+	}
+
+}
