@@ -17,7 +17,7 @@ class RandomTools {
 			return min + Math.random()*(max-min);
 	}
 
-	/** Random Integer value within specified range. If `sign` is true, the value will be either between [min,max] or [-max,-min].**/
+	/** Random Integer value within specified range. If `sign` is true, the value will be either between [min,max] or [-max,-min]. **/
 	public static inline function irng(min:Int, max:Int, sign=false) {
 		if( sign )
 			return (min + Std.random(max-min+1)) * (Std.random(2)*2-1);
@@ -25,9 +25,14 @@ class RandomTools {
 			return min + Std.random(max-min+1);
 	}
 
-	/** Randomly variate given value `v` in +/- `pct`% **/
-	public static inline function around(v:Float, pct=10) {
-		return v * ( 1 + rng(0,pct/100,true) );
+	/** Randomly variate given value `v` in +/- `pct`%. If `sign` is true, the value will some times be multiplied by -1. **/
+	public static inline function around(v:Float, pct=10, sign=false) {
+		return v * ( 1 + rng(0,pct/100,true) ) * ( sign ? RandomTools.sign() : 1 );
+	}
+
+	/** Returns -1 or 1 randomly **/
+	public static inline function sign() {
+		return Std.random(2)*2-1;
 	}
 
 	/** Randomly variate given value `v` in +/- `pct`%, and ensures result is in range [0,1] **/
