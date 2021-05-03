@@ -55,6 +55,19 @@ class RandomTools {
 		return dn.Color.makeColorHsl( hue==null ? zto() : hue, sat, lum );
 	}
 
+	/** Random radian angle in range [0,2PI] **/
+	public static inline function fullCircle() return rng(0, M.PI2);
+
+	/** Random radian angle in range [0,PI] **/
+	public static inline function halfCircle() return rng(0, M.PI);
+
+	/** Random radian angle in range [0,PI/2] **/
+	public static inline function quarterCircle() return rng(0, M.PIHALF);
+
+	/** Random radian angle in range [ang-maxDist, ang+maxDist] **/
+	public static inline function angleAround(ang:Float, maxDist:Float) {
+		return ang + rng(0, maxDist, true);
+	}
 
 
 	/**
