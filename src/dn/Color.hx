@@ -22,6 +22,7 @@ class Color {
 	public static var BLUE_LUMA = 0.114;
 
 
+
 	public static inline function hexToRgb(hex:String) : Rgb {
 		if ( hex==null )
 			throw "hexToColor with null";
@@ -316,15 +317,23 @@ class Color {
 		return { r:c.r, g:c.g, b:c.b };
 	}
 
-	public static inline function multiply(c:Rgb, f:Float) {
+	public static inline function multiply(c:Int, f:Float) : Int {
+		return makeColorRgb(
+			getR(c)*f,
+			getG(c)*f,
+			getB(c)*f
+		);
+	}
+
+	public static inline function multiplyRgb(c:Rgb, f:Float) : Rgb {
 		return {
-			r	: Std.int(c.r*f),
-			g	: Std.int(c.g*f),
-			b	: Std.int(c.b*f),
+			r	: Std.int( M.fclamp(c.r*f, 0, 1) ),
+			g	: Std.int( M.fclamp(c.g*f, 0, 1) ),
+			b	: Std.int( M.fclamp(c.b*f, 0, 1) ),
 		}
 	}
 
-	public static function saturation(c:Rgb, delta:Float) {
+	public static function saturationRgb(c:Rgb, delta:Float) {
 		var hsl = rgbToHsl(c);
 		hsl.s+=delta;
 		if( hsl.s>1 ) hsl.s = 1;
@@ -332,8 +341,12 @@ class Color {
 		return hslToRgb(hsl);
 	}
 
-	public static inline function saturationInt(c:Int, delta:Float) {
-		return rgbToInt( saturation(intToRgb(c), delta) );
+	public static inline function saturation(c:Int, delta:Float) {
+		var hsl = intToHsl(c);
+		hsl.s+=delta;
+		if( hsl.s>1 ) hsl.s = 1;
+		if( hsl.s<0 ) hsl.s = 0;
+		return hslToInt(hsl.h, hsl.s, hsl.l);
 	}
 
 	public static function clampBrightness(c:Rgb, minLum:Float, maxLum:Float) : Rgb {
@@ -573,19 +586,19 @@ class Color {
 
 	public static inline function makeColorRgb(r:Float, g:Float, b:Float) : UInt { // range : 0-1
 		return
-			( Std.int(r*255) << 16)
-			| ( Std.int(g*255) << 8 )
-			| Std.int(b*255);
+			( Std.int( M.fclamp(r,0,1) * 255 ) << 16)
+			| ( Std.int( M.fclamp(g,0,1) * 255 ) << 8 )
+			| Std.int( M.fclamp(b,0,1) * 255 );
 		// return rgbaToInt({ r:Std.int(r*255), g:Std.int(g*255), b:Std.int(b*255), a:Std.int(a*255) });
 	}
 
 
 	public static inline function makeColorArgb(r:Float, g:Float, b:Float, a=1.0) : UInt { // range : 0-1
 		return
-			( Std.int(a*255) << 24)
-			| ( Std.int(r*255) << 16)
-			| ( Std.int(g*255) << 8 )
-			| Std.int(b*255);
+			( Std.int( M.fclamp(a,0,1) * 255 ) << 24)
+			| ( Std.int( M.fclamp(r,0,1) * 255 ) << 16)
+			| ( Std.int( M.fclamp(g,0,1) * 255 ) << 8 )
+			| Std.int( M.fclamp(b,0,1) * 255 );
 	}
 
 	public static inline function getRgbRatio(?cint:Int, ?crgb:Rgb) {
@@ -936,6 +949,13 @@ class Color {
 		CiAssert.equals( toBlack(0xaa112233, 0), 0xaa112233 );
 		CiAssert.equals( toBlack(0xffffff, 0.5), 0x808080);
 		CiAssert.equals( toBlack(0xaaffffff, 0.5), 0xaa808080);
+
+		CiAssert.equals( multiply(0xffffff, 1), 0xffffff);
+		CiAssert.equals( multiply(0xffffff, 0.5), 0x7f7f7f);
+		CiAssert.equals( multiply(0x4488ff, 0.5), 0x22447f);
+		CiAssert.equals( multiply(0xffffff, 0), 0x0);
+		CiAssert.equals( multiply(0x0000ff, 2), 0x0000ff);
+		CiAssert.equals( multiply(0x4466ff, 2), 0x88ccff);
 	}
 }
 
