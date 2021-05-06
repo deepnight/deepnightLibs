@@ -349,22 +349,17 @@ class Color {
 		return hslToInt(hsl.h, hsl.s, hsl.l);
 	}
 
-	public static function clampBrightness(c:Rgb, minLum:Float, maxLum:Float) : Rgb {
-		var hsl = rgbToHsl(c);
-		if( hsl.l>maxLum ) {
-			hsl.l = maxLum;
-			return hslToRgb(hsl);
-		}
-		else if( hsl.l<minLum ) {
-			hsl.l = minLum;
-			return hslToRgb(hsl);
-		}
-		else
-			return c;
+
+	@:noCompletion @:deprecated("Use clampHslLum()")
+	public static inline function clampBrightness(c:Rgb, minLum:Float, maxLum:Float) : Rgb {
+		var cInt = clampHslLum( rgbToInt(c), minLum, maxLum );
+		return intToRgb(cInt);
 	}
 
-	public static function clampBrightnessInt(cint:Int, minLum:Float, maxLum:Float) : Int {
-		var hsl = intToHsl(cint);
+	@:noCompletion @:deprecated("Use clampHslLum()")
+	public static inline function clampBrightnessInt(c, minLum, maxLum) clampHslLum(c, minLum, maxLum);
+	public static function clampHslLum(col:Int, minLum:Float, maxLum:Float) : Int {
+		var hsl = intToHsl(col);
 		if( hsl.l>maxLum ) {
 			hsl.l = maxLum;
 			return hslStructToInt(hsl);
@@ -374,10 +369,12 @@ class Color {
 			return hslStructToInt(hsl);
 		}
 		else
-			return cint;
+			return col;
 	}
 
-	public static function cap(c:Rgb, sat:Float, lum:Float) {
+	@:noCompletion @:deprecated("Use capRgb()")
+	public static inline function cap(c:Rgb, sat:Float, lum:Float) capRgb(c,sat,lum);
+	public static inline function capRgb(c:Rgb, sat:Float, lum:Float) {
 		var hsl = rgbToHsl(c);
 		if( hsl.s>sat ) hsl.s = sat;
 		if( hsl.l>lum ) hsl.l = lum;
@@ -391,12 +388,22 @@ class Color {
 		return hslStructToInt(hsl);
 	}
 
-	public static function hue(c:Rgb, f:Float) {
+	@:noCompletion @:deprecated("Use hueRgb()")
+	public static function hue(c:Rgb, f:Float) return hueRgb(c,f);
+	public static function hueRgb(c:Rgb, f:Float) {
 		var hsl = rgbToHsl(c);
 		hsl.h+=f;
 		if( hsl.h>1 ) hsl.h = 1;
 		if( hsl.h<0 ) hsl.h = 0;
 		return hslToRgb(hsl);
+	}
+
+	public static inline function hueInt(c:Int, f:Float) : Int {
+		var hsl = intToHsl(c);
+		hsl.h+=f;
+		if( hsl.h>1 ) hsl.h = 1;
+		if( hsl.h<0 ) hsl.h = 0;
+		return hslToInt(hsl.h, hsl.s, hsl.l);
 	}
 
 	public static inline function getHue(c:Int) {
@@ -405,10 +412,6 @@ class Color {
 
 	public static inline function getSaturation(c:Int) {
 		return intToHsl(c).s;
-	}
-
-	public static inline function hueInt(c:Int, f:Float) {
-		return rgbToInt( hue(intToRgb(c), f) );
 	}
 
 	public static function change(cint:Int, ?lum:Null<Float>, ?sat:Null<Float>) {
@@ -573,13 +576,13 @@ class Color {
 	}
 
 	@:noCompletion
-	@:deprecated("Please use makeColorArgb instead")
+	@:deprecated("Please use makeColorArgb")
 	public static inline function makeColor(r:Float, g:Float, b:Float, a=1.0) : UInt { // range : 0-1
 		return makeColorArgb(r,g,b,a);
 	}
 
 	@:noCompletion
-	@:deprecated("Please use makeColorArgb instead")
+	@:deprecated("Please use makeColorArgb")
 	public static inline function makeColorRgba(r:Float, g:Float, b:Float, a=1.0) : UInt {
 		return makeColorArgb(r,g,b,a);
 	}
