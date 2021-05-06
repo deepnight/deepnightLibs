@@ -2,24 +2,14 @@ package dn;
 
 import Type;
 
-typedef Col = {
-	r	: Int, // 0-255
-	g	: Int, // 0-255
-	b	: Int, // 0-255
-}
-typedef ColHsl = {
-	h	: Float, // 0-1
-	s	: Float, // 0-1
-	l	: Float, // 0-1
-}
 
-typedef Col32 = {
-	>Col,
-	a	: Int, // 0-255
-}
+typedef Rgb = { r:Int, g:Int, b:Int } // channels are [0-255]
+typedef Rgba = { >Rgb, a:Int } // channels are [0-255]
+typedef Hsl = { h:Float, s:Float, l:Float } // values are [0-1]
 
-typedef Pal = Array<Col>;
+typedef PalRgb = Array<Rgb>;
 typedef PalInt = Array<Int>;
+
 
 class Color {
 	static var HEX_CHARS = "0123456789abcdef";
@@ -31,7 +21,8 @@ class Color {
 	public static var GREEN_LUMA = 0.587;
 	public static var BLUE_LUMA = 0.114;
 
-	public static inline function hexToRgb(hex:String) : Col {
+
+	public static inline function hexToRgb(hex:String) : Rgb {
 		if ( hex==null )
 			throw "hexToColor with null";
 		if ( hex.indexOf("#")==0 )
@@ -73,15 +64,15 @@ class Color {
 		return Std.parseInt( "0xff"+hex.substr(1,999) );
 	}
 
-	public static inline function rgbToInt(c:Col) : Int{
+	public static inline function rgbToInt(c:Rgb) : Int{
 		return (c.r << 16) | (c.g<<8 ) | c.b;
 	}
 
-	public static inline function rgbToHex(c:Col) : String {
+	public static inline function rgbToHex(c:Rgb) : String {
 		return intToHex( rgbToInt(c) );
 	}
 
-	public static inline function rgbToHsl(c:Col) : ColHsl {
+	public static inline function rgbToHsl(c:Rgb) : Hsl {
 		var r = c.r/255;
 		var g = c.g/255;
 		var b = c.b/255;
@@ -89,7 +80,7 @@ class Color {
 		var max = if(r>=g && r>=b) r else if(g>=b) g else b;
 		var delta = max-min;
 
-		var hsl : ColHsl = { h:0., s:0., l:0. };
+		var hsl : Hsl = { h:0., s:0., l:0. };
 		hsl.l = max;
 		if( delta!=0 ) {
 			hsl.s = delta/max;
@@ -109,8 +100,8 @@ class Color {
 	}
 
 
-	public static inline function hslToRgb(hsl:ColHsl) : Col {
-		var c : Col = {r:0, g:0, b:0};
+	public static inline function hslToRgb(hsl:Hsl) : Rgb {
+		var c : Rgb = {r:0, g:0, b:0};
 		var r = 0.;
 		var g = 0.;
 		var b = 0.;
@@ -167,7 +158,7 @@ class Color {
 	}
 
 
-	static inline function hslStructToInt(hsl:ColHsl) : Int {
+	static inline function hslStructToInt(hsl:Hsl) : Int {
 		var r = 0.;
 		var g = 0.;
 		var b = 0.;
@@ -194,7 +185,7 @@ class Color {
 	}
 
 
-	public static inline function rgbToMatrix(c:Col) {
+	public static inline function rgbToMatrix(c:Rgb) {
 		var matrix = new Array();
 		matrix = matrix.concat([c.r/255, 0, 0, 0, 0]); // red
 		matrix = matrix.concat([0, c.g/255, 0, 0, 0]); // green
@@ -256,7 +247,7 @@ class Color {
 			return 0x0;
 	}
 
-	public static inline function intToRgb(c:Int) : Col {
+	public static inline function intToRgb(c:Int) : Rgb {
 		return {
 			r	: (c>>16)&0xFF,
 			g	: (c>>8)&0xFF,
@@ -277,16 +268,16 @@ class Color {
 	public static inline function getB(c:Int) : Float return getBi(c)/255;
 
 
-	/** Get Alpha as 0-255 integer from 0xaarrggbb **/
+	/** Get Alpha as 0-255 integer from 0xAArrggbb **/
 	public static inline function getAi(c:Int) : Int return (c>>24)&0xFF;
 
-	/** Get Red as 0-255 integer from 0x[aa]rrggbb **/
+	/** Get Red as 0-255 integer from 0x[aa]RRggbb **/
 	public static inline function getRi(c:Int) : Int return (c>>16)&0xFF;
 
-	/** Get Green as 0-255 integer from 0x[aa]rrggbb **/
+	/** Get Green as 0-255 integer from 0x[aa]rrGGbb **/
 	public static inline function getGi(c:Int) : Int return (c>>8)&0xFF;
 
-	/** Get Blue as 0-255 integer from 0x[aa]rrggbb **/
+	/** Get Blue as 0-255 integer from 0x[aa]rrggBB **/
 	public static inline function getBi(c:Int) : Int return c&0xFF;
 
 
@@ -304,7 +295,7 @@ class Color {
 	}
 	#end
 
-	public static inline function intToRgba(c:Int) : Col32 {
+	public static inline function intToRgba(c:Int) : Rgba {
 		return {
 			a	: Std.int( getA(c) * 255 ),
 			r	: Std.int( getR(c) * 255 ),
@@ -313,19 +304,19 @@ class Color {
 		}
 	}
 
-	public static inline function intToHsl(c:Int) : ColHsl {
+	public static inline function intToHsl(c:Int) : Hsl {
 		return rgbToHsl( intToRgb(c) );
 	}
 
-	public static inline function rgbaToInt(c:Col32) : Int {
+	public static inline function rgbaToInt(c:Rgba) : Int {
 		return (c.a << 24) | (c.r<<16 ) | (c.g<<8) | c.b;
 	}
 
-	public static inline function rgbaToRgb(c:Col32) : Col {
+	public static inline function rgbaToRgb(c:Rgba) : Rgb {
 		return { r:c.r, g:c.g, b:c.b };
 	}
 
-	public static inline function multiply(c:Col, f:Float) {
+	public static inline function multiply(c:Rgb, f:Float) {
 		return {
 			r	: Std.int(c.r*f),
 			g	: Std.int(c.g*f),
@@ -333,7 +324,7 @@ class Color {
 		}
 	}
 
-	public static function saturation(c:Col, delta:Float) {
+	public static function saturation(c:Rgb, delta:Float) {
 		var hsl = rgbToHsl(c);
 		hsl.s+=delta;
 		if( hsl.s>1 ) hsl.s = 1;
@@ -345,7 +336,7 @@ class Color {
 		return rgbToInt( saturation(intToRgb(c), delta) );
 	}
 
-	public static function clampBrightness(c:Col, minLum:Float, maxLum:Float) : Col {
+	public static function clampBrightness(c:Rgb, minLum:Float, maxLum:Float) : Rgb {
 		var hsl = rgbToHsl(c);
 		if( hsl.l>maxLum ) {
 			hsl.l = maxLum;
@@ -373,7 +364,7 @@ class Color {
 			return cint;
 	}
 
-	public static function cap(c:Col, sat:Float, lum:Float) {
+	public static function cap(c:Rgb, sat:Float, lum:Float) {
 		var hsl = rgbToHsl(c);
 		if( hsl.s>sat ) hsl.s = sat;
 		if( hsl.l>lum ) hsl.l = lum;
@@ -387,7 +378,7 @@ class Color {
 		return hslStructToInt(hsl);
 	}
 
-	public static function hue(c:Col, f:Float) {
+	public static function hue(c:Rgb, f:Float) {
 		var hsl = rgbToHsl(c);
 		hsl.h+=f;
 		if( hsl.h>1 ) hsl.h = 1;
@@ -422,7 +413,7 @@ class Color {
 	public static function brightnessInt(cint:Int, delta:Float) {
 		return rgbToInt( brightness( intToRgb(cint), delta ) );
 	}
-	public static function brightness(c:Col, delta:Float) {
+	public static function brightness(c:Rgb, delta:Float) {
 		var hsl = rgbToHsl(c);
 		if( delta<0 ) {
 			// Darken
@@ -595,21 +586,18 @@ class Color {
 			| ( Std.int(r*255) << 16)
 			| ( Std.int(g*255) << 8 )
 			| Std.int(b*255);
-		// return rgbaToInt({ r:Std.int(r*255), g:Std.int(g*255), b:Std.int(b*255), a:Std.int(a*255) });
 	}
 
-	public static inline function getRgbRatio(?cint:Int, ?crgb:Col) {
+	public static inline function getRgbRatio(?cint:Int, ?crgb:Rgb) {
 		var c = cint!=null ? intToRgb(cint) : crgb;
-		//var max = rgb.r>rgb.g ? (rgb.r>rgb.b ? rgb.r : rgb.b)
 		var max =
 			if( c.b>c.g && c.b>c.r ) c.b;
 			else if( c.g>c.r && c.g>c.b ) c.g;
 			else c.r;
 		return { r:c.r/max, g:c.g/max, b:c.b/max }
-		//return rgb.r<=maxRed*255 && rgb.g<=maxGreen*255 && rgb.b<=maxBlue*255;
 	}
 
-	public static inline function getPerceivedLuminosity(c:Col) : Float  { // 0-1
+	public static inline function getPerceivedLuminosity(c:Rgb) : Float  { // 0-1
 		return Math.sqrt( RED_LUMA*(c.r*c.r) + GREEN_LUMA*(c.g*c.g) + BLUE_LUMA*(c.b*c.b) ) / 255;
 	}
 
@@ -625,11 +613,11 @@ class Color {
 		return getPerceivedLuminosityInt(c)>=lumiThreshold ? ifLight : ifDark;
 	}
 
-	public static inline function getLuminosity(?c:Col, ?cint:Int) { // 0-1, valeur HSL
+	public static inline function getLuminosity(?c:Rgb, ?cint:Int) { // 0-1, valeur HSL
 		return ( c!=null ) ? rgbToHsl(c).l : intToHsl(cint).l;
 	}
 
-	public static inline function setLuminosity(c:Col, lum:Float) {
+	public static inline function setLuminosity(c:Rgb, lum:Float) {
 		var hsl = rgbToHsl(c);
 		hsl.l = lum;
 		return hslToRgb(hsl);
@@ -663,14 +651,14 @@ class Color {
 		return hslStructToInt(hsl);
 	}
 
-	public static inline function offsetColor(c:Col, delta:Int) : Col {
+	public static inline function offsetColor(c:Rgb, delta:Int) : Rgb {
 		return {
 			r	: Std.int( M.fmax(0, M.fmin(255,c.r + delta)) ),
 			g	: Std.int( M.fmax(0, M.fmin(255,c.g + delta)) ),
 			b	: Std.int( M.fmax(0, M.fmin(255,c.b + delta)) ),
 		}
 	}
-	public static inline function offsetColorRgba(c:Col32, delta:Int) : Col32 {
+	public static inline function offsetColorRgba(c:Rgba, delta:Int) : Rgba {
 		return {
 			r	: Std.int( M.fmax(0, M.fmin(255,c.r + delta)) ),
 			g	: Std.int( M.fmax(0, M.fmin(255,c.g + delta)) ),
@@ -682,14 +670,14 @@ class Color {
 		return rgbToInt( offsetColor(intToRgb(c), delta) );
 	}
 
-	public static inline function interpolatePal(from:Pal, to:Pal, ratio:Float) : Pal {
-		var result : Pal = new Array();
+	public static inline function interpolatePal(from:PalRgb, to:PalRgb, ratio:Float) : PalRgb {
+		var result : PalRgb = new Array();
 		for (i in 0...from.length)
 			result[i] = interpolate(from[i], to[i], ratio);
 		return result;
 	}
 
-	public static inline function interpolate(from:Col, to:Col, ratio:Float) : Col {
+	public static inline function interpolate(from:Rgb, to:Rgb, ratio:Float) : Rgb {
 		ratio = M.fclamp(ratio,0,1);
 		return {
 			r	: Std.int( from.r + (to.r-from.r)*ratio ),
@@ -744,7 +732,7 @@ class Color {
 
 
 
-	public static function getPaletteAverage(pal:Pal):Col {
+	public static function getPaletteAverage(pal:PalRgb) : Rgb {
 		if (pal.length<0)
 			return Reflect.copy(BLACK);
 		var c = {r:0, g:0, b:0};
