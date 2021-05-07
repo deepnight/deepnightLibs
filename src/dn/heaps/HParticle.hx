@@ -448,6 +448,10 @@ class HParticle extends BatchElement {
 		dn.Color.colorizeBatchElement(this, c, ratio);
 	}
 
+	public inline function randScale(min:Float, max:Float, sign=false) {
+		setScale( rnd(min, max, sign) );
+	}
+
 	public inline function colorizeRandom(min:UInt, max:UInt) {
 		dn.Color.colorizeBatchElement(this, dn.Color.interpolateInt(min,max,rnd(0,1)), 1);
 	}
