@@ -45,8 +45,7 @@ class ParticlePool {
 				if( best==null || @:privateAccess p.stamp<=@:privateAccess best.stamp )
 					best = p;
 
-			if( best.onKill!=null )
-				best.onKill();
+			@:privateAccess best.onKillCallbacks();
 			@:privateAccess best.reset(sb, t, x, y);
 			#if debug
 			best.allocPos = pos;
@@ -77,8 +76,7 @@ class ParticlePool {
 	public inline function killAll() {
 		for( i in 0...nalloc) {
 			var p = all[i];
-			if( p.onKill!=null )
-				p.onKill();
+			@:privateAccess p.onKillCallbacks();
 			@:privateAccess p.reset(null);
 			p.visible = false;
 		}
@@ -262,7 +260,8 @@ class HParticle extends BatchElement {
 	public var onTouchGround	: Null<HParticle->Void>;
 	public var onUpdate			: Null<HParticle->Void>;
 	public var onFadeOutStart	: Null<HParticle->Void>;
-	public var onKill			: Null<Void->Void>;
+	public var onKill : Null<Void->Void>;
+	public var onKillP : Null<HParticle->Void>;
 
 	public var killOnLifeOut	: Bool;
 	public var killed			: Bool;
@@ -406,6 +405,7 @@ class HParticle extends BatchElement {
 
 		// Callbacks
 		onStart = null;
+		onKillP = null;
 		onKill = null;
 		onBounce = null;
 		onUpdate = null;
@@ -523,15 +523,24 @@ class HParticle extends BatchElement {
 	inline function get_remainingLifeS() return rLifeF/fps;
 	inline function get_curLifeRatio() return 1-rLifeF/maxLifeF; // 0(start) -> 1(end)
 
-	public function kill() {
-		if( killed )
-			return;
-
+	inline function onKillCallbacks() {
+		if( onKillP!=null ) {
+			var cb = onKillP;
+			onKillP = null;
+			cb(this);
+		}
 		if( onKill!=null ) {
 			var cb = onKill;
 			onKill = null;
 			cb();
 		}
+	}
+
+	public function kill() {
+		if( killed )
+			return;
+
+		onKillCallbacks();
 
 		alpha = 0;
 		lifeS = 0;
