@@ -67,6 +67,8 @@ class Cooldown {
 	public function setS( k : String, seconds:Float, allowLower=true, ?onComplete:Void->Void ){}
 	public function setF( k : String, frames:Float, allowLower=true, ?onComplete:Void->Void ){}
 	public function getInitialValueF( k : String ) : Float return 0.;
+
+	/** Returns cooldown progression from 1 (start) to 0 (end) **/
 	public function getRatio( k : String ) : Float return 0.;
 	public function onComplete( k : String, onceCB : Void->Void ){}
 	#else
@@ -211,6 +213,7 @@ class Cooldown {
 		return macro $ethis._getInitialValueF(${key(k)});
 	}
 
+	/** Returns cooldown progression from 1 (start) to 0 (end) **/
 	public macro function getRatio( ethis : Expr, k : ExprOf<String> ){
 		return macro $ethis._getRatio(${key(k)});
 	}
