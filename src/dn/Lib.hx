@@ -361,7 +361,7 @@ class Lib {
 		if( meta==null )
 			return def;
 
-		var f = Reflect.field(meta, Type.enumConstructor(e));
+		var f : Dynamic = Reflect.field(meta, Type.enumConstructor(e));
 		if( f==null || !Reflect.hasField(f,varName) || !Std.isOfType(Reflect.field(f,varName)[0], Float) )
 			return def;
 
@@ -582,8 +582,10 @@ class Lib {
 		if( obj==null )
 			return;
 
+		trace(obj);
+
 		for( k in Reflect.fields(obj) ) {
-			var f = Reflect.field(obj,k);
+			var f : Dynamic = Reflect.field(obj,k);
 			switch Type.typeof(f) {
 				case TObject:
 					iterateObjectRec( f, cb );

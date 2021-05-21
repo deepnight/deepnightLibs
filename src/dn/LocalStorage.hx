@@ -174,23 +174,18 @@ class LocalStorage {
 			// Remap JsonPretty enums
 			if( isJsonStorage ) {
 				var enumError = false;
-				try {
-					Lib.iterateObjectRec(obj, (v,setter)->{
-						if( Type.typeof(v)==TObject && v.__jsonEnum!=null ) {
-							try {
-								var e = Type.resolveEnum(v.__jsonEnum);
-								var ev = e.createByName(v.v, v.p);
-								setter(ev);
-							}
-							catch(err:Dynamic) {
-								enumError = true;
-							}
+				Lib.iterateObjectRec(obj, (v,setter)->{
+					if( Type.typeof(v)==TObject && v.__jsonEnum!=null ) {
+						try {
+							var e = Type.resolveEnum(v.__jsonEnum);
+							var ev = e.createByName(v.v, v.p);
+							setter(ev);
 						}
-					});
-				}
-				catch(_) {
-					enumError = true;
-				}
+						catch(err:Dynamic) {
+							enumError = true;
+						}
+					}
+				});
 
 				if( enumError )
 					return defValue;
