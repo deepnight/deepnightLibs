@@ -122,8 +122,8 @@ class HSpriteBE extends BatchElement implements SpriteInterface {
 
 
 
-	public inline function setRandom(?l:SpriteLib, g:String, rndFunc:Int->Int) {
-		set(l, g, lib.getRandomFrame(g, rndFunc));
+	public inline function setRandom(?l:SpriteLib, g:String, ?rndFunc:Int->Int) {
+		set(l, g, lib.getRandomFrame(g, rndFunc==null ? Std.random : rndFunc));
 	}
 
 	public inline function setRandomFrame(?rndFunc:Int->Int) {

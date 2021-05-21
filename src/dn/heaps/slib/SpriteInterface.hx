@@ -27,7 +27,7 @@ interface SpriteInterface {
 
 	public function set(?l:SpriteLib, ?g:String, ?frame:Int, ?stopAllAnims:Bool) : Void;
 	public function setFrame(f:Int) : Void;
-	public function setRandom(?l:SpriteLib, g:String, rndFunc:Int->Int) : Void;
+	public function setRandom(?l:SpriteLib, g:String, ?rndFunc:Int->Int) : Void;
 	public function setRandomFrame(?rndFunc:Int->Int) : Void;
 
 	public function isGroup(k:String) : Bool;
