@@ -40,6 +40,11 @@ class RandomTools {
 		return M.fclamp( v * ( 1 + rng(0,pct/100,true) ), 0, 1 );
 	}
 
+	/** Randomly variate given value `v` in +/- `pct`%, and ensures result is capped to 1 **/
+	public static inline function aroundBO(v:Float, pct=10) {
+		return M.fmin( v * ( 1 + rng(0,pct/100,true) ), 1 );
+	}
+
 	/** Random float value in range [0,v]. If `sign` is true, the value will be in [-v,v]. **/
 	public static inline function zeroTo(v:Float, sign=false) {
 		return rng(0,v,sign);
