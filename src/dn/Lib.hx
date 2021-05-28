@@ -600,6 +600,19 @@ class Lib {
 	}
 
 
+	/** Remove leading and trailing empty lines in a multi-lines String. **/
+    public static function trimEmptyLines(str:String) {
+        var lines = str.split("\n");
+        while( lines.length>0 && StringTools.trim(lines[0]).length==0 )
+            lines.shift();
+
+        while( lines.length>0 && StringTools.trim(lines[lines.length-1]).length==0 )
+            lines.pop();
+
+        return lines.join("\n");
+    }
+
+
 	@:noCompletion
 	public static function __test() {
 		CiAssert.equals( findMostFrequentValueInArray([0,0,1,0,1]), 0 );
