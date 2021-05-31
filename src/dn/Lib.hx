@@ -582,8 +582,6 @@ class Lib {
 		if( obj==null )
 			return;
 
-		trace(obj);
-
 		for( k in Reflect.fields(obj) ) {
 			var f : Dynamic = Reflect.field(obj,k);
 			switch Type.typeof(f) {
