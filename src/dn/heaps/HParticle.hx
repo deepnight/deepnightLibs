@@ -482,6 +482,11 @@ class HParticle extends BatchElement {
 		da = spd;
 	}
 
+	public inline function autoRotate(spd=1.0) {
+		autoRotateSpeed = spd;
+		rotation = getMoveAng();
+	}
+
 	function toString() {
 		return 'HPart@$x,$y (lifeS=$remainingLifeS)';
 	}
