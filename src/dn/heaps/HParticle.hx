@@ -583,6 +583,10 @@ class HParticle extends BatchElement {
 	}
 
 
+	public inline function cancelVelocities() {
+		dx = dy = gx = gy = 0;
+	}
+
 	public inline function moveAng(a:Float, spd:Float) {
 		dx = Math.cos(a)*spd;
 		dy = Math.sin(a)*spd;
