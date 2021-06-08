@@ -16,12 +16,22 @@ typedef POEntry = {
 	?msgid: Null<String>,
 	?msgstr: Null<String>,
 
-	?cTranslator: String,
-	?cExtracted: String,
-	?cRef: String,
+	?cTranslator: String, // Translator comment (#.)
+	?cExtracted: String, // Context (msgctxt)
+	?cRef: String, // Source location (#:)
 	?cFlags: String,
 	?cPrevious : String,
-	?cComment: String,
+	?cComment: String, // Comment (#~)
+}
+
+private typedef LdtkFiles = {
+	var path: String;
+	var extractedEntityFields: Array<LdtkExtractedEntityField>;
+}
+
+private typedef LdtkExtractedEntityField = {
+	var entityId: String;
+	var fieldId: String;
 }
 
 #end
@@ -219,7 +229,7 @@ class GetText {
 	#if potools
 
 	#if castle
-	public static function doParseGlobal( conf: {?codePath:String, ?codeIgnore:EReg, potFile:String, ?deprecatedFile: String, ?cdbFiles:Array<String>, ?refPoFile:String, ?refDeprecatedPoFile: String, ?cdbSpecialId: Array<{ereg: EReg, field: String}>} ){
+	public static function doParseGlobal( conf: {?codePath:String, ?codeIgnore:EReg, potFile:String, ?deprecatedFile: String, ?cdbFiles:Array<String>, ?ldtkFiles:Array<LdtkFiles>, ?refPoFile:String, ?refDeprecatedPoFile: String, ?cdbSpecialId: Array<{ereg: EReg, field: String}>} ){
 
 		var data : POData = [];
 		data.push( POTools.mkHeaders([
@@ -243,6 +253,13 @@ class GetText {
 			Sys.println("[GetText] Keep deprecated strings");
 			includeDeprecated(conf.deprecatedFile, data, strMap);
 		}
+
+		if( conf.ldtkFiles!=null ) {
+			Sys.println("[GetText] Parsing LDtks...");
+			for(ldtk in conf.ldtkFiles)
+				parseLdtk( ldtk.path, data, strMap, ldtk.extractedEntityFields );
+		}
+
 
 		Sys.println("[GetText] Saving POT file ("+conf.potFile+")...");
 		POTools.exportFile( conf.potFile, data );
@@ -485,6 +502,112 @@ class GetText {
 		}
 	}
 	#end // end of castle
+
+
+	#if potools
+	public static function parseLdtk(ldtkPath:String, data:POData, strMap:Map<String,Bool>, entityFields:Array<LdtkExtractedEntityField>) {
+		if( !sys.FileSystem.exists(ldtkPath) )
+			error(ldtkPath, null, "File not found: "+ldtkPath);
+		else {
+			// Create lookup Map
+			var entityLookup = new Map();
+			for(ef in entityFields) {
+				if( !entityLookup.exists(ef.entityId) )
+					entityLookup.set(ef.entityId, new Map());
+				entityLookup.get(ef.entityId).set(ef.fieldId, true);
+			}
+
+			// Add text to data
+			function _add(id:String, ref:String, ctx:String) {
+				id = POTools.escape(id);
+				if( !strMap.exists(id) ) {
+					data.push({
+						id: id,
+						str: "",
+						cRef: ref,
+						cExtracted: ctx,
+					});
+					strMap.set(id,true);
+				}
+				else {
+					var prev = Lambda.find( data, (e)->e.id==id );
+					if( prev.cExtracted==null )
+						prev.cExtracted = ctx;
+					else
+						prev.cExtracted += "  "+ctx;
+					prev.cRef+="\n"+ref;
+				}
+			}
+
+			// Parse LDtk project file
+			var fp = FilePath.fromFile(ldtkPath);
+			var projectJson = try haxe.Json.parse( sys.io.File.getContent(ldtkPath) ) catch(_) null;
+
+			// Iterate levels
+			for(l in jsonArray(projectJson.levels)) {
+				var levelJson : Dynamic = l;
+				var levelPath = ldtkPath;
+
+				// Load external level
+				if( projectJson.externalLevels ) {
+					levelPath = fp.directoryWithSlash + levelJson.externalRelPath;
+
+					var raw = sys.io.File.getContent(levelPath);
+					levelJson = try haxe.Json.parse(raw) catch(_) {
+						error(levelPath, null, "Couldn't parse external level");
+						null;
+					}
+				}
+
+				// Iterate layers
+				for( layer in jsonArray(levelJson.layerInstances) ) {
+					var type : String = layer.__type;
+					switch type {
+						case "Entities":
+
+							// Iterate entities
+							for(e in jsonArray(layer.entityInstances)) {
+								if( !entityLookup.exists(e.__identifier) )
+									continue;
+								// Iterate fields
+								for(f in jsonArray(e.fieldInstances)) {
+									if( !entityLookup.get(e.__identifier).exists(f.__identifier) )
+										continue;
+									// Found localizable field
+									var pt = jsonArray(e.__grid)[0]+"_"+jsonArray(e.__grid)[1];
+									var ctx = "Level_"+levelJson.identifier+"_"+e.__identifier;
+									if( isArray(f.__value) ) {
+										// Array of strings
+										var i = 0;
+										var values = jsonArray(f.__value);
+										for( v in values )
+											_add(v, levelPath, ctx + ( values.length>1 ? "_"+(i++) : "" ) + "_at_"+pt);
+									}
+									else
+										_add(f.__value, levelPath, ctx+"_at_"+pt);
+								}
+							}
+						case _:
+					}
+				}
+			}
+		}
+
+		haltIfErrors();
+	}
+	static inline function jsonArray(arr:Dynamic) : Array<Dynamic> {
+		return arr==null ? [] : switch Type.typeof(arr) {
+			case TClass(Array): cast arr;
+			case _: [];
+		}
+	}
+	static inline function isArray(v:Dynamic) {
+		return v==null ? false : switch Type.typeof(v) {
+			case TClass(Array): true;
+			case _: false;
+		}
+	}
+	#end
 
 	static function includeDeprecated( file : String, data : POData, strMap:Map<String,Bool> ){
 		var depreData = POTools.parseFile( file );
@@ -881,6 +1004,8 @@ class POTools {
 		for( e in data ){
 			if( e.cTranslator != null )
 				out.writeString("# "+e.cTranslator.split("\n").join("\n# ")+"\n");
+			if( e.cExtracted != null )
+				out.writeString("#. "+e.cExtracted.split("\n").join("\n#. ")+"\n");
 			if( e.cRef != null )
 				out.writeString("#: "+e.cRef.split("\n").join("\n#: ")+"\n");
 			if( e.cFlags != null )
@@ -889,8 +1014,8 @@ class POTools {
 				out.writeString("#| "+e.cPrevious.split("\n").join("\n#| ")+"\n");
 			if( e.cComment != null )
 				out.writeString("#~ "+e.cComment.split("\n").join("\n#~ ")+"\n");
-			if( e.cExtracted != null )
-				out.writeString("msgctxt "+wrapQuote(e.cExtracted)+"\n");
+			// if( e.cExtracted != null )
+			// 	out.writeString("msgctxt "+wrapQuote(e.cExtracted)+"\n");
 				// out.writeString("msgctxt "+wrapQuote(e.cExtracted.split("\n").join("\n#. "))+"\n");
 
 			var id = null;
