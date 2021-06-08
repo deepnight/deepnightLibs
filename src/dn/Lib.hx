@@ -178,6 +178,14 @@ class Lib {
 		return defaultIfNotFound;
 	}
 
+	/** Return TRUE if given value exists in Array **/
+	public static function arrayContains<T>(arr:Array<T>, v:T, ?checkElement:T->Bool) : Bool {
+		for(e in arr)
+			if( checkElement!=null && checkElement(e) || e==v )
+				return true;
+		return false;
+	}
+
 	/** Score Array values and return best one **/
 	public static function findBestInArray<T>(arr:Array<T>, scoreElement:T->Float) : Null<T> {
 		if( arr.length==0 )
