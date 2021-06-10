@@ -73,7 +73,22 @@ class ParticlePool {
 
 	public inline function count() return nalloc;
 
-	public inline function killAll() {
+	/** Destroy every active particles **/
+	public inline function clear() {
+		for( i in 0...nalloc) {
+			var p = all[i];
+			@:privateAccess p.reset(null);
+			p.visible = false;
+		}
+		nalloc = 0;
+	}
+
+
+	@:noCompletion @:deprecated("Use either killAllWithCb() or clear()")
+	public inline function killAll() clear();
+
+	/** Kill every active particles and call their optional onKill callback **/
+	public inline function killAllWithCb() {
 		for( i in 0...nalloc) {
 			var p = all[i];
 			@:privateAccess p.onKillCallbacks();
