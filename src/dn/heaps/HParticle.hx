@@ -71,32 +71,36 @@ class ParticlePool {
 		}
 	}
 
+	/** Count active particles **/
 	public inline function count() return nalloc;
 
+
 	/** Destroy every active particles **/
-	public inline function clear() {
-		for( i in 0...nalloc) {
-			var p = all[i];
-			@:privateAccess p.reset(null);
-			p.visible = false;
-		}
-		nalloc = 0;
+	public function clear() {
+		// Because new particles might be allocated during onKill() callbacks,
+		// it's sometimes necessary to repeat the clear() process multiple times.
+		var repeat = false;
+		var maxRepeats = 10;
+		var p : HParticle = null;
+		do {
+			repeat = false;
+
+			for(i in 0...size) {
+				p = all[i];
+				if( @:privateAccess p.onKillCallbacks() )
+					repeat = true;
+				@:privateAccess p.reset(null);
+				p.visible = false;
+			}
+
+			if( repeat && maxRepeats--<=0 )
+				throw("Infinite loop during clear: an onKill() callback is repeatingly allocating new particles.");
+		} while( repeat );
 	}
 
 
-	@:noCompletion @:deprecated("Use either killAllWithCb() or clear()")
+	@:noCompletion @:deprecated("Use clear()")
 	public inline function killAll() clear();
-
-	/** Kill every active particles and call their optional onKill callback **/
-	public inline function killAllWithCb() {
-		for( i in 0...nalloc) {
-			var p = all[i];
-			@:privateAccess p.onKillCallbacks();
-			@:privateAccess p.reset(null);
-			p.visible = false;
-		}
-		nalloc = 0;
-	}
 
 	public inline function killAllWithFade() {
 		for( i in 0...nalloc) {
@@ -544,16 +548,20 @@ class HParticle extends BatchElement {
 	inline function get_curLifeRatio() return 1-rLifeF/maxLifeF; // 0(start) -> 1(end)
 
 	inline function onKillCallbacks() {
+		var any = false;
 		if( onKillP!=null ) {
 			var cb = onKillP;
 			onKillP = null;
 			cb(this);
+			any = true;
 		}
 		if( onKill!=null ) {
 			var cb = onKill;
 			onKill = null;
 			cb();
+			any = true;
 		}
+		return any;
 	}
 
 	public function kill() {
