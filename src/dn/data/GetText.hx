@@ -24,12 +24,13 @@ typedef POEntry = {
 	?cComment: String, // Comment (#~)
 }
 
-private typedef LdtkFiles = {
+private typedef LdtkFile = {
 	var path: String;
-	var extractedEntityFields: Array<LdtkExtractedEntityField>;
+	var entityFields: Array<LdtkEntityField>;
+	var levelFieldIds: Array<String>;
 }
 
-private typedef LdtkExtractedEntityField = {
+private typedef LdtkEntityField = {
 	var entityId: String;
 	var fieldId: String;
 }
@@ -229,7 +230,7 @@ class GetText {
 	#if potools
 
 	#if castle
-	public static function doParseGlobal( conf: {?codePath:String, ?codeIgnore:EReg, potFile:String, ?deprecatedFile: String, ?cdbFiles:Array<String>, ?ldtkFiles:Array<LdtkFiles>, ?refPoFile:String, ?refDeprecatedPoFile: String, ?cdbSpecialId: Array<{ereg: EReg, field: String}>} ){
+	public static function doParseGlobal( conf: {?codePath:String, ?codeIgnore:EReg, potFile:String, ?deprecatedFile: String, ?cdbFiles:Array<String>, ?ldtkFiles:Array<LdtkFile>, ?refPoFile:String, ?refDeprecatedPoFile: String, ?cdbSpecialId: Array<{ereg: EReg, field: String}>} ){
 
 		var data : POData = [];
 		data.push( POTools.mkHeaders([
@@ -257,7 +258,7 @@ class GetText {
 		if( conf.ldtkFiles!=null ) {
 			Sys.println("[GetText] Parsing LDtks...");
 			for(ldtk in conf.ldtkFiles)
-				parseLdtk( ldtk.path, data, strMap, ldtk.extractedEntityFields );
+				parseLdtk( ldtk, data, strMap  );
 		}
 
 
@@ -505,20 +506,26 @@ class GetText {
 
 
 	#if potools
-	public static function parseLdtk(ldtkPath:String, data:POData, strMap:Map<String,Bool>, entityFields:Array<LdtkExtractedEntityField>) {
-		if( !sys.FileSystem.exists(ldtkPath) )
-			error(ldtkPath, null, "File not found: "+ldtkPath);
+	public static function parseLdtk(ldtkFile:LdtkFile, data:POData, strMap:Map<String,Bool>) {
+		if( !sys.FileSystem.exists(ldtkFile.path) )
+			error(ldtkFile.path, null, "File not found: "+ldtkFile.path);
 		else {
-			// Create lookup Map
+			// Create lookup Maps
 			var entityLookup = new Map();
-			for(ef in entityFields) {
+			for(ef in ldtkFile.entityFields) {
 				if( !entityLookup.exists(ef.entityId) )
 					entityLookup.set(ef.entityId, new Map());
 				entityLookup.get(ef.entityId).set(ef.fieldId, true);
 			}
+			var levelLookup = new Map();
+			for(f in ldtkFile.levelFieldIds)
+				levelLookup.set(f, true);
 
 			// Add text to data
 			function _add(id:String, ref:String, ctx:String) {
+				if( id==null )
+					return;
+
 				id = POTools.escape(id);
 				if( !strMap.exists(id) ) {
 					data.push({
@@ -540,13 +547,19 @@ class GetText {
 			}
 
 			// Parse LDtk project file
-			var fp = FilePath.fromFile(ldtkPath);
-			var projectJson = try haxe.Json.parse( sys.io.File.getContent(ldtkPath) ) catch(_) null;
+			var fp = FilePath.fromFile(ldtkFile.path);
+			var projectJson = try haxe.Json.parse( sys.io.File.getContent(ldtkFile.path) ) catch(_) null;
 
 			// Iterate levels
 			for(l in jsonArray(projectJson.levels)) {
 				var levelJson : Dynamic = l;
-				var levelPath = ldtkPath;
+				var levelPath = ldtkFile.path;
+
+				for(f in jsonArray(l.fieldInstances)) {
+					if( levelLookup.exists(f.__identifier) ) {
+						_add(f.__value, levelPath, "Level_"+levelJson.identifier+"_"+f.__identifier);
+					}
+				}
 
 				// Load external level
 				if( projectJson.externalLevels ) {
