@@ -30,7 +30,7 @@ class FileTools {
 
 	#if( hl || neko )
 	public static function copyDirectoryRec(from:String, to:String) {
-		var to = dn.FilePath.extractDirectoryWithSlash(to,true);
+		var to = dn.FilePath.extractDirectoryWithSlash(to,false);
 		var all = listAllFilesRec(from);
 
 		var dirName = FilePath.fromDir(from).getLastDirectory();
