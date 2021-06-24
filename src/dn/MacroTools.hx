@@ -41,11 +41,22 @@ class MacroTools {
 	}
 
 
+	@:deprecated("Use getRawBuildDate() or getHumanBuildDate()") @:noCompletion
 	public static macro function getBuildDate() {
-		var pos = Context.currentPos();
+		return { pos:Context.currentPos(), expr:EConst( CString( Date.now().toString() ) ) }
+	}
+
+	/** Return the compilation date as standard Date string format **/
+	public static macro function getRawBuildDate() {
+		return { pos:Context.currentPos(), expr:EConst( CString( Date.now().toString() ) ) }
+	}
+
+	/** Return the compilation date as a human-readable format: "Month XXth (HH:MM)" **/
+	public static macro function getHumanBuildDate() {
 		var d = Date.now();
 		var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-		return { pos:pos, expr:EConst(CString(months[d.getMonth()]+DateTools.format(d, " %d (%H:%M)"))) }
+		var str = months[ d.getMonth() ] + DateTools.format(d, " %d (%H:%M)");
+		return { pos:Context.currentPos(), expr:EConst(CString(str)) }
 	}
 
 
