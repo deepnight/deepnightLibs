@@ -119,7 +119,7 @@ class Process {
 	}
 
 	var _initOnceDone = false;
-	/** This special initialization method is only called *once* and *before* any update. Useful if some other stuff need be initialized before this process **/
+	/** This special init method is only called once during next frame: call will happen *after* the constructor call and *before* any update. **/
 	function initOnceBeforeUpdate() {}
 
 	#if( heaps || flash )
