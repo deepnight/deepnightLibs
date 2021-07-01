@@ -929,6 +929,22 @@ class M {
 		}
 	}
 
+	/**
+		Returns 4-points Bezier interpolation, `t` being the "time" (0-1) and `p0-p3` being control points.
+		More: https://javascript.info/bezier-curve
+		Online demo: https://www.desmos.com/calculator/cahqdxeshd?lang=fr
+	**/
+	public static inline function bezier(t:Float, p0:Float, p1:Float,p2:Float, p3:Float) {
+		return
+			fastPow3(1-t) * p0 +
+			3*t*fastPow2(1-t) * p1 +
+			3*fastPow2(t)*(1-t) * p2 +
+			fastPow3(t) * p3;
+	}
+
+	static inline function fastPow2(n:Float):Float return n*n;
+	static inline function fastPow3(n:Float):Float return n*n*n;
+
 
 	@:noCompletion
 	public static function __test() {
