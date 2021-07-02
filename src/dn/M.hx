@@ -997,5 +997,13 @@ class M {
 		CiAssert.equals( parseInt("foo59bar", -1), -1 );
 		CiAssert.equals( parseInt("1.9", -1), 1 );
 		CiAssert.equals( parseInt("-99", -1), -99 );
+
+		CiAssert.equals( bezier3(0,  0, 1, 0.5 ), 0 );
+		CiAssert.equals( bezier3(0.5,  0, 1, 0.5 ), 0.625 );
+		CiAssert.equals( bezier3(1,  0, 1, 0.5 ), 0.5 );
+
+		CiAssert.equals( bezier4(0,  0, 0.4, 0.9, 1 ), 0 );
+		CiAssert.equals( bezier4(0.5,  0, 0.4, 0.9, 1 ), 0.6125 );
+		CiAssert.equals( bezier4(1,  0, 0.4, 0.9, 1 ), 1 );
 	}
 }
