@@ -934,12 +934,20 @@ class M {
 		More: https://javascript.info/bezier-curve
 		Online demo: https://www.desmos.com/calculator/cahqdxeshd?lang=fr
 	**/
-	public static inline function bezier(t:Float, p0:Float, p1:Float,p2:Float, p3:Float) {
+	public static inline function bezier4(t:Float, p0:Float, p1:Float,p2:Float, p3:Float) {
+		t = M.fclamp(t,0,1);
 		return
 			fastPow3(1-t) * p0 +
 			3*t*fastPow2(1-t) * p1 +
 			3*fastPow2(t)*(1-t) * p2 +
 			fastPow3(t) * p3;
+	}
+	public static inline function bezier3(t:Float, p0:Float, p1:Float,p2:Float) {
+		t = M.fclamp(t,0,1);
+		return
+			fastPow2(1-t) * p0 +
+			2*t * (1-t) * p1 +
+			fastPow2(t) * p2;
 	}
 
 	static inline function fastPow2(n:Float):Float return n*n;
