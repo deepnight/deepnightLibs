@@ -215,7 +215,7 @@ class GetText2 {
 			for(l in jsonArray(projectJson.levels)) {
 				var levelJson : Dynamic = l;
 				var levelPath = filePath;
-				var globalContext = options.globalContext==null ? null : options.globalContext;
+				var globalContext = options.globalContext==null ? "Level design" : options.globalContext;
 				var n = 0;
 
 				// Load external level
@@ -307,10 +307,9 @@ class GetText2 {
 
 
 	#if castle
-	public static function parseCastleDB(filePath:String, ?globalContext:String) {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
+	public static function parseCastleDB(filePath:String, ?globalContext="CastleDB") {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
 		if( VERBOSE ) Lib.println('');
 		Lib.println('Parsing CastleDB ($filePath)...');
-		globalContext = globalContext==null ? null : globalContext;
 		var all : Array<PoEntry> = [];
 		var cbdData = cdb.Parser.parse( sys.io.File.getContent(filePath), false );
 		var columns = new Map<String,Array<Array<String>>>();
