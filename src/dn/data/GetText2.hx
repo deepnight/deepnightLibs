@@ -413,6 +413,7 @@ class GetText2 {
 
 	static function formatPoString(str:String) {
 		str = StringTools.replace(str, '"', '\"');
+		str = StringTools.replace(str, "\n", "\\n");
 		// var lines = str.split("\n");
 		// str = lines.join('"\n"');
 		return str;
