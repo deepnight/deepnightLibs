@@ -14,6 +14,9 @@ enum WeekDay {
 
 class Lib {
 
+	/**  Print a line to standard output, if any (shortcut for println) **/
+	public static inline function p(v:Dynamic) println(v);
+
 	/** Print a line to standard output, if any **/
 	public static function println(v:Dynamic) {
 		#if js
@@ -25,6 +28,12 @@ class Lib {
 		#else
 			trace( Std.string(v) );
 		#end
+	}
+
+	/** Print an array standard output, if any **/
+	public static inline function printArray(v:Array<Dynamic>) {
+		for(e in v)
+			println(e);
 	}
 
 
