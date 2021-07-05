@@ -423,6 +423,7 @@ class GetText2 {
 		Write a POT file from given PoEntries
 	**/
 	public static function writePOT(potPath:String, entries:Array<PoEntry>) {
+		var potPath = FilePath.fromFile(potPath);
 		removeDuplicates(entries);
 
 		var lines = [
@@ -437,7 +438,7 @@ class GetText2 {
 		for(e in entries) {
 			// References
 			for(r in e.references)
-				lines.push('#: "$r"');
+				lines.push('#: "$r"'); // TODO fix relative paths when POT is saved in a sub dir
 
 			// Translator note
 			if( e.translatorNote!=null )
@@ -458,7 +459,7 @@ class GetText2 {
 		}
 
 		// Write file
-		var fo = sys.io.File.write(potPath, false);
+		var fo = sys.io.File.write(potPath.full, false);
 		fo.writeString(lines.join("\n"));
 		fo.close();
 	}
