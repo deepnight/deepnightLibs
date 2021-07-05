@@ -1,5 +1,10 @@
 package dn.data;
 
+#if macro
+import haxe.macro.Expr;
+import haxe.macro.Context;
+#end
+
 /**
 	Reference: http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
 **/
@@ -17,16 +22,151 @@ private typedef LdtkEntityField = {
 
 
 class GetText2 {
-	#if sys
-	static var ERRORS : Array<String> = [];
+	public static var VERBOSE = false;
+
+	/*******************************************************************************
+		CLIENT-SIDE API
+	 *******************************************************************************/
+
+	var dict : Map<String,String> = new Map();
+
+	public function new() {
+	}
+
+	public function readPo(bytes:haxe.io.Bytes) {
+		var msgidReg = ~/msgid\s+"(.*?)"\s*$/i;
+		var msgstrReg = ~/msgstr\s+"(.*?)"\s*$/i;
+		var stringReg = ~/^\s*"(.*?)"\s*$/i;
+		var commentReg = ~/^#.*?$/i;
+
+		// Init
+		dict = new Map();
+		var raw = bytes.toString();
+		var lines = raw.split("\n");
+
+		var lastId = null;
+		var pendingMsgId = false;
+		var pendingMsgStr = false;
+		for( line in lines ) {
+			if( msgidReg.match(line) ) {
+				// Found msgid
+				pendingMsgId = true;
+				pendingMsgStr = false;
+				lastId = msgidReg.matched(1);
+			}
+			else if( msgstrReg.match(line) ) {
+				// Found msgstr
+				pendingMsgId = false;
+				pendingMsgStr = true;
+				dict.set(lastId, msgstrReg.matched(1));
+			}
+			else if( stringReg.match(line) ) {
+				// Continue on multilines
+				if( pendingMsgId )
+					lastId+="\n"+stringReg.matched(1);
+				else if( pendingMsgStr )
+					dict.set(lastId, dict.get(lastId) + "\n"+stringReg.matched(1) );
+			}
+			else {
+				// Anything else
+				pendingMsgId = pendingMsgStr = false;
+			}
+		}
+	}
+
+
+	/**
+		Get a localized text entry, with optional in-text variables.
+		Examples:
+		 - `myGetText._("New game")`
+		 - `myGetText._("Hello ::user::, this text should be translated", { user:"foo" })`
+
+	**/
+	public macro function _(ethis:Expr, msgId:ExprOf<String>, ?vars:ExprOf<Dynamic>) {
+		switch msgId.expr {
+
+			case EConst(CString(v)):
+				// Check variables in text
+				if( v.indexOf("::")>=0 ) {
+					var parts = v.split("::");
+					if( parts.length%2==0 )
+						Context.fatalError('Invalid "::" sequence', msgId.pos);
+					var i = 0;
+					var textVars = new Map();
+					for(p in parts)
+						if( i++%2!=0 )
+							textVars.set(p,p);
+
+					switch vars.expr {
+						case EConst( CIdent("null") ):
+							if( Lambda.count(textVars)>0 )
+								Context.fatalError('Missing variable values', Context.currentPos());
+
+						case EObjectDecl(fields):
+							var fieldVars = new Map();
+							for(f in fields)
+								if( !textVars.exists(f.field) )
+									Context.fatalError('Unused variable ${f.field}', vars.pos);
+								else
+									fieldVars.set(f.field,f.field);
+							for(v in textVars)
+								if( !fieldVars.exists(v) )
+									Context.fatalError('Missing variable ${v}', vars.pos);
+
+						case EConst(CString(s, _)):
+							if( Lambda.count(textVars)!=1 )
+								Context.fatalError('String can only be used when text contains exactly 1 variable', msgId.pos);
+							vars.expr = EObjectDecl([{
+								field: Lambda.array(textVars)[0],
+								expr: macro $v{s},
+							}]);
+
+						case EConst(CIdent(s)):
+							if( Lambda.count(textVars)!=1 )
+								Context.fatalError('Variable can only be passed when text contains exactly 1 variable', msgId.pos);
+							vars.expr = EObjectDecl([{
+								field: Lambda.array(textVars)[0],
+								expr: macro Std.string( $i{s} ),
+							}]);
+
+						case _:
+							Context.fatalError("Only anonymous structures are accepted here", vars.pos);
+					}
+
+				}
+
+			case _: Context.fatalError("Only constant String values are accepted here.", msgId.pos);
+		}
+
+		return macro $ethis.get( $msgId, $vars );
+	}
+
+
+
+	@:noCompletion
+	public inline function get(msgId:String, ?vars:Dynamic) {
+		var str = dict.exists(msgId) && dict.get(msgId)!="" ? dict.get(msgId) : msgId;
+		if( vars!=null )
+			for(k in Reflect.fields(vars))
+				str = StringTools.replace(str, '::$k::', Std.string( Reflect.field(vars,k) ));
+		return str;
+	}
+
+
+
+	/*******************************************************************************
+		PARSERS AND GENERATORS
+	 *******************************************************************************/
+
+	#if( sys && !macro )
 	static var SRC_REG = ~/\._\(\s*"((\\"|[^"])+)"/i;
 
 	/**
 		Parse HX files
 	**/
 	public static function parseSourceCode(dir:String) : Array<PoEntry> {
-		Lib.p('');
-		Lib.p('Source code: $dir');
+		if( VERBOSE ) Lib.println('');
+		Lib.println('Parsing source code ($dir)...');
 		var all : Array<PoEntry>= [];
 		var files = listFilesRec(["hx"], dir);
 		for(file in files) {
@@ -40,8 +180,8 @@ class GetText2 {
 				raw = SRC_REG.matchedRight();
 				n++;
 			}
-			if( n>0 )
-				Lib.p('  - $file, $n entrie(s)');
+			if( n>0 && VERBOSE )
+				Lib.println('  - $file, $n entrie(s)');
 		}
 		return all;
 	}
@@ -50,8 +190,8 @@ class GetText2 {
 		Parse LDtk
 	**/
 	public static function parseLdtk(filePath:String, options:LdtkOptions) {
-		Lib.p('');
-		Lib.p('LDtk: $filePath');
+		if( VERBOSE ) Lib.println('');
+		Lib.println('Parsing LDtk ($filePath)...');
 		var all : Array<PoEntry> = [];
 		if( !sys.FileSystem.exists(filePath) )
 			error(filePath, "File not found: "+filePath);
@@ -144,8 +284,8 @@ class GetText2 {
 					}
 				}
 
-				if( n>0 )
-					Lib.p('  - $levelPath, $n entrie(s)');
+				if( n>0 && VERBOSE )
+					Lib.println('  - $levelPath, $n entrie(s)');
 			}
 		}
 
@@ -168,8 +308,8 @@ class GetText2 {
 
 	#if castle
 	public static function parseCastleDB(filePath:String, ?globalContext:String) {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
-		Lib.p("");
-		Lib.p('CastleDB: $filePath');
+		if( VERBOSE ) Lib.println('');
+		Lib.println('Parsing CastleDB ($filePath)...');
 		globalContext = globalContext==null ? null : globalContext;
 		var all : Array<PoEntry> = [];
 		var cbdData = cdb.Parser.parse( sys.io.File.getContent(filePath), false );
@@ -219,8 +359,8 @@ class GetText2 {
 				i++;
 			}
 
-			if( n>0 )
-				Lib.p('  - $idx, $n entrie(s)');
+			if( n>0 && VERBOSE )
+				Lib.println('  - $idx, $n entrie(s)');
 		}
 
 		for( sheet in cbdData.sheets ){
@@ -249,6 +389,9 @@ class GetText2 {
 		Merge duplicate entries
 	**/
 	static function removeDuplicates(entries:Array<PoEntry>) {
+		if( VERBOSE )
+			Lib.println("Merging duplicates...");
+
 		var dones : Map<String,PoEntry> = new Map();
 		var i = 0;
 		while( i<entries.length ) {
@@ -257,6 +400,8 @@ class GetText2 {
 				var orig = dones.get(e.uniqKey);
 				orig.references = orig.references.concat(e.references);
 				entries.splice(i,1);
+				if( VERBOSE )
+					Lib.println("  - Merged duplicate: "+e.uniqKey);
 			}
 			else {
 				dones.set(e.uniqKey,e);
@@ -340,7 +485,8 @@ class GetText2 {
 		}
 		return all;
 	}
-	#end
+
+	#end // end of "if macro"
 }
 
 
@@ -373,6 +519,9 @@ class PoEntry {
 			msgid = parts[0];
 			contextDisamb = parts[1];
 		}
+
+		if( GetText2.VERBOSE )
+			Lib.println("    - New entry: "+msgid);
 	}
 
 	inline function get_uniqKey() {
