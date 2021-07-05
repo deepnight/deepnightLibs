@@ -25,17 +25,23 @@ class GetText2 {
 		Parse HX files
 	**/
 	public static function parseSourceCode(dir:String) : Array<PoEntry> {
+		Lib.p('');
+		Lib.p('Source code: $dir');
 		var all : Array<PoEntry>= [];
 		var files = listFilesRec(["hx"], dir);
 		for(file in files) {
 			var raw = sys.io.File.getContent(file);
+			var n = 0;
 			while( SRC_REG.match(raw) ) {
 				var id = SRC_REG.matched(1);
 				var e = new PoEntry(id);
 				e.references.push(file);
 				all.push(e);
 				raw = SRC_REG.matchedRight();
+				n++;
 			}
+			if( n>0 )
+				Lib.p('  - $file, $n entrie(s)');
 		}
 		return all;
 	}
@@ -44,6 +50,8 @@ class GetText2 {
 		Parse LDtk
 	**/
 	public static function parseLdtk(filePath:String, options:LdtkOptions) {
+		Lib.p('');
+		Lib.p('LDtk: $filePath');
 		var all : Array<PoEntry> = [];
 		if( !sys.FileSystem.exists(filePath) )
 			error(filePath, "File not found: "+filePath);
@@ -67,18 +75,8 @@ class GetText2 {
 			for(l in jsonArray(projectJson.levels)) {
 				var levelJson : Dynamic = l;
 				var levelPath = filePath;
-				var globalContext = options.globalContext==null ? '$filePath' : options.globalContext;
-
-				for(f in jsonArray(l.fieldInstances)) {
-					if( levelLookup.exists(f.__identifier) ) {
-						if( f.__value==null )
-							continue;
-						var e = new PoEntry(f.__value, globalContext);
-						all.push(e);
-						e.references.push(levelPath);
-						e.comment = "Level_"+levelJson.identifier+"_"+f.__identifier;
-					}
-				}
+				var globalContext = options.globalContext==null ? null : options.globalContext;
+				var n = 0;
 
 				// Load external level
 				if( projectJson.externalLevels ) {
@@ -88,6 +86,19 @@ class GetText2 {
 					levelJson = try haxe.Json.parse(raw) catch(_) {
 						error(levelPath, "Couldn't parse external level");
 						null;
+					}
+				}
+
+				// Level fields
+				for(f in jsonArray(l.fieldInstances)) {
+					if( levelLookup.exists(f.__identifier) ) {
+						if( f.__value==null )
+							continue;
+						var e = new PoEntry(f.__value, globalContext);
+						all.push(e);
+						e.references.push(levelPath);
+						e.comment = "Level_"+levelJson.identifier+"_"+f.__identifier;
+						n++;
 					}
 				}
 
@@ -117,6 +128,7 @@ class GetText2 {
 											all.push(e);
 											e.references.push(levelPath);
 											e.comment = ctx + ( values.length>1 ? "_"+(i++) : "" ) + "_at_"+pt;
+											n++;
 										}
 									}
 									else {
@@ -124,12 +136,16 @@ class GetText2 {
 										all.push(e);
 										e.references.push(levelPath);
 										e.comment = ctx + "_at_"+pt;
+										n++;
 									}
 								}
 							}
 						case _:
 					}
 				}
+
+				if( n>0 )
+					Lib.p('  - $levelPath, $n entrie(s)');
 			}
 		}
 
@@ -149,8 +165,82 @@ class GetText2 {
 	}
 
 
+
+	#if castle
+	public static function parseCastleDB(filePath:String, ?globalContext:String) {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
+		Lib.p("");
+		Lib.p('CastleDB: $filePath');
+		globalContext = globalContext==null ? null : globalContext;
+		var all : Array<PoEntry> = [];
+		var cbdData = cdb.Parser.parse( sys.io.File.getContent(filePath), false );
+		var columns = new Map<String,Array<Array<String>>>();
+		for( sheet in cbdData.sheets ){
+			var p = sheet.name.split("@");
+			var sheetName = p.shift();
+			if( !columns.exists(sheetName) )
+				columns.set(sheetName,[]);
+			var sheetColumns = columns.get(sheetName);
+
+			var cid = p;
+
+			for ( column in sheet.columns ) {
+				if( Std.string(column.kind) == "localizable" && column.type == TString ){
+					var p = p.copy();
+					p.push( column.name );
+					sheetColumns.push( p );
+				}
+			}
+		}
+
+		function exploreSheet( idx:String, id:Null<String>, lines:Array<Dynamic>, columns:Array<Array<String>> ){
+			var n = 0;
+			var i = 0;
+			for( line in lines ){
+				if( line.enabled == false || line.active == false )
+					continue;
+
+				for( col in columns ){
+					var col = col.copy();
+					var cname = col.shift();
+					var id = id;
+					if( line.id != null )
+						id += " "+line.id;
+					id += " ("+cname+")";
+					if( col.length == 0 ) {
+						var e = new PoEntry(Reflect.field(line,cname), "CastleDB");
+						all.push(e);
+						e.references.push(idx+"/#"+i+"."+cname);
+						n++;
+						// add( idx+"/#"+i+"."+cname, id, Reflect.field(line,cname) );
+					}
+					else
+						exploreSheet( idx+"/#"+i+"."+cname, id, Reflect.field(line,cname), [col] );
+				}
+				i++;
+			}
+
+			if( n>0 )
+				Lib.p('  - $idx, $n entrie(s)');
+		}
+
+		for( sheet in cbdData.sheets ){
+			var sColumns = columns.get(sheet.name);
+			if( sColumns==null || sColumns.length == 0 )
+				continue;
+
+			exploreSheet( filePath+":"+sheet.name, "", sheet.lines, sColumns );
+		}
+
+		return all;
+	}
+	#end // end of castle
+
+
+	/**
+		Error found during parsing
+	**/
 	static inline function error(file:String, msg:String) {
-		Lib.println((file!=null?file+": ":"") + msg);
+		Lib.println("ERROR: "+(file!=null?file+": ":"") + msg);
 		Sys.exit(-1);
 	}
 
@@ -163,14 +253,13 @@ class GetText2 {
 		var i = 0;
 		while( i<entries.length ) {
 			var e = entries[i];
-			var k = e.getKey();
-			if( dones.exists(k) ) {
-				var orig = dones.get(k);
+			if( dones.exists(e.uniqKey) ) {
+				var orig = dones.get(e.uniqKey);
 				orig.references = orig.references.concat(e.references);
 				entries.splice(i,1);
 			}
 			else {
-				dones.set(k,e);
+				dones.set(e.uniqKey,e);
 				i++;
 			}
 		}
@@ -265,6 +354,8 @@ class PoEntry {
 	public var translatorNote : Null<String>; // #.
 	public var contextDisamb : Null<String>; // msgctxt
 
+	public var uniqKey(get,never) : String;
+
 	public inline function new(rawId:String, ?ctx:String) {
 		msgid = rawId;
 		contextDisamb = ctx;
@@ -276,7 +367,7 @@ class PoEntry {
 			translatorNote = parts[1];
 		}
 
-		// Extract custom context
+		// Extract context disambiguation
 		if( msgid.indexOf("||")>0 ) {
 			var parts = rawId.split("||");
 			msgid = parts[0];
@@ -284,7 +375,7 @@ class PoEntry {
 		}
 	}
 
-	public inline function getKey() {
+	inline function get_uniqKey() {
 		return msgid + (contextDisamb==null ? "" : "@"+contextDisamb);
 	}
 
