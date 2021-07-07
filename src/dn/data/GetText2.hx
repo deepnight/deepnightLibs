@@ -6,6 +6,10 @@ import haxe.macro.Context;
 #end
 
 /**
+	Text entries might contain extra info:
+		"bla bla||comment"
+		"bla bla||?translator note"
+		"bla bla||@context disambiguation"
 	Reference: http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
 **/
 
@@ -23,6 +27,9 @@ private typedef LdtkEntityField = {
 
 class GetText2 {
 	public static var VERBOSE = false;
+	public static var COMMENT = "||";
+	public static var CONTEXT_DISAMB = "||@";
+	public static var TRANSLATOR_NOTE = "||?";
 
 	/*******************************************************************************
 		CLIENT-SIDE API
@@ -32,6 +39,10 @@ class GetText2 {
 
 	public function new() {
 	}
+
+	public inline function getRawDict() return dict;
+
+	public inline function getEntryCount() return Lambda.count(dict);
 
 	public function readPo(bytes:haxe.io.Bytes) {
 		var msgidReg = ~/msgid\s+"(.*?)"\s*$/i;
@@ -144,12 +155,23 @@ class GetText2 {
 
 
 	@:noCompletion
-	public inline function get(msgId:String, ?vars:Dynamic) {
+	public inline function get(msgId:String, ?vars:Dynamic) : LocaleString {
 		var str = dict.exists(msgId) && dict.get(msgId)!="" ? dict.get(msgId) : msgId;
+		// In-text variables
 		if( vars!=null )
 			for(k in Reflect.fields(vars))
 				str = StringTools.replace(str, '::$k::', Std.string( Reflect.field(vars,k) ));
-		return str;
+
+		// Strip notes
+		if( str.indexOf(TRANSLATOR_NOTE)>=0 )  str = str.substr( 0, str.indexOf(TRANSLATOR_NOTE) );
+		if( str.indexOf(COMMENT)>=0 )  str = str.substr( 0, str.indexOf(COMMENT) );
+		if( str.indexOf(CONTEXT_DISAMB)>=0 )  str = str.substr( 0, str.indexOf(CONTEXT_DISAMB) );
+		return untranslated(str);
+	}
+
+
+	public inline function untranslated(str:Dynamic) : LocaleString {
+		return new LocaleString(Std.string(str));
 	}
 
 
@@ -508,17 +530,24 @@ class PoEntry {
 		contextDisamb = ctx;
 
 		// Extract translator note
-		if( msgid.indexOf("||?")>0 ) {
-			var parts = rawId.split("||?");
+		if( msgid.indexOf(GetText2.TRANSLATOR_NOTE)>0 ) {
+			var parts = rawId.split(GetText2.TRANSLATOR_NOTE);
 			msgid = parts[0];
 			translatorNote = parts[1];
 		}
 
 		// Extract context disambiguation
-		if( msgid.indexOf("||")>0 ) {
-			var parts = rawId.split("||");
+		if( msgid.indexOf(GetText2.CONTEXT_DISAMB)>0 ) {
+			var parts = rawId.split(GetText2.CONTEXT_DISAMB);
 			msgid = parts[0];
 			contextDisamb = parts[1];
+		}
+
+		// Extract comment
+		if( msgid.indexOf(GetText2.COMMENT)>0 ) {
+			var parts = rawId.split(GetText2.COMMENT);
+			msgid = parts[0];
+			comment = parts[1];
 		}
 
 		if( GetText2.VERBOSE )
@@ -532,4 +561,38 @@ class PoEntry {
 	@:keep public inline function toString() {
 		return msgid + (contextDisamb==null?"":"@"+contextDisamb);
 	}
+}
+
+
+
+abstract LocaleString(String) to String {
+	inline public function new(s:String) {
+		this = s;
+	}
+
+	public inline function toUpperCase() : LocaleString return new LocaleString(this.toUpperCase());
+	public inline function toLowerCase() : LocaleString return new LocaleString(this.toLowerCase());
+	public inline function charAt(i) return this.charAt(i);
+	public inline function charCodeAt(i) return this.charCodeAt(i);
+	public inline function indexOf(i, ?s) return this.indexOf(i,s);
+	public inline function lastIndexOf(i, ?s) return this.lastIndexOf(i,s);
+	public inline function split(i) return this.split(i);
+	public inline function substr(i, ?l) return this.substr(i, l);
+	public inline function substring(i, ?e) return this.substring(i, e);
+
+	public inline function trim(){
+        return new LocaleString( StringTools.trim(this) );
+    }
+
+	@:op(A+B) function add(to:LocaleString) return new LocaleString(this + cast to);
+
+	public var length(get,never) : Int;
+	inline function get_length() return this.length;
+
+	#if heaps
+	@:to
+	inline function toUString() : String {
+		return (cast this:String);
+	}
+	#end
 }
