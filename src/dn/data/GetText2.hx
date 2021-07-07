@@ -73,10 +73,11 @@ class GetText2 {
 			}
 			else if( stringReg.match(line) ) {
 				// Continue on multilines
-				if( pendingMsgId )
-					lastId+="\n"+stringReg.matched(1);
-				else if( pendingMsgStr )
-					dict.set(lastId, dict.get(lastId) + "\n"+stringReg.matched(1) );
+				if( pendingMsgId ) 
+					lastId += stringReg.matched(1);
+				else if( pendingMsgStr ) {
+					dict.set(lastId, dict.get(lastId) + stringReg.matched(1) );
+				}
 			}
 			else {
 				// Anything else
