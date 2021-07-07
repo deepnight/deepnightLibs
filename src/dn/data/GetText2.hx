@@ -45,9 +45,9 @@ class GetText2 {
 	public inline function getEntryCount() return Lambda.count(dict);
 
 	public function readPo(bytes:haxe.io.Bytes) {
-		var msgidReg = ~/msgid\s+"(.*?)"\s*$/i;
-		var msgstrReg = ~/msgstr\s+"(.*?)"\s*$/i;
-		var stringReg = ~/^\s*"(.*?)"\s*$/i;
+		var msgidReg = ~/^[ \t]*msgid[ \t]+"(.*?)"\s*$/i;
+		var msgstrReg = ~/^[ \t]*msgstr[ \t]+"(.*?)"\s*$/i;
+		var stringReg = ~/^[ \t]*"(.*?)"[ \t]*$/i;
 		var commentReg = ~/^#.*?$/i;
 
 		// Init
