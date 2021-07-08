@@ -28,6 +28,14 @@
         "priority": -3
       },
       {
+        "text": "🌍 Lang",
+        "color": "white",
+        "command": "haxe langParser.hxml",
+        "alignment": "right",
+        "skipTerminateQuickPick": false,
+        "priority": -4
+      },
+      {
         "text": "➠ Submit to haxelib",
         "color": "white",
         "command": "start haxelib submit .",
