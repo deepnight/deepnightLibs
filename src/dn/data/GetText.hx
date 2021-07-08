@@ -25,7 +25,7 @@ private typedef LdtkEntityField = {
 }
 
 
-class GetText2 {
+class GetText {
 	public static var VERBOSE = false;
 
 	public static var CONTEXT_DISAMB_SEP = "||@";
@@ -49,6 +49,10 @@ class GetText2 {
 	public inline function getRawDict() : Map<String,String> return dict;
 
 	public inline function getEntryCount() return Lambda.count(dict);
+
+	@:deprecated('WARNING: new GetText implementation! Update all old translation notes (old format "||", new format "||@") that might be present in your current untranslated data. Then use readPo here. The old GetText implementation can be found in legacy package.')
+	@:noCompletion
+	public function readMo(p:Dynamic) : Dynamic return null;
 
 	public function readPo(bytes:haxe.io.Bytes) {
 		var msgidReg = ~/^[ \t]*msgid[ \t]+"(.*?)"\s*$/i;
@@ -242,7 +246,7 @@ class GetText2 {
 		`checkEntry` is an optional method to be tested against all values in current translated
 		data: it should return an error description if an anomaly is found, or `null` otherwise.
 	**/
-	public function check( ?reference:GetText2, ?checkEntry:(msgId:String, translation:String)->Null<String> ) : Array<String> {
+	public function check( ?reference:GetText, ?checkEntry:(msgId:String, translation:String)->Null<String> ) : Array<String> {
 		var errors = [];
 		inline function _error(msgId:String, err:String) {
 			errors.push('In "$msgId"  =>  '+err);
@@ -683,24 +687,24 @@ class PoEntry {
 		contextDisamb = ctx;
 
 		// Extract and strip translator note
-		if( GetText2.TRANSLATOR_NOTE_REG.match(msgid) ) {
-			msgid = GetText2.TRANSLATOR_NOTE_REG.replace(msgid,	"$3");
-			translatorNote = GetText2.TRANSLATOR_NOTE_REG.matched(2);
+		if( GetText.TRANSLATOR_NOTE_REG.match(msgid) ) {
+			msgid = GetText.TRANSLATOR_NOTE_REG.replace(msgid,	"$3");
+			translatorNote = GetText.TRANSLATOR_NOTE_REG.matched(2);
 		}
 
 		// Extract and strip context disambiguation
-		if( GetText2.CONTEXT_DISAMB_REG.match(msgid) ) {
-			msgid = GetText2.CONTEXT_DISAMB_REG.replace(msgid,	"$3");
-			contextDisamb = GetText2.CONTEXT_DISAMB_REG.matched(2);
+		if( GetText.CONTEXT_DISAMB_REG.match(msgid) ) {
+			msgid = GetText.CONTEXT_DISAMB_REG.replace(msgid,	"$3");
+			contextDisamb = GetText.CONTEXT_DISAMB_REG.matched(2);
 		}
 
 		// Extract and strip context disambiguation
-		if( GetText2.COMMENT_REG.match(msgid) ) {
-			msgid = GetText2.COMMENT_REG.replace(msgid,	"$3");
-			comment = GetText2.COMMENT_REG.matched(2);
+		if( GetText.COMMENT_REG.match(msgid) ) {
+			msgid = GetText.COMMENT_REG.replace(msgid,	"$3");
+			comment = GetText.COMMENT_REG.matched(2);
 		}
 
-		if( GetText2.VERBOSE )
+		if( GetText.VERBOSE )
 			Lib.println("    - New entry: "+msgid);
 	}
 
@@ -726,7 +730,7 @@ class PoEntry {
 	}
 
 	inline function get_uniqKey() {
-		return msgid + ( contextDisamb==null ? "" : GetText2.CONTEXT_DISAMB_SEP+contextDisamb );
+		return msgid + ( contextDisamb==null ? "" : GetText.CONTEXT_DISAMB_SEP+contextDisamb );
 	}
 
 	@:keep public inline function toString() {
