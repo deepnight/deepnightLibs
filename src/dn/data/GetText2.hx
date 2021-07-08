@@ -27,9 +27,11 @@ private typedef LdtkEntityField = {
 
 class GetText2 {
 	public static var VERBOSE = false;
-	public static var COMMENT = "||?";
-	public static var CONTEXT_DISAMB = "||@";
-	public static var TRANSLATOR_NOTE = "||!";
+
+	public static var CONTEXT_DISAMB_SEP = "||@";
+	public static var COMMENT_REG = ~/(\|\|\?(.*?))($|\|\|)/i; //  ||?a comment
+	public static var CONTEXT_DISAMB_REG = ~/(\|\|@(.*?))($|\|\|)/i; //  ||@some context
+	public static var TRANSLATOR_NOTE_REG = ~/(\|\|!(.*?))($|\|\|)/i; //  ||!translator note
 
 	/*******************************************************************************
 		CLIENT-SIDE API
@@ -82,7 +84,7 @@ class GetText2 {
 				pendingMsgId = false;
 				pendingMsgStr = true;
 				if( lastCtx!=null ) {
-					lastId += CONTEXT_DISAMB + lastCtx;
+					lastId += CONTEXT_DISAMB_SEP + lastCtx;
 					lastCtx = null;
 				}
 				dict.set(lastId, unescapePoString( msgstrReg.matched(1) ));
@@ -191,28 +193,22 @@ class GetText2 {
 
 	**/
 	public inline function get(msgId:String, ?vars:Dynamic) : LocaleString {
-		var debug = msgId.indexOf(CONTEXT_DISAMB)>=0;
-		if( debug ) trace(msgId);
-		if( debug ) trace(dict.get(msgId));
-
-		// Strip msgid notes
-		if( msgId.indexOf(TRANSLATOR_NOTE)>=0 )  msgId = msgId.substr( 0, msgId.indexOf(TRANSLATOR_NOTE) );
-		if( msgId.indexOf(COMMENT)>=0 )  msgId = msgId.substr( 0, msgId.indexOf(COMMENT) );
+		// Strip notes from msgid (but keep Disambiguation Context)
+		msgId = TRANSLATOR_NOTE_REG.replace(msgId,"$3");
+		msgId = COMMENT_REG.replace(msgId,"$3");
 
 		var str = dict.exists(msgId) && dict.get(msgId)!="" ? dict.get(msgId) : msgId;
-		if( debug ) trace(str);
 
 		// In-text variables
 		if( vars!=null )
 			for(k in Reflect.fields(vars))
 				str = StringTools.replace(str, '::$k::', Std.string( Reflect.field(vars,k) ));
 
-		// Strip output notes
-		if( str.indexOf(TRANSLATOR_NOTE)>=0 )  str = str.substr( 0, str.indexOf(TRANSLATOR_NOTE) );
-		if( str.indexOf(COMMENT)>=0 )  str = str.substr( 0, str.indexOf(COMMENT) );
-		if( str.indexOf(CONTEXT_DISAMB)>=0 )  str = str.substr( 0, str.indexOf(CONTEXT_DISAMB) );
+		// Strip notes from output
+		str = TRANSLATOR_NOTE_REG.replace(str,"$3");
+		str = COMMENT_REG.replace(str,"$3");
+		str = CONTEXT_DISAMB_REG.replace(str,"$3");
 
-		if( debug ) trace(str);
 		return untranslated(str);
 	}
 
@@ -574,14 +570,23 @@ class GetText2 {
 		while( i<entries.length ) {
 			var e = entries[i];
 			if( dones.exists(e.uniqKey) ) {
+				// Found a duplicate
 				var orig = dones.get(e.uniqKey);
+				if( e.comment!=null )
+					orig.addComment(e.comment);
+
+				if( e.translatorNote!=null )
+					orig.addTranslatorNote(e.translatorNote);
+
 				for(r in e.references)
 					orig.references.push(r);
+
 				entries.splice(i,1);
 				if( VERBOSE )
 					Lib.println("  - Merged duplicate: "+e.uniqKey);
 			}
 			else {
+				// Found a new entry
 				dones.set(e.uniqKey,e);
 				i++;
 			}
@@ -677,25 +682,22 @@ class PoEntry {
 		msgid = rawId;
 		contextDisamb = ctx;
 
-		// Extract translator note
-		if( msgid.indexOf(GetText2.TRANSLATOR_NOTE)>0 ) {
-			var parts = rawId.split(GetText2.TRANSLATOR_NOTE);
-			msgid = parts[0];
-			translatorNote = parts[1];
+		// Extract and strip translator note
+		if( GetText2.TRANSLATOR_NOTE_REG.match(msgid) ) {
+			msgid = GetText2.TRANSLATOR_NOTE_REG.replace(msgid,	"$3");
+			translatorNote = GetText2.TRANSLATOR_NOTE_REG.matched(2);
 		}
 
-		// Extract context disambiguation
-		if( msgid.indexOf(GetText2.CONTEXT_DISAMB)>0 ) {
-			var parts = rawId.split(GetText2.CONTEXT_DISAMB);
-			msgid = parts[0];
-			contextDisamb = parts[1];
+		// Extract and strip context disambiguation
+		if( GetText2.CONTEXT_DISAMB_REG.match(msgid) ) {
+			msgid = GetText2.CONTEXT_DISAMB_REG.replace(msgid,	"$3");
+			contextDisamb = GetText2.CONTEXT_DISAMB_REG.matched(2);
 		}
 
-		// Extract comment
-		if( msgid.indexOf(GetText2.COMMENT)>0 ) {
-			var parts = rawId.split(GetText2.COMMENT);
-			msgid = parts[0];
-			comment = parts[1];
+		// Extract and strip context disambiguation
+		if( GetText2.COMMENT_REG.match(msgid) ) {
+			msgid = GetText2.COMMENT_REG.replace(msgid,	"$3");
+			comment = GetText2.COMMENT_REG.matched(2);
 		}
 
 		if( GetText2.VERBOSE )
@@ -706,29 +708,29 @@ class PoEntry {
 		if( comment==null )
 			comment = str;
 		else
-			comment+=", "+str;
+			comment+=" ; "+str;
 	}
 
 	public function addTranslatorNote(str:String) {
 		if( translatorNote==null )
 			translatorNote = str;
 		else
-			translatorNote+=", "+str;
+			translatorNote+=" ; "+str;
 	}
 
 	public function addContextDisambiguation(str:String) {
 		if( contextDisamb==null )
 			contextDisamb = str;
 		else
-			contextDisamb+=", "+str;
+			contextDisamb+=" ; "+str;
 	}
 
 	inline function get_uniqKey() {
-		return msgid + (contextDisamb==null ? "" : "@"+contextDisamb);
+		return msgid + ( contextDisamb==null ? "" : GetText2.CONTEXT_DISAMB_SEP+contextDisamb );
 	}
 
 	@:keep public inline function toString() {
-		return msgid + (contextDisamb==null?"":"@"+contextDisamb);
+		return uniqKey;
 	}
 }
 
