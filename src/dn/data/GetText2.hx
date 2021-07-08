@@ -211,6 +211,96 @@ class GetText2 {
 	}
 
 
+	/**
+		Check current translated data and return an array of error descriptions if any anomaly is
+		found. Verification includes in-text variables syntax (eg. "::varName::") and missing translations.
+
+		If provided, `reference` will be used to check for missing entries in current dictionary.
+
+		`checkEntry` is an optional method to be tested against all values in current translated
+		data: it should return an error description if an anomaly is found, or `null` otherwise.
+	**/
+	public function check( ?reference:GetText2, ?checkEntry:(msgId:String, translation:String)->Null<String> ) : Array<String> {
+		var errors = [];
+		inline function _error(msgId:String, err:String) {
+			errors.push('In "$msgId"  =>  '+err);
+		}
+
+		try {
+			// Compare with reference
+			var refKeys = new Map();
+			if( reference!=null ) {
+				// List keys from reference
+				for(k in reference.getRawDict().keys())
+					refKeys.set(k,k);
+
+				// Count check
+				var nref = Lambda.count(refKeys);
+				var ngt = getEntryCount();
+				if( nref!=ngt )
+					errors.push('Entry count in this file ($ngt) differs from reference file ($nref)');
+			}
+
+			// Check all entries
+			var missing = [];
+			for( e in dict.keyValueIterator() ) {
+				if( e.value=="" ) {
+					missing.push(e.key);
+					continue;
+				}
+
+				// Entry not found in reference
+				if( reference!=null && !refKeys.exists(e.key) )
+					_error(e.key, 'Not in reference file');
+
+				// "::" count mismatch
+				if( e.key.split("::").length != e.value.split("::").length ) {
+					_error(e.key, 'Malformed variable (verify the "::")');
+					continue;
+				}
+
+				// List variable names
+				var map = new Map();
+				var odd = true;
+				for(v in e.key.split("::")) {
+					if( !odd )
+						map.set(v,v);
+					odd = !odd;
+				}
+
+				// Check missings
+				odd = true;
+				for(v in e.value.split("::")) {
+					if( !odd && !map.exists(v) )
+						_error(e.key, 'Incorrect variable name ::$v::');
+
+					odd = !odd;
+				}
+
+				// Custom check
+				if( checkEntry!=null ) {
+					var err = checkEntry(e.key,e.value);
+					if( err!=null )
+						_error(e.key, err);
+				}
+			}
+
+			// Missing translations
+			if( missing.length>0 ) {
+				if( missing.length>5 )
+					errors.push('${missing.length} missing translations');
+				else
+					for(k in missing)
+						_error(k, "Missing translation");
+			}
+		}
+		catch(e) {
+			errors.push("EXCEPTION: "+e);
+		}
+		return errors;
+	}
+
+
 
 	/*******************************************************************************
 		PARSERS AND GENERATORS
