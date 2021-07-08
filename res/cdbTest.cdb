@@ -20,7 +20,7 @@
 				},
 				{
 					"id": "test_2",
-					"text": "I'm a CDB text with commentary||Commentary"
+					"text": "I'm a CDB text with commentary||!Commentary"
 				},
 				{
 					"id": "test_3",
@@ -28,7 +28,7 @@
 				},
 				{
 					"id": "test_4",
-					"text": "I'm a CDB text with param: ::param:: and commentary||Commentary"
+					"text": "I'm a CDB text with param: ::param:: and commentary||!Commentary"
 				}
 			],
 			"separators": [],

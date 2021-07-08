@@ -1,8 +1,9 @@
 -cp src
 -cp tests
 -lib castle
---resource res/data.cdb@data
---resource res/lang/fr.mo@frmo
+--resource res/cdbTest.cdb@cdbTest
+--resource res/lang/legacy_fr.mo@legacy_fr
+--resource res/lang/new_fr.po@new_fr
 -D deepnightLibsTests
 
 -main Main

@@ -642,36 +642,30 @@ class GetText {
 	@:noCompletion
 	public static function __test() {
 		#if( !macro && deepnightLibsTests )
-		CiAssert.printIfVerbose("Testing GetText");
 
-		var res = haxe.Resource.getString("data");
-		CiAssert.isNotNull(res);
-		CiAssert.noException( "PO loading", { Data.load(res); } );
+		CiAssert.printIfVerbose("Testing legacy GetText...");
 
+		// Load CDB
+		var cdbRes = haxe.Resource.getString("cdbTest");
+		CiAssert.isNotNull(cdbRes);
+		CiAssert.noException( "PO loading", { CdbTest.load(cdbRes); } );
+
+		// Init GetText
 		var gt = new GetText();
-		var res = haxe.Resource.getBytes("frmo");
+		var res = haxe.Resource.getBytes("legacy_fr");
 		CiAssert.isNotNull( res );
 		CiAssert.noException( "MO reading", { gt.readMo(res); });
 
-		CiAssert.printIfVerbose("------ Normal text in code ------");
-		CiAssert.printIfVerbose(gt._("Normal text"));
-		CiAssert.isTrue(gt._("Normal text") == "Texte normal");
-		CiAssert.printIfVerbose(gt._("Text with commentary||I'm the commentary"));
-		CiAssert.isTrue(gt._("Text with commentary||I'm the commentary") == "Texte avec commentaire");
-		CiAssert.printIfVerbose(gt._("Text with parameters: ::param::", {param:"Test"}));
-		CiAssert.isTrue(gt._("Text with parameters: ::param::", {param:"Test"}) == "Texte avec paramètres: Test");
-		CiAssert.printIfVerbose(gt._("Text with parameters: ::param:: and commentary||Commentary", {param:"Test"}));
-		CiAssert.isTrue(gt._("Text with parameters: ::param:: and commentary||Commentary", {param:"Test"}) == "Texte avec paramètres: Test et commentaire");
+		// Checks
+		CiAssert.equals(gt._("Normal text"),  "Texte normal");
+		CiAssert.equals(gt._("Text with commentary||!I'm the commentary"),  "Texte avec commentaire");
+		CiAssert.equals(gt._("Text with parameters: ::param::", {param:"Test"}),  "Texte avec paramètres: Test");
+		CiAssert.equals(gt._("Text with parameters: ::param:: and commentary||!Commentary", {param:"Test"}),  "Texte avec paramètres: Test et commentaire");
 
-		CiAssert.printIfVerbose("------ CDB Text ------");
-		CiAssert.printIfVerbose(gt.get(Data.texts.get(Data.TextsKind.test_1).text));
-		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_1).text) == "Je suis un texte CDB");
-		CiAssert.printIfVerbose(gt.get(Data.texts.get(Data.TextsKind.test_2).text));
-		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_2).text) == "Je suis un texte CDB avec commentaire");
-		CiAssert.printIfVerbose(gt.get(Data.texts.get(Data.TextsKind.test_3).text, {param:"Test"}));
-		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_3).text, {param:"Test"}) == "Je suis un texte CDB avec paramètre: Test");
-		CiAssert.printIfVerbose(gt.get(Data.texts.get(Data.TextsKind.test_4).text, {param:"Test"}));
-		CiAssert.isTrue(gt.get(Data.texts.get(Data.TextsKind.test_4).text, {param:"Test"}) == "Je suis un texte CDB avec paramètre: Test et commentaire");
+		CiAssert.equals(gt.get(CdbTest.texts.get(CdbTest.TextsKind.test_1).text),  "Je suis un texte CDB");
+		CiAssert.equals(gt.get(CdbTest.texts.get(CdbTest.TextsKind.test_2).text),  "Je suis un texte CDB avec commentaire");
+		CiAssert.equals(gt.get(CdbTest.texts.get(CdbTest.TextsKind.test_3).text, {param:"Test"}),  "Je suis un texte CDB avec paramètre: Test");
+		CiAssert.equals(gt.get(CdbTest.texts.get(CdbTest.TextsKind.test_4).text, {param:"Test"}),  "Je suis un texte CDB avec paramètre: Test et commentaire");
 		#end
 	}
 }

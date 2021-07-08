@@ -1,13 +1,12 @@
-import dn.data.GetText;
-
 class LangParser {
 	public static function main() {
-		var name = "sourceTexts";
+		// Legacy GetText
+		var name = "legacy_sourceTexts";
 		Sys.println("Building "+name+" file...");
 		var cdbs = findAll("res", "cdb");
 		try {
-			var data = GetText.doParseGlobal({
-				codePath: "tests",
+			var data = dn.legacy.GetText.doParseGlobal({
+				codePath: "src",
 				codeIgnore: null,
 				cdbFiles: cdbs,
 				cdbSpecialId: [],
@@ -21,6 +20,11 @@ class LangParser {
 			Sys.println("");
 			Sys.exit(1);
 		}
+
+		// New GetText
+		var all = dn.data.GetText.parseSourceCode("src");
+		all = all.concat( dn.data.GetText.parseCastleDB("res/cdbTest.cdb") );
+		dn.data.GetText.writePOT("res/lang/new_sourceTexts.pot", all);
 		Sys.println("Done.");
 	}
 

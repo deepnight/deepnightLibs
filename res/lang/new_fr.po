@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"\"MIME-Version: 1.0\n"
+"X-Generator: Poedit 3.0\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: "src/dn/data/GetText.hx" "src/dn/legacy/GetText.hx"
+msgid "Normal text"
+msgstr "Texte normal"
+
+#: "src/dn/data/GetText.hx" "src/dn/legacy/GetText.hx"
+msgid "Text with parameters: ::param::"
+msgstr "Texte avec paramètres: ::param::"
+
+#: "src/dn/data/GetText.hx"
+msgctxt "Context 1"
+msgid "Ambiguous"
+msgstr "Ambigu dans contexte 1"
+
+#: "src/dn/data/GetText.hx"
+msgctxt "Context 2"
+msgid "Ambiguous"
+msgstr "Ambigu dans contexte 2"
+
+#. I'm the commentary
+#: "src/dn/legacy/GetText.hx"
+msgid "Text with commentary"
+msgstr "Texte avec commentaire"
+
+#. Commentary
+#: "src/dn/legacy/GetText.hx"
+msgid "Text with parameters: ::param:: and commentary"
+msgstr "Texte avec paramètres: ::param:: et commentaire"
+
+# CastleDB
+#: "res/cdbTest.cdb:texts/#0.text"
+msgid "I'm a CDB text"
+msgstr "Je suis un texte CDB"
+
+# CastleDB
+#. Commentary
+#: "res/cdbTest.cdb:texts/#1.text"
+msgid "I'm a CDB text with commentary"
+msgstr "Je suis un texte CDB avec commentaire"
+
+# CastleDB
+#: "res/cdbTest.cdb:texts/#2.text"
+msgid "I'm a CDB text with param: ::param::"
+msgstr "Je suis un texte CDB avec paramètre : ::param::"
+
+# CastleDB
+#. Commentary
+#: "res/cdbTest.cdb:texts/#3.text"
+msgid "I'm a CDB text with param: ::param:: and commentary"
+msgstr "Je suis un texte CDB avec paramètre : ::param:: et commentaire"

@@ -1,0 +1,53 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"MIME-Version: 1.0\n"
+
+#: src/dn/data/GetText.hx:697 src/dn/legacy/GetText.hx:660
+msgid "Normal text"
+msgstr ""
+
+#: src/dn/data/GetText.hx:698 src/dn/legacy/GetText.hx:662
+msgid "Text with parameters: ::param::"
+msgstr ""
+
+#. @Context 1
+#: src/dn/data/GetText.hx:706
+msgid "Ambiguous"
+msgstr ""
+
+#. @Context 2
+#: src/dn/data/GetText.hx:707
+msgid "Ambiguous"
+msgstr ""
+
+#. !I'm the commentary
+#: src/dn/legacy/GetText.hx:661
+msgid "Text with commentary"
+msgstr ""
+
+#. !Commentary
+#: src/dn/legacy/GetText.hx:663
+msgid "Text with parameters: ::param:: and commentary"
+msgstr ""
+
+#: res/cdbTest.cdb:texts/#0.text
+msgid "I'm a CDB text"
+msgstr ""
+
+#. !Commentary
+#: res/cdbTest.cdb:texts/#1.text
+msgid "I'm a CDB text with commentary"
+msgstr ""
+
+#: res/cdbTest.cdb:texts/#2.text
+msgid "I'm a CDB text with param: ::param::"
+msgstr ""
+
+#. !Commentary
+#: res/cdbTest.cdb:texts/#3.text
+msgid "I'm a CDB text with param: ::param:: and commentary"
+msgstr ""
+
+

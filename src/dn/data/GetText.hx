@@ -125,8 +125,8 @@ class GetText {
 	/**
 		Get a localized text entry, with optional in-text variables.
 		Examples:
-		 - `myGetText._("New game")`
-		 - `myGetText._("Hello ::user::, this text should be translated", { user:"foo" })`
+		 - `myGetText._ ("New game")`
+		 - `myGetText._ ("Hello ::user::, this text should be translated", { user:"foo" })`
 
 	**/
 	public macro function _(ethis:Expr, msgId:ExprOf<String>, ?vars:ExprOf<Dynamic>) : ExprOf<LocaleString> {
@@ -189,13 +189,7 @@ class GetText {
 	}
 
 
-	/**
-		Get a localized text entry, with optional in-text variables.
-		Examples:
-		 - `myGetText.get("New game")`
-		 - `myGetText.get("Hello ::user::, this text should be translated", { user:"foo" })`
-
-	**/
+	@:noCompletion
 	public inline function get(msgId:String, ?vars:Dynamic) : LocaleString {
 		// Strip notes from msgid (but keep Disambiguation Context)
 		msgId = TRANSLATOR_NOTE_REG.replace(msgId,"$3");
@@ -340,6 +334,11 @@ class GetText {
 	**/
 	public static function parseSourceCode(dir:String) : Array<PoEntry> {
 		if( VERBOSE ) Lib.println('');
+		if( !sys.FileSystem.exists(dir) ) {
+			error(dir, "Folder not found");
+			return [];
+		}
+
 		Lib.println('Parsing source code ($dir)...');
 		var all : Array<PoEntry>= [];
 		var files = listFilesRec(["hx"], dir);
@@ -365,6 +364,11 @@ class GetText {
 	**/
 	public static function parseLdtk(filePath:String, options:LdtkOptions) {
 		if( VERBOSE ) Lib.println('');
+		if( !sys.FileSystem.exists(filePath) ) {
+			error(filePath, "File not found");
+			return [];
+		}
+
 		Lib.println('Parsing LDtk ($filePath)...');
 		var all : Array<PoEntry> = [];
 		if( !sys.FileSystem.exists(filePath) )
@@ -484,8 +488,12 @@ class GetText {
 
 
 	#if castle
-	public static function parseCastleDB(filePath:String, globalComment="CastleDB") {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
+	public static function parseCastleDB(filePath:String, globalComment="CastleDB") {
 		if( VERBOSE ) Lib.println('');
+		if( !sys.FileSystem.exists(filePath) ) {
+			error(filePath, "File not found");
+			return [];
+		}
 		Lib.println('Parsing CastleDB ($filePath)...');
 		var all : Array<PoEntry> = [];
 		var cbdData = cdb.Parser.parse( sys.io.File.getContent(filePath), false );
@@ -666,10 +674,48 @@ class GetText {
 	}
 
 	#end // end of "if macro"
+
+
+	@:noCompletion
+	public static function __test() {
+		#if( !macro && deepnightLibsTests )
+
+		CiAssert.printIfVerbose("Testing new GetText...");
+
+		// Load CDB
+		var cdbRes = haxe.Resource.getString("cdbTest");
+		CiAssert.isNotNull(cdbRes);
+		CiAssert.noException( "CDB loading", { CdbTest.load(cdbRes); } );
+
+		// Init GetText
+		var t = new GetText();
+		var res = haxe.Resource.getBytes("new_fr");
+		CiAssert.isNotNull( res );
+		CiAssert.noException( "PO reading", { t.readPo(res); });
+
+		// Normal
+		CiAssert.equals(t._("Normal text"),  "Texte normal");
+		CiAssert.equals(t._("Text with parameters: ::param::", {param:"Test"}),  "Texte avec paramètres: Test");
+
+		// CDB
+		CiAssert.equals(t.get(CdbTest.texts.get(CdbTest.TextsKind.test_1).text),  "Je suis un texte CDB");
+		CiAssert.equals(t.get(CdbTest.texts.get(CdbTest.TextsKind.test_2).text),  "Je suis un texte CDB avec commentaire");
+		CiAssert.equals(t.get(CdbTest.texts.get(CdbTest.TextsKind.test_3).text, {param:"Test"}),  "Je suis un texte CDB avec paramètre : Test");
+		CiAssert.equals(t.get(CdbTest.texts.get(CdbTest.TextsKind.test_4).text, {param:"Test"}),  "Je suis un texte CDB avec paramètre : Test et commentaire");
+
+		// Context disambiguation
+		CiAssert.equals(t._("Ambiguous||@Context 1"),  "Ambigu dans contexte 1");
+		CiAssert.equals(t._("Ambiguous||@Context 2"),  "Ambigu dans contexte 2");
+
+		#end
+	}
 }
 
 
 
+/*******************************************************
+	PO entry class
+*******************************************************/
 class PoEntry {
 	public var msgid: String;
 	public var msgstr = "";

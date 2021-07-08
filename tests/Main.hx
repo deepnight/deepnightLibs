@@ -17,6 +17,7 @@ class Main {
 		dn.Lib.__test();
 		dn.Cinematic.__test();
 		dn.Cooldown.__test();
+		dn.legacy.GetText.__test();
 		dn.data.GetText.__test();
 		dn.DecisionHelper.__test();
 		dn.Delayer.__test();
