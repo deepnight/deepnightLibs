@@ -1,4 +1,4 @@
-package dn.data;
+package dn.legacy;
 
 #if macro
 import haxe.macro.Expr;
