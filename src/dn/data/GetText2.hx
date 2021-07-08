@@ -7,8 +7,8 @@ import haxe.macro.Context;
 
 /**
 	Text entries might contain extra info:
-		"bla bla||comment"
-		"bla bla||?translator note"
+		"bla bla||?general comment"
+		"bla bla||!translator note"
 		"bla bla||@context disambiguation"
 	Reference: http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
 **/
@@ -16,7 +16,7 @@ import haxe.macro.Context;
 private typedef LdtkOptions = {
 	var entityFields : Array<LdtkEntityField>;
 	var levelFieldIds : Array<String>;
-	var ?globalContext:String;
+	var ?globalComment:String;
 }
 
 private typedef LdtkEntityField = {
@@ -27,26 +27,31 @@ private typedef LdtkEntityField = {
 
 class GetText2 {
 	public static var VERBOSE = false;
-	public static var COMMENT = "||";
+	public static var COMMENT = "||?";
 	public static var CONTEXT_DISAMB = "||@";
-	public static var TRANSLATOR_NOTE = "||?";
+	public static var TRANSLATOR_NOTE = "||!";
 
 	/*******************************************************************************
 		CLIENT-SIDE API
 	 *******************************************************************************/
 
+	/**
+		Entries and their translations. Note that entry key might contain Context Disambiguation in the form of
+		an added "||@some context" at the end of the string.
+	**/
 	var dict : Map<String,String> = new Map();
 
 	public function new() {
 	}
 
-	public inline function getRawDict() return dict;
+	public inline function getRawDict() : Map<String,String> return dict;
 
 	public inline function getEntryCount() return Lambda.count(dict);
 
 	public function readPo(bytes:haxe.io.Bytes) {
 		var msgidReg = ~/^[ \t]*msgid[ \t]+"(.*?)"\s*$/i;
 		var msgstrReg = ~/^[ \t]*msgstr[ \t]+"(.*?)"\s*$/i;
+		var contextReg = ~/^[ \t]*msgctxt[ \t]+"(.*?)"\s*$/i;
 		var stringReg = ~/^[ \t]*"(.*?)"[ \t]*$/i;
 		var commentReg = ~/^#.*?$/i;
 
@@ -56,10 +61,17 @@ class GetText2 {
 		var lines = raw.split("\n");
 
 		var lastId = null;
+		var lastCtx = null;
 		var pendingMsgId = false;
 		var pendingMsgStr = false;
 		for( line in lines ) {
-			if( msgidReg.match(line) ) {
+			if( contextReg.match(line) ) {
+				// Found msgctxt
+				pendingMsgId = false;
+				pendingMsgStr = false;
+				lastCtx = unescapePoString( contextReg.matched(1) );
+			}
+			else if( msgidReg.match(line) ) {
 				// Found msgid
 				pendingMsgId = true;
 				pendingMsgStr = false;
@@ -69,6 +81,10 @@ class GetText2 {
 				// Found msgstr
 				pendingMsgId = false;
 				pendingMsgStr = true;
+				if( lastCtx!=null ) {
+					lastId += CONTEXT_DISAMB + lastCtx;
+					lastCtx = null;
+				}
 				dict.set(lastId, unescapePoString( msgstrReg.matched(1) ));
 			}
 			else if( stringReg.match(line) ) {
@@ -175,18 +191,28 @@ class GetText2 {
 
 	**/
 	public inline function get(msgId:String, ?vars:Dynamic) : LocaleString {
+		var debug = msgId.indexOf(CONTEXT_DISAMB)>=0;
+		if( debug ) trace(msgId);
+		if( debug ) trace(dict.get(msgId));
+
+		// Strip msgid notes
+		if( msgId.indexOf(TRANSLATOR_NOTE)>=0 )  msgId = msgId.substr( 0, msgId.indexOf(TRANSLATOR_NOTE) );
+		if( msgId.indexOf(COMMENT)>=0 )  msgId = msgId.substr( 0, msgId.indexOf(COMMENT) );
+
 		var str = dict.exists(msgId) && dict.get(msgId)!="" ? dict.get(msgId) : msgId;
+		if( debug ) trace(str);
 
 		// In-text variables
 		if( vars!=null )
 			for(k in Reflect.fields(vars))
 				str = StringTools.replace(str, '::$k::', Std.string( Reflect.field(vars,k) ));
 
-		// Strip notes
+		// Strip output notes
 		if( str.indexOf(TRANSLATOR_NOTE)>=0 )  str = str.substr( 0, str.indexOf(TRANSLATOR_NOTE) );
 		if( str.indexOf(COMMENT)>=0 )  str = str.substr( 0, str.indexOf(COMMENT) );
 		if( str.indexOf(CONTEXT_DISAMB)>=0 )  str = str.substr( 0, str.indexOf(CONTEXT_DISAMB) );
 
+		if( debug ) trace(str);
 		return untranslated(str);
 	}
 
@@ -363,7 +389,7 @@ class GetText2 {
 			for(l in jsonArray(projectJson.levels)) {
 				var levelJson : Dynamic = l;
 				var levelPath = filePath;
-				var globalContext = options.globalContext==null ? "Level design" : options.globalContext;
+				var globalComment = options.globalComment==null ? "Level design" : options.globalComment;
 				var n = 0;
 
 				// Load external level
@@ -382,10 +408,11 @@ class GetText2 {
 					if( levelLookup.exists(f.__identifier) ) {
 						if( f.__value==null )
 							continue;
-						var e = new PoEntry(f.__value, globalContext);
+						var e = new PoEntry(f.__value);
 						all.push(e);
+						e.addComment(globalComment);
 						e.references.push(levelPath);
-						e.comment = "Level_"+levelJson.identifier+"_"+f.__identifier;
+						e.addComment("Level_"+levelJson.identifier+"_"+f.__identifier);
 						n++;
 					}
 				}
@@ -412,18 +439,21 @@ class GetText2 {
 										var i = 0;
 										var values = jsonArray(f.__value);
 										for( v in values ) {
-											var e = new PoEntry(v, globalContext);
+											var e = new PoEntry(v);
 											all.push(e);
+											e.addComment(globalComment);
 											e.references.push(levelPath);
-											e.comment = ctx + ( values.length>1 ? "_"+(i++) : "" ) + "_at_"+pt;
+											e.addComment(ctx + ( values.length>1 ? "_"+(i++) : "" ) + "_at_"+pt);
 											n++;
 										}
 									}
 									else {
-										var e = new PoEntry(f.__value, globalContext);
+										var e = new PoEntry(f.__value);
 										all.push(e);
+										if( globalComment!=null )
+											e.addComment(globalComment);
 										e.references.push(levelPath);
-										e.comment = ctx + "_at_"+pt;
+										e.addComment(ctx + "_at_"+pt);
 										n++;
 									}
 								}
@@ -455,7 +485,7 @@ class GetText2 {
 
 
 	#if castle
-	public static function parseCastleDB(filePath:String, ?globalContext="CastleDB") {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
+	public static function parseCastleDB(filePath:String, ?globalComment="CastleDB") {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
 		if( VERBOSE ) Lib.println('');
 		Lib.println('Parsing CastleDB ($filePath)...');
 		var all : Array<PoEntry> = [];
@@ -545,7 +575,8 @@ class GetText2 {
 			var e = entries[i];
 			if( dones.exists(e.uniqKey) ) {
 				var orig = dones.get(e.uniqKey);
-				orig.references = orig.references.concat(e.references);
+				for(r in e.references)
+					orig.references.push(r);
 				entries.splice(i,1);
 				if( VERBOSE )
 					Lib.println("  - Merged duplicate: "+e.uniqKey);
@@ -635,10 +666,10 @@ class PoEntry {
 	public var msgid: String;
 	public var msgstr = "";
 
-	public var references : Array<String> = []; // #:
-	public var comment : Null<String>; // #
-	public var translatorNote : Null<String>; // #.
-	public var contextDisamb : Null<String>; // msgctxt
+	public var references(default,null) : Array<String> = []; // #:
+	public var comment(default,null) : Null<String>; // #
+	public var translatorNote(default,null) : Null<String>; // #.
+	public var contextDisamb(default,null) : Null<String>; // msgctxt
 
 	public var uniqKey(get,never) : String;
 
@@ -669,6 +700,27 @@ class PoEntry {
 
 		if( GetText2.VERBOSE )
 			Lib.println("    - New entry: "+msgid);
+	}
+
+	public function addComment(str:String) {
+		if( comment==null )
+			comment = str;
+		else
+			comment+=", "+str;
+	}
+
+	public function addTranslatorNote(str:String) {
+		if( translatorNote==null )
+			translatorNote = str;
+		else
+			translatorNote+=", "+str;
+	}
+
+	public function addContextDisambiguation(str:String) {
+		if( contextDisamb==null )
+			contextDisamb = str;
+		else
+			contextDisamb+=", "+str;
 	}
 
 	inline function get_uniqKey() {
