@@ -450,8 +450,7 @@ class GetText {
 									else {
 										var e = new PoEntry(f.__value);
 										all.push(e);
-										if( globalComment!=null )
-											e.addComment(globalComment);
+										e.addComment(globalComment);
 										e.references.push(levelPath);
 										e.addComment(ctx + "_at_"+pt);
 										n++;
@@ -485,7 +484,7 @@ class GetText {
 
 
 	#if castle
-	public static function parseCastleDB(filePath:String, ?globalComment="CastleDB") {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
+	public static function parseCastleDB(filePath:String, globalComment="CastleDB") {//, data:POData, cdbSpecialId: Array<{ereg: EReg, field: String}> ){
 		if( VERBOSE ) Lib.println('');
 		Lib.println('Parsing CastleDB ($filePath)...');
 		var all : Array<PoEntry> = [];
@@ -509,7 +508,7 @@ class GetText {
 			}
 		}
 
-		function exploreSheet( idx:String, id:Null<String>, lines:Array<Dynamic>, columns:Array<Array<String>> ){
+		function _exploreSheet( idx:String, id:Null<String>, lines:Array<Dynamic>, columns:Array<Array<String>> ){
 			var n = 0;
 			var i = 0;
 			for( line in lines ){
@@ -524,14 +523,14 @@ class GetText {
 						id += " "+line.id;
 					id += " ("+cname+")";
 					if( col.length == 0 ) {
-						var e = new PoEntry(Reflect.field(line,cname), "CastleDB");
+						var e = new PoEntry(Reflect.field(line,cname));
 						all.push(e);
+						e.addComment(globalComment);
 						e.references.push(idx+"/#"+i+"."+cname);
 						n++;
-						// add( idx+"/#"+i+"."+cname, id, Reflect.field(line,cname) );
 					}
 					else
-						exploreSheet( idx+"/#"+i+"."+cname, id, Reflect.field(line,cname), [col] );
+						_exploreSheet( idx+"/#"+i+"."+cname, id, Reflect.field(line,cname), [col] );
 				}
 				i++;
 			}
@@ -545,7 +544,7 @@ class GetText {
 			if( sColumns==null || sColumns.length == 0 )
 				continue;
 
-			exploreSheet( filePath+":"+sheet.name, "", sheet.lines, sColumns );
+			_exploreSheet( filePath+":"+sheet.name, "", sheet.lines, sColumns );
 		}
 
 		return all;
@@ -709,24 +708,27 @@ class PoEntry {
 	}
 
 	public function addComment(str:String) {
-		if( comment==null )
-			comment = str;
-		else if( comment.indexOf(str)<0 )
-			comment+=" ; "+str;
+		if( str!=null )
+			if( comment==null )
+				comment = str;
+			else if( comment.indexOf(str)<0 )
+				comment+=" ; "+str;
 	}
 
 	public function addTranslatorNote(str:String) {
-		if( translatorNote==null )
-			translatorNote = str;
-		else if( translatorNote.indexOf(str)<0 )
-			translatorNote+=" ; "+str;
+		if( str!=null )
+			if( translatorNote==null )
+				translatorNote = str;
+			else if( translatorNote.indexOf(str)<0 )
+				translatorNote+=" ; "+str;
 	}
 
 	public function addContextDisambiguation(str:String) {
-		if( contextDisamb==null )
-			contextDisamb = str;
-		else if( contextDisamb.indexOf(str)<0 )
-			contextDisamb+=" ; "+str;
+		if( str!=null )
+			if( contextDisamb==null )
+				contextDisamb = str;
+			else if( contextDisamb.indexOf(str)<0 )
+				contextDisamb+=" ; "+str;
 	}
 
 	inline function get_uniqKey() {
