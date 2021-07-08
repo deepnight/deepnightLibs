@@ -63,20 +63,20 @@ class GetText2 {
 				// Found msgid
 				pendingMsgId = true;
 				pendingMsgStr = false;
-				lastId = msgidReg.matched(1);
+				lastId = unescapePoString( msgidReg.matched(1) );
 			}
 			else if( msgstrReg.match(line) ) {
 				// Found msgstr
 				pendingMsgId = false;
 				pendingMsgStr = true;
-				dict.set(lastId, msgstrReg.matched(1));
+				dict.set(lastId, unescapePoString( msgstrReg.matched(1) ));
 			}
 			else if( stringReg.match(line) ) {
 				// Continue on multilines
-				if( pendingMsgId ) 
-					lastId += stringReg.matched(1);
+				if( pendingMsgId )
+					lastId += unescapePoString( stringReg.matched(1) );
 				else if( pendingMsgStr ) {
-					dict.set(lastId, dict.get(lastId) + stringReg.matched(1) );
+					dict.set(lastId, dict.get(lastId) + unescapePoString( stringReg.matched(1) ) );
 				}
 			}
 			else {
@@ -87,6 +87,19 @@ class GetText2 {
 	}
 
 
+	static function escapePoString(str:String) {
+		str = StringTools.replace(str, '"', '\"');
+		str = StringTools.replace(str, "\n", "\\n");
+		return str;
+	}
+
+	static function unescapePoString(str:String) {
+		str = StringTools.replace(str, '\"', '"');
+		str = StringTools.replace(str, "\\n", "\n");
+		return str;
+	}
+
+
 	/**
 		Get a localized text entry, with optional in-text variables.
 		Examples:
@@ -94,7 +107,7 @@ class GetText2 {
 		 - `myGetText._("Hello ::user::, this text should be translated", { user:"foo" })`
 
 	**/
-	public macro function _(ethis:Expr, msgId:ExprOf<String>, ?vars:ExprOf<Dynamic>) {
+	public macro function _(ethis:Expr, msgId:ExprOf<String>, ?vars:ExprOf<Dynamic>) : ExprOf<LocaleString> {
 		switch msgId.expr {
 
 			case EConst(CString(v)):
@@ -154,10 +167,16 @@ class GetText2 {
 	}
 
 
+	/**
+		Get a localized text entry, with optional in-text variables.
+		Examples:
+		 - `myGetText.get("New game")`
+		 - `myGetText.get("Hello ::user::, this text should be translated", { user:"foo" })`
 
-	@:noCompletion
+	**/
 	public inline function get(msgId:String, ?vars:Dynamic) : LocaleString {
 		var str = dict.exists(msgId) && dict.get(msgId)!="" ? dict.get(msgId) : msgId;
+
 		// In-text variables
 		if( vars!=null )
 			for(k in Reflect.fields(vars))
@@ -167,12 +186,28 @@ class GetText2 {
 		if( str.indexOf(TRANSLATOR_NOTE)>=0 )  str = str.substr( 0, str.indexOf(TRANSLATOR_NOTE) );
 		if( str.indexOf(COMMENT)>=0 )  str = str.substr( 0, str.indexOf(COMMENT) );
 		if( str.indexOf(CONTEXT_DISAMB)>=0 )  str = str.substr( 0, str.indexOf(CONTEXT_DISAMB) );
+
 		return untranslated(str);
 	}
 
 
+	/**
+		Return TRUE if given string has a translated version.
+	**/
+	public inline function hasTranslation(msgId:String) {
+		return dict.exists(msgId);
+	}
+
+
+	/**
+		Turn any value to a LocaleString type, which is useful to keep function type parameters clean.
+		Example: if you have method that expects a LocaleString (eg. `sayMessage(msg:LocaleString)`),
+		you can pass parameters that are not supposed to be translated by doing
+		`sayMessage( myGetText.untranslated("Do not translate") )`. The "Do not translate" string will be
+		passed as-is and will not be exported in PO during extraction.
+	**/
 	public inline function untranslated(str:Dynamic) : LocaleString {
-		return new LocaleString(Std.string(str));
+		return new LocaleString( Std.string(str) );
 	}
 
 
@@ -433,15 +468,6 @@ class GetText2 {
 	}
 
 
-	static function formatPoString(str:String) {
-		str = StringTools.replace(str, '"', '\"');
-		str = StringTools.replace(str, "\n", "\\n");
-		// var lines = str.split("\n");
-		// str = lines.join('"\n"');
-		return str;
-	}
-
-
 	/**
 		Write a POT file from given PoEntries
 	**/
@@ -473,11 +499,11 @@ class GetText2 {
 
 			// Context disambiguation
 			if( e.contextDisamb!=null )
-				lines.push('msgctxt "${formatPoString(e.contextDisamb)}"');
+				lines.push('msgctxt "${escapePoString(e.contextDisamb)}"');
 
 			// String
-			lines.push('msgid "${formatPoString(e.msgid)}"');
-			lines.push('msgstr "${formatPoString(e.msgstr)}"');
+			lines.push('msgid "${escapePoString(e.msgid)}"');
+			lines.push('msgstr "${escapePoString(e.msgstr)}"');
 			lines.push('');
 		}
 
