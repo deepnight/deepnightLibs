@@ -707,21 +707,21 @@ class PoEntry {
 	public function addComment(str:String) {
 		if( comment==null )
 			comment = str;
-		else
+		else if( comment.indexOf(str)<0 )
 			comment+=" ; "+str;
 	}
 
 	public function addTranslatorNote(str:String) {
 		if( translatorNote==null )
 			translatorNote = str;
-		else
+		else if( translatorNote.indexOf(str)<0 )
 			translatorNote+=" ; "+str;
 	}
 
 	public function addContextDisambiguation(str:String) {
 		if( contextDisamb==null )
 			contextDisamb = str;
-		else
+		else if( contextDisamb.indexOf(str)<0 )
 			contextDisamb+=" ; "+str;
 	}
 
