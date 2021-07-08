@@ -273,7 +273,7 @@ class GetText2 {
 
 				// Entry not found in reference
 				if( reference!=null && !refKeys.exists(e.key) )
-					_error(e.key, 'Not in reference file');
+					_error(e.key, 'Entry not present in reference file');
 
 				// "::" count mismatch
 				if( e.key.split("::").length != e.value.split("::").length ) {
