@@ -110,7 +110,7 @@ class GetText {
 
 
 	static function escapePoString(str:String) {
-		str = StringTools.replace(str, '"', '\\"');
+		str = Lib.safeEscape(str, '"');
 		str = StringTools.replace(str, "\n", "\\n");
 		return str;
 	}
