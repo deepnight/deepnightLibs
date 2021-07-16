@@ -110,13 +110,13 @@ class GetText {
 
 
 	static function escapePoString(str:String) {
-		str = StringTools.replace(str, '"', '\"');
+		str = StringTools.replace(str, '"', '\\"');
 		str = StringTools.replace(str, "\n", "\\n");
 		return str;
 	}
 
 	static function unescapePoString(str:String) {
-		str = StringTools.replace(str, '\"', '"');
+		str = StringTools.replace(str, '\\"', '"');
 		str = StringTools.replace(str, "\\n", "\n");
 		return str;
 	}
