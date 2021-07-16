@@ -37,6 +37,16 @@ class Lib {
 	}
 
 
+
+	/**
+		Escape specificied character in given string, but doesn't re-escape if it's already.
+	**/
+	public static inline function safeEscape(str:String, escapedChar:String) : String {
+		var r = new EReg( "([^\\\\]|^)\\"+escapedChar, "gim" );
+		return r.replace(str, "$1\\"+escapedChar);
+	}
+
+
 	#if !macro
 
 	public static inline function countDaysUntil(now:Date, day:WeekDay) {
@@ -627,7 +637,6 @@ class Lib {
         return lines.join("\n");
     }
 
-
 	@:noCompletion
 	public static function __test() {
 		CiAssert.equals( findMostFrequentValueInArray([0,0,1,0,1]), 0 );
@@ -660,6 +669,10 @@ class Lib {
 		CiAssert.isFalse( rectangleOverlaps(0,0,5,5, -1,0,1,1) );
 		CiAssert.isTrue( rectangleOverlaps(0,0,5,5, 2,2,1,1) );
 		CiAssert.isTrue( rectangleOverlaps(2,2,1,1, 0,0,5,5) );
+
+		CiAssert.equals( safeEscape(' \"hello\" ', '"'),	' \\"hello\\" ');
+		CiAssert.equals( safeEscape(' "hello" ', '"'),		' \\"hello\\" ');
+		CiAssert.equals( safeEscape(' "hello" \"world" ', '"'), ' \\"hello\\" \\"world\\" ');
 	}
 
 	#end // End of "if macro"
