@@ -182,11 +182,6 @@ class Bresenham {
 		return pts;
 	}
 
-	static inline function _iterateHorizontal(fx,fy, tx, cb:Int->Int->Void) {
-		for(x in fx...tx+1)
-			cb(x,fy);
-	}
-
 	/**
 	 * A helper function to iterate over all integer tiles of a disc and call a callback
 	 * for each one of them.
@@ -223,7 +218,7 @@ class Bresenham {
 		}
 	}
 
-/**
+	/**
 	 * A helper function to iterate over all integer tiles of the border of a circle and call a callback
 	 * for each one of them.
 	 * 
@@ -500,7 +495,11 @@ class Bresenham {
 			return valid;
 		}
 	}
-
+	
+	static inline function _iterateHorizontal(fx,fy, tx, cb:Int->Int->Void) {
+		for(x in fx...tx+1)
+			cb(x,fy);
+	}
 
 	@:noCompletion
 	public static function __test() {
