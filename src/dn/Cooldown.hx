@@ -25,17 +25,56 @@ private class CdInst {
 	}
 }
 
+/**
+ * The `Cooldown` class allows you to manage various state effects that expire after a set amount of time.
+ * 
+ * **Name of cooldowns**
+ * 
+ * Cooldown names are either a string or a string + an integer. This allows you to create cooldowns that share a name
+ * but are different.
+ * 
+ * *Examples*:  
+ * `cd.setMs("punch", 400);`  
+ * `cd.setF("jump" + 1, 320);`
+ * 
+ */
 class Cooldown {
+	/**
+	 * The current list of active cooldowns
+	 */
 	public var cdList                : Array<CdInst>;
-	var fastCheck                    : haxe.ds.IntMap<Bool>;
+
+	/**
+	 * The base FPS value from which time conversion is based off
+	 */
 	public var baseFps(default,null) : Float;
 
+	/**
+	 * Convert milliseconds to frames
+	 * @param ms Amount of milliseconds
+	 * @return Float Equivalent amount in frames
+	 */
 	public inline function msToFrames(ms:Float) return ms * baseFps / 1000.;
+	
+	/**
+	 * Convert seconds to frames
+	 * @param ms Amount of seconds
+	 * @return Float Equivalent amount in frames
+	 */
 	public inline function secToFrames(s:Float) return s * baseFps;
 
+	/**
+	 * The available indices this cooldown class has available.
+	 */
 	@:allow(dn.CdInst)
 	public static var INDEXES : Array<String>;
 
+	var fastCheck: haxe.ds.IntMap<Bool>;
+
+	/**
+	 * Create a new `Cooldown` tracker
+	 * @param fps The base FPS value at which you want to track cooldowns
+	 */
 	public function new(fps:Float) {
 		if( INDEXES == null )
 			if( haxe.rtti.Meta.getType(dn.Cooldown).indexes!=null )
@@ -44,32 +83,131 @@ class Cooldown {
 		baseFps = fps;
 	}
 
+	/**
+	 * Invalidate this instance. Use `reset` to put it into working order again.
+	 */
 	public function destroy() {
 		cdList = null;
 		fastCheck = null;
 	}
 
+	/**
+	 * Reset the cooldowns that exist. 
+	 * 
+	 * This simply deletes the tracked cooldowns, and does not fire any events on them. 
+	 */
 	public inline function reset() {
 		cdList = new Array();
 		fastCheck = new haxe.ds.IntMap();
 	}
 
 	#if display
+	/**
+	 * Checks whether the cooldown with the associated name is active
+	 * @param k name of the cooldown to check
+	 * @return Bool `true` if it is still on cooldown
+	 */
 	public function has( k : String ) : Bool return false;
+
+	/**
+	 * Checks whether the cooldown exists, and if it does not also creates it
+	 * @param k name of the cooldown to check
+	 * @param seconds cooldown in seconds
+	 * @return Bool `true` if the cooldown exists
+	 */
 	public function hasSetS( k : String, seconds : Float ) : Bool return false;
+
+	/**
+	 * Checks whether the cooldown exists, and if it does not also creates it
+	 * @param k name of the cooldown to check
+	 * @param ms cooldown in milliseconds
+	 * @return Bool `true` if the cooldown exists
+	 */
 	public function hasSetMs( k : String, ms : Float ) : Bool return false;
+
+	/**
+	 * Checks whether the cooldown exists, and if it does not also creates it
+	 * @param k name of the cooldown to check
+	 * @param frames cooldown in frames
+	 * @return Bool `true` if the cooldown exists
+	 */
 	public function hasSetF( k : String, frames : Float ) : Bool return false;
+
+	/**
+	 * Removes a cooldown from the list
+	 * @param k name of the cooldown to remove
+	 */
 	public function unset( k : String ) {}
+
+	/**
+	 * Get the remaining time of a cooldown
+	 * @param k name of the cooldown
+	 * @return Float time remaining in seconds
+	 */
 	public function getS( k:String ) : Float return 0.;
+
+	/**
+	 * Get the remaining time of a cooldown
+	 * @param k name of the cooldown
+	 * @return Float time remaining in milliseconds
+	 */
 	public function getMs( k : String ) : Float return 0.;
+
+	/**
+	 * Get the remaining time of a cooldown
+	 * @param k name of the cooldown
+	 * @return Float time remaining in frames
+	 */
 	public function getF( k : String ) : Float return 0.;
+
+	/**
+	 * Create or overwrite a cooldown
+	 * @param k name of the cooldown
+	 * @param milliSeconds time in milliseconds
+	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
+	 * @param onComplete A callback invoked once this cooldown completes
+	 */
 	public function setMs( k : String, milliSeconds:Float, allowLower=true, ?onComplete:Void->Void ){}
+
+	/**
+	 * Create or overwrite a cooldown
+	 * @param k name of the cooldown
+	 * @param seconds time in seconds
+	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
+	 * @param onComplete A callback invoked once this cooldown completes
+	 */
 	public function setS( k : String, seconds:Float, allowLower=true, ?onComplete:Void->Void ){}
+
+	/**
+	 * Create or overwrite a cooldown
+	 * @param k name of the cooldown
+	 * @param frames time in frames
+	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
+	 * @param onComplete A callback invoked once this cooldown completes
+	 */
 	public function setF( k : String, frames:Float, allowLower=true, ?onComplete:Void->Void ){}
+
+	/**
+	 * Get the initial cooldown time
+	 * @param k name of the cooldown
+	 * @return Float the initial cooldown value in frames
+	 */
 	public function getInitialValueF( k : String ) : Float return 0.;
 
-	/** Returns cooldown progression from 1 (start) to 0 (end) **/
+	/**
+	 * Get the completion ratio of a given cooldown
+	 * 
+	 * Starts at 1. and goes to 0. when completed
+	 * @param k cooldown to check
+	 * @return Float the ratio 
+	 */
 	public function getRatio( k : String ) : Float return 0.;
+
+	/**
+	 * Set the completion callback for a given cooldown
+	 * @param k name of the cooldown to set
+	 * @param onceCB callback that will be called once the cooldown completes 
+	 */
 	public function onComplete( k : String, onceCB : Void->Void ){}
 	#else
 
@@ -328,16 +466,10 @@ class Cooldown {
 		return [ for( cd in cdList ) cd.toString() ].join("\n");
 	}
 
-	/*
-	// supprime tous les cooldowns dont la clé contient "search"
-	public inline function unsetAll(search:String) {
-		for ( cd in cdList ) {
-			if( cd.k.indexOf(search) >= 0 )
-				unsetObject(cd);
-		}
-	}
-	*/
-
+	/**
+	 * Update all cooldowns, and trigger callbacks if they expire
+	 * @param dt Delta time since last update in seconds
+	 */
 	public function update(dt:Float) {
 		var i = 0;
 		while( i<cdList.length ) {
@@ -366,6 +498,12 @@ class Cooldown {
 		for(i in 0...fps) coolDown.update(1);
 		CiAssert.isFalse( coolDown.has("test") );
 		CiAssert.isTrue( coolDown.getRatio("test") == 0 );
+
+		coolDown.setF("jump" + 2, 20);
+		CiAssert.isFalse(coolDown.has("jump"));
+		CiAssert.isTrue(coolDown.has("jump" + 2));
+		var id = 2;
+		CiAssert.isTrue(coolDown.has("jump" + id));
 		#end
 	}
 }
