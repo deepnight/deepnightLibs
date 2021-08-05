@@ -64,7 +64,7 @@ class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
 		if( autoUpdateSize!=null && bevelSize!=autoUpdateSize() )
 			bevelSize = autoUpdateSize();
 
-		if( !Std.is(s, h2d.Scene) )
+		if( !Std.isOfType(s, h2d.Scene) )
 			throw "OverlayTextureFilter should only be attached to a 2D Scene";
 
 		if( invalidated ) {
