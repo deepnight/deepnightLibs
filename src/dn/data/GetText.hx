@@ -263,7 +263,7 @@ class GetText {
 				var nref = Lambda.count(refKeys);
 				var ngt = getEntryCount();
 				if( nref!=ngt )
-					errors.push('Entry count in this file ($ngt) differs from reference file ($nref)');
+					errors.push('Entry count in this PO fire ($ngt) differs from reference PO file ($nref)');
 			}
 
 			// Check all entries
@@ -276,7 +276,7 @@ class GetText {
 
 				// Entry not found in reference
 				if( reference!=null && !refKeys.exists(e.key) )
-					_error(e.key, 'Entry not present in reference file');
+					_error(e.key, 'Entry not present in reference PO file');
 
 				// "::" count mismatch
 				if( e.key.split("::").length != e.value.split("::").length ) {
