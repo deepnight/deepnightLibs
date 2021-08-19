@@ -13,6 +13,11 @@ class SavedData {
 	public static var DEFAULT_FILE_EXT = "dnsav";
 
 
+	public static function exists(name:String) {
+		var raw = read(name);
+		return raw!=null;
+	}
+
 	/**
 		Save given anonymous structure using specified SaveFormat. "Saving" has different meanings depending on current platform (write to disk, use cookies etc.)
 	**/
@@ -152,9 +157,11 @@ class SavedData {
 	/**
 		Throws an exception if given anonymous struct contains fields that aren't supported in specified SaveFormat.
 	**/
-	static function checkSupport(v:Dynamic, format:SaveFormat) {
+	public static function checkSupport(v:Dynamic, format:SaveFormat, throwIfFail=true) {
+
 		inline function _unsupported(v:Dynamic) {
-			throw format+" format doesn't support value type "+Type.typeof(v);
+			if( throwIfFail )
+				throw format+" format doesn't support value type "+Type.typeof(v);
 			return false;
 		}
 
