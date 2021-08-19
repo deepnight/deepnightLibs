@@ -128,6 +128,11 @@ class GetText {
 		 - `myGetText._ ("New game")`
 		 - `myGetText._ ("Hello ::user::, this text should be translated", { user:"foo" })`
 
+		Text entries might contain extra info:
+		 - "bla bla||?general comment"
+		 - "bla bla||!translator note"
+		 - "bla bla||@context disambiguation"
+
 	**/
 	public macro function _(ethis:Expr, msgId:ExprOf<String>, ?vars:ExprOf<Dynamic>) : ExprOf<LocaleString> {
 		switch msgId.expr {
