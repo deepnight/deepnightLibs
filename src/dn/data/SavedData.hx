@@ -2,6 +2,7 @@ package dn.data;
 
 enum SaveFormat {
 	Serialized;
+	SerializedCRC;
 	Json;
 }
 
@@ -18,6 +19,13 @@ class SavedData {
 		return raw!=null;
 	}
 
+
+	static var SALT = "s*al!t";
+	static function makeCRC(data:String) {
+		return haxe.crypto.Sha1.encode(data + haxe.crypto.Sha1.encode(data + SALT)).substr(4, 32);
+	}
+
+
 	/**
 		Save given anonymous structure using specified SaveFormat. "Saving" has different meanings depending on current platform (write to disk, use cookies etc.)
 	**/
@@ -25,9 +33,14 @@ class SavedData {
 		if( !checkSupport(object, format) )
 			return false;
 
-		var ser = switch format {
+		var ser : String = switch format {
 			case Serialized:
 				haxe.Serializer.run(object);
+
+			case SerializedCRC:
+				var ser = haxe.Serializer.run(object);
+				var crc = makeCRC(ser);
+				ser + "|||" + crc;
 
 			case Json:
 				haxe.Json.stringify(object, (k:Dynamic,v:Dynamic)->{
@@ -56,6 +69,15 @@ class SavedData {
 		var loaded : T = switch format {
 			case Serialized:
 				try haxe.Unserializer.run(ser) catch(_) def;
+
+			case SerializedCRC:
+				var parts = ser.split("|||");
+				var ser = parts[0];
+				var crc = parts[1];
+				if( crc!=makeCRC(ser) )
+					def;
+				else
+					try haxe.Unserializer.run(ser) catch(_) def;
 
 			case Json:
 				try haxe.Json.parse(ser) catch(_) def;
