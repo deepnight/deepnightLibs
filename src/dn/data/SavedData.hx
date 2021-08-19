@@ -13,6 +13,9 @@ class SavedData {
 	public static var DEFAULT_SAVE_FOLDER = "";
 	public static var DEFAULT_FILE_EXT = "dnsav";
 
+	/** This requires hlsteam API **/
+	public static var USE_STEAM_CLOUD = false;
+
 
 	public static function exists(name:String) {
 		var raw = read(name);
@@ -140,6 +143,13 @@ class SavedData {
 		Write raw data
 	**/
 	static function write(name:String, ser:String) : Bool {
+		// Steam cloud
+		#if hlsteam
+		if( USE_STEAM_CLOUD && steam.Cloud.isEnabled() )
+			steam.Cloud.write( name, haxe.io.Bytes.ofString(ser) );
+		#end
+
+
 		#if sys
 
 		// Create missing dir
