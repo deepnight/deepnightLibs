@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.60",
+	"version": "1.0.61",
 	"classPath": "src/",
-	"releasenote": "New GetText (old ones still exists in legacy package). Many fixes.",
+	"releasenote": "New SavedData with Steam Cloud support (JS not yet implemented)",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
