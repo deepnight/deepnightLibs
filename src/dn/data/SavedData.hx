@@ -129,17 +129,19 @@ class SavedData {
 		// Steam cloud
 		#if hlsteam
 			if( USE_STEAM_CLOUD && steam.Cloud.isEnabled() && steam.Cloud.exists(name) ) {
-				try steam.Cloud.delete(name) catch(_) {}
+				try steam.Cloud.delete(name) catch(_) return false;
+				return true;
 			}
 		#end
 
 		// Local
 		#if sys
 			var path = makeFilePath(name);
-			sys.FileSystem.deleteFile(path);
+			try sys.FileSystem.deleteFile(path) catch(_) return false;
+			return true;
 		#else
-			#error "Requires Sys platform";
-			trace("Unsupported on this platform");
+			#error "SavedData is not yet supported on this platform.";
+			return false;
 		#end
 	}
 
@@ -169,8 +171,7 @@ class SavedData {
 			var ser = try sys.io.File.getContent( makeFilePath(name) ) catch(_) null;
 			return ser;
 		#else
-			#error "Requires Sys platform";
-			trace("Unsupported on this platform");
+			#error "SavedData is not yet supported on this platform.";
 			return null;
 		#end
 	}
@@ -200,8 +201,7 @@ class SavedData {
 			try sys.io.File.saveContent( makeFilePath(name) , ser) catch(_) return false;
 			return true;
 		#else
-			#error "Requires Sys platform";
-			trace("Unsupported on this platform");
+			#error "SavedData is not yet supported on this platform.";
 			return false;
 		#end
 	}
