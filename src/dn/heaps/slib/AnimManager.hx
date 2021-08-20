@@ -50,7 +50,7 @@ private class AnimInstance {
 
 private class StateAnim {
 	public var group : String;
-	public var priority : Int;
+	public var priority : Float;
 	public var cond : Void->Bool;
 	public var spd : Float;
 
@@ -457,20 +457,20 @@ class AnimManager {
 	}
 
 	public function appendStateAnim(group:String, ?spd=1.0, ?condition:Void->Bool) {
-		var maxPrio = 0;
+		var maxPrio = 0.;
 		for(s in stateAnims)
-			maxPrio = M.imax(s.priority, maxPrio);
+			maxPrio = M.fmax(s.priority, maxPrio);
 		registerStateAnim(group, maxPrio+1, spd, condition);
 	}
 
 	public function prependStateAnim(group:String, ?spd=1.0, ?condition:Void->Bool) {
-		var minPrio = 0;
+		var minPrio = 0.;
 		for(s in stateAnims)
-			minPrio = M.imin(s.priority, minPrio);
+			minPrio = M.fmin(s.priority, minPrio);
 		registerStateAnim(group, minPrio-1, spd, condition);
 	}
 
-	public function registerStateAnim(group:String, priority:Int, ?spd=1.0, ?condition:Void->Bool) {
+	public function registerStateAnim(group:String, priority:Float, ?spd=1.0, ?condition:Void->Bool) {
 		if( condition==null )
 			condition = function() return true;
 
@@ -493,7 +493,7 @@ class AnimManager {
 			}
 	}
 
-	public function removeStateAnim(group:String, priority:Int) {
+	public function removeStateAnim(group:String, priority:Float) {
 		var i = 0;
 		while( i<stateAnims.length )
 			if( stateAnims[i].group==group && stateAnims[i].priority==priority )
