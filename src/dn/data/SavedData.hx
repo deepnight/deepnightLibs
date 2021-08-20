@@ -111,6 +111,9 @@ class SavedData {
 			}
 		}
 
+		if( loaded==null )
+			return def;
+
 		// Upgrade loaded object by adding missing fields.
 		// WARNING: objects nested in sub-arrays won't be crawled (nor upgraded)!
 		_iterateObj(def, loaded);
@@ -119,22 +122,56 @@ class SavedData {
 	}
 
 
+	/**
+		Deletes saved data under the given name.
+	**/
+	public static function delete(name:String) {
+		// Steam cloud
+		#if hlsteam
+			if( USE_STEAM_CLOUD && steam.Cloud.isEnabled() && steam.Cloud.exists(name) ) {
+				try steam.Cloud.delete(name) catch(_) {}
+			}
+		#end
+
+		// Local
+		#if sys
+			var path = makeFilePath(name);
+			sys.FileSystem.deleteFile(path);
+		#else
+			#error "Requires Sys platform";
+			trace("Unsupported on this platform");
+		#end
+	}
+
+
 
 	/**
 		Read raw data
 	**/
 	static function read(name:String) : Null<String> {
+		// Steam cloud
+		#if hlsteam
+			if( USE_STEAM_CLOUD && steam.Cloud.isEnabled() && steam.Cloud.exists(name) ) {
+				try {
+					trace("found cloud for "+name);
+					var bytes = steam.Cloud.read(name);
+					if( bytes.length>0 ) {
+						trace("returned cloud for "+name);
+						return bytes.toString();
+					}
+				}
+				catch(_) {}
+			}
+		#end
+
+		// Local
 		#if sys
-
-		var ser = try sys.io.File.getContent( makeFilePath(name) ) catch(_) null;
-		return ser;
-
+			var ser = try sys.io.File.getContent( makeFilePath(name) ) catch(_) null;
+			return ser;
 		#else
-
-		#error "Requires Sys platform";
-		trace("Unsupported on this platform");
-		return null;
-
+			#error "Requires Sys platform";
+			trace("Unsupported on this platform");
+			return null;
 		#end
 	}
 
@@ -145,31 +182,27 @@ class SavedData {
 	static function write(name:String, ser:String) : Bool {
 		// Steam cloud
 		#if hlsteam
-		if( USE_STEAM_CLOUD && steam.Cloud.isEnabled() )
-			steam.Cloud.write( name, haxe.io.Bytes.ofString(ser) );
+			if( USE_STEAM_CLOUD && steam.Cloud.isEnabled() )
+				steam.Cloud.write( name, haxe.io.Bytes.ofString(ser) );
 		#end
 
-
+		// Local
 		#if sys
-
-		// Create missing dir
-		if( !sys.FileSystem.exists( getSaveFolder() ) ) {
-			try sys.FileSystem.createDirectory( getSaveFolder() )
-			catch(_) {
-				trace("Couldn't create dir "+getSaveFolder());
-				return false;
+			// Create missing dir
+			if( !sys.FileSystem.exists( getSaveFolder() ) ) {
+				try sys.FileSystem.createDirectory( getSaveFolder() )
+				catch(_) {
+					trace("Couldn't create dir "+getSaveFolder());
+					return false;
+				}
 			}
-		}
 
-		try sys.io.File.saveContent( makeFilePath(name) , ser) catch(_) return false;
-		return true;
-
+			try sys.io.File.saveContent( makeFilePath(name) , ser) catch(_) return false;
+			return true;
 		#else
-
-		#error "Requires Sys platform";
-		trace("Unsupported on this platform");
-		return false;
-
+			#error "Requires Sys platform";
+			trace("Unsupported on this platform");
+			return false;
 		#end
 	}
 
