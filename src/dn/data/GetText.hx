@@ -398,12 +398,12 @@ class GetText {
 			return [];
 		}
 
-		// "Add" method
+		// "Add entry" method
 		var all : Array<PoEntry> = [];
 		function _addEntry(id:String, lines:Array<String>) {
 			var e = new PoEntry( Lib.trimEmptyLines( lines.join("\n") ) );
 			if( id!=null )
-				e.addContextDisambiguation(id);
+				e.addContextDisambiguation(fp.fileWithExt+"#"+id);
 			e.references.push(fp.fileWithExt);
 			all.push(e);
 		}
