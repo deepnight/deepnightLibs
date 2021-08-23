@@ -122,6 +122,7 @@ class GetText {
 	}
 
 
+
 	/**
 		Get a localized text entry, with optional in-text variables.
 		Examples:
@@ -364,6 +365,71 @@ class GetText {
 		return all;
 	}
 
+
+
+	/**
+		Parse a text file containing multiple "sections".
+
+		The default regular expression will look for lines containing an identifier between brackets (only letters, numbers and underscores). Ex: *"[someIdentifier_01]"*. Detected section identifiers will be stored in the "disambiguation comments" of the PO format (ie. `msgctxt`).
+
+		The section regex can be overridden by using the `sectionReg` parameter.
+
+	**/
+	public static function parseTextSections(filePath:String, ?sectionReg:EReg) {
+		if( VERBOSE ) Lib.println('');
+
+		// Default section regex
+		if( sectionReg==null )
+			sectionReg = ~/^\s*\[([a-z0-9_]+)\]\s*$/gi;
+
+		// Check file
+		if( !sys.FileSystem.exists(filePath) ) {
+			error(filePath, "File not found");
+			return [];
+		}
+
+		Lib.println('Parsing Text with sections ($filePath)...');
+
+		// Read file
+		var fp = FilePath.fromFile(filePath);
+		var raw = try sys.io.File.getContent(filePath) catch(_) null;
+		if( raw==null ) {
+			error(filePath, "Couldn't read file: "+filePath);
+			return [];
+		}
+
+		// "Add" method
+		var all : Array<PoEntry> = [];
+		function _addEntry(id:String, lines:Array<String>) {
+			var e = new PoEntry( Lib.trimEmptyLines( lines.join("\n") ) );
+			if( id!=null )
+				e.addContextDisambiguation(id);
+			e.references.push(fp.fileWithExt);
+			all.push(e);
+		}
+
+		// Detect sections and add entries
+		var lastId : String = null;
+		var entryLines : Array<String> = [];
+		for( line in raw.split("\n") ) {
+			line = StringTools.replace(line, "\r","");
+			if( sectionReg.match(line) ) {
+				if( entryLines.length>0 )
+					_addEntry(lastId, entryLines);
+				lastId = sectionReg.matched(1);
+				entryLines = [];
+			}
+			else
+				entryLines.push(line);
+		}
+		if( entryLines.length>0 )
+			_addEntry(lastId, entryLines);
+
+		return all;
+	}
+
+
+
 	/**
 		Parse LDtk
 	**/
@@ -493,6 +559,9 @@ class GetText {
 
 
 	#if castle
+	/**
+		Parse a CastleDB file and extract Texts that were flagged as "Localizable".
+	**/
 	public static function parseCastleDB(filePath:String, globalComment="CastleDB") {
 		if( VERBOSE ) Lib.println('');
 		if( !sys.FileSystem.exists(filePath) ) {
@@ -627,17 +696,17 @@ class GetText {
 		];
 
 		for(e in entries) {
-			// References
-			for(r in e.references)
-				lines.push('#: "$r"'); // TODO fix relative paths when POT is saved in a sub dir
+			// Comment
+			if( e.comment!=null )
+				lines.push('# ${e.comment}');
 
 			// Translator note
 			if( e.translatorNote!=null )
 				lines.push('#. ${e.translatorNote}');
 
-			// Comment
-			if( e.comment!=null )
-				lines.push('# ${e.comment}');
+			// References
+			for(r in e.references)
+				lines.push('#: "$r"'); // TODO fix relative paths when POT is saved in a sub dir
 
 			// Context disambiguation
 			if( e.contextDisamb!=null )
