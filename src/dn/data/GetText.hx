@@ -249,7 +249,10 @@ class GetText {
 	public function check( ?reference:GetText, ?checkEntry:(msgId:String, translation:String)->Null<String> ) : Array<String> {
 		var errors = [];
 		inline function _error(msgId:String, err:String) {
-			errors.push('In "$msgId"  =>  '+err);
+			var clean = StringTools.replace(msgId,"\n","");
+			if( clean.length>20 )
+				clean = clean.substr(0,20)+"[...]";
+			errors.push('In "$clean"  =>  '+err);
 		}
 
 		try {
