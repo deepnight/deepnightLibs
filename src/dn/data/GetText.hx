@@ -32,6 +32,7 @@ class GetText {
 	public static var COMMENT_REG = ~/(\|\|\?(.*?))($|\|\|)/i; //  ||?a comment
 	public static var CONTEXT_DISAMB_REG = ~/(\|\|@(.*?))($|\|\|)/i; //  ||@some context
 	public static var TRANSLATOR_NOTE_REG = ~/(\|\|!(.*?))($|\|\|)/i; //  ||!translator note
+	static var VDF_ACHIEVEMENT_CONTEXT = "vdfAchievement#";
 
 	/*******************************************************************************
 		CLIENT-SIDE API
@@ -368,6 +369,112 @@ class GetText {
 		return all;
 	}
 
+
+
+	/**
+		Extract Steam achievements titles and descriptions from a VDF file (as downloaded from your Steam app "Achievement localization" section).
+	**/
+	public static function parseAchievementsVdf(filePath:String) {
+		if( VERBOSE ) Lib.println('');
+
+		// Check file
+		if( !sys.FileSystem.exists(filePath) ) {
+			error(filePath, "File not found");
+			return [];
+		}
+
+		Lib.println('Parsing VDF ($filePath)...');
+
+		// Read file
+		var fp = FilePath.fromFile(filePath);
+		var raw = try sys.io.File.getContent(filePath) catch(_) null;
+		if( raw==null ) {
+			error(filePath, "Couldn't read file: "+filePath);
+			return [];
+		}
+
+		// Parse VDF
+		var all : Array<PoEntry> = [];
+		var tokenReg = ~/"(NEW_ACHIEVEMENT_[0-9]+_[0-9]+_(DESC|NAME))"\s+"/i;
+		while( tokenReg.match(raw) ) {
+			var left = tokenReg.matchedPos().pos + tokenReg.matchedPos().len;
+			var right = left;
+			var skip = false;
+			while( right<raw.length ) {
+				if( raw.charAt(right)=='\\' && !skip )
+					skip = true;
+				else if( raw.charAt(right)=='"' && !skip ) {
+					var e = new PoEntry( raw.substring(left,right), VDF_ACHIEVEMENT_CONTEXT + tokenReg.matched(1) );
+					e.references.push( fp.fileWithExt );
+					e.addTranslatorNote("This is a Steam achievement.");
+					all.push(e);
+					break;
+				}
+				else if( skip )
+					skip = false;
+				right++;
+			}
+			raw = tokenReg.matchedRight();
+		}
+
+		return all;
+	}
+
+
+	/**
+		Write Steam Achievements translations from a PO file back to a VDF file.
+		This VDF can then be uploaded through Steam app backoffice to update existing achievements.
+
+		`langId` should be a valid language identifier for steam (eg. "english", "russian" etc.)
+	**/
+	public static function writeAchievementsVdfFromPo(poPath:String, vdfPath:String, langId:String) {
+		Lib.println('Writing VDF ($vdfPath) from PO ($poPath)...');
+		// Load PO
+		var gt = new GetText();
+		var bytes =
+			try sys.io.File.getBytes(poPath)
+			catch(_) {
+				error(poPath, "Couldn't read PO");
+				return false;
+			}
+		gt.readPo(bytes);
+
+		// Init VDF
+		var header = [
+			'"lang"',
+			'{',
+			'	"Language"	"$langId"',
+			'	"Tokens"',
+			'	{',
+		];
+		var footer = [
+			'	}',
+			'}',
+		];
+		if( sys.FileSystem.exists(vdfPath) )
+			try sys.FileSystem.deleteFile(vdfPath)
+			catch(_) { error(vdfPath, "Couldn't init VDF output file"); return false; }
+
+		// Write header
+		var fo = sys.io.File.write(vdfPath, false);
+		fo.writeString( header.join("\n")+"\n" );
+
+		// Extract translated values
+		var vdfFp = FilePath.fromFile(vdfPath);
+		for( e in gt.getRawDict().keyValueIterator() )
+			if( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT)>=0 ) {
+				var token = e.key.substr( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT) + VDF_ACHIEVEMENT_CONTEXT.length );
+				var loc = e.value;
+				trace('$token => $loc');
+				fo.writeString('		"$token" "$loc"\n');
+			}
+
+		// Write footer
+		fo.writeString( footer.join("\n") );
+		fo.close();
+
+		return true;
+	}
 
 
 	/**
