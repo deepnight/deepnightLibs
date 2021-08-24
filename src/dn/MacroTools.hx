@@ -51,6 +51,29 @@ class MacroTools {
 		return { pos:Context.currentPos(), expr:EConst( CString( Date.now().toString() ) ) }
 	}
 
+	public static macro function getBuildVersion() {
+		var parts = [ (~/[^a-z0-9]/gi).replace( Date.now().toString(), "_" ) ];
+		if( Context.defined("js") ) parts.push("js");
+		if( Context.defined("neko") ) parts.push("neko");
+
+		if( Context.defined("hldx") ) parts.push("hldx");
+		else if( Context.defined("hlsdl") ) parts.push("hlsdl");
+		else if( Context.defined("hl") ) parts.push("hl");
+
+		if( Context.defined("hlsteam") ) parts.push("steam");
+		if( Context.defined("debug") ) parts.push("debug");
+
+		var base : Expr = {
+			pos: Context.currentPos(),
+			expr: EConst( CString(parts.join("-")) ),
+		}
+		if( Context.defined("hl") ) {
+			return macro $base + ( hl.Api.is64() ? "-64" : "-32 ");
+		}
+		else
+			return base;
+	}
+
 	/** Return the compilation date as a human-readable format: "Month XXth (HH:MM)" **/
 	public static macro function getHumanBuildDate() {
 		var d = Date.now();
