@@ -72,6 +72,7 @@ class GetText {
 		var pendingMsgId = false;
 		var pendingMsgStr = false;
 		for( line in lines ) {
+			line = StringTools.replace(line, "\r", "");
 			if( contextReg.match(line) ) {
 				// Found msgctxt
 				pendingMsgId = false;
@@ -96,11 +97,10 @@ class GetText {
 			}
 			else if( stringReg.match(line) ) {
 				// Continue on multilines
-				if( pendingMsgId )
+				if( pendingMsgId ) 
 					lastId += unescapePoString( stringReg.matched(1) );
-				else if( pendingMsgStr ) {
+				else if( pendingMsgStr )
 					dict.set(lastId, dict.get(lastId) + unescapePoString( stringReg.matched(1) ) );
-				}
 			}
 			else {
 				// Anything else
