@@ -97,7 +97,7 @@ class GetText {
 			}
 			else if( stringReg.match(line) ) {
 				// Continue on multilines
-				if( pendingMsgId ) 
+				if( pendingMsgId )
 					lastId += unescapePoString( stringReg.matched(1) );
 				else if( pendingMsgStr )
 					dict.set(lastId, dict.get(lastId) + unescapePoString( stringReg.matched(1) ) );
@@ -465,7 +465,6 @@ class GetText {
 			if( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT)>=0 ) {
 				var token = e.key.substr( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT) + VDF_ACHIEVEMENT_CONTEXT.length );
 				var loc = e.value;
-				trace('$token => $loc');
 				fo.writeString('		"$token" "$loc"\n');
 			}
 
