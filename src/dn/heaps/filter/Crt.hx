@@ -14,6 +14,9 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 	/** Verticval screen distorsion intensity (0-1), defaults to 0.5 **/
 	public var curvatureV(default,set) : Float;
 
+	/** Dark vignetting intensity (0-1), defaults to 0.5 **/
+	public var vignetting(default,set) : Float;
+
 	/** Height of the scanlines **/
 	public var scanlineSize(default,set) : Int;
 
@@ -46,6 +49,10 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 
 	inline function set_curvatureV(v:Float) {
 		return shader.curvature.x = v<=0 ?  99  :  2 + (1-v) * 10;
+	}
+
+	inline function set_vignetting(v:Float) {
+		return shader.vignetting = v;
 	}
 
 	inline function set_scanlineSize(v) {
@@ -92,9 +99,6 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 		bd.clear(neutral);
 		for(x in 0...bd.width)
 			bd.setPixel(x, 0, scanlineColor);
-		// for(y in 0...bd.height)
-		// for(x in 0...bd.width)
-		// 	bd.setPixel(x, y, Color.interpolateInt(neutral, scanlineColor, 1-y/bd.height));
 
 		scanlineTex = hxsl.Types.Sampler2D.fromBitmap(bd);
 		scanlineTex.filter = Nearest;
@@ -116,6 +120,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var overlay : Sampler2D;
 
 		@param var curvature : Vec2;
+		@param var vignetting : Float;
 		@param var alpha : Float;
 		@param var uvScale : Vec2;
 		@param var texelSize : Vec2;
@@ -128,7 +133,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			);
 		}
 
-		function curve(uv:Vec2) : Vec2 {
+		inline function curve(uv:Vec2) : Vec2 {
 			uv = uv*2 - 1;
 
 			var offset = abs(uv.yx) / curvature;
@@ -138,15 +143,25 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			return uv;
 		}
 
+		inline function vignette(uv:Vec2) : Float {
+			var off = max( abs(uv.y*2-1) / 4,  abs(uv.x*2-1) / 4 );
+			return 300 * off*off*off*off*off;
+		}
+
 		function fragment() {
+			// Distortion
 			var uv = curve( input.uv );
+
+			// Overlay texture
 			var sourceColor = texture.get(uv);
 			var overlayColor = mix( vec4(0.5), overlay.get(input.uv*uvScale), alpha );
-
 			pixelColor.rgba = vec4(
 				blendOverlay( sourceColor.rgb, overlayColor.rgb ),
 				sourceColor.a
 			);
+
+			// Vignetting
+			pixelColor.rgb *= 1 - vignetting * vignette(input.uv);
 
 			// Clear out-of-bounds pixels
 			pixelColor.rgba *=
