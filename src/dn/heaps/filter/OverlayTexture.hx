@@ -1,6 +1,6 @@
 package dn.heaps.filter;
 
-enum BevelType {
+enum OverlayTextureStyle {
 	/** Classic bevel (white on top-left, black on bottom-right)**/
 	Classic;
 
@@ -12,48 +12,57 @@ enum BevelType {
 
 	/** 2px wide bevel **/
 	Deep;
+
+	/** Horizontal light scanline **/
+	ScanlineLight;
+
+	/** Horizontal dark scanline **/
+	ScanlineDark;
 }
 
 // --- Filter -------------------------------------------------------------------------------
 class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
-	/** Opacity (0-1) of the bevel texture **/
+	/** Opacity (0-1) of the overlay texture **/
 	public var alpha(get,set) : Float;
 
-	/** Width & height of bevel grid blocks **/
-	public var bevelSize(default,set) : Int;
+	/** Width / height of texture blocks **/
+	public var size(default,set) : Int;
 
-	/** Bevel type (see `BevelType` enum)**/
-	public var bevelType(default,set) : BevelType;
+	/** Texture style (see `OverlayTextureStyle` enum)**/
+	public var textureStyle(default,set) : OverlayTextureStyle;
 
-	/** Define this method to automatically update texture bevel size based on your own criterions. It should return the expected bevel size. **/
+	/** Set this method to automatically update texture size based on your own criterions. It should return the expected texture block size (see `size` field). **/
 	public var autoUpdateSize: Null< Void->Int > = null;
 
 	var overlayTex : hxsl.Types.Sampler2D;
 	var invalidated = true;
 
 	/**
-		@param type Type of bevel, see `BevelType` enum
-		@param sizePx Width & height of the bevel grid blocks
+		@param style Style of the overlay texture (Classic, Soft, Top or Deep) ; see `OverlayTextureStyle` enum
+		@param sizePx Width & height of the overlay texture blocks
 	**/
-	public function new(type:BevelType = Classic, sizePx=2) {
+	public function new(style:OverlayTextureStyle = Classic, sizePx=2) {
 		super( new OverlayBlendShader() );
 		alpha = 1;
-		bevelType = type;
-		bevelSize = sizePx;
+		textureStyle = style;
+		size = sizePx;
 	}
 
-	inline function invalidate() invalidated = true;
-
-	inline function set_bevelSize(v) {
-		if( bevelSize!=v )
-			invalidate();
-		return bevelSize = v;
+	/** Force re-creation of the overlay texture (not to be called often!) **/
+	inline function invalidate() {
+		invalidated = true;
 	}
 
-	inline function set_bevelType(v) {
-		if( bevelType!=v )
+	inline function set_size(v) {
+		if( size!=v )
 			invalidate();
-		return bevelType = v;
+		return size = v;
+	}
+
+	inline function set_textureStyle(v) {
+		if( textureStyle!=v )
+			invalidate();
+		return textureStyle = v;
 	}
 	inline function set_alpha(v) return shader.alpha = v;
 	inline function get_alpha() return shader.alpha;
@@ -61,62 +70,73 @@ class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
 	override function sync(ctx:h2d.RenderContext, s:h2d.Object) {
 		super.sync(ctx, s);
 
-		if( autoUpdateSize!=null && bevelSize!=autoUpdateSize() )
-			bevelSize = autoUpdateSize();
-
 		if( !Std.isOfType(s, h2d.Scene) )
 			throw "OverlayTextureFilter should only be attached to a 2D Scene";
 
 		if( invalidated ) {
 			invalidated = false;
-			renderBevelTexture(ctx.scene.width, ctx.scene.height);
+			renderTexture(ctx.scene.width, ctx.scene.height);
 		}
+
+		if( autoUpdateSize!=null && size!=autoUpdateSize() ) {
+			size = autoUpdateSize();
+			// The invalidation will occur on next frame, to make sure scene width/height is properly set
+		}
+
 	}
 
-	function renderBevelTexture(screenWid:Float, screenHei:Float) {
+	function renderTexture(screenWid:Float, screenHei:Float) {
 		// Cleanup
 		if( overlayTex!=null )
 			overlayTex.dispose();
 
 		// Init overlay texture
-		var bd = new hxd.BitmapData(bevelSize,bevelSize);
+		var bd = new hxd.BitmapData(size,size);
 		bd.clear(0xFF808080);
-		switch bevelType {
-			case Classic:
-				for(x in 0...bevelSize-1) {
+		switch textureStyle {
+			case ScanlineLight:
+				for(x in 0...size)
 					bd.setPixel(x, 0, 0xFFffffff);
-					bd.setPixel(x+1, bevelSize-1, 0xFF000000);
+
+			case ScanlineDark:
+				for(x in 0...size)
+					bd.setPixel(x, 0, 0xFF000000);
+
+			case Classic:
+				for(x in 0...size-1) {
+					bd.setPixel(x, 0, 0xFFffffff);
+					bd.setPixel(x+1, size-1, 0xFF000000);
 				}
-				for(y in 0...bevelSize-1) {
+				for(y in 0...size-1) {
 					bd.setPixel(0, y, 0xffffffff);
-					bd.setPixel(bevelSize-1, y+1, 0xff333333);
+					bd.setPixel(size-1, y+1, 0xff333333);
 				}
 
 			case Soft:
-				for(x in 0...bevelSize-1) {
+				for(x in 0...size-1) {
 					bd.setPixel(x, 0, 0xFFffffff);
-					bd.setPixel(x+1, bevelSize-1, 0xff666666);
+					bd.setPixel(x+1, size-1, 0xff666666);
 				}
-				for(y in 0...bevelSize-1) {
+				for(y in 0...size-1) {
 					bd.setPixel(0, y, 0xFFffffff);
-					bd.setPixel(bevelSize-1, y+1, 0xff666666);
+					bd.setPixel(size-1, y+1, 0xff666666);
 				}
 
 			case Top:
-				for(x in 0...bevelSize-1) {
+				for(x in 0...size-1) {
 					bd.setPixel(x,0, 0xFFffffff);
-					bd.setPixel(x,bevelSize-1, 0xFF000000);
+					bd.setPixel(x,size-1, 0xFF000000);
 				}
 
 			case Deep:
 				for(pad in 0...2) {
-					for(x in pad...bevelSize-1-pad) {
+					for(x in pad...size-1-pad) {
 						bd.setPixel(x, pad, 0xFFffffff);
-						bd.setPixel(x+1, bevelSize-1-pad, 0xFF000000);
+						bd.setPixel(x+1, size-1-pad, 0xFF000000);
 					}
-					for(y in pad...bevelSize-1-pad) {
+					for(y in pad...size-1-pad) {
 						bd.setPixel(pad, y, 0xffffffff);
-						bd.setPixel(bevelSize-1-pad, y+1, 0xff333333);
+						bd.setPixel(size-1-pad, y+1, 0xff333333);
 					}
 				}
 
