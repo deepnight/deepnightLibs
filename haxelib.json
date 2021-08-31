@@ -6,7 +6,7 @@
 	"description": "The general personal libs I use in my Haxe projects.",
 	"version": "1.0.61",
 	"classPath": "src/",
-	"releasenote": "New SavedData with Steam Cloud support (JS not yet implemented)",
+	"releasenote": "New SavedData with Steam Cloud support (JS not yet implemented), new old-school CRT Heaps filter",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
