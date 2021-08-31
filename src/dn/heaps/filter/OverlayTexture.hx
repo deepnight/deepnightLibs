@@ -22,7 +22,7 @@ enum OverlayTextureStyle {
 
 // --- Filter -------------------------------------------------------------------------------
 class OverlayTexture extends h2d.filter.Shader<OverlayBlendShader> {
-	/** Opacity (0-1) of the overlay texture **/
+	/** Opacity (0-1) of the overlay texture (defaults to 1.0) **/
 	public var alpha(get,set) : Float;
 
 	/** Width / height of texture blocks **/
