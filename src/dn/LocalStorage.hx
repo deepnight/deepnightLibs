@@ -177,15 +177,17 @@ class LocalStorage {
 				Lib.iterateObjectRec(obj, (v,setter)->{
 					if( Type.typeof(v)==TObject ) {
 						var obj : Dynamic = cast v;
-						if( obj.__jsonEnum!=null )
+						if( obj.__jsonEnum!=null ) {
 							try {
-								var e = obj.__jsonEnum;
+								var enumStr : String = obj.__jsonEnum;
+								var e = Type.resolveEnum(enumStr);
 								var ev = e.createByName(obj.v, obj.p);
 								setter(ev);
 							}
 							catch(err:Dynamic) {
 								enumError = true;
 							}
+						}
 					}
 				});
 
