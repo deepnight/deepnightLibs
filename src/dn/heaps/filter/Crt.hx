@@ -27,7 +27,7 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 	var invalidated = true;
 
 	/**
-		@param sizePx Width & height of the overlay texture blocks
+		@param scanlineSize Height of the scanline overlay texture blocks
 	**/
 	public function new(scanlineSize=2, scanlineColor=0xffffff, alpha=1.0) {
 		super( new InternalShader() );
@@ -105,7 +105,7 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 		scanlineTex.wrap = Repeat;
 
 		// Update shader
-		shader.overlay = scanlineTex;
+		shader.scanline = scanlineTex;
 		shader.texelSize.set( 1/screenWid, 1/screenHei );
 		shader.uvScale = new hxsl.Types.Vec( screenWid / scanlineTex.width, screenHei / scanlineTex.width );
 	}
@@ -117,7 +117,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 
 	static var SRC = {
 		@param var texture : Sampler2D;
-		@param var overlay : Sampler2D;
+		@param var scanline : Sampler2D;
 
 		@param var curvature : Vec2;
 		@param var vignetting : Float;
@@ -152,11 +152,11 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			// Distortion
 			var uv = curve( input.uv );
 
-			// Overlay texture
+			// Scanlines texture
 			var sourceColor = texture.get(uv);
-			var overlayColor = mix( vec4(0.5), overlay.get(input.uv*uvScale), alpha );
+			var scanlineColor = mix( vec4(0.5), scanline.get(input.uv*uvScale), alpha );
 			pixelColor.rgba = vec4(
-				blendOverlay( sourceColor.rgb, overlayColor.rgb ),
+				blendOverlay( sourceColor.rgb, scanlineColor.rgb ),
 				sourceColor.a
 			);
 
