@@ -187,6 +187,21 @@ class Sfx {
 		channel = null;
 	}
 
+	/**
+		Stop sound with a fade-out
+	**/
+	public inline function stopWithFadeOut(duratonS:Float) {
+		fadeTo(0, duratonS, stop);
+	}
+
+	/**
+		Fade volume to given level
+	**/
+	public function fadeTo(vol:Float, duratonS=1.0, ?onComplete:Void->Void) {
+		if( isPlaying() )
+			channel.fadeTo(vol, duratonS, onComplete);
+	}
+
 
 	/**
 		Play sound on given group
@@ -195,6 +210,17 @@ class Sfx {
 		groupId = gid;
 		play(loop, vol);
 		return this;
+	}
+
+
+	/** Attach an effect to the currently playing sound **/
+	public inline function addEffect(e:Effect) {
+		if( isPlaying() )
+			channel.addEffect(e);
+	}
+
+	public inline function pitchRandomly(range=0.02) {
+		addEffect( new hxd.snd.effect.Pitch(1 + M.randRangeSym(range)) );
 	}
 
 
