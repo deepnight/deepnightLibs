@@ -10,10 +10,13 @@ import hxd.res.Sound;
 // --- GLOBAL PLAY GROUP ------------------------------------------------------
 #if !macro
 private class GlobalGroup {
-
 	var id : Int;
 	var volume : Float;
-	public var group : SoundGroup;
+
+	/** Currently associated Heaps SoundGroup **/
+	public var group(default,null) : SoundGroup;
+
+	/** Muted status of this group **/
 	public var muted(default,set) : Bool;
 
 	public function new(id:Int) {
@@ -22,10 +25,17 @@ private class GlobalGroup {
 		group = new hxd.snd.SoundGroup("global"+id);
 	}
 
+	/**
+		Set the group volume (0-1)
+	**/
 	public inline function setVolume(v) {
 		volume = M.fclamp(v,0,1);
 		group.volume = getVolume();
 	}
+
+	/**
+		Return current group volume
+	**/
 	public inline function getVolume() {
 		return muted ? 0 : volume;
 	}
@@ -66,6 +76,11 @@ class Sfx {
 	public var groupId : Int;
 	public var duration(get,never) : Float; inline function get_duration() return channel==null ? 0 : channel.duration;
 
+	/** This custom ID can be whatever you want. Purely for your own internal usage. **/
+	public var customIdentifier : Null<String>;
+
+	public var onEnd : Null< Void->Void >;
+
 
 	public function new(s:Sound) {
 		sound = s;
@@ -78,7 +93,6 @@ class Sfx {
 	}
 
 
-	public dynamic function onEnd() {}
 
 
 	inline function get_group() return getGlobalGroup(groupId).group;
@@ -172,7 +186,14 @@ class Sfx {
 	**/
 	inline function setChannel(c:Channel) {
 		channel = c;
-		channel.onEnd = ()->onEnd();
+		channel.onEnd = ()->{
+			if( onEnd==null )
+				return;
+
+			var cb = onEnd;
+			onEnd = null;
+			cb();
+		}
 	}
 
 	public inline function isPlaying() {
@@ -219,8 +240,11 @@ class Sfx {
 			channel.addEffect(e);
 	}
 
+	/**
+		Adjust pitch randomly withing +/- `range` (percentage, "0.02" means "+/- 2%")
+	**/
 	public inline function pitchRandomly(range=0.02) {
-		addEffect( new hxd.snd.effect.Pitch(1 + M.randRangeSym(range)) );
+		addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
 	}
 
 
