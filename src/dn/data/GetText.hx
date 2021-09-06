@@ -307,6 +307,10 @@ class GetText {
 					odd = !odd;
 				}
 
+				// Check for forbidden characters
+				if( e.value.indexOf("\\v")>=0 )
+					_error(e.key, 'Unauthorized \\v sequence');
+
 				// Custom check
 				if( checkEntry!=null ) {
 					var err = checkEntry(e.key,e.value);
