@@ -465,12 +465,18 @@ class GetText {
 
 		// Extract translated values
 		var vdfFp = FilePath.fromFile(vdfPath);
+		var allTokens = [];
 		for( e in gt.getRawDict().keyValueIterator() )
 			if( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT)>=0 ) {
 				var token = e.key.substr( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT) + VDF_ACHIEVEMENT_CONTEXT.length );
 				var loc = e.value;
-				fo.writeString('		"$token" "$loc"\n');
+				allTokens.push('"$token" "$loc"');
 			}
+
+		// Alpha sort
+		allTokens.sort( (a,b)->Reflect.compare(a,b) );
+		for(t in allTokens)
+			fo.writeString('		$t\n');
 
 		// Write footer
 		fo.writeString( footer.join("\n") );
