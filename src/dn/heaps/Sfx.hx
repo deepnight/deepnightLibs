@@ -78,6 +78,9 @@ class Sfx {
 	}
 
 
+	public dynamic function onEnd() {}
+
+
 	inline function get_group() return getGlobalGroup(groupId).group;
 
 	inline function set_volume(v) {
@@ -142,10 +145,13 @@ class Sfx {
 
 	public inline function isPaused() return channel!=null && channel.pause;
 
+	/**
+		Play sound
+	**/
 	public function play(?loop=false, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
-		channel = sound.play(loop, volume, getGlobalGroup(groupId).group);
+		setChannel( sound.play(loop, volume, getGlobalGroup(groupId).group) );
 		channel.volume = volume*getGlobalGroup(groupId).getVolume();
 		return this;
 	}
@@ -153,7 +159,7 @@ class Sfx {
 	public function playSpatial(x:Float, y:Float, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
-		channel = sound.play(false, volume, getGlobalGroup(groupId).group);
+		setChannel(  sound.play(false, volume, getGlobalGroup(groupId).group) );
 
 		var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
 		var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
@@ -161,15 +167,30 @@ class Sfx {
 		return this;
 	}
 
+	/**
+		Set channel and bind callbacks
+	**/
+	inline function setChannel(c:Channel) {
+		channel = c;
+		channel.onEnd = ()->onEnd();
+	}
+
 	public inline function isPlaying() {
 		return @:privateAccess sound.channel!=null && !isPaused();
 	}
+
+	/**
+		Stop sound
+	**/
 	public function stop() {
 		sound.stop();
 		channel = null;
 	}
 
 
+	/**
+		Play sound on given group
+	**/
 	public function playOnGroup(gid:Int, ?loop=false, ?vol:Float) {
 		groupId = gid;
 		play(loop, vol);
