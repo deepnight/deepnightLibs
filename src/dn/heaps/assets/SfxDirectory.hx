@@ -71,11 +71,8 @@ class SfxDirectory {
 						? $newResSoundExpr
 						: {
 							// Cache
-							if( !dn.heaps.assets.SfxDirectory._CACHE.exists( $v{resRelPath} ) ) {
-								trace("caching...");
+							if( !dn.heaps.assets.SfxDirectory._CACHE.exists( $v{resRelPath} ) )
 								dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $newResSoundExpr );
-							}
-							else trace("from cache");
 							dn.heaps.assets.SfxDirectory._CACHE.get( $v{resRelPath} );
 						}
 
@@ -105,19 +102,18 @@ class SfxDirectory {
 		if( fields.length==0 )
 			Context.warning("No sound file found in "+dirFp.full, pos);
 
-		// Add "pre-cache" method to initialize cache content
+		// Add "pre-cache everything" method to fill initial cache
 		if( useCache ) {
 			fields.push({
 				field: "_precacheAllSounds",
 				expr: macro function() {
-					trace("pouet");
 					$a{allCache}
 				},
 			});
 		}
 
-		// Build structure
-		return { pos:pos, expr: EObjectDecl(fields) };
+		var structExpr : Expr = { pos:pos, expr: EObjectDecl(fields) }
+		return structExpr;
 	}
 
 }
