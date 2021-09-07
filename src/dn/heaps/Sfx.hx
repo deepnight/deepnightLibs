@@ -210,6 +210,8 @@ class Sfx {
 		Stop sound
 	**/
 	public function stop() {
+		if( channel!=null )
+			channel.stop();
 		sound.stop();
 		channel = null;
 	}
