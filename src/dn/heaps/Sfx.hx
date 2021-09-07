@@ -174,10 +174,16 @@ class Sfx {
 		if( vol!=null )
 			volume = vol;
 		setChannel(  sound.play(false, volume, getGlobalGroup(groupId).group) );
+		setSpatialPos(x,y);
+		return this;
+	}
 
-		var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
-		var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
-		channel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
+	public function setSpatialPos(x:Float, y:Float) {
+		if( isPlaying() ) {
+			var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
+			var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
+			channel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
+		}
 		return this;
 	}
 
@@ -197,7 +203,7 @@ class Sfx {
 	}
 
 	public inline function isPlaying() {
-		return @:privateAccess sound.channel!=null && !isPaused();
+		return channel!=null && !isPaused();
 	}
 
 	/**
