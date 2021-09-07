@@ -238,6 +238,7 @@ class Sfx {
 	public inline function addEffect(e:Effect) {
 		if( isPlaying() )
 			channel.addEffect(e);
+		return this;
 	}
 
 	/**
@@ -245,6 +246,7 @@ class Sfx {
 	**/
 	public inline function pitchRandomly(range=0.02) {
 		addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
+		return this;
 	}
 
 
