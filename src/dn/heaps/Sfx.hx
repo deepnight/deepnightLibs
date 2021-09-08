@@ -182,13 +182,33 @@ class Sfx {
 	public inline function isPaused() return lastChannel!=null && lastChannel.pause;
 
 	/**
+		Update internal stuff when the Sound starts playing.
+	**/
+	inline function onStartPlaying(c:Channel) {
+		onEndCurrent = null;
+		lastChannel = c;
+		lastChannel.onEnd = ()->{
+			if( onEndCurrent==null )
+				return;
+
+			var cb = onEndCurrent;
+			onEndCurrent = null;
+			cb();
+		}
+		applyVolume();
+	}
+
+	/**
 		Play sound
 	**/
 	public function play(?loop=false, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
+
+		if( isPlaying() )
+			stop();
+
 		onStartPlaying( sound.play(loop, volume, getGlobalGroup(defaultGroupId).soundGroup) );
-		applyVolume();
 		return this;
 	}
 
@@ -198,6 +218,10 @@ class Sfx {
 	public function playSpatial(x:Float, y:Float, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
+
+		if( isPlaying() )
+			stop();
+
 		onStartPlaying(  sound.play(false, volume, getGlobalGroup(defaultGroupId).soundGroup) );
 		setSpatialPos(x,y);
 		return this;
@@ -249,22 +273,6 @@ class Sfx {
 		}
 
 		return volume * getGlobalGroup(defaultGroupId).getVolume() * spatial;
-	}
-
-	/**
-		Update internal stuff when the Sound starts playing.
-	**/
-	inline function onStartPlaying(c:Channel) {
-		onEndCurrent = null;
-		lastChannel = c;
-		lastChannel.onEnd = ()->{
-			if( onEndCurrent==null )
-				return;
-
-			var cb = onEndCurrent;
-			onEndCurrent = null;
-			cb();
-		}
 	}
 
 	/**
@@ -323,6 +331,7 @@ class Sfx {
 	public function fadeTo(vol:Float, duratonS=1.0, ?onComplete:Void->Void) {
 		if( _requiresChannel() )
 			lastChannel.fadeTo(vol, duratonS, onComplete);
+		return this;
 	}
 
 
