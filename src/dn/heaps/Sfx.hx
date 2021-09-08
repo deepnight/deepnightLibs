@@ -183,7 +183,7 @@ class Sfx {
 	}
 
 	/**
-		Change spatial location of the playing sound.
+		Change spatial location of the playing sound
 
 		SOUND MUST BE PLAYING.
 	**/
@@ -214,7 +214,7 @@ class Sfx {
 	}
 
 	/**
-		Bind a callback to the end of currently playing sound.
+		Bind a callback to the end of currently playing sound
 
 		SOUND MUST BE PLAYING.
 	**/
