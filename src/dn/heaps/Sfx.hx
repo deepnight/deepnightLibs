@@ -188,11 +188,11 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public function setSpatialPos(x:Float, y:Float) {
-		_requiresChannel();
-
-		var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
-		var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
-		lastChannel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
+		if( _requiresChannel() ) {
+			var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
+			var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
+			lastChannel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
+		}
 
 		return this;
 	}
@@ -219,8 +219,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public function onEnd(cb:Void->Void) {
-		_requiresChannel();
-		onEndCurrent = cb;
+		if( _requiresChannel() )
+			onEndCurrent = cb;
 	}
 
 	public function removeOnEnd() {
@@ -228,11 +228,17 @@ class Sfx {
 	}
 
 	/**
-		Throw an exception if no channel is currently playing
+		Check for the existence of a Channel (ie. sounds is currently playing). In "debug" mode, an exception is thrown if none is found.
 	**/
-	inline function _requiresChannel() {
-		if( lastChannel==null )
+	inline function _requiresChannel() : Bool {
+		if( lastChannel==null || lastChannel.isReleased() ) {
+			#if debug
 			throw "Sound must be playing to use this method";
+			#end
+			return false;
+		}
+		else
+			return true;
 	}
 
 	public inline function isPlaying() {
@@ -261,8 +267,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public function fadeTo(vol:Float, duratonS=1.0, ?onComplete:Void->Void) {
-		_requiresChannel();
-		lastChannel.fadeTo(vol, duratonS, onComplete);
+		if( _requiresChannel() )
+			lastChannel.fadeTo(vol, duratonS, onComplete);
 	}
 
 
@@ -282,8 +288,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function addEffect(e:Effect) {
-		_requiresChannel();
-		lastChannel.addEffect(e);
+		if( _requiresChannel() )
+			lastChannel.addEffect(e);
 		return this;
 	}
 
@@ -293,8 +299,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function pitchRandomly(range=0.02) {
-		_requiresChannel();
-		addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
+		if( _requiresChannel() )
+			addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
 		return this;
 	}
 
