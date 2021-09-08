@@ -14,7 +14,7 @@ private class GlobalGroup {
 	var volume : Float;
 
 	/** Currently associated Heaps SoundGroup **/
-	public var group(default,null) : SoundGroup;
+	public var soundGroup(default,null) : SoundGroup;
 
 	/** Muted status of this group **/
 	public var muted(default,set) : Bool;
@@ -22,7 +22,7 @@ private class GlobalGroup {
 	public function new(id:Int) {
 		this.id = id;
 		volume = 1;
-		group = new hxd.snd.SoundGroup("global"+id);
+		soundGroup = new hxd.snd.SoundGroup("global"+id);
 	}
 
 	/**
@@ -30,7 +30,7 @@ private class GlobalGroup {
 	**/
 	public inline function setVolume(v) {
 		volume = M.fclamp(v,0,1);
-		group.volume = getVolume();
+		soundGroup.volume = getVolume();
 	}
 
 	/**
@@ -43,9 +43,9 @@ private class GlobalGroup {
 	function set_muted(v) {
 		muted = v;
 		if( v )
-			group.volume = 0;
+			soundGroup.volume = 0;
 		else
-			group.volume = volume;
+			soundGroup.volume = volume;
 
 		return v;
 	}
@@ -71,8 +71,8 @@ class Sfx {
 
 	var lastChannel : Null<Channel>;
 	public var sound(default,null) : Sound;
-	public var groupId(default,null) : Int;
-	public var group(get,never) : Null<SoundGroup>;
+	public var defaultGroupId(default,set) : Int;
+	public var soundGroup(get,never) : Null<SoundGroup>;
 
 	/**
 		Target sound volume. Please note that the actual "final" volume will be a mix of this value, the Group volume and optional spatialization.
@@ -92,7 +92,7 @@ class Sfx {
 	public function new(s:Sound) {
 		sound = s;
 		volume = 1;
-		groupId = DEFAULT_GROUP_ID;
+		defaultGroupId = DEFAULT_GROUP_ID;
 	}
 
 	public function toString() {
@@ -101,13 +101,20 @@ class Sfx {
 
 
 
+	inline function set_defaultGroupId(v) {
+		#if debug
+		if( isPlaying() )
+			trace("WARNING: changing defaultGroupId of a playing Sfx will not affect it immediately.");
+		#end
+		return defaultGroupId = v;
+	}
 
-	inline function get_group() return getGlobalGroup(groupId).group;
+	inline function get_soundGroup() return getGlobalGroup(defaultGroupId).soundGroup;
 
 	inline function set_volume(v) {
 		volume = M.fclamp(v,0,1);
-		if( group!=null )
-			group.volume = v;
+		if( isPlaying() )
+			applyVolume();
 		return volume;
 	}
 
@@ -175,7 +182,7 @@ class Sfx {
 	public function play(?loop=false, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
-		onStartPlaying( sound.play(loop, volume, getGlobalGroup(groupId).group) );
+		onStartPlaying( sound.play(loop, volume, getGlobalGroup(defaultGroupId).soundGroup) );
 		applyVolume();
 		return this;
 	}
@@ -186,7 +193,7 @@ class Sfx {
 	public function playSpatial(x:Float, y:Float, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
-		onStartPlaying(  sound.play(false, volume, getGlobalGroup(groupId).group) );
+		onStartPlaying(  sound.play(false, volume, getGlobalGroup(defaultGroupId).soundGroup) );
 		setSpatialPos(x,y);
 		return this;
 	}
@@ -229,7 +236,7 @@ class Sfx {
 			spatial = f*f*f;
 		}
 
-		return volume * getGlobalGroup(groupId).getVolume() * spatial;
+		return volume * getGlobalGroup(defaultGroupId).getVolume() * spatial;
 	}
 
 	/**
@@ -311,7 +318,7 @@ class Sfx {
 		Play sound on given group
 	**/
 	public function playOnGroup(gid:Int, ?loop=false, ?vol:Float) {
-		groupId = gid;
+		defaultGroupId = gid;
 		play(loop, vol);
 		return this;
 	}
