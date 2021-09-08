@@ -69,17 +69,18 @@ class Sfx {
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
 	public static var DEFAULT_GROUP_ID = 0;
 
-	public var channel : Null<Channel>;
+	var lastChannel : Null<Channel>;
 	public var sound : Sound;
 	public var group(get,never) : Null<SoundGroup>;
 	public var volume(default,set) : Float;
 	public var groupId : Int;
-	public var duration(get,never) : Float; inline function get_duration() return channel==null ? 0 : channel.duration;
+	public var duration(get,never) : Float; inline function get_duration() return lastChannel==null ? 0 : lastChannel.duration;
 
 	/** This custom ID can be whatever you want. Purely for your own internal usage. **/
 	public var customIdentifier : Null<String>;
 
-	public var onEnd : Null< Void->Void >;
+	/** This callback will be called ONCE when the currently playing sound will stop. **/
+	var onEndCurrent : Null< Void->Void >;
 
 
 	public function new(s:Sound) {
@@ -137,6 +138,9 @@ class Sfx {
 	}
 
 	public function togglePlayPause() {
+		if( lastChannel==null )
+			return false;
+
 		if( !isPaused() ) {
 			pause();
 			return false;
@@ -148,16 +152,16 @@ class Sfx {
 	}
 
 	public function pause() {
-		if( channel!=null )
-			channel.pause = true;
+		if( lastChannel!=null )
+			lastChannel.pause = true;
 	}
 
 	public function resume() {
-		if( channel!=null )
-			channel.pause = false;
+		if( lastChannel!=null )
+			lastChannel.pause = false;
 	}
 
-	public inline function isPaused() return channel!=null && channel.pause;
+	public inline function isPaused() return lastChannel!=null && lastChannel.pause;
 
 	/**
 		Play sound
@@ -165,55 +169,83 @@ class Sfx {
 	public function play(?loop=false, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
-		setChannel( sound.play(loop, volume, getGlobalGroup(groupId).group) );
-		channel.volume = volume*getGlobalGroup(groupId).getVolume();
+		onStartPlaying( sound.play(loop, volume, getGlobalGroup(groupId).group) );
+		lastChannel.volume = volume*getGlobalGroup(groupId).getVolume();
 		return this;
 	}
 
 	public function playSpatial(x:Float, y:Float, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
-		setChannel(  sound.play(false, volume, getGlobalGroup(groupId).group) );
+		onStartPlaying(  sound.play(false, volume, getGlobalGroup(groupId).group) );
 		setSpatialPos(x,y);
 		return this;
 	}
 
+	/**
+		Change spatial location of the playing sound.
+
+		SOUND MUST BE PLAYING.
+	**/
 	public function setSpatialPos(x:Float, y:Float) {
-		if( isPlaying() ) {
-			var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
-			var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
-			channel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
-		}
+		_requiresChannel();
+
+		var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
+		var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
+		lastChannel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
+
 		return this;
 	}
 
 	/**
-		Set channel and bind callbacks
+		Update internal stuff when the Sound starts playing.
 	**/
-	inline function setChannel(c:Channel) {
-		channel = c;
-		channel.onEnd = ()->{
-			if( onEnd==null )
+	inline function onStartPlaying(c:Channel) {
+		onEndCurrent = null;
+		lastChannel = c;
+		lastChannel.onEnd = ()->{
+			if( onEndCurrent==null )
 				return;
 
-			var cb = onEnd;
-			onEnd = null;
+			var cb = onEndCurrent;
+			onEndCurrent = null;
 			cb();
 		}
 	}
 
+	/**
+		Bind a callback to the end of currently playing sound.
+
+		SOUND MUST BE PLAYING.
+	**/
+	public function onEnd(cb:Void->Void) {
+		_requiresChannel();
+		onEndCurrent = cb;
+	}
+
+	public function removeOnEnd() {
+		onEndCurrent = null;
+	}
+
+	/**
+		Throw an exception if no channel is currently playing
+	**/
+	inline function _requiresChannel() {
+		if( lastChannel==null )
+			throw "Sound must be playing to use this method";
+	}
+
 	public inline function isPlaying() {
-		return channel!=null && !isPaused();
+		return lastChannel!=null && !isPaused();
 	}
 
 	/**
 		Stop sound
 	**/
 	public function stop() {
-		if( channel!=null )
-			channel.stop();
-		sound.stop();
-		channel = null;
+		if( lastChannel!=null )
+			lastChannel.stop();
+		lastChannel = null;
 	}
 
 	/**
@@ -225,10 +257,12 @@ class Sfx {
 
 	/**
 		Fade volume to given level
+
+		SOUND MUST BE PLAYING.
 	**/
 	public function fadeTo(vol:Float, duratonS=1.0, ?onComplete:Void->Void) {
-		if( isPlaying() )
-			channel.fadeTo(vol, duratonS, onComplete);
+		_requiresChannel();
+		lastChannel.fadeTo(vol, duratonS, onComplete);
 	}
 
 
@@ -242,36 +276,55 @@ class Sfx {
 	}
 
 
-	/** Attach an effect to the currently playing sound **/
+	/**
+		Attach an Effect to the currently playing sound
+
+		SOUND MUST BE PLAYING.
+	**/
 	public inline function addEffect(e:Effect) {
-		if( isPlaying() )
-			channel.addEffect(e);
+		_requiresChannel();
+		lastChannel.addEffect(e);
 		return this;
 	}
 
 	/**
 		Adjust pitch randomly withing +/- `range` (percentage, "0.02" means "+/- 2%")
+
+		SOUND MUST BE PLAYING.
 	**/
 	public inline function pitchRandomly(range=0.02) {
+		_requiresChannel();
 		addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
 		return this;
 	}
 
 
+	/**
+		Mute a group of Sfx completely
+	**/
 	public static function muteGroup(id) {
 		getGlobalGroup(id).muted = true;
 	}
 
+	/**
+		Unmute a group
+	**/
 	public static function unmuteGroup(id) {
 		getGlobalGroup(id).muted = false;
 	}
 
+	/**
+		Toggle muted status of a group
+	**/
 	public static function toggleMuteGroup(id) {
 		var g = getGlobalGroup(id);
 		g.muted = !g.muted;
 		return g.muted;
 	}
 
+	/**
+		Return TRUE if given group is muted
+	**/
 	public static inline function isMuted(id) {
 		return getGlobalGroup(id).muted;
 	}
