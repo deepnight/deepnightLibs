@@ -7,6 +7,7 @@ import hxd.res.Sound;
 #end
 
 
+
 // --- GLOBAL PLAY GROUP ------------------------------------------------------
 #if !macro
 private class GlobalGroup {
@@ -82,6 +83,9 @@ class Sfx {
 	var spatialX : Null<Float>;
 	var spatialY : Null<Float>;
 
+	/** Multiplier to default spatial max hearing distance **/
+	public var spatialRangeMul(default,set) : Float;
+
 	/** This custom ID can be whatever you want. Purely for your own internal usage. **/
 	public var customIdentifier : Null<String>;
 
@@ -92,6 +96,7 @@ class Sfx {
 	public function new(s:Sound) {
 		sound = s;
 		volume = 1;
+		spatialRangeMul = 1.0;
 		defaultGroupId = DEFAULT_GROUP_ID;
 	}
 
@@ -211,6 +216,13 @@ class Sfx {
 		return this;
 	}
 
+	function set_spatialRangeMul(v) {
+		spatialRangeMul = M.fmax(0,v);
+		if( isPlaying() )
+			applyVolume();
+		return spatialRangeMul;
+	}
+
 	/**
 		Disable spatialization
 	**/
@@ -232,7 +244,7 @@ class Sfx {
 		var spatial = 1.0;
 		if( M.isValidNumber(spatialX) && M.isValidNumber(spatialY) ) {
 			var dist = Math.sqrt( (spatialX-SPATIAL_LISTENER_X)*(spatialX-SPATIAL_LISTENER_X) + (spatialY-SPATIAL_LISTENER_Y)*(spatialY-SPATIAL_LISTENER_Y) );
-			var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
+			var f = M.fclamp( 1 - dist / ( SPATIAL_LISTENER_RANGE * spatialRangeMul ), 0, 1 );
 			spatial = f*f*f;
 		}
 
@@ -340,7 +352,7 @@ class Sfx {
 
 		SOUND MUST BE PLAYING.
 	**/
-	public inline function pitchRandomly(range=0.02) {
+	public inline function pitchRandomly(range=0.1) {
 		if( _requiresChannel() )
 			addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
 		return this;
@@ -376,5 +388,32 @@ class Sfx {
 	public static inline function isMuted(id) {
 		return getGlobalGroup(id).muted;
 	}
+
+
+	public static function createRandomList(sounds:Array<Sound>) : RandomSfxList {
+		var rl = new RandomSfxList(sounds);
+		return rl;
+		// var getters : Array< Void->Sfx > = snds.map( (snd)-> function() {trace(snd); return new Sfx(snd);} );
+		// var rl : RandList< Void->Sfx > = new RandList(getters);
+		// return rl;
+	}
 	#end
+}
+
+
+class RandomSfxList {
+	var all : Array<Sound>;
+	public function new(sounds:Array<Sound>) {
+		if( sounds.length==0 )
+			throw "Array must not be empty";
+		all = sounds;
+	}
+	public inline function draw() {
+		return new Sfx( all[ Std.random(all.length) ] );
+	}
+	public inline function drawAndPlay(vol=1.0) {
+		var s = draw();
+		s.play(vol);
+		return s;
+	}
 }
