@@ -71,10 +71,16 @@ class Sfx {
 
 	var lastChannel : Null<Channel>;
 	public var sound : Sound;
-	public var group(get,never) : Null<SoundGroup>;
-	public var volume(default,set) : Float;
 	public var groupId : Int;
+	public var group(get,never) : Null<SoundGroup>;
+
+	/**
+		Target sound volume. Please note that the actual "final" volume will be a mix of this value, the Group volume and optional spatialization.
+	**/
+	public var volume(default,set) : Float;
 	public var duration(get,never) : Float; inline function get_duration() return lastChannel==null ? 0 : lastChannel.duration;
+	var spatialX : Null<Float>;
+	var spatialY : Null<Float>;
 
 	/** This custom ID can be whatever you want. Purely for your own internal usage. **/
 	public var customIdentifier : Null<String>;
@@ -170,10 +176,13 @@ class Sfx {
 		if( vol!=null )
 			volume = vol;
 		onStartPlaying( sound.play(loop, volume, getGlobalGroup(groupId).group) );
-		lastChannel.volume = volume*getGlobalGroup(groupId).getVolume();
+		applyVolume();
 		return this;
 	}
 
+	/**
+		Play sound using spatial localization
+	**/
 	public function playSpatial(x:Float, y:Float, ?vol:Float) {
 		if( vol!=null )
 			volume = vol;
@@ -187,14 +196,40 @@ class Sfx {
 
 		SOUND MUST BE PLAYING.
 	**/
-	public function setSpatialPos(x:Float, y:Float) {
-		if( _requiresChannel() ) {
-			var dist = Math.sqrt( (x-SPATIAL_LISTENER_X)*(x-SPATIAL_LISTENER_X) + (y-SPATIAL_LISTENER_Y)*(y-SPATIAL_LISTENER_Y) );
-			var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
-			lastChannel.volume = volume*getGlobalGroup(groupId).getVolume() * f*f*f;
-		}
+	public inline function setSpatialPos(x:Float, y:Float) {
+		spatialX = x;
+		spatialY = y;
+		applyVolume();
 
 		return this;
+	}
+
+	/**
+		Disable spatialization
+	**/
+	public inline function disableSpatialization() {
+		spatialX = spatialY = null;
+		applyVolume();
+		return this;
+	}
+
+	function applyVolume() {
+		if( _requiresChannel() )
+			lastChannel.volume = getFinalVolume();
+	}
+
+	/**
+		Return final actual volume (a mix of Sfx, spatialization and Group factors)
+	**/
+	public inline function getFinalVolume() {
+		var spatial = 1.0;
+		if( M.isValidNumber(spatialX) && M.isValidNumber(spatialY) ) {
+			var dist = Math.sqrt( (spatialX-SPATIAL_LISTENER_X)*(spatialX-SPATIAL_LISTENER_X) + (spatialY-SPATIAL_LISTENER_Y)*(spatialY-SPATIAL_LISTENER_Y) );
+			var f = M.fclamp( 1-dist/SPATIAL_LISTENER_RANGE, 0, 1 );
+			spatial = f*f*f;
+		}
+
+		return volume * getGlobalGroup(groupId).getVolume() * spatial;
 	}
 
 	/**
