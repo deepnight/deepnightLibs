@@ -70,8 +70,8 @@ class Sfx {
 	public static var DEFAULT_GROUP_ID = 0;
 
 	var lastChannel : Null<Channel>;
-	public var sound : Sound;
-	public var groupId : Int;
+	public var sound(default,null) : Sound;
+	public var groupId(default,null) : Int;
 	public var group(get,never) : Null<SoundGroup>;
 
 	/**
