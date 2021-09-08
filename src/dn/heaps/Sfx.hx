@@ -84,7 +84,7 @@ class Sfx {
 	var spatialY : Null<Float>;
 
 	/** Multiplier to default spatial max hearing distance **/
-	public var spatialRangeMul(default,set) : Float;
+	var spatialRangeMul : Float;
 
 	/** This custom ID can be whatever you want. Purely for your own internal usage. **/
 	public var customIdentifier : Null<String>;
@@ -98,6 +98,13 @@ class Sfx {
 		volume = 1;
 		spatialRangeMul = 1.0;
 		defaultGroupId = DEFAULT_GROUP_ID;
+	}
+
+	public function dispose() {
+		stop();
+		sound = null;
+		lastChannel = null;
+		onEndCurrent = null;
 	}
 
 	public function toString() {
@@ -213,6 +220,15 @@ class Sfx {
 	}
 
 	/**
+		Play sound
+	**/
+	public inline function playFadeIn(?loop=false, targetVol:Float, sec:Float) {
+		play(loop, 0);
+		fadeTo(targetVol, sec);
+		return this;
+	}
+
+	/**
 		Play sound using spatial localization
 	**/
 	public function playSpatial(x:Float, y:Float, ?vol:Float) {
@@ -240,11 +256,14 @@ class Sfx {
 		return this;
 	}
 
-	function set_spatialRangeMul(v) {
-		spatialRangeMul = M.fmax(0,v);
+	/**
+		Change spatial range
+	**/
+	public inline function setSpatialRangeMul(rangeMul=1.0) {
+		spatialRangeMul = rangeMul;
 		if( isPlaying() )
 			applyVolume();
-		return spatialRangeMul;
+		return this;
 	}
 
 	/**
@@ -307,6 +326,10 @@ class Sfx {
 		return lastChannel!=null && !isPaused();
 	}
 
+	public inline function isFading() {
+		return lastChannel!=null && @:privateAccess lastChannel.currentFade!=null;
+	}
+
 	/**
 		Stop sound
 	**/
@@ -320,7 +343,10 @@ class Sfx {
 		Stop sound with a fade-out
 	**/
 	public inline function stopWithFadeOut(duratonS:Float) {
-		fadeTo(0, duratonS, stop);
+		if( lastChannel!=null && lastChannel.volume<=0.03 )
+			stop();
+		else
+			fadeTo(0, duratonS, stop);
 	}
 
 	/**
