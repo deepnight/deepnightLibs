@@ -24,8 +24,6 @@ class SfxDirectory {
 	**/
 	macro public static function load( resSubDir:String, useCache:Bool ) {
 		var pos = Context.currentPos();
-		var fields = [];
-		var r_names = ~/[^A-Za-z0-9]+/g;
 
 		// Guess Heaps res dir
 		var resDir = haxe.macro.Context.definedValue("resourcesPath");
@@ -38,66 +36,80 @@ class SfxDirectory {
 			Context.fatalError("Folder "+dirFp.full+" is not valid! Make sure to provide a valid path inside Heaps res folder.", pos);
 
 		var allCache = [];
-		for( fName in sys.FileSystem.readDirectory(dirFp.full) ) {
 
-			// Checks
-			var fileFp = FilePath.fromFile(dirFp.full+"/"+fName);
-			if( sys.FileSystem.isDirectory(fileFp.full) )
-				continue;
+		function addFilesFromDir(path:String) : Array<ObjectField> {
+			var fields : Array<ObjectField> = [];
+			for( fName in sys.FileSystem.readDirectory(path) ) {
 
-			if( fileFp.extension==null )
-				continue;
+				// Checks
+				var fileFp = FilePath.fromFile(path+"/"+fName);
+				if( sys.FileSystem.isDirectory(fileFp.full) ) {
+					var subFields = addFilesFromDir(fileFp.full);
+					fields.push({
+						field: cleanUpIdentifier("_"+fName),
+						expr: { pos:pos, expr:EObjectDecl(subFields) },
+					});
+					continue;
+				}
 
-			var ext = fileFp.extension.toLowerCase();
-			if( ext != "wav" && ext != "mp3" && ext != "ogg" )
-				continue;
+				if( fileFp.extension==null )
+					continue;
 
-			// Init expressions
-			var resRelPath = fileFp.clone().removeFirstDirectory().full;
-			var newResSoundExpr = macro hxd.Res.load( $v{resRelPath} ).toSound();
+				var ext = fileFp.extension.toLowerCase();
+				if( ext != "wav" && ext != "mp3" && ext != "ogg" )
+					continue;
 
-			allCache.push(
-				macro dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $newResSoundExpr )
-			);
+				// Init expressions
+				var resRelPath = fileFp.clone().removeFirstDirectory().full;
+				var newResSoundExpr = macro hxd.Res.load( $v{resRelPath} ).toSound();
 
-			// Create quickPlay method
-			var f : haxe.macro.Function = {
-				ret : null,
-				args : [{name:"quickPlayVolume", opt:true, type:macro :Null<Float>, value:null}],
-				expr : macro {
+				allCache.push(
+					macro dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $newResSoundExpr )
+				);
 
-					// Instanciate hxd.res.Sound
-					var snd = !$v{useCache}
-						? $newResSoundExpr
-						: {
-							// Cache
-							if( !dn.heaps.assets.SfxDirectory._CACHE.exists( $v{resRelPath} ) )
-								dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $newResSoundExpr );
-							dn.heaps.assets.SfxDirectory._CACHE.get( $v{resRelPath} );
+				// Create quickPlay method
+				var f : haxe.macro.Function = {
+					ret : null,
+					args : [{name:"quickPlayVolume", opt:true, type:macro :Null<Float>, value:null}],
+					expr : macro {
+
+						// Instanciate hxd.res.Sound
+						var snd = !$v{useCache}
+							? $newResSoundExpr
+							: {
+								// Cache
+								if( !dn.heaps.assets.SfxDirectory._CACHE.exists( $v{resRelPath} ) )
+									dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $newResSoundExpr );
+								dn.heaps.assets.SfxDirectory._CACHE.get( $v{resRelPath} );
+							}
+
+						// Instanciate Sfx
+						if( quickPlayVolume!=null ) {
+							#if disableSfx
+							return new dn.heaps.Sfx(snd);
+							#else
+							var s = new dn.heaps.Sfx(snd);
+							return s.play(quickPlayVolume);
+							#end
 						}
+						else
+							return new dn.heaps.Sfx(snd);
 
-					// Instanciate Sfx
-					if( quickPlayVolume!=null ) {
-						#if disableSfx
-						return new dn.heaps.Sfx(snd);
-						#else
-						var s = new dn.heaps.Sfx(snd);
-						return s.play(quickPlayVolume);
-						#end
-					}
-					else
-						return new dn.heaps.Sfx(snd);
+					},
+					params : [],
+				}
 
-				},
-				params : [],
+				// Add field
+				var fieldName = fName.substr(0, fName.length-4); // remove extension
+				fieldName = cleanUpIdentifier(fieldName);
+				var wrapperExpr : Expr = { pos:pos, expr:EFunction(FNamed(fieldName), f) }
+				fields.push({ field:fieldName, expr:wrapperExpr });
 			}
 
-			// Add field
-			var fieldName = fName.substr(0, fName.length-4); // remove extension
-			fieldName = r_names.replace(fieldName,"_"); // cleanup
-			var wrapperExpr : Expr = { pos:pos, expr:EFunction(FNamed(fieldName), f) }
-			fields.push({ field:fieldName, expr:wrapperExpr });
+			return fields;
 		}
+
+		var fields = addFilesFromDir(dirFp.full);
 
 		if( fields.length==0 )
 			Context.warning("No sound file found in "+dirFp.full, pos);
@@ -114,6 +126,15 @@ class SfxDirectory {
 
 		var structExpr : Expr = { pos:pos, expr: EObjectDecl(fields) }
 		return structExpr;
+	}
+
+	static var CLEANUP_REG = ~/[^A-Za-z0-9_]+/g;
+	static var NON_LEADING_NUMBERS = ~/[0-9]+([a-z_])/gi;
+
+	static inline function cleanUpIdentifier(i:String) {
+		i = CLEANUP_REG.replace(i,"_");
+		i = NON_LEADING_NUMBERS.replace(i, "$1");
+		return i;
 	}
 
 }
