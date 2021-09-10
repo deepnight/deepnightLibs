@@ -79,7 +79,8 @@ class Sfx {
 		Target sound volume. Please note that the actual "final" volume will be a mix of this value, the Group volume and optional spatialization.
 	**/
 	public var volume(default,set) : Float;
-	public var duration(get,never) : Float; inline function get_duration() return lastChannel==null ? 0 : lastChannel.duration;
+	public var baseDurationS(get,never) : Float; inline function get_baseDurationS() return sound.getData().duration;
+	public var curDurationS(get,never) : Float; inline function get_curDurationS() return lastChannel!=null ? lastChannel.duration : 0.;
 	var spatialX : Null<Float>;
 	var spatialY : Null<Float>;
 
@@ -370,6 +371,29 @@ class Sfx {
 		return this;
 	}
 
+
+	/**
+		Change play position (in seconds).
+
+		SOUND MUST BE PLAYING.
+	**/
+	public inline function setPositionS(time:Float) {
+		if( _requiresChannel() )
+			lastChannel.position = time;
+		return this;
+	}
+
+
+	/**
+		Change play position using a ratio of the total duration (0-1).
+
+		SOUND MUST BE PLAYING.
+	**/
+	public inline function setPositionRatio(r:Float) {
+		if( _requiresChannel() )
+			lastChannel.position = baseDurationS*r;
+		return this;
+	}
 
 	/**
 		Attach an Effect to the currently playing sound
