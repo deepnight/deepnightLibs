@@ -79,8 +79,9 @@ class Sfx {
 		Target sound volume. Please note that the actual "final" volume will be a mix of this value, the Group volume and optional spatialization.
 	**/
 	public var volume(default,set) : Float;
+	/** Sound duration in seconds **/
 	public var baseDurationS(get,never) : Float; inline function get_baseDurationS() return sound.getData().duration;
-	public var curDurationS(get,never) : Float; inline function get_curDurationS() return lastChannel!=null ? lastChannel.duration : 0.;
+	public var curPlayDurationS(get,never) : Float; inline function get_curPlayDurationS() return lastChannel!=null ? lastChannel.duration : 0.;
 	var spatialX : Null<Float>;
 	var spatialY : Null<Float>;
 
