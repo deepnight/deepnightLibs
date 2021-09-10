@@ -10,9 +10,13 @@ class SfxDirectory {
 	public static var _CACHE : Map<String,hxd.res.Sound> = new Map();
 	#end
 
+
+
 	/**
 		`resSubDir` should be a folder found inside Heaps res folder (defaults to `res/`). For example: `res/sfx`.
 		If `useCache` is true, the Heaps resource loading method will only be called once per sound file. Every subsequent call will use a cached instance of the hxd.res.Sound.
+
+		NOTE: if a sound file name is terminated by 0 or 1, the importer will try to lookup for a sequence of similar numbered files (eg. mySound1.wav, mySound2.wav etc.). If such a sequence is found, a `RandomSfxList` class will also be created in the returned structure, to allow for quick random sound picking among the detected serie (in the previous example, "mySound").
 
 		USAGE:
 		```haxe
@@ -36,8 +40,10 @@ class SfxDirectory {
 			Context.fatalError("Folder "+dirFp.full+" is not valid! Make sure to provide a valid path inside Heaps res folder.", pos);
 
 		var allCache = [];
+		var randomSerieReg = ~/(.*?)([01])+(\.[a-z]+)$/gi;
 
 		function addFilesFromDir(path:String) : Array<ObjectField> {
+			var randomSeries : Map<String,Int> = new Map();
 			var fields : Array<ObjectField> = [];
 			for( fName in sys.FileSystem.readDirectory(path) ) {
 
@@ -59,12 +65,23 @@ class SfxDirectory {
 				if( ext != "wav" && ext != "mp3" && ext != "ogg" )
 					continue;
 
+
+				// Detect possible random series
+				if( randomSerieReg.match(fileFp.fileWithExt) ) {
+					final k = fileFp.fileWithExt;
+					var idx = Std.parseInt( randomSerieReg.matched(2) );
+					if( !randomSeries.exists(k) )
+						randomSeries.set(k, idx);
+					else if( randomSeries.get(k) > idx )
+						randomSeries.set(k, idx);
+				}
+
 				// Init expressions
 				var resRelPath = fileFp.clone().removeFirstDirectory().full;
-				var newResSoundExpr = macro hxd.Res.load( $v{resRelPath} ).toSound();
+				var resSoundExpr = macro hxd.Res.load( $v{resRelPath} ).toSound();
 
 				allCache.push(
-					macro dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $newResSoundExpr )
+					macro dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $resSoundExpr )
 				);
 
 				// Create quickPlay method
@@ -75,11 +92,11 @@ class SfxDirectory {
 
 						// Instanciate hxd.res.Sound
 						var snd = !$v{useCache}
-							? $newResSoundExpr
+							? $resSoundExpr
 							: {
 								// Cache
 								if( !dn.heaps.assets.SfxDirectory._CACHE.exists( $v{resRelPath} ) )
-									dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $newResSoundExpr );
+									dn.heaps.assets.SfxDirectory._CACHE.set( $v{resRelPath} , $resSoundExpr );
 								dn.heaps.assets.SfxDirectory._CACHE.get( $v{resRelPath} );
 							}
 
@@ -104,6 +121,32 @@ class SfxDirectory {
 				fieldName = cleanUpIdentifier(fieldName);
 				var wrapperExpr : Expr = { pos:pos, expr:EFunction(FNamed(fieldName), f) }
 				fields.push({ field:fieldName, expr:wrapperExpr });
+			}
+
+			// Create random-series getters if a follow-up in the supposed sequence exists
+			for( r in randomSeries.keyValueIterator() ) {
+				randomSerieReg.match(r.key);
+				var baseName = randomSerieReg.matched(1);
+				var idx = Std.parseInt( randomSerieReg.matched(2) );
+				var ext = randomSerieReg.matched(3);
+				var series = [];
+				var fp = FilePath.fromFile(path+"/"+baseName+idx+ext);
+				while( sys.FileSystem.exists(fp.full) ) {
+					fp.removeFirstDirectory();
+					series.push(fp);
+					idx++;
+					fp = FilePath.fromFile(path+"/"+baseName+idx+ext);
+				}
+
+				// Found an actual series
+				if( series.length>1 ) {
+					var pathExprs : Array<Expr> = series.map( fp->macro $v{fp.full} );
+					var arrExpr : Expr = { pos:pos, expr: EArrayDecl(pathExprs) }
+					fields.push({
+						field: baseName,
+						expr: macro { new dn.heaps.Sfx.RandomSfxList( ${arrExpr} ); },
+					});
+				}
 			}
 
 			return fields;

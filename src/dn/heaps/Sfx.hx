@@ -450,27 +450,53 @@ class Sfx {
 	}
 
 
-	public static function createRandomList(sounds:Array<Sound>) : RandomSfxList {
-		var rl = new RandomSfxList(sounds);
-		return rl;
-		// var getters : Array< Void->Sfx > = snds.map( (snd)-> function() {trace(snd); return new Sfx(snd);} );
-		// var rl : RandList< Void->Sfx > = new RandList(getters);
-		// return rl;
+	/** Create a random-picking list from an array of Sounds **/
+	public static inline function createRandomList(sounds:Array<Sound>) : RandomSfxList {
+		return new RandomSfxList(sounds);
 	}
 	#end
 }
 
 
+
+/**
+	A small helper class to pick sounds randomly from a list
+**/
 class RandomSfxList {
-	var all : Array<Sound>;
-	public function new(sounds:Array<Sound>) {
-		if( sounds.length==0 )
-			throw "Array must not be empty";
-		all = sounds;
+	var getters : Array< Void->Sfx >;
+
+	/**
+		You can replace this with your own random method
+	**/
+	public var randomFunc : Int->Int = Std.random;
+
+	/**
+		Create a random picking list.
+
+		One array must be provided: either an array of resource Sounds, or an array of paths relative to the "res/" folder (eg. "mySounds/file1.wav", with "mySounds" being in the root of the "res" folder).
+	**/
+	public function new(?sounds:Array<Sound>, ?resSoundsPaths:Array<String>) {
+		if( ( sounds==null || sounds.length==0 ) && ( resSoundsPaths==null || resSoundsPaths.length==0 ) )
+			throw "One of the arrays must not be empty";
+
+		if( sounds!=null && sounds.length>0 )
+			getters = sounds.map( snd -> function() return new Sfx(snd) );
+		else if( resSoundsPaths!=null && resSoundsPaths.length>0 ) {
+			getters = resSoundsPaths.map( path -> function() return new Sfx( hxd.Res.load(path).toSound() ) );
+		}
 	}
+
+	/**
+		Return a random Sfx
+	**/
 	public inline function draw() {
-		return new Sfx( all[ Std.random(all.length) ] );
+		return getters[ randomFunc(getters.length) ]() ;
 	}
+
+
+	/**
+		Return a random Sfx and play it
+	**/
 	public inline function drawAndPlay(vol=1.0) {
 		var s = draw();
 		s.play(vol);
