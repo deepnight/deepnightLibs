@@ -810,7 +810,7 @@ class GetText {
 			'msgstr ""',
 			'"Content-Type: text/plain; charset=UTF-8\\n"',
 			'"Content-Transfer-Encoding: 8bit\\n"',
-			'""MIME-Version: 1.0\\n"',
+			'"MIME-Version: 1.0\\n"',
 			'\n',
 		];
 
