@@ -76,6 +76,21 @@ class Lib {
 		return str;
 	}
 
+	/**
+		Trim (left and right) and any whitespace character (space, tab, end of line, etc.)
+	**/
+	static var L_WHITESPACE_TRIM = ~/^\s*/gi;
+	static var R_WHITESPACE_TRIM = ~/\s*$/gi;
+	public static inline function wtrim(str:String) {
+		if( str==null )
+			return "";
+		else {
+			str = L_WHITESPACE_TRIM.replace(str, "");
+			str = R_WHITESPACE_TRIM.replace(str, "");
+			return str;
+		}
+	}
+
 	public static inline function repeatChar(c:String, n:Int) {
 		var out = "";
 		for(i in 0...n)
@@ -673,6 +688,11 @@ class Lib {
 		CiAssert.equals( safeEscape(' \"hello\" ', '"'),	' \\"hello\\" ');
 		CiAssert.equals( safeEscape(' "hello" ', '"'),		' \\"hello\\" ');
 		CiAssert.equals( safeEscape(' "hello" \"world" ', '"'), ' \\"hello\\" \\"world\\" ');
+
+		CiAssert.equals( wtrim('  \thello  \t  \r\n'), 'hello' );
+		CiAssert.equals( wtrim(' \t '), '' );
+		CiAssert.equals( wtrim(''), '' );
+		CiAssert.equals( wtrim(null), '' );
 	}
 
 	#end // End of "if macro"
