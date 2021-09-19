@@ -21,10 +21,27 @@ class Lib {
 	public static function println(v:Dynamic) {
 		#if js
 			js.html.Console.log( Std.string(v) );
+		#elseif neko
+			neko.Lib.println( Std.string(v) );
 		#elseif flash
 			trace( Std.string(v) );
 		#elseif sys
 			Sys.println( Std.string(v) );
+		#else
+			trace( Std.string(v) );
+		#end
+	}
+
+	/** Print a string to standard output without newline character, if any. Might not be supported everywhere. **/
+	public static function print(v:Dynamic) {
+		#if js
+			js.html.Console.log( Std.string(v) );
+		#elseif neko
+			neko.Lib.print( Std.string(v) );
+		#elseif flash
+			trace( Std.string(v) );
+		#elseif sys
+			Sys.print( Std.string(v) );
 		#else
 			trace( Std.string(v) );
 		#end
