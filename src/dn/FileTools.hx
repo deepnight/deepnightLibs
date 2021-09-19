@@ -1,7 +1,7 @@
 package dn;
 
 class FileTools {
-	#if( hl || neko )
+	#if sys
 	public static function deleteDirectoryRec(path:String) {
 		var fp = FilePath.fromDir(path);
 		fp.useSlashes();
@@ -28,7 +28,7 @@ class FileTools {
 	}
 	#end
 
-	#if( hl || neko )
+	#if sys
 	public static function copyDirectoryRec(from:String, to:String) {
 		var to = dn.FilePath.extractDirectoryWithSlash(to,false);
 		var all = listAllFilesRec(from);
@@ -66,7 +66,7 @@ class FileTools {
 	}
 	#end
 
-	#if( hl || neko )
+	#if sys
 	public static function listAllFilesRec(path:String) : { dirs:Array<String>, files:Array<String> } {
 		// List elements
 		var pendingDirs = [path];
