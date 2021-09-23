@@ -133,17 +133,17 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			);
 		}
 
-		inline function curve(uv:Vec2) : Vec2 {
-			uv = uv*2 - 1;
+		function curve(uv:Vec2) : Vec2 {
+			var out = uv*2 - 1;
 
 			var offset = abs(uv.yx) / curvature;
-			uv = uv + uv * offset * offset;
+			out = out + out * offset * offset;
 
-			uv = uv*0.5 + 0.5;
-			return uv;
+			out = out*0.5 + 0.5;
+			return out;
 		}
 
-		inline function vignette(uv:Vec2) : Float {
+		function vignette(uv:Vec2) : Float {
 			var off = max( abs(uv.y*2-1) / 4,  abs(uv.x*2-1) / 4 );
 			return 300 * off*off*off*off*off;
 		}
