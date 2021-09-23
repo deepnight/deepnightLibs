@@ -32,12 +32,15 @@ class ScreenWash extends dn.Process {
 	var maskWidth(get,never) : Int;
 	var maskHeight(get,never) : Int;
 
-	var wrapper : h2d.Object;
+	var rotatedWrapper : h2d.Object;
+	var maskWrapper : h2d.Object;
 	var tile : h2d.Tile;
 	var sb : h2d.SpriteBatch;
 	var mask : h2d.Bitmap;
 
+	var reversed = false;
 	var invalidated = true;
+	var completed = false;
 
 
 
@@ -53,27 +56,58 @@ class ScreenWash extends dn.Process {
 		else
 			createRootInNoContext();
 
-		wrapper = new h2d.Object(root);
+		rotatedWrapper = new h2d.Object(root);
+		maskWrapper = new h2d.Object(rotatedWrapper);
 
 		this.color = color;
 		screenWidth = w();
 		screenHeight = h();
 
 
-		mask = new h2d.Bitmap( h2d.Tile.fromColor(color), wrapper );
+		mask = new h2d.Bitmap( h2d.Tile.fromColor(color), maskWrapper );
 
 		tile = t;
-		sb = new h2d.SpriteBatch(tile, wrapper);
+		sb = new h2d.SpriteBatch(tile, maskWrapper);
+		sb.color.setColor( dn.Color.addAlphaF(color) );
+	}
+
+
+	/**
+		Set wash color
+		NOTE: the provided Tile should be white for this to work!
+	**/
+	public inline function setColor(c:Int) {
 		sb.color.setColor( dn.Color.addAlphaF(color) );
 	}
 
 	/**
 		Override screen dimensions
 	**/
-	public inline function setScreenSize(w,h) {
+	public inline function setScreenSize(w:Int, h:Int) {
 		screenWidth = w;
 		screenHeight = h;
 		invalidated = true;
+		render();
+	}
+
+
+	/**
+		Override screen dimensions
+	**/
+	public inline function setScreenScale(s:Float) {
+		screenWidth = M.ceil( w()/s );
+		screenHeight = M.ceil( h()/s );
+		invalidated = true;
+		render();
+	}
+
+
+	/**
+		Reverse animation (ie. from fully masked screen to fully revealed)
+	**/
+	public inline function reverse() {
+		reversed = true;
+		linearRatio = 1;
 		render();
 	}
 
@@ -111,15 +145,15 @@ class ScreenWash extends dn.Process {
 
 
 	function complete() {
-		destroy();
+		completed = true;
 		onComplete();
 	}
 	public dynamic function onComplete() {}
 
 
 	function render() {
+		// Redraw tiles
 		if( invalidated ) {
-			// Redraw tiles
 			sb.clear();
 			for(i in 0...M.ceil(maskHeight/tile.height)) {
 				var be = new h2d.SpriteBatch.BatchElement(tile);
@@ -129,10 +163,10 @@ class ScreenWash extends dn.Process {
 			invalidated = false;
 		}
 
-		root.rotation = ang;
-		root.setPosition(screenWidth*0.5, screenHeight*0.5);
+		rotatedWrapper.rotation = ang + ( reversed ? M.PI : 0 );
+		rotatedWrapper.setPosition(screenWidth*0.5, screenHeight*0.5);
 
-		wrapper.setPosition(-maskWidth*0.5, -maskHeight*0.5);
+		maskWrapper.setPosition(-maskWidth*0.5, -maskHeight*0.5);
 
 		mask.setPosition(-tile.width*0.5, -tile.height*0.5);
 		mask.scaleX = ( maskWidth + tile.width ) * ratio;
@@ -151,10 +185,20 @@ class ScreenWash extends dn.Process {
 	override function update() {
 		super.update();
 
+		// Actual destruction happens 1 frame later
+		if( completed ) {
+			destroy();
+			return;
+		}
+
 		// Progress
-		linearRatio += 1/durationS * 1/getDefaultFrameRate() * tmod;
+		if( reversed )
+			linearRatio -= 1/durationS * 1/getDefaultFrameRate() * tmod;
+		else
+			linearRatio += 1/durationS * 1/getDefaultFrameRate() * tmod;
+
 		linearRatio = dn.M.fclamp(linearRatio, 0, 1);
-		if( linearRatio>=1 ) {
+		if( !reversed && linearRatio>=1 || reversed && linearRatio<=0 ) {
 			render();
 			complete();
 		}
