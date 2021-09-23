@@ -122,6 +122,7 @@ class Process {
 	/** This special init method is only called once during next frame: call will happen *after* the constructor call and *before* any update. **/
 	function initOnceBeforeUpdate() {}
 
+
 	#if( heaps || flash )
 	/** Init graphic context **/
 	public function createRoot(
@@ -147,6 +148,21 @@ class Process {
 		#end
 	}
 	#end
+
+
+	#if heaps
+	/**
+		Init graphic context without adding it anywhere
+	**/
+	public function createRootInNoContext() {
+		if( root!=null )
+			throw this+": root already created!";
+
+		root = new h2d.Layers();
+		root.name = getDisplayName();
+	}
+	#end
+
 
 	#if heaps
 	/** Init graphic context in specified `h2d.Layers` **/
