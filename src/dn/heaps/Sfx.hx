@@ -57,16 +57,22 @@ private class GlobalGroup {
 // --- SFX ------------------------------------------------------
 
 class Sfx {
-	static var SPATIAL_LISTENER_X = 0.;
-	static var SPATIAL_LISTENER_Y = 0.;
-	static var SPATIAL_LISTENER_RANGE = 1.;
-
+	/**
+		Folder importer using macro
+	**/
 	macro public static function importDirectory(dir:String) {
 		haxe.macro.Context.error("ERROR: use dn.heaps.assets.SfxDirectory.load()", haxe.macro.Context.currentPos());
 		return macro null;
 	}
 
+
+
 	#if !macro
+	static var SPATIAL_LISTENER_X = 0.;
+	static var SPATIAL_LISTENER_Y = 0.;
+	static var SPATIAL_LISTENER_RANGE = 1.;
+	static var SOUND_VOLUMES_OVERRIDE : Map<String,Float> = new Map();
+
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
 	public static var DEFAULT_GROUP_ID = 0;
 
@@ -74,6 +80,7 @@ class Sfx {
 	public var sound(default,null) : Sound;
 	public var defaultGroupId(default,set) : Int;
 	public var soundGroup(get,never) : Null<SoundGroup>;
+
 
 	/**
 		Target sound volume. Please note that the actual "final" volume will be a mix of this value, the Group volume and optional spatialization.
@@ -150,6 +157,14 @@ class Sfx {
 
 	public static function getGroupVolume(id:Int) {
 		return getGlobalGroup(id).getVolume();
+	}
+
+	public static function overrideSoundVolume(s:Sfx, newDefaultVolumeMul:Float) {
+		SOUND_VOLUMES_OVERRIDE.set(s.sound.entry.path, newDefaultVolumeMul);
+	}
+
+	public static function resetOverridenSoundVolume(s:Sfx) {
+		SOUND_VOLUMES_OVERRIDE.remove(s.sound.entry.path);
 	}
 
 
@@ -293,7 +308,9 @@ class Sfx {
 			spatial = f*f*f;
 		}
 
-		return volume * getGlobalGroup(defaultGroupId).getVolume() * spatial;
+		final overrideVol : Float = SOUND_VOLUMES_OVERRIDE.exists(sound.entry.path) ? SOUND_VOLUMES_OVERRIDE.get(sound.entry.path) : 1;
+
+		return volume * getGlobalGroup(defaultGroupId).getVolume() * spatial * overrideVol;
 	}
 
 	/**
