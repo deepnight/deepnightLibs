@@ -323,7 +323,7 @@ class Sfx {
 			onEndCurrent = cb;
 	}
 
-	public function removeOnEnd() {
+	public function clearOnEndCallback() {
 		onEndCurrent = null;
 	}
 
