@@ -136,7 +136,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		function curve(uv:Vec2) : Vec2 {
 			var out = uv*2 - 1;
 
-			var offset = abs(uv.yx) / curvature;
+			var offset = abs(out.yx) / curvature;
 			out = out + out * offset * offset;
 
 			out = out*0.5 + 0.5;
