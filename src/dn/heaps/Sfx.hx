@@ -72,13 +72,14 @@ class Sfx {
 	static var SPATIAL_LISTENER_Y = 0.;
 	static var SPATIAL_LISTENER_RANGE = 1.;
 	static var SOUND_VOLUMES_OVERRIDE : Map<String,Float> = new Map();
+	static var SOUND_DEFAULT_GROUPS : Map<String,Int> = new Map();
 
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
 	public static var DEFAULT_GROUP_ID = 0;
 
 	var lastChannel : Null<Channel>;
 	public var sound(default,null) : Sound;
-	public var defaultGroupId(default,set) : Int;
+	public var groupId(default,set) : Int;
 	public var soundGroup(get,never) : Null<SoundGroup>;
 
 
@@ -106,7 +107,7 @@ class Sfx {
 		sound = s;
 		volume = 1;
 		spatialRangeMul = 1.0;
-		defaultGroupId = DEFAULT_GROUP_ID;
+		groupId = DEFAULT_GROUP_ID;
 	}
 
 	public function dispose() {
@@ -122,15 +123,15 @@ class Sfx {
 
 
 
-	inline function set_defaultGroupId(v) {
+	inline function set_groupId(v) {
 		#if debug
 		if( isPlaying() )
-			trace("WARNING: changing defaultGroupId of a playing Sfx will not affect it immediately.");
+			trace("WARNING: changing groupId of a playing Sfx will not affect it immediately.");
 		#end
-		return defaultGroupId = v;
+		return groupId = v;
 	}
 
-	inline function get_soundGroup() return getGlobalGroup(defaultGroupId).soundGroup;
+	inline function get_soundGroup() return getGlobalGroup(groupId).soundGroup;
 
 	inline function set_volume(v) {
 		volume = M.fclamp(v,0,1);
@@ -165,6 +166,14 @@ class Sfx {
 
 	public static function resetOverridenSoundVolume(s:Sfx) {
 		SOUND_VOLUMES_OVERRIDE.remove(s.sound.entry.path);
+	}
+
+	public static function setSoundDefaultGroup(s:Sfx, groupId:Int) {
+		SOUND_DEFAULT_GROUPS.set(s.sound.entry.path, groupId);
+	}
+
+	public static function unsetSoundDefaultGroup(s:Sfx) {
+		SOUND_DEFAULT_GROUPS.remove(s.sound.entry.path);
 	}
 
 
@@ -232,7 +241,9 @@ class Sfx {
 		if( isPlaying() )
 			stop();
 
-		onStartPlaying( sound.play(loop, volume, getGlobalGroup(defaultGroupId).soundGroup) );
+		if( SOUND_DEFAULT_GROUPS.exists(sound.entry.path) )
+			groupId = SOUND_DEFAULT_GROUPS.get(sound.entry.path);
+		onStartPlaying( sound.play(loop, volume, getGlobalGroup(groupId).soundGroup) );
 		return this;
 	}
 
@@ -255,7 +266,7 @@ class Sfx {
 		if( isPlaying() )
 			stop();
 
-		onStartPlaying(  sound.play(false, volume, getGlobalGroup(defaultGroupId).soundGroup) );
+		onStartPlaying(  sound.play(false, volume, getGlobalGroup(groupId).soundGroup) );
 		setSpatialPos(x,y);
 		return this;
 	}
@@ -310,7 +321,7 @@ class Sfx {
 
 		final overrideVol : Float = SOUND_VOLUMES_OVERRIDE.exists(sound.entry.path) ? SOUND_VOLUMES_OVERRIDE.get(sound.entry.path) : 1;
 
-		return volume * getGlobalGroup(defaultGroupId).getVolume() * spatial * overrideVol;
+		return volume * getGlobalGroup(groupId).getVolume() * spatial * overrideVol;
 	}
 
 	/**
@@ -384,7 +395,7 @@ class Sfx {
 		Play sound on given group
 	**/
 	public function playOnGroup(gid:Int, ?loop=false, ?vol:Float) {
-		defaultGroupId = gid;
+		groupId = gid;
 		play(loop, vol);
 		return this;
 	}
