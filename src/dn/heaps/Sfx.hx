@@ -118,7 +118,7 @@ class Sfx {
 	}
 
 	public function toString() {
-		return Std.string(sound);
+		return "Sfx." + ( customIdentifier!=null ? customIdentifier : Std.string(sound) );
 	}
 
 
@@ -220,16 +220,30 @@ class Sfx {
 	inline function onStartPlaying(c:Channel) {
 		onEndCurrent = null;
 		lastChannel = c;
+		// lastChannel.onLoop = ()->{
+		// 	trace(this+" looped");
+		// 	onLoop();
+		// };
+		// lastChannel.onLoop = onLoop;
 		lastChannel.onEnd = ()->{
-			if( onEndCurrent==null )
-				return;
+			if( lastChannel.loop )
+				onLoop();
 
-			var cb = onEndCurrent;
-			onEndCurrent = null;
-			cb();
+			if( onEndCurrent!=null ) {
+				var cb = onEndCurrent;
+				onEndCurrent = null;
+				cb();
+			}
+
 		}
 		applyVolume();
 	}
+
+	/**
+		Called when a looping sound loops.
+		This method can be replaced.
+	**/
+	public dynamic function onLoop() {}
 
 	/**
 		Play sound
