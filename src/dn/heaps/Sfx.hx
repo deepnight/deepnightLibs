@@ -220,11 +220,6 @@ class Sfx {
 	inline function onStartPlaying(c:Channel) {
 		onEndCurrent = null;
 		lastChannel = c;
-		// lastChannel.onLoop = ()->{
-		// 	trace(this+" looped");
-		// 	onLoop();
-		// };
-		// lastChannel.onLoop = onLoop;
 		lastChannel.onEnd = ()->{
 			if( lastChannel.loop )
 				onLoop();
