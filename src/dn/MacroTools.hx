@@ -51,8 +51,19 @@ class MacroTools {
 		return { pos:Context.currentPos(), expr:EConst( CString( Date.now().toString() ) ) }
 	}
 
-	public static macro function getBuildVersion() {
-		var parts = [ (~/[^a-z0-9]/gi).replace( Date.now().toString(), "_" ) ];
+	/**
+		Return a version String containing various info about current build: platform, steam, debug, 32/64bits etc.
+		Example: "2021-10-01-21-39-53--hldx-steam-debug-64"
+	**/
+	public static macro function getBuildVersion(?separator:ExprOf<String>) {
+		var sep = switch separator.expr {
+			case null, EConst(CIdent("null")) : "-";
+			case EConst(CString(s, _)): s;
+			case _: Context.fatalError("Unexpected value "+separator.expr, separator.pos);
+		}
+
+		var parts = [ (~/[^a-z0-9]/gi).replace( Date.now().toString(), sep ) ];
+		parts.push("");
 		if( Context.defined("js") ) parts.push("js");
 		if( Context.defined("neko") ) parts.push("neko");
 
@@ -65,10 +76,10 @@ class MacroTools {
 
 		var base : Expr = {
 			pos: Context.currentPos(),
-			expr: EConst( CString(parts.join("-")) ),
+			expr: EConst( CString(parts.join(sep)) ),
 		}
 		if( Context.defined("hl") ) {
-			return macro $base + ( hl.Api.is64() ? "-64" : "-32 ");
+			return macro $base + ( hl.Api.is64() ? $v{sep}+"64" : $v{sep}+"32 ");
 		}
 		else
 			return base;
