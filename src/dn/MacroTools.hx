@@ -55,7 +55,7 @@ class MacroTools {
 		Return a version String containing various info about current build: platform, steam, debug, 32/64bits etc.
 		Example: "2021-10-01-21-39-53--hldx-steam-debug-64"
 	**/
-	public static macro function getBuildVersion(?separator:ExprOf<String>) {
+	public static macro function getBuildInfo(?separator:ExprOf<String>) {
 		var sep = switch separator.expr {
 			case null, EConst(CIdent("null")) : "-";
 			case EConst(CString(s, _)): s;
