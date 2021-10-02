@@ -12,6 +12,9 @@ class Process {
 	static var UNIQ_ID = 0;
 	static var ROOTS : Array<Process> = [];
 
+	/** If TRUE, each Process.onResize() will be called *once* at the end of the frame **/
+	static var RESIZE_REQUESTED = true;
+
 	public var uniqId : Int;
 	/** Elapsed frames from the client start **/
 	public var ftime(default, null) : Float; // elapsed frames
@@ -639,12 +642,22 @@ class Process {
 		for (p in ROOTS)
 			_doPostUpdate(p);
 
+		if( RESIZE_REQUESTED ) {
+			RESIZE_REQUESTED = false;
+			for(p in ROOTS)
+				_resizeProcess(p);
+		}
+
 		_garbageCollector(ROOTS);
 	}
 
-	public static function resizeAll() {
-		for ( p in ROOTS )
-			_resizeProcess(p);
+	/** Request a onResize() call for all processes. If `now` is false, the call will only happen **once** and **at the end** of current frame. **/
+	public static function resizeAll(now=false) {
+		if( now )
+			for ( p in ROOTS )
+				_resizeProcess(p);
+		else
+			RESIZE_REQUESTED = true;
 	}
 
 
