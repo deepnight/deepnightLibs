@@ -45,7 +45,7 @@ class Process {
 	public var uftime(default, null) : Float;
 	var baseTimeMul = 1.0;
 
-	/** Set this to TRUE if you want this Process to ignore any time multipliers, including parents **/
+	/** Set this to TRUE if you want this Process to ignore any existing time multipliers, including the ones from parent Processes. For example, a UI component will probably want to ignore time multipliers, even if the game is running in slow-motion. **/
 	var ignoreTimeMultipliers = false;
 
 	@:noCompletion
