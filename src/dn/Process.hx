@@ -45,6 +45,9 @@ class Process {
 	public var uftime(default, null) : Float;
 	var baseTimeMul = 1.0;
 
+	/** Set this to TRUE if you want this Process to ignore any time multipliers, including parents **/
+	var ignoreTimeMultipliers = false;
+
 	@:noCompletion
 	@:deprecated("Use baseTimeMul instead")
 	var speedMod(get,set) : Float;
@@ -357,7 +360,7 @@ class Process {
 
 	/** Get "total" time multiplier, including parent processes **/
 	function getComputedTimeMultiplier() : Float {
-		return M.fmax(0, baseTimeMul * ( parent==null ? 1 : parent.getComputedTimeMultiplier() ) );
+		return ignoreTimeMultipliers ? 1.0 : M.fmax(0, baseTimeMul * ( parent==null ? 1 : parent.getComputedTimeMultiplier() ) );
 	}
 
 
