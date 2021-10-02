@@ -27,16 +27,16 @@ private class CdInst {
 
 /**
  * The `Cooldown` class allows you to manage various state effects that expire after a set amount of time.
- * 
+ *
  * **Name of cooldowns**
- * 
+ *
  * Cooldown names are either a string or a string + an integer. This allows you to create cooldowns that share a name
  * but are different.
- * 
- * *Examples*:  
- * `cd.setMs("punch", 400);`  
+ *
+ * *Examples*:
+ * `cd.setMs("punch", 400);`
  * `cd.setF("jump" + 1, 320);`
- * 
+ *
  */
 class Cooldown {
 	/**
@@ -55,7 +55,7 @@ class Cooldown {
 	 * @return Float Equivalent amount in frames
 	 */
 	public inline function msToFrames(ms:Float) return ms * baseFps / 1000.;
-	
+
 	/**
 	 * Convert seconds to frames
 	 * @param ms Amount of seconds
@@ -92,9 +92,9 @@ class Cooldown {
 	}
 
 	/**
-	 * Reset the cooldowns that exist. 
-	 * 
-	 * This simply deletes the tracked cooldowns, and does not fire any events on them. 
+	 * Reset the cooldowns that exist.
+	 *
+	 * This simply deletes the tracked cooldowns, and does not fire any events on them.
 	 */
 	public inline function reset() {
 		cdList = new Array();
@@ -196,17 +196,17 @@ class Cooldown {
 
 	/**
 	 * Get the completion ratio of a given cooldown
-	 * 
+	 *
 	 * Starts at 1. and goes to 0. when completed
 	 * @param k cooldown to check
-	 * @return Float the ratio 
+	 * @return Float the ratio
 	 */
 	public function getRatio( k : String ) : Float return 0.;
 
 	/**
 	 * Set the completion callback for a given cooldown
 	 * @param k name of the cooldown to set
-	 * @param onceCB callback that will be called once the cooldown completes 
+	 * @param onceCB callback that will be called once the cooldown completes
 	 */
 	public function onComplete( k : String, onceCB : Void->Void ){}
 	#else
