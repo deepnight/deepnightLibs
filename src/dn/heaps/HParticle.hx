@@ -467,6 +467,14 @@ class HParticle extends BatchElement {
 		dn.Color.colorizeBatchElement(this, c, ratio);
 	}
 
+	public inline function colorizeRandomDarker(c:UInt, range:Float) {
+		colorize( Color.toBlack(c,rnd(0,range)) );
+	}
+
+	public inline function colorizeRandomLighter(c:UInt, range:Float) {
+		colorize( Color.toWhite(c,rnd(0,range)) );
+	}
+
 	public inline function randScale(min:Float, max:Float, sign=false) {
 		setScale( rnd(min, max, sign) );
 	}
