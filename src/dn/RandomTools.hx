@@ -80,6 +80,12 @@ class RandomTools {
 	}
 
 
+	/** Pick a value randomly in an array **/
+	public static inline function pick<T>(a:Array<T>) : Null<T> {
+		return a.length==0 ? null : a[Std.random(a.length)];
+	}
+
+
 	/**
 		Randomly spread `value` in `nbStacks` stacks. Example:
 	**/
