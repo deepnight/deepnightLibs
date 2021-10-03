@@ -12,12 +12,28 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 	/** If TRUE, the original object pixels are discarded, and only the outline remains **/
 	public var knockOut(default,set) : Bool;
 
+	/** If TRUE, the outline may be drawn outside of the bounds of the object texture, increasing its size. **/
+	public var extendBounds = true;
+
+	/** Show left pixels of the outline (default is true) **/
+	public var left(default,set) : Bool;
+	/** Show right pixels of the outline (default is true) **/
+	public var right(default,set) : Bool;
+	/** Show top pixels of the outline (default is true) **/
+	public var top(default,set) : Bool;
+	/** Show bottom pixels of the outline (default is true) **/
+	public var bottom(default,set) : Bool;
+
 	/** Add a pixel-perfect outline around a h2d.Object using a shader filter **/
 	public function new(color=0x0, a=1.0, knockOut=false) {
 		super( new InternalShader() );
 		this.color = color;
 		alpha = a;
 		smooth = false;
+		left = true;
+		right = true;
+		top = true;
+		bottom = true;
 		this.knockOut = knockOut;
 	}
 
@@ -40,6 +56,30 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 		return v;
 	}
 
+	inline function set_left(v) {
+		left = v;
+		shader.leftMul = v ? 1 : 0;
+		return v;
+	}
+
+	inline function set_right(v) {
+		right = v;
+		shader.rightMul = v ? 1 : 0;
+		return v;
+	}
+
+	inline function set_top(v) {
+		top = v;
+		shader.topMul = v ? 1 : 0;
+		return v;
+	}
+
+	inline function set_bottom(v) {
+		bottom = v;
+		shader.bottomMul = v ? 1 : 0;
+		return v;
+	}
+
 	public function setPartialKnockout(alphaMul:Float) {
 		alphaMul = M.fclamp(alphaMul, 0, 1);
 		knockOut = alphaMul<1;
@@ -48,7 +88,7 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 
 	override function sync(ctx : h2d.RenderContext, s : h2d.Object) {
 		super.sync(ctx, s);
-		boundsExtend = 1;
+		boundsExtend = extendBounds ? 1 : 0;
 	}
 
 	override function draw(ctx : h2d.RenderContext, t : h2d.Tile) {
@@ -66,17 +106,22 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var outlineColor : Vec4;
 		@param var knockOutThreshold : Float;
 
+		@param var leftMul : Float;
+		@param var rightMul : Float;
+		@param var topMul: Float;
+		@param var bottomMul: Float;
+
 		function fragment() {
 			var curColor : Vec4 = texture.get(input.uv);
 
 			var onEdge = ( // Get outline color multiplier based on transparent surrounding pixels
 				( 1-curColor.a ) * max(
-					texture.get( vec2(input.uv.x+texelSize.x, input.uv.y) ).a, // left outline
+					texture.get( vec2(input.uv.x+texelSize.x, input.uv.y) ).a * leftMul, // left outline
 					max(
-						texture.get( vec2(input.uv.x-texelSize.x, input.uv.y) ).a, // right outline
+						texture.get( vec2(input.uv.x-texelSize.x, input.uv.y) ).a * rightMul, // right outline
 						max(
-							texture.get( vec2(input.uv.x, input.uv.y+texelSize.y) ).a, // top outline
-							texture.get( vec2(input.uv.x, input.uv.y-texelSize.y) ).a // bottom outline
+							texture.get( vec2(input.uv.x, input.uv.y+texelSize.y) ).a * topMul, // top outline
+							texture.get( vec2(input.uv.x, input.uv.y-texelSize.y) ).a * bottomMul // bottom outline
 						)
 					)
 				)
