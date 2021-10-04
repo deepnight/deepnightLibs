@@ -40,6 +40,11 @@ class PixelGrid extends h2d.Object {
 	inline function coordId(x,y) return x + y*wid;
 
 
+	/** Apply a color modifier to all the grid. This only modifies the underlying TileGroup color Vector.**/
+	public inline function colorize(c:Int) {
+		tg.color.setColor( Color.addAlphaF(c,1) );
+	}
+
 	/** Fill a pixel using a 0xRRGGBB color, with optional alpha in a separate parameter **/
 	public inline function setPixel(x:Int, y:Int, rgb:Int, alpha=1.0) {
 		if( alpha>0 )
