@@ -2,11 +2,11 @@ package dn;
 
 /**
  * Various helper methods for 2D grid traversal.
- * 
+ *
  * There's two kinds of line helpers:
  *   - `Thin`, meaning that the line does diagonal jumps
  *   - `Thick`, meaning that the line does *not* do diagonal jumps
- * 
+ *
  * There's also two kinds of circular helpers:
  *   - `Circle`, meaning only the edge is taken into account
  *   - `Disc`, meaning the entirety of a disc is taken into account
@@ -15,7 +15,7 @@ class Bresenham {
 
 	/**
 	 * Get a list of coordinates from `(x0, y0)` to `(x1, y1)`, where diagonal jumps are allowed.
-	 * 
+	 *
 	 * If you do not want diagonal jumps use `getThickLine` instead.
 	 * @param x0 Starting x coordinate
 	 * @param y0 Starting y coordinate
@@ -80,7 +80,7 @@ class Bresenham {
 
 	/**
 	 * Get a list of coordinates from `(x0, y0)` to `(x1, y1)`, without diagonal jumps.
-	 * 
+	 *
 	 * If you do want diagonal jumps use `getThickLine` instead.
 	 * @param x0 Starting x coordinate
 	 * @param y0 Starting y coordinate
@@ -153,7 +153,7 @@ class Bresenham {
 	// Duplicates fix: https://stackoverflow.com/questions/44117168/midpoint-circle-without-duplicates
 	/**
 	 * Get the points along the edge of a circle at `(x0, y0)` with `radius`.
-	 * 
+	 *
 	 * If you want the points inside the circle as well, check out `getDisc`.
 	 * @param x0 Center x coordinate
 	 * @param y0 Center y coordinate
@@ -169,7 +169,7 @@ class Bresenham {
 	// Source : http://stackoverflow.com/questions/1201200/fast-algorithm-for-drawing-filled-circles
 	/**
 	 * Get the points inside a disc at `(x0, y0)` with `radius`.
-	 * 
+	 *
 	 * If you only want the border, check out `getDisc`.
 	 * @param x0 Center x coordinate
 	 * @param y0 Center y coordinate
@@ -182,17 +182,110 @@ class Bresenham {
 		return pts;
 	}
 
+
+	static inline function _checkHorizontal(fx,fy, tx, checkCb:(x:Int,y:Int)->Bool) {
+		var valid = true;
+		for(x in fx...tx+1)
+			if( !checkCb(x,fy) ) {
+				valid = false;
+				break;
+			}
+		return valid;
+	}
+
+
+
+
+	/**
+	 * Check whether for a given disc, a condition holds. Returns `false` if at any time the condition fails. Otherwise, returns `true`.
+	 * Not *really* "Bresenham" related, but it's convinient to have this here as well.
+	 *
+	 * @param fx Top-left corner x coordinate
+	 * @param fy Top-left corner y coordinate
+	 * @param w Rectangle width
+	 * @param h Rectangle width
+	 * @param checkCb A condition checked for each tile. If this returns `false`, the whole function returns `false`.
+	 * @return Bool Only `true` if for the **all** `checkCb` calls returned `true` as well, otherwise `false`.
+	 */
+	public static inline function checkRect(fx,fy,w,h, checkCb:(x:Int,y:Int)->Bool) {
+		var valid = true;
+		for(y in fy...fy+h) {
+			for(x in fx...fx+w)
+				if( !checkCb(x,y) ) {
+					valid = false;
+					break;
+				}
+
+			if( !valid )
+				break;
+		}
+
+		return valid;
+	}
+
+
+	/**
+	 * Check whether for a given disc, a condition holds. Returns `false` if at any time the condition fails. Otherwise, returns `true`.
+	 *
+	 * @param x0 Start x coordinate
+	 * @param y0 Start y coordinate
+	 * @param x1 End x coordinate
+	 * @param y1 End y coordinate
+	 * @param checkCb A condition checked for each tile. If this returns `false`, the whole function returns `false`.
+	 * @return Bool Only `true` if for the **all** `checkCb` calls returned `true` as well, otherwise `false`.
+	 */
+	public static inline function checkDisc(x0,y0,radius, checkCb:(x:Int,y:Int)->Bool) : Bool {
+		var x = radius;
+		var y = 0;
+		var radiusError = 1-x;
+		var valid = true;
+		while( x>=y ) {
+			if( !_checkHorizontal(-x+x0, y+y0, x+x0, checkCb) ) {// WWS
+				valid = false;
+				break;
+			}
+
+			if( ( radius<=1 || x!=y && y!=0 ) && radiusError>=0 )
+				if( !_checkHorizontal(-y+x0, x+y0, y+x0, checkCb) ) {// WSS
+					valid = false;
+					break;
+				}
+
+			if( y!=0 )
+				if( !_checkHorizontal(-x+x0, -y+y0, x+x0, checkCb) ) {// WWN
+					valid = false;
+					break;
+				}
+
+			if( ( radius<=1 || x!=y && y!=0 ) && radiusError>=0 )
+				if( !_checkHorizontal(-y+x0, -x+y0, y+x0, checkCb) ) {// WNN
+					valid = false;
+					break;
+				}
+
+			y++;
+			if( radiusError<0 )
+				radiusError += 2*y+1;
+			else {
+				x--;
+				radiusError += 2*(y-x+1);
+			}
+		}
+
+		return valid;
+	}
+
 	/**
 	 * A helper function to iterate over all integer tiles of a disc and call a callback
 	 * for each one of them.
-	 * 
+	 *
 	 * If you only want to iterate the border, check out `iterateCircle`.
 	 * @param x0 Center x coordinate
 	 * @param y0 Center y coordinate
 	 * @param radius Radius
 	 * @param cb a callback, called for each tile of the disc
 	 */
-	public static function iterateDisc(x0,y0,radius, cb:Int->Int->Void) {
+	public static function iterateDisc(x0,y0,radius, cb:(x:Int,y:Int)->Void) {
 		var x = radius;
 		var y = 0;
 		var radiusError = 1-x;
@@ -221,7 +314,7 @@ class Bresenham {
 	/**
 	 * A helper function to iterate over all integer tiles of the border of a circle and call a callback
 	 * for each one of them.
-	 * 
+	 *
 	 * If you want to iterate the whole disc, check out `iterateDisc`.
 	 * @param x0 Center x coordinate
 	 * @param y0 Center y coordinate
@@ -267,7 +360,7 @@ class Bresenham {
 	/**
 	 * A helper function to iterate over each tile in a line from `(x0, y0)` to `(x1, y1)` while
 	 * allowing diagonal traversal.
-	 * 
+	 *
 	 * If you do not want to allow diagonals, check out `iterateThickLine`.
 	 * If you want to have the list of points instead, check out `getThinLine`.
 	 * @param x0 Start x coordinate
@@ -309,9 +402,9 @@ class Bresenham {
 	}
 
 	/**
-	 * A helper function to iterate over each tile in a line from `(x0, y0)` to `(x1, y1)` 
+	 * A helper function to iterate over each tile in a line from `(x0, y0)` to `(x1, y1)`
 	 * without diagonal traversal.
-	 * 
+	 *
 	 * If you do want allow diagonals, check out `iterateThinLine`.
 	 * If you want to have the list of points instead, check out `getThickLine`.
 	 * @param x0 Start x coordinate
@@ -362,11 +455,11 @@ class Bresenham {
 
 	/**
 	 * Check whether for a given line, a condition holds. Returns `false` if at any time the condition fails. Otherwise, returns `true`.
-	 * 
+	 *
 	 * This can be used to check for line of sight for example, or wether the line intersects a specific tile.
-	 * 
+	 *
 	 * This function does diagonal jumps, if you do not want those, see `checkThickLine`.
-	 * 
+	 *
 	 * @param x0 Start x coordinate
 	 * @param y0 Start y coordinate
 	 * @param x1 End x coordinate
@@ -421,11 +514,11 @@ class Bresenham {
 
 	/**
 	 * Check whether for a given line, a condition holds. Returns `false` if at any time the condition fails. Otherwise, returns `true`.
-	 * 
+	 *
 	 * This can be used to check for line of sight for example, or wether the line intersects a specific tile.
-	 * 
+	 *
 	 * This function does not do diagonal jumps, if you do want those, see `checkThinLine`.
-	 * 
+	 *
 	 * @param x0 Start x coordinate
 	 * @param y0 Start y coordinate
 	 * @param x1 End x coordinate
@@ -495,7 +588,7 @@ class Bresenham {
 			return valid;
 		}
 	}
-	
+
 	static inline function _iterateHorizontal(fx,fy, tx, cb:Int->Int->Void) {
 		for(x in fx...tx+1)
 			cb(x,fy);
