@@ -651,11 +651,12 @@ class Process {
 		_garbageCollector(ROOTS);
 	}
 
-	/** Request a onResize() call for all processes. If `now` is false, the call will only happen **once** and **at the end** of current frame. **/
-	public static function resizeAll(now=false) {
-		if( now )
+	/** Request a onResize() call for all processes. If `immediately` is false (default), the call will only happen **once** and **at the end** of current frame. **/
+	public static function resizeAll(immediately=false) {
+		if( immediately ) {
 			for ( p in ROOTS )
 				_resizeProcess(p);
+		}
 		else
 			RESIZE_REQUESTED = true;
 	}
