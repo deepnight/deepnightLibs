@@ -37,13 +37,11 @@ enum PadButton {
 		Attack;
 	}
 	var gi = new GameInput(MyGameActions);
-	gi.onConnect( padConfig->{
-		gi.bindKeyboardToAnalogX(MoveX, hxd.Key.LEFT, hxd.Key.RIGHT);
-		gi.bindPadButtonsToAnalogX(MoveX, padConfig.DPAD_LEFT, padConfig.DPAD_RIGHT);
-	});
-	trace( gi.getAnalogDist(MoveX) ); // 0-1
+	gi.bindKeyboardToAnalogX(MoveX, hxd.Key.LEFT, hxd.Key.RIGHT);
+	gi.bindPadButtonsToAnalogX(MoveX, DPAD_LEFT, DPAD_RIGHT);
 	trace( gi.isDown(Attack) );
 	trace( gi.isPressed(Jump) );
+	trace( gi.getAnalogDist(MoveX) ); // 0-1
 	```
 
 **/
@@ -199,6 +197,33 @@ class GameInput<T:EnumValue> {
 	}
 
 
+	function _bindPadAnalog(action:T, isXaxis:Bool, invert=false) {
+		if( destroyed )
+			return;
+
+		if( !bindings.exists(action) )
+			bindings.set(action, []);
+
+		var b = new InputBinding(this,action);
+		bindings.get(action).push(b);
+		b.isAnalog = true;
+		b.isX = isXaxis;
+		b.invert = invert;
+	}
+
+	public inline function bindPadAnalog(xAction:T, yAction:T) {
+		_bindPadAnalog(xAction, true);
+		_bindPadAnalog(yAction, false);
+	}
+
+	public inline function bindPadAnalogX(action:T) {
+		_bindPadAnalog(action, true);
+	}
+
+	public inline function bindPadAnalogY(action:T) {
+		_bindPadAnalog(action, false);
+	}
+
 
 	public inline function bindPadButtonsToAnalog(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
 		_bindPadButtonsToAnalog(xAction, true, left, right);
@@ -349,9 +374,9 @@ class InputBinding<T:EnumValue> {
 	}
 
 	public inline function getValue(pad:hxd.Pad) : Float {
-		if( isAnalog && isX && pad.xAxis!=0 )
+		if( isAnalog && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
 			return pad.xAxis * (invert?-1:1);
-		else if( isAnalog && !isX && pad.yAxis!=0 )
+		else if( isAnalog && padNeg==null && kbNeg<0 && !isX && pad.yAxis!=0 )
 			return pad.yAxis * (invert?-1:1);
 		else if( Key.isDown(kbNeg) || pad.isDown( input.getPadButtonId(padNeg) ) )
 			return invert ? 1 : -1;
