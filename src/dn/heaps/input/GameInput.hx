@@ -180,6 +180,21 @@ class GameInput<T:EnumValue> {
 	}
 
 
+
+	/**
+		Return TRUE if given Enum is bound to at least one analog control.
+	**/
+	public function isBoundToAnalog(act:T) {
+		if( destroyed || !bindings.exists(act) )
+			return false;
+
+		for(b in bindings.get(act))
+			if( b.isLStick || b.isRStick )
+				return true;
+		return false;
+	}
+
+
 	public function dispose() {
 		for(a in allAccesses.copy())
 			a.dispose();
@@ -229,51 +244,37 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	public inline function bindPadButtonsToLStick(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
-		_bindPadButtonsToLStick(xAction, true, left, right);
-		_bindPadButtonsToLStick(yAction, false, up, down);
+	public inline function bindPadButtonsAsStick(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
+		_bindPadButtonsAsStick(xAction, true, left, right);
+		_bindPadButtonsAsStick(yAction, false, up, down);
 	}
 
-	public inline function bindPadButtonsToLStickX(action:T, negative:PadButton, positive:PadButton, invert=false) {
-		_bindPadButtonsToLStick(action, true, negative, positive, invert);
+	public inline function bindPadButtonsAsStickX(action:T, negative:PadButton, positive:PadButton, invert=false) {
+		_bindPadButtonsAsStick(action, true, negative, positive, invert);
 	}
 
-	public inline function bindPadButtonsToLStickY(action:T, negative:PadButton, positive:PadButton, invert=false) {
-		_bindPadButtonsToLStick(action, false, negative, positive, invert);
-	}
-
-
-
-	public inline function bindKeyboardToLStick(xAction:T, yAction:T,  up:Int, left:Int, down:Int, right:Int) {
-		_bindKeyboardToLStick(xAction, true, left, right);
-		_bindKeyboardToLStick(yAction, false, up, down);
+	public inline function bindPadButtonsAsStickY(action:T, negative:PadButton, positive:PadButton, invert=false) {
+		_bindPadButtonsAsStick(action, false, negative, positive, invert);
 	}
 
 
-	public inline function bindKeyboardToLStickX(action:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardToLStick(action, true, negative, positive, invert);
-	}
 
-	public inline function bindKeyboardToLStickY(action:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardToLStick(action, false, negative, positive, invert);
-	}
-
-
-	/**
-		Return TRUE if given Enum is bound to at least one analog control.
-	**/
-	public function isBoundToAnalog(act:T) {
-		if( destroyed || !bindings.exists(act) )
-			return false;
-
-		for(b in bindings.get(act))
-			if( b.isLStick || b.isRStick )
-				return true;
-		return false;
+	public inline function bindKeyboardAsStick(xAction:T, yAction:T,  up:Int, left:Int, down:Int, right:Int) {
+		_bindKeyboardAsStick(xAction, true, left, right);
+		_bindKeyboardAsStick(yAction, false, up, down);
 	}
 
 
-	function _bindKeyboardToLStick(action:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
+	public inline function bindKeyboardAsStickX(action:T, negative:Int, positive:Int, invert=false) {
+		_bindKeyboardAsStick(action, true, negative, positive, invert);
+	}
+
+	public inline function bindKeyboardAsStickY(action:T, negative:Int, positive:Int, invert=false) {
+		_bindKeyboardAsStick(action, false, negative, positive, invert);
+	}
+
+
+	function _bindKeyboardAsStick(action:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
 		if( destroyed )
 			return;
 
@@ -281,7 +282,6 @@ class GameInput<T:EnumValue> {
 			bindings.set(action, []);
 		var b = new InputBinding(this,action);
 		bindings.get(action).push(b);
-		b.isLStick = true;
 		b.isX = isXaxis;
 		b.kbNeg = negative;
 		b.kbPos = positive;
@@ -289,7 +289,7 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	function _bindPadButtonsToLStick(action:T, isXaxis:Bool, negative:PadButton, positive:PadButton, invert=false) {
+	function _bindPadButtonsAsStick(action:T, isXaxis:Bool, negative:PadButton, positive:PadButton, invert=false) {
 		if( destroyed )
 			return;
 
