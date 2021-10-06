@@ -37,11 +37,7 @@ enum PadButton {
 		Attack;
 	}
 	var gi = new GameInput(MyGameActions);
-	gi.bindKeyboardToAnalogX(MoveX, hxd.Key.LEFT, hxd.Key.RIGHT);
-	gi.bindPadButtonsToAnalogX(MoveX, DPAD_LEFT, DPAD_RIGHT);
-	trace( gi.isDown(Attack) );
-	trace( gi.isPressed(Jump) );
-	trace( gi.getAnalogDist(MoveX) ); // 0-1
+	TODO
 	```
 
 **/
@@ -197,7 +193,7 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	function _bindPadAnalog(action:T, isXaxis:Bool, invert=false) {
+	function _bindPadLStick(action:T, isXaxis:Bool, invert=false) {
 		if( destroyed )
 			return;
 
@@ -211,47 +207,47 @@ class GameInput<T:EnumValue> {
 		b.invert = invert;
 	}
 
-	public inline function bindPadAnalog(xAction:T, yAction:T) {
-		_bindPadAnalog(xAction, true);
-		_bindPadAnalog(yAction, false);
+	public inline function bindPadLStick(xAction:T, yAction:T) {
+		_bindPadLStick(xAction, true);
+		_bindPadLStick(yAction, false);
 	}
 
-	public inline function bindPadAnalogX(action:T) {
-		_bindPadAnalog(action, true);
+	public inline function bindPadLStickX(action:T) {
+		_bindPadLStick(action, true);
 	}
 
-	public inline function bindPadAnalogY(action:T) {
-		_bindPadAnalog(action, false);
-	}
-
-
-	public inline function bindPadButtonsToAnalog(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
-		_bindPadButtonsToAnalog(xAction, true, left, right);
-		_bindPadButtonsToAnalog(yAction, false, up, down);
-	}
-
-	public inline function bindPadButtonsToAnalogX(action:T, negative:PadButton, positive:PadButton, invert=false) {
-		_bindPadButtonsToAnalog(action, true, negative, positive, invert);
-	}
-
-	public inline function bindPadButtonsToAnalogY(action:T, negative:PadButton, positive:PadButton, invert=false) {
-		_bindPadButtonsToAnalog(action, false, negative, positive, invert);
+	public inline function bindPadLStickY(action:T) {
+		_bindPadLStick(action, false);
 	}
 
 
+	public inline function bindPadButtonsToLStick(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
+		_bindPadButtonsToLStick(xAction, true, left, right);
+		_bindPadButtonsToLStick(yAction, false, up, down);
+	}
 
-	public inline function bindKeyboardToAnalog(xAction:T, yAction:T,  up:Int, left:Int, down:Int, right:Int) {
-		_bindKeyboardToAnalog(xAction, true, left, right);
-		_bindKeyboardToAnalog(yAction, false, up, down);
+	public inline function bindPadButtonsToLStickX(action:T, negative:PadButton, positive:PadButton, invert=false) {
+		_bindPadButtonsToLStick(action, true, negative, positive, invert);
+	}
+
+	public inline function bindPadButtonsToLStickY(action:T, negative:PadButton, positive:PadButton, invert=false) {
+		_bindPadButtonsToLStick(action, false, negative, positive, invert);
 	}
 
 
-	public inline function bindKeyboardToAnalogX(action:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardToAnalog(action, true, negative, positive, invert);
+
+	public inline function bindKeyboardToLStick(xAction:T, yAction:T,  up:Int, left:Int, down:Int, right:Int) {
+		_bindKeyboardToLStick(xAction, true, left, right);
+		_bindKeyboardToLStick(yAction, false, up, down);
 	}
 
-	public inline function bindKeyboardToAnalogY(action:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardToAnalog(action, false, negative, positive, invert);
+
+	public inline function bindKeyboardToLStickX(action:T, negative:Int, positive:Int, invert=false) {
+		_bindKeyboardToLStick(action, true, negative, positive, invert);
+	}
+
+	public inline function bindKeyboardToLStickY(action:T, negative:Int, positive:Int, invert=false) {
+		_bindKeyboardToLStick(action, false, negative, positive, invert);
 	}
 
 
@@ -269,7 +265,7 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	function _bindKeyboardToAnalog(action:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
+	function _bindKeyboardToLStick(action:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
 		if( destroyed )
 			return;
 
@@ -285,7 +281,7 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	function _bindPadButtonsToAnalog(action:T, isXaxis:Bool, negative:PadButton, positive:PadButton, invert=false) {
+	function _bindPadButtonsToLStick(action:T, isXaxis:Bool, negative:PadButton, positive:PadButton, invert=false) {
 		if( destroyed )
 			return;
 
@@ -302,7 +298,7 @@ class GameInput<T:EnumValue> {
 
 
 
-	public function bindPadToDigital(action:T, ?button:PadButton, ?buttons:Array<PadButton>) {
+	public function bindPad(action:T, ?button:PadButton, ?buttons:Array<PadButton>) {
 		if( destroyed )
 			return;
 
@@ -323,7 +319,7 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	public function bindKeyboardToDigital(action:T, ?key:Int, ?keys:Array<Int>) {
+	public function bindKeyboard(action:T, ?key:Int, ?keys:Array<Int>) {
 		if( destroyed )
 			return;
 
