@@ -148,13 +148,13 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 	override function update() {
 		super.update();
 
-		if( !connected && gia.input.isConnected() )
+		if( !connected && gia.input.isPadConnected() )
 			onConnect();
 
-		if( connected && !gia.input.isConnected() )
+		if( connected && !gia.input.isPadConnected() )
 			onDisconnect();
 
-		status.text = getName()+"\n"+ (gia.input.isConnected() ? "Pad connected" : "Pad disconnected");
-		status.textColor = gia.input.isConnected() ? 0x00ff00 : 0xff0000;
+		status.text = getName()+"\n"+ (gia.input.isPadConnected() ? "Pad connected" : "Pad disconnected");
+		status.textColor = gia.input.isPadConnected() ? 0x00ff00 : 0xff0000;
 	}
 }

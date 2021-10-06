@@ -3,6 +3,29 @@ package dn.heaps.input;
 import hxd.Pad;
 import hxd.Key;
 
+
+enum PadButton {
+	A;
+	B;
+	X;
+	Y;
+
+	RT;
+	RB;
+
+	LT;
+	LB;
+
+	START;
+	SELECT;
+
+	DPAD_UP;
+	DPAD_DOWN;
+	DPAD_LEFT;
+	DPAD_RIGHT;
+}
+
+
 /**
 	Controller wrapper for `hxd.Pad` and `hxd.Key` which provides a *much* more convenient binding system, to make keyboard/gamepad usage fully transparent.
 
@@ -16,7 +39,7 @@ import hxd.Key;
 	var gi = new GameInput(MyGameActions);
 	gi.onConnect( padConfig->{
 		gi.bindKeyboardToAnalogX(MoveX, hxd.Key.LEFT, hxd.Key.RIGHT);
-		gi.bindPadButtonsToAnalogX(MoveX, padConfig.dpadLeft, padConfig.dpadRight);
+		gi.bindPadButtonsToAnalogX(MoveX, padConfig.DPAD_LEFT, padConfig.DPAD_RIGHT);
 	});
 	trace( gi.getAnalogDist(MoveX) ); // 0-1
 	trace( gi.isDown(Attack) );
@@ -32,19 +55,10 @@ class GameInput<T:EnumValue> {
 	public var pad : hxd.Pad;
 
 	/**
-		Current `hxd.Pad` buttons config, or null if not connected
-	**/
-	public var cfg(get,never) : Null<PadConfig>;
-		inline function get_cfg() return isConnected() ? pad.config : null;
-
-	/**
-		This callback is fired when pad is ready, or when it reconnects after disconnection.
-
-		**Note 1:** all your GameInput bindings should only be done in this callback.
-
-		**Note 2:** the event might be fired immediately if the pad is *already* connected when callback is set.
-
-		@param PadConfig This arg is the same as `this.cfg` field of this class and is only provided for convenience.
+		This callback is fired:
+		- when game pad is ready,
+		- when it reconnects after disconnection,
+		- immediately if the pad was already connected when callback was set.
 	**/
 	public var onConnect(default,set) : Void->Void;
 
@@ -62,12 +76,11 @@ class GameInput<T:EnumValue> {
 	var allAccesses : Array<GameInputAccess<T>> = [];
 	var bindings : Map<T, Array< InputBinding<T> >> = new Map();
 	var destroyed = false;
-	var doBindings : PadConfig->Void;
+	var enumMapping : Map<PadButton,Int> = new Map();
 
 
-	public function new(actionsEnum:Enum<T>, doBindings:PadConfig->Void) {
+	public function new(actionsEnum:Enum<T>) {
 		this.actionsEnum = actionsEnum;
-		this.doBindings = doBindings;
 		waitForPad();
 	}
 
@@ -76,10 +89,12 @@ class GameInput<T:EnumValue> {
 	@:keep public function toString() {
 		return "GameInput"
 			+ "(access="+allAccesses.length +", "+ ( pad==null || pad.index<0 ? '<NoPad>' : '"'+pad.name+'"#'+pad.index ) + ")";
-			// + "["+allAccesses.length+" access]";
 	}
 
 
+	/**
+		Create a `GameInputAccess` instance for this GameInput.
+	**/
 	public function createAccess() : GameInputAccess<T> {
 		var ia = new GameInputAccess(this);
 		allAccesses.push(ia);
@@ -90,19 +105,47 @@ class GameInput<T:EnumValue> {
 		allAccesses.remove(ia);
 	}
 
+
 	function waitForPad() {
 		pad = hxd.Pad.createDummy();
-		removeBindings();
-		doBindings( hxd.Pad.DEFAULT_CONFIG );
+		updateEnumMapping();
 		hxd.Pad.wait( p->{
 			_onPadConnected( p );
 		});
 	}
 
 
-	/** Return TRUE if current Pad is connected **/
-	public inline function isConnected() {
+	public inline function isPadConnected() {
 		return !destroyed && pad!=null && pad.connected;
+	}
+
+	function updateEnumMapping() {
+		enumMapping = new Map();
+
+		enumMapping.set(A, pad.config.A);
+		enumMapping.set(B, pad.config.B);
+		enumMapping.set(X, pad.config.X);
+		enumMapping.set(Y, pad.config.Y);
+
+		enumMapping.set(LT, pad.config.LT);
+		enumMapping.set(LB, pad.config.LB);
+
+		enumMapping.set(RT, pad.config.RT);
+		enumMapping.set(RB, pad.config.RB);
+
+		enumMapping.set(START, pad.config.start);
+		enumMapping.set(SELECT, pad.config.back);
+
+		enumMapping.set(DPAD_UP, pad.config.dpadUp);
+		enumMapping.set(DPAD_DOWN, pad.config.dpadDown);
+		enumMapping.set(DPAD_LEFT, pad.config.dpadLeft);
+		enumMapping.set(DPAD_RIGHT, pad.config.dpadRight);
+	}
+
+
+	@:noCompletion
+	public inline function getPadButtonId(bt:PadButton) {
+		return bt!=null && enumMapping.exists(bt) ? enumMapping.get(bt) : -1;
 	}
 
 
@@ -123,10 +166,8 @@ class GameInput<T:EnumValue> {
 
 	function _onPadConnected(p:hxd.Pad) {
 		pad = p;
+		updateEnumMapping();
 		pad.onDisconnect = _onPadDisconnected;
-
-		removeBindings();
-		doBindings(pad.config);
 
 		if( onConnect!=null )
 			onConnect();
@@ -151,6 +192,7 @@ class GameInput<T:EnumValue> {
 		allAccesses = null;
 
 		pad = null;
+		enumMapping = null;
 		bindings = null;
 		actionsEnum = null;
 		destroyed = true;
@@ -158,17 +200,17 @@ class GameInput<T:EnumValue> {
 
 
 
-	public inline function bindPadButtonsToAnalog(xAction:T, yAction:T,  up:Int, left:Int, down:Int, right:Int) {
+	public inline function bindPadButtonsToAnalog(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
 		_bindPadButtonsToAnalog(xAction, true, left, right);
 		_bindPadButtonsToAnalog(yAction, false, up, down);
 	}
 
-	public inline function bindPadButtonsToAnalogX(v:T, negative:Int, positive:Int, invert=false) {
-		_bindPadButtonsToAnalog(v, true, negative, positive, invert);
+	public inline function bindPadButtonsToAnalogX(action:T, negative:PadButton, positive:PadButton, invert=false) {
+		_bindPadButtonsToAnalog(action, true, negative, positive, invert);
 	}
 
-	public inline function bindPadButtonsToAnalogY(v:T, negative:Int, positive:Int, invert=false) {
-		_bindPadButtonsToAnalog(v, false, negative, positive, invert);
+	public inline function bindPadButtonsToAnalogY(action:T, negative:PadButton, positive:PadButton, invert=false) {
+		_bindPadButtonsToAnalog(action, false, negative, positive, invert);
 	}
 
 
@@ -179,12 +221,12 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	public inline function bindKeyboardToAnalogX(v:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardToAnalog(v, true, negative, positive, invert);
+	public inline function bindKeyboardToAnalogX(action:T, negative:Int, positive:Int, invert=false) {
+		_bindKeyboardToAnalog(action, true, negative, positive, invert);
 	}
 
-	public inline function bindKeyboardToAnalogY(v:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardToAnalog(v, false, negative, positive, invert);
+	public inline function bindKeyboardToAnalogY(action:T, negative:Int, positive:Int, invert=false) {
+		_bindKeyboardToAnalog(action, false, negative, positive, invert);
 	}
 
 
@@ -202,14 +244,14 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	function _bindKeyboardToAnalog(v:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
+	function _bindKeyboardToAnalog(action:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
 		if( destroyed )
 			return;
 
-		if( !bindings.exists(v) )
-			bindings.set(v, []);
-		var b = new InputBinding(v);
-		bindings.get(v).push(b);
+		if( !bindings.exists(action) )
+			bindings.set(action, []);
+		var b = new InputBinding(this,action);
+		bindings.get(action).push(b);
 		b.isAnalog = true;
 		b.isX = isXaxis;
 		b.kbNeg = negative;
@@ -218,14 +260,14 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	function _bindPadButtonsToAnalog(v:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
+	function _bindPadButtonsToAnalog(action:T, isXaxis:Bool, negative:PadButton, positive:PadButton, invert=false) {
 		if( destroyed )
 			return;
 
-		if( !bindings.exists(v) )
-			bindings.set(v, []);
-		var b = new InputBinding(v);
-		bindings.get(v).push(b);
+		if( !bindings.exists(action) )
+			bindings.set(action, []);
+		var b = new InputBinding(this,action);
+		bindings.get(action).push(b);
 		b.isAnalog = true;
 		b.isX = isXaxis;
 		b.padNeg = negative;
@@ -235,7 +277,7 @@ class GameInput<T:EnumValue> {
 
 
 
-	public function bindPadToDigital(v:T, ?button:Int, ?buttons:Array<Int>) {
+	public function bindPadToDigital(action:T, ?button:PadButton, ?buttons:Array<PadButton>) {
 		if( destroyed )
 			return;
 
@@ -245,18 +287,18 @@ class GameInput<T:EnumValue> {
 		if( buttons==null )
 			buttons = [button];
 
-		if( !bindings.exists(v) )
-			bindings.set(v, []);
+		if( !bindings.exists(action) )
+			bindings.set(action, []);
 
 		for(bt in buttons) {
-			var b = new InputBinding(v);
+			var b = new InputBinding(this,action);
 			b.padButton = bt;
-			bindings.get(v).push(b);
+			bindings.get(action).push(b);
 		}
 	}
 
 
-	public function bindKeyboardToDigital(v:T, ?key:Int, ?keys:Array<Int>) {
+	public function bindKeyboardToDigital(action:T, ?key:Int, ?keys:Array<Int>) {
 		if( destroyed )
 			return;
 
@@ -266,14 +308,14 @@ class GameInput<T:EnumValue> {
 		if( keys==null )
 			keys = [key];
 
-		if( !bindings.exists(v) )
-			bindings.set(v, []);
+		if( !bindings.exists(action) )
+			bindings.set(action, []);
 
 		for(k in keys) {
-			var b = new InputBinding(v);
+			var b = new InputBinding(this,action);
 			b.kbNeg = k;
 			b.kbPos = k;
-			bindings.get(v).push(b);
+			bindings.get(action).push(b);
 		}
 	}
 }
@@ -283,24 +325,26 @@ class GameInput<T:EnumValue> {
 /**
 	Internal binding definition
 **/
-class InputBinding<T> {
+class InputBinding<T:EnumValue> {
+	var input : GameInput<T>;
 	public var action : T;
 
-	public var padButton = -1;
+	public var padButton : Null<PadButton>;
 	public var isAnalog = false;
 
 	public var kbPos = -1;
 	public var kbNeg = -1;
 
-	public var padPos = -1;
-	public var padNeg = -1;
+	public var padPos : Null<PadButton>;
+	public var padNeg : Null<PadButton>;
 
 	public var invert = false;
 	public var isX = false;
 	var analogDownDeadZone = 0.84;
 
 
-	public function new(a:T) {
+	public function new(i:GameInput<T>, a:T) {
+		input = i;
 		action = a;
 	}
 
@@ -309,9 +353,9 @@ class InputBinding<T> {
 			return pad.xAxis * (invert?-1:1);
 		else if( isAnalog && !isX && pad.yAxis!=0 )
 			return pad.yAxis * (invert?-1:1);
-		else if( Key.isDown(kbNeg) || pad.isDown(padNeg) )
+		else if( Key.isDown(kbNeg) || pad.isDown( input.getPadButtonId(padNeg) ) )
 			return invert ? 1 : -1;
-		else if( Key.isDown(kbPos) || pad.isDown(padPos) )
+		else if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
 			return invert ? -1 : 1;
 		else
 			return 0;
@@ -319,13 +363,13 @@ class InputBinding<T> {
 
 	public inline function isDown(pad:hxd.Pad) {
 		return
-			!isAnalog && pad.isDown(padButton)
+			!isAnalog && pad.isDown( input.getPadButtonId(padButton) )
 			|| Key.isDown(kbPos) || Key.isDown(kbNeg)
-			|| pad.isDown(padPos) || pad.isDown(padNeg)
-			|| isAnalog && dn.M.fabs(getValue(pad)) > analogDownDeadZone;
+			|| pad.isDown( input.getPadButtonId(padPos) ) || pad.isDown( input.getPadButtonId(padNeg) )
+			|| isAnalog && dn.M.fabs( getValue(pad) ) > analogDownDeadZone;
 	}
 
 	public inline function isPressed(pad:hxd.Pad) {
-		return pad.isPressed(padButton) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
+		return pad.isPressed( input.getPadButtonId(padButton) ) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
 	}
 }
