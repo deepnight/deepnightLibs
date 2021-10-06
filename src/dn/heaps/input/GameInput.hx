@@ -193,7 +193,7 @@ class GameInput<T:EnumValue> {
 	}
 
 
-	function _bindPadLStick(action:T, isXaxis:Bool, invert=false) {
+	function _bindPadStick(action:T, stick:Int, isXaxis:Bool, invert=false) {
 		if( destroyed )
 			return;
 
@@ -202,22 +202,30 @@ class GameInput<T:EnumValue> {
 
 		var b = new InputBinding(this,action);
 		bindings.get(action).push(b);
-		b.isAnalog = true;
+		if( stick==0 )
+			b.isLStick = true;
+		else
+			b.isRStick = true;
 		b.isX = isXaxis;
 		b.invert = invert;
 	}
 
 	public inline function bindPadLStick(xAction:T, yAction:T) {
-		_bindPadLStick(xAction, true);
-		_bindPadLStick(yAction, false);
+		_bindPadStick(xAction, 0, true);
+		_bindPadStick(yAction, 0, false);
+	}
+
+	public inline function bindPadRStick(xAction:T, yAction:T) {
+		_bindPadStick(xAction, 1, true);
+		_bindPadStick(yAction, 1, false);
 	}
 
 	public inline function bindPadLStickX(action:T) {
-		_bindPadLStick(action, true);
+		_bindPadStick(action, 0, true);
 	}
 
 	public inline function bindPadLStickY(action:T) {
-		_bindPadLStick(action, false);
+		_bindPadStick(action, 0, false);
 	}
 
 
@@ -259,7 +267,7 @@ class GameInput<T:EnumValue> {
 			return false;
 
 		for(b in bindings.get(act))
-			if( b.isAnalog )
+			if( b.isLStick || b.isRStick )
 				return true;
 		return false;
 	}
@@ -273,7 +281,7 @@ class GameInput<T:EnumValue> {
 			bindings.set(action, []);
 		var b = new InputBinding(this,action);
 		bindings.get(action).push(b);
-		b.isAnalog = true;
+		b.isLStick = true;
 		b.isX = isXaxis;
 		b.kbNeg = negative;
 		b.kbPos = positive;
@@ -289,7 +297,7 @@ class GameInput<T:EnumValue> {
 			bindings.set(action, []);
 		var b = new InputBinding(this,action);
 		bindings.get(action).push(b);
-		b.isAnalog = true;
+		b.isLStick = true;
 		b.isX = isXaxis;
 		b.padNeg = negative;
 		b.padPos = positive;
@@ -351,7 +359,8 @@ class InputBinding<T:EnumValue> {
 	public var action : T;
 
 	public var padButton : Null<PadButton>;
-	public var isAnalog = false;
+	public var isLStick = false;
+	public var isRStick = false;
 
 	public var kbPos = -1;
 	public var kbNeg = -1;
@@ -370,10 +379,14 @@ class InputBinding<T:EnumValue> {
 	}
 
 	public inline function getValue(pad:hxd.Pad) : Float {
-		if( isAnalog && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
+		if( isLStick && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
 			return pad.xAxis * (invert?-1:1);
-		else if( isAnalog && padNeg==null && kbNeg<0 && !isX && pad.yAxis!=0 )
+		else if( isLStick && padNeg==null && kbNeg<0 && !isX && pad.yAxis!=0 )
 			return pad.yAxis * (invert?-1:1);
+		else if( isRStick && padNeg==null && kbNeg<0 && isX && pad.rxAxis!=0 )
+			return pad.rxAxis * (invert?-1:1);
+		else if( isRStick && padNeg==null && kbNeg<0 && !isX && pad.ryAxis!=0 )
+			return pad.ryAxis * (invert?-1:1);
 		else if( Key.isDown(kbNeg) || pad.isDown( input.getPadButtonId(padNeg) ) )
 			return invert ? 1 : -1;
 		else if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
@@ -384,10 +397,10 @@ class InputBinding<T:EnumValue> {
 
 	public inline function isDown(pad:hxd.Pad) {
 		return
-			!isAnalog && pad.isDown( input.getPadButtonId(padButton) )
+			!isLStick && pad.isDown( input.getPadButtonId(padButton) )
 			|| Key.isDown(kbPos) || Key.isDown(kbNeg)
 			|| pad.isDown( input.getPadButtonId(padPos) ) || pad.isDown( input.getPadButtonId(padNeg) )
-			|| isAnalog && dn.M.fabs( getValue(pad) ) > analogDownDeadZone;
+			|| isLStick && dn.M.fabs( getValue(pad) ) > analogDownDeadZone;
 	}
 
 	public inline function isPressed(pad:hxd.Pad) {

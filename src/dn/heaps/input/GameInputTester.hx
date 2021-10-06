@@ -126,19 +126,20 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 		var p = createChildProcess();
 		p.createRoot(flow);
 
-		var s = dn.M.round(BT_SIZE*0.4);
+		var s = dn.M.round(BT_SIZE*0.3);
 		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), p.root);
 		bmp.rotation = dn.M.PIHALF*0.5;
 		bmp.tile.setCenterRatio(0.5,0);
+
 		var tf = new h2d.Text(font, p.root);
 		tf.x = BT_SIZE+4;
-		tf.y = -4;
+		tf.y = -2;
 
 		p.onUpdateCb = ()->{
 			var a = gia.getAnalogAngle(xAxis, yAxis);
 			var d = gia.getAnalogDist(xAxis, yAxis);
-			bmp.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.5*d;
-			bmp.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.5*d;
+			bmp.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
+			bmp.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
 
 			tf.text = xAxis.getName()+"/"+yAxis.getName()+" ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
 		}
