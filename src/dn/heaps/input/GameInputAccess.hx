@@ -2,33 +2,36 @@ package dn.heaps.input;
 
 import hxd.Pad;
 import hxd.Key;
-import dn.heaps.input.GameInputManager;
+import dn.heaps.input.GameInput;
 
 
+/**
+	This class should only be created through `GameInput.createAccess()`.
+**/
 class GameInputAccess<T:EnumValue> {
-	public var manager(default,null) : GameInputManager<T>;
+	public var input(default,null) : GameInput<T>;
 
 	var destroyed(get,never) : Bool;
 	var bindings(get,never) : Map<T, Array< InputBinding<T> >>;
 	var pad(get,never) : hxd.Pad;
 
 
-	@:allow(dn.heaps.input.GameInputManager)
-	function new(m:GameInputManager<T>) {
-		manager = m;
+	@:allow(dn.heaps.input.GameInput)
+	function new(m:GameInput<T>) {
+		input = m;
 	}
 
-	inline function get_destroyed() return manager==null || manager.destroyed;
-	inline function get_bindings() return destroyed ? null : manager.bindings;
-	inline function get_pad() return destroyed ? null : manager.pad;
+	inline function get_destroyed() return input==null || input.destroyed;
+	inline function get_bindings() return destroyed ? null : input.bindings;
+	inline function get_pad() return destroyed ? null : input.pad;
 
 	/** Current `GameInputTester` instance, if it exists. This can be created using `createTester()` **/
 	public var tester(default,null) : Null<GameInputTester<T>>;
 
 
 	public function dispose() {
-		manager.unregisterAccess(this);
-		manager = null;
+		input.unregisterAccess(this);
+		input = null;
 
 		if( tester!=null ) {
 			tester.destroy();
@@ -38,7 +41,7 @@ class GameInputAccess<T:EnumValue> {
 
 
 	@:keep public function toString() {
-		return 'GameInputAccess[ $manager ]';
+		return 'GameInputAccess[ $input ]';
 	}
 
 
@@ -59,9 +62,9 @@ class GameInputAccess<T:EnumValue> {
 	**/
 	public function getAnalogValue(action:T) : Float {
 		var out = 0.;
-		if( !destroyed && manager.bindings.exists(action) )
-			for(b in manager.bindings.get(action) ) {
-				out = b.getValue(manager.pad);
+		if( !destroyed && input.bindings.exists(action) )
+			for(b in input.bindings.get(action) ) {
+				out = b.getValue(input.pad);
 				if( out!=0 )
 					return out;
 			}

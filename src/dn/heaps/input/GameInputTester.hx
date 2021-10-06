@@ -7,7 +7,7 @@ package dn.heaps.input;
 class GameInputTester<T:EnumValue> extends dn.Process {
 	static var BT_SIZE = 10;
 
-	var input : GameInputAccess<T>;
+	var gia : GameInputAccess<T>;
 	var flow : h2d.Flow;
 	var font : h2d.Font;
 	var status : Null<h2d.Text>;
@@ -23,7 +23,7 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 		else
 			createRootInLayers(p.root, 99999);
 
-		this.input = inputAccess;
+		this.gia = inputAccess;
 		this.afterRender = afterRender;
 		font = f!=null ? f : hxd.res.DefaultFont.get();
 
@@ -43,10 +43,10 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 		status = new h2d.Text(font, flow);
 		flow.addSpacing(4);
 
-		for(k in input.manager.actionsEnum.getConstructors()) {
-			var a = input.manager.actionsEnum.createByName(k);
+		for(k in gia.input.actionsEnum.getConstructors()) {
+			var a = gia.input.actionsEnum.createByName(k);
 			createButton(a);
-			if( input.manager.isBoundToAnalog(a) )
+			if( gia.input.isBoundToAnalog(a) )
 				createAnalog(a);
 		}
 
@@ -65,14 +65,14 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 	@:keep override function toString() return getName();
 
 	inline function getName() {
-		return input.toString();
+		return gia.toString();
 	}
 
 
 	override function onDispose() {
 		super.onDispose();
 		font = null;
-		input = null;
+		gia = null;
 	}
 
 
@@ -87,7 +87,7 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 		tf.y = -4;
 
 		p.onUpdateCb = ()->{
-			if( input.isDown(a) ) {
+			if( gia.isDown(a) ) {
 				tf.textColor = 0x00ff00;
 				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );
 			}
@@ -110,10 +110,10 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 		tf.y = -4;
 
 		p.onUpdateCb = ()->{
-			var v = input.getAnalogValue(a);
+			var v = gia.getAnalogValue(a);
 			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
 			tf.textColor = v!=0 ? 0x00ff00 : 0xff0000;
-			tf.text = a.getName()+" v="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(input.getAnalogDist(a),1);
+			tf.text = a.getName()+" v="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(gia.getAnalogDist(a),1);
 			bmp.color.setColor( dn.Color.addAlphaF(v!=0 ? 0x00ff00 : 0xff0000) );
 		}
 	}
@@ -135,8 +135,8 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 		tf.y = -4;
 
 		p.onUpdateCb = ()->{
-			var a = input.getAnalogAngle(xAxis, yAxis);
-			var d = input.getAnalogDist(xAxis, yAxis);
+			var a = gia.getAnalogAngle(xAxis, yAxis);
+			var d = gia.getAnalogDist(xAxis, yAxis);
 			bmp.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.5*d;
 			bmp.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.5*d;
 
@@ -148,13 +148,13 @@ class GameInputTester<T:EnumValue> extends dn.Process {
 	override function update() {
 		super.update();
 
-		if( !connected && input.manager.isConnected() )
+		if( !connected && gia.input.isConnected() )
 			onConnect();
 
-		if( connected && !input.manager.isConnected() )
+		if( connected && !gia.input.isConnected() )
 			onDisconnect();
 
-		status.text = getName()+"\n"+ (input.manager.isConnected() ? "Pad connected" : "Pad disconnected");
-		status.textColor = input.manager.isConnected() ? 0x00ff00 : 0xff0000;
+		status.text = getName()+"\n"+ (gia.input.isConnected() ? "Pad connected" : "Pad disconnected");
+		status.textColor = gia.input.isConnected() ? 0x00ff00 : 0xff0000;
 	}
 }

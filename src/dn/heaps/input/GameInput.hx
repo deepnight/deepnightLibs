@@ -25,7 +25,7 @@ import hxd.Key;
 
 **/
 @:allow(dn.heaps.input.GameInputAccess)
-class GameInputManager<T:EnumValue> {
+class GameInput<T:EnumValue> {
 	/**
 		Actual `hxd.Pad` behind
 	**/
@@ -62,18 +62,19 @@ class GameInputManager<T:EnumValue> {
 	var allAccesses : Array<GameInputAccess<T>> = [];
 	var bindings : Map<T, Array< InputBinding<T> >> = new Map();
 	var destroyed = false;
-	var doBindings : (manager:GameInputManager<T>, cfg:PadConfig)->Void;
+	var doBindings : PadConfig->Void;
 
 
-	public function new(actionsEnum:Enum<T>, doBindings:(manager:GameInputManager<T>, cfg:PadConfig)->Void) {
+	public function new(actionsEnum:Enum<T>, doBindings:PadConfig->Void) {
 		this.actionsEnum = actionsEnum;
 		this.doBindings = doBindings;
 		waitForPad();
 	}
 
 
+
 	@:keep public function toString() {
-		return "GameInputManager"
+		return "GameInput"
 			+ "(access="+allAccesses.length +", "+ ( pad==null || pad.index<0 ? '<NoPad>' : '"'+pad.name+'"#'+pad.index ) + ")";
 			// + "["+allAccesses.length+" access]";
 	}
@@ -92,7 +93,7 @@ class GameInputManager<T:EnumValue> {
 	function waitForPad() {
 		pad = hxd.Pad.createDummy();
 		removeBindings();
-		doBindings(this, hxd.Pad.DEFAULT_CONFIG);
+		doBindings( hxd.Pad.DEFAULT_CONFIG );
 		hxd.Pad.wait( p->{
 			_onPadConnected( p );
 		});
@@ -125,7 +126,7 @@ class GameInputManager<T:EnumValue> {
 		pad.onDisconnect = _onPadDisconnected;
 
 		removeBindings();
-		doBindings(this, pad.config);
+		doBindings(pad.config);
 
 		if( onConnect!=null )
 			onConnect();
