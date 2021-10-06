@@ -14,7 +14,7 @@ class GameInputAccess<T:EnumValue> {
 	var destroyed(get,never) : Bool;
 	var bindings(get,never) : Map<T, Array< InputBinding<T> >>;
 	var pad(get,never) : hxd.Pad;
-
+	var locked = false;
 
 	@:allow(dn.heaps.input.GameInput)
 	function new(m:GameInput<T>) {
@@ -45,6 +45,10 @@ class GameInputAccess<T:EnumValue> {
 	}
 
 
+	public function isActive() {
+		return !destroyed && !locked && !isLockedCustom() && ( input.exclusive==null || input.exclusive==this );
+	}
+
 	/**
 		Create a `GameInputTester` for debugging purpose.
 	**/
@@ -62,7 +66,7 @@ class GameInputAccess<T:EnumValue> {
 	**/
 	public function getAnalogValue(action:T) : Float {
 		var out = 0.;
-		if( !destroyed && input.bindings.exists(action) )
+		if( isActive() && input.bindings.exists(action) )
 			for(b in input.bindings.get(action) ) {
 				out = b.getValue(input.pad);
 				if( out!=0 )
@@ -103,7 +107,7 @@ class GameInputAccess<T:EnumValue> {
 		Return TRUE if given action Enum is "down". For a digital binding, this means the button/key is pushed. For an analog binding, this means it is pushed beyond a specific threshold.
 	**/
 	public function isDown(v:T) : Bool {
-		if( !destroyed && bindings.exists(v) )
+		if( isActive() && bindings.exists(v) )
 			for(b in bindings.get(v))
 				if( b.isDown(pad) )
 					return true;
@@ -116,7 +120,7 @@ class GameInputAccess<T:EnumValue> {
 		Return TRUE if given action Enum is "pressed" (ie. pushed while it was previously released). By definition, this only happens during 1 frame, when control is pushed.
 	**/
 	public function isPressed(v:T) : Bool {
-		if( !destroyed && bindings.exists(v) )
+		if( isActive() && bindings.exists(v) )
 			for(b in bindings.get(v))
 				if( b.isPressed(pad) )
 					return true;
@@ -124,8 +128,36 @@ class GameInputAccess<T:EnumValue> {
 		return false;
 	}
 
+
+	public inline function isKeyboardDown(k:Int) {
+		return isActive() ? hxd.Key.isDown(k) : false;
+	}
+
+	public inline function isKeyboardPressed(k:Int) {
+		return isActive() ? hxd.Key.isPressed(k) : false;
+	}
+
+
 	/** Rumbles physical controller, if supported **/
 	public function rumble(strength:Float, seconds:Float) {
 		pad.rumble(strength, seconds);
+	}
+
+	public dynamic function isLockedCustom() return false;
+
+	public inline function lock() {
+		locked = true;
+	}
+
+	public inline function unlock() {
+		locked = false;
+	}
+
+	public inline function takeExclusivity() {
+		input.makeExclusive(this);
+	}
+
+	public inline function releaseExclusivity() {
+		input.releaseExclusivity();
 	}
 }

@@ -71,6 +71,7 @@ class GameInput<T:EnumValue> {
 	var bindings : Map<T, Array< InputBinding<T> >> = new Map();
 	var destroyed = false;
 	var enumMapping : Map<PadButton,Int> = new Map();
+	var exclusive : Null<GameInputAccess<T>>;
 
 
 	public function new(actionsEnum:Enum<T>) {
@@ -86,6 +87,16 @@ class GameInput<T:EnumValue> {
 	}
 
 
+
+
+	public function releaseExclusivity() {
+		exclusive = null;
+	}
+
+	public function makeExclusive(ia:GameInputAccess<T>) {
+		exclusive = ia;
+	}
+
 	/**
 		Create a `GameInputAccess` instance for this GameInput.
 	**/
@@ -94,6 +105,7 @@ class GameInput<T:EnumValue> {
 		allAccesses.push(ia);
 		return ia;
 	}
+
 
 	function unregisterAccess(ia:GameInputAccess<T>) {
 		allAccesses.remove(ia);
@@ -200,6 +212,7 @@ class GameInput<T:EnumValue> {
 			a.dispose();
 		allAccesses = null;
 
+		exclusive = null;
 		pad = null;
 		enumMapping = null;
 		bindings = null;
