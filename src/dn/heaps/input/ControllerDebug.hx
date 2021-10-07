@@ -115,7 +115,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			var v = gia.getAnalogValue(a);
 			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
 			tf.textColor = v!=0 ? 0x00ff00 : 0xff0000;
-			tf.text = a.getName()+" v="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(gia.getAnalogDist(a),1);
+			tf.text = a.getName()+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(gia.getAnalogDist(a),1);
 			bmp.color.setColor( dn.Color.addAlphaF(v!=0 ? 0x00ff00 : 0xff0000) );
 		}
 	}
