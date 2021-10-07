@@ -119,11 +119,11 @@ class ControllerAccess<T:EnumValue> {
 		if( isActive() && bindings.exists(v) )
 			for(b in bindings.get(v))
 				if( b.isDown(pad) ) {
-					updateHeldStatus(v,true);
+					updateHoldStatus(v,true);
 					return true;
 				}
 
-		updateHeldStatus(v,false);
+		updateHoldStatus(v,false);
 		return false;
 	}
 
@@ -135,16 +135,31 @@ class ControllerAccess<T:EnumValue> {
 		if( isActive() && bindings.exists(v) )
 			for(b in bindings.get(v))
 				if( b.isPressed(pad) ) {
-					updateHeldStatus(v,true);
+					updateHoldStatus(v,true);
 					return true;
 				}
 
-		updateHeldStatus(v,false);
+		updateHoldStatus(v,false);
 		return false;
 	}
 
+	/**
+		Return TRUE if given action Enum is "held down" for more than `seconds` seconds.
+		Note: "down" for a digital binding means the button/key is pushed. For an analog binding, this means it is pushed *beyond* a specific threshold.
+	**/
+	public inline function isHeld(action:T, seconds:Float) : Bool {
+		if( !isDown(action) )
+			return false;
 
-	inline function updateHeldStatus(action:T, held:Bool) {
+		if( holdTimeS.get(action)>0 && getHoldTimeS(action) >= seconds ) {
+			holdTimeS.set(action, -1);
+			return true;
+		}
+		else
+			return false;
+	}
+
+	inline function updateHoldStatus(action:T, held:Bool) {
 		if( !held && holdTimeS.exists(action) )
 			holdTimeS.remove( action );
 		else if( held && !holdTimeS.exists(action) )
@@ -156,26 +171,28 @@ class ControllerAccess<T:EnumValue> {
 	}
 
 	/**
-		Return TRUE if given action Enum is "held down" for more than `minSeconds` seconds.
-		Note: "down" for a digital binding means the button/key is pushed. For an analog binding, this means it is pushed *beyond* a specific threshold.
+		Return a ratio (float between 0 and 1) representing how long given `action` was held down.
 	**/
-	public inline function isHeld(action:T, minSeconds:Float) : Bool {
-		if( !isDown(action) )
-			return false;
-
-		if( holdTimeS.get(action)>0 && getHoldTimeS(action) >= minSeconds ) {
-			holdTimeS.set(action, -1);
-			return true;
-		}
-		else
-			return false;
+	public inline function getHoldRatio(action:T, seconds:Float) : Float {
+		isDown(action); // will update the held status
+		return !holdTimeS.exists(action)
+			? 0
+			: holdTimeS.get(action)<0
+				? 1
+				: M.fclamp( getHoldTimeS(action) / seconds, 0, 1 );
 	}
 
 
+	/**
+		Directly check if a keyboard key is pushed.
+	**/
 	public inline function isKeyboardDown(k:Int) {
 		return isActive() ? hxd.Key.isDown(k) : false;
 	}
 
+	/**
+		Directly check if a keyboard key is pressed (ie. it wasn't pushed in previous frame and it's now pushed).
+	**/
 	public inline function isKeyboardPressed(k:Int) {
 		return isActive() ? hxd.Key.isPressed(k) : false;
 	}
