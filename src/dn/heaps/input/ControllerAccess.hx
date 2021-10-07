@@ -33,6 +33,7 @@ class ControllerAccess<T:EnumValue> {
 	public function dispose() {
 		input.unregisterAccess(this);
 		input = null;
+		holdTimeS = null;
 
 		if( debugger!=null ) {
 			debugger.destroy();
@@ -47,8 +48,14 @@ class ControllerAccess<T:EnumValue> {
 	}
 
 
+	/**
+		To return TRUE, all the following conditions must be true too:
+		- this Access must not be locked,
+		- it must not be disposed,
+		- another Access must not have taken "exclusivity".
+	**/
 	public function isActive() {
-		return !destroyed && !locked && !isLockedCustom() && ( input.exclusive==null || input.exclusive==this );
+		return !destroyed && !locked && !lockCondition() && ( input.exclusive==null || input.exclusive==this );
 	}
 
 	/**
@@ -180,7 +187,10 @@ class ControllerAccess<T:EnumValue> {
 			pad.rumble(strength, seconds);
 	}
 
-	public dynamic function isLockedCustom() return false;
+	/**
+		This method can be re-assigned. The function must return TRUE if this Access should be marked as "locked", FALSE otherwise. A locked Access will stop checking for inputs.
+	**/
+	public dynamic function lockCondition() return false;
 
 	public inline function lock() {
 		locked = true;
