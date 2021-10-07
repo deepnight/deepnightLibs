@@ -109,6 +109,8 @@ class Controller<T:EnumValue> {
 
 	function unregisterAccess(ia:ControllerAccess<T>) {
 		allAccesses.remove(ia);
+		if( exclusive==ia )
+			releaseExclusivity();
 	}
 
 
