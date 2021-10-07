@@ -15,6 +15,7 @@ class ControllerAccess<T:EnumValue> {
 	var bindings(get,never) : Map<T, Array< InputBinding<T> >>;
 	var pad(get,never) : hxd.Pad;
 	var locked = false;
+	var holdTimeS : Map<T,Float> = new Map();
 
 	@:allow(dn.heaps.input.Controller)
 	function new(m:Controller<T>) {
@@ -110,9 +111,12 @@ class ControllerAccess<T:EnumValue> {
 	public function isDown(v:T) : Bool {
 		if( isActive() && bindings.exists(v) )
 			for(b in bindings.get(v))
-				if( b.isDown(pad) )
+				if( b.isDown(pad) ) {
+					updateHeldStatus(v,true);
 					return true;
+				}
 
+		updateHeldStatus(v,false);
 		return false;
 	}
 
@@ -123,10 +127,41 @@ class ControllerAccess<T:EnumValue> {
 	public function isPressed(v:T) : Bool {
 		if( isActive() && bindings.exists(v) )
 			for(b in bindings.get(v))
-				if( b.isPressed(pad) )
+				if( b.isPressed(pad) ) {
+					updateHeldStatus(v,true);
 					return true;
+				}
 
+		updateHeldStatus(v,false);
 		return false;
+	}
+
+
+	inline function updateHeldStatus(action:T, held:Bool) {
+		if( !held && holdTimeS.exists(action) )
+			holdTimeS.remove( action );
+		else if( held && !holdTimeS.exists(action) )
+			holdTimeS.set( action, haxe.Timer.stamp() );
+	}
+
+	inline function getHoldTimeS(action:T) : Float {
+		return holdTimeS.exists(action) ? haxe.Timer.stamp() - holdTimeS.get(action) : 0;
+	}
+
+	/**
+		Return TRUE if given action Enum is "held down" for more than `minSeconds` seconds.
+		Note: "down" for a digital binding means the button/key is pushed. For an analog binding, this means it is pushed *beyond* a specific threshold.
+	**/
+	public inline function isHeld(action:T, minSeconds:Float) : Bool {
+		if( !isDown(action) )
+			return false;
+
+		if( holdTimeS.get(action)>0 && getHoldTimeS(action) >= minSeconds ) {
+			holdTimeS.set(action, -1);
+			return true;
+		}
+		else
+			return false;
 	}
 
 
