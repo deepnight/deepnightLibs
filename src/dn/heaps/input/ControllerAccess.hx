@@ -41,7 +41,8 @@ class ControllerAccess<T:EnumValue> {
 
 
 	@:keep public function toString() {
-		return 'ControllerAccess[ $input ]';
+		return 'ControllerAccess[ $input ]'
+			+ ( !isActive()?"<LOCKED>":"" );
 	}
 
 
