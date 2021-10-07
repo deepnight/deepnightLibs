@@ -60,12 +60,37 @@ class ControllerAccess<T:EnumValue> {
 
 	/**
 		Create a `ControllerDebug` for debugging purpose.
+		@param parent The target dn.Process to host the debugger
+		@param afterRender This optional callback is called after the Debugger was created, if you need to adjust it.
 	**/
 	public function createDebugger(parent:dn.Process, ?afterRender:ControllerDebug<T>->Void) : ControllerDebug<T> {
 		if( debugger!=null )
 			debugger.destroy();
 		debugger = new ControllerDebug(this, parent, afterRender);
 		return debugger;
+	}
+
+	/** Return TRUE if a ControllerDebug instance exists. **/
+	public inline function hasDebugger() return debugger!=null;
+
+	/** Destroy existing ControllerDebug instance. **/
+	public inline function removeDebugger() {
+		if( debugger!=null ) {
+			debugger.destroy();
+			debugger = null;
+		}
+	}
+
+	/**
+		Create a new or destroy existing ControllerDebug instance.
+		@param parent The target dn.Process to host the debugger
+		@param afterRender This optional callback is called after the Debugger was created, if you need to adjust it.
+	**/
+	public inline function toggleDebugger(parent:dn.Process, ?afterRender:ControllerDebug<T>->Void) {
+		if( hasDebugger() )
+			removeDebugger();
+		else
+			createDebugger(parent, afterRender);
 	}
 
 
@@ -195,6 +220,20 @@ class ControllerAccess<T:EnumValue> {
 	**/
 	public inline function isKeyboardPressed(k:Int) {
 		return isActive() ? hxd.Key.isPressed(k) : false;
+	}
+
+	/**
+		Directly check if a gamepad button is pushed.
+	**/
+	public inline function isPadDown(button:PadButton) {
+		return isActive() ? pad.isDown( input.getPadButtonId(button) ) : false;
+	}
+
+	/**
+		Directly check if a gamepad button is pressed (ie. previously not pushed, and now it is).
+	**/
+	public inline function isPadPressed(button:PadButton) {
+		return isActive() ? pad.isPressed( input.getPadButtonId(button) ) : false;
 	}
 
 
