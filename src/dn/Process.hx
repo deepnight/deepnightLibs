@@ -104,6 +104,8 @@ class Process {
 			ROOTS.push(this);
 		else
 			parent.addChild(this);
+
+		resizeAll(false);
 	}
 
 	public function init(){
