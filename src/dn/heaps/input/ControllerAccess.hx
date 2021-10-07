@@ -2,22 +2,22 @@ package dn.heaps.input;
 
 import hxd.Pad;
 import hxd.Key;
-import dn.heaps.input.GameInput;
+import dn.heaps.input.Controller;
 
 
 /**
-	This class should only be created through `GameInput.createAccess()`.
+	This class should only be created through `Controller.createAccess()`.
 **/
-class GameInputAccess<T:EnumValue> {
-	public var input(default,null) : GameInput<T>;
+class ControllerAccess<T:EnumValue> {
+	public var input(default,null) : Controller<T>;
 
 	var destroyed(get,never) : Bool;
 	var bindings(get,never) : Map<T, Array< InputBinding<T> >>;
 	var pad(get,never) : hxd.Pad;
 	var locked = false;
 
-	@:allow(dn.heaps.input.GameInput)
-	function new(m:GameInput<T>) {
+	@:allow(dn.heaps.input.Controller)
+	function new(m:Controller<T>) {
 		input = m;
 	}
 
@@ -25,23 +25,23 @@ class GameInputAccess<T:EnumValue> {
 	inline function get_bindings() return destroyed ? null : input.bindings;
 	inline function get_pad() return destroyed ? null : input.pad;
 
-	/** Current `GameInputTester` instance, if it exists. This can be created using `createTester()` **/
-	public var tester(default,null) : Null<GameInputTester<T>>;
+	/** Current `ControllerDebug` instance, if it exists. This can be created using `createDebugger()` **/
+	public var debugger(default,null) : Null<ControllerDebug<T>>;
 
 
 	public function dispose() {
 		input.unregisterAccess(this);
 		input = null;
 
-		if( tester!=null ) {
-			tester.destroy();
-			tester = null;
+		if( debugger!=null ) {
+			debugger.destroy();
+			debugger = null;
 		}
 	}
 
 
 	@:keep public function toString() {
-		return 'GameInputAccess[ $input ]';
+		return 'ControllerAccess[ $input ]';
 	}
 
 
@@ -50,13 +50,13 @@ class GameInputAccess<T:EnumValue> {
 	}
 
 	/**
-		Create a `GameInputTester` for debugging purpose.
+		Create a `ControllerDebug` for debugging purpose.
 	**/
-	public function createTester(parent:dn.Process, ?afterRender:GameInputTester<T>->Void) : GameInputTester<T> {
-		if( tester!=null )
-			tester.destroy();
-		tester = new GameInputTester(this, parent, afterRender);
-		return tester;
+	public function createDebugger(parent:dn.Process, ?afterRender:ControllerDebug<T>->Void) : ControllerDebug<T> {
+		if( debugger!=null )
+			debugger.destroy();
+		debugger = new ControllerDebug(this, parent, afterRender);
+		return debugger;
 	}
 
 
@@ -140,7 +140,8 @@ class GameInputAccess<T:EnumValue> {
 
 	/** Rumbles physical controller, if supported **/
 	public function rumble(strength:Float, seconds:Float) {
-		pad.rumble(strength, seconds);
+		if( pad.index>=0 )
+			pad.rumble(strength, seconds);
 	}
 
 	public dynamic function isLockedCustom() return false;

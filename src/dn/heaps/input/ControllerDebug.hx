@@ -4,18 +4,18 @@ package dn.heaps.input;
 /**
 	This class should only be instanciated by GameInput.Access.
 **/
-class GameInputTester<T:EnumValue> extends dn.Process {
+class ControllerDebug<T:EnumValue> extends dn.Process {
 	static var BT_SIZE = 10;
 
-	var gia : GameInputAccess<T>;
+	var gia : ControllerAccess<T>;
 	var flow : h2d.Flow;
 	var font : h2d.Font;
 	var status : Null<h2d.Text>;
 	var connected = false;
 
-	var afterRender : Null< GameInputTester<T>->Void >;
+	var afterRender : Null< ControllerDebug<T>->Void >;
 
-	public function new(inputAccess:GameInputAccess<T>, ?f:h2d.Font, p:dn.Process, ?afterRender) {
+	public function new(inputAccess:ControllerAccess<T>, ?f:h2d.Font, p:dn.Process, ?afterRender) {
 		super(p);
 
 		if( p.root==null )

@@ -36,13 +36,13 @@ enum PadButton {
 		Jump;
 		Attack;
 	}
-	var gi = new GameInput(MyGameActions);
+	var gi = new Controller(MyGameActions);
 	TODO
 	```
 
 **/
-@:allow(dn.heaps.input.GameInputAccess)
-class GameInput<T:EnumValue> {
+@:allow(dn.heaps.input.ControllerAccess)
+class Controller<T:EnumValue> {
 	/**
 		Actual `hxd.Pad` behind
 	**/
@@ -62,16 +62,16 @@ class GameInput<T:EnumValue> {
 	public var onDisconnect : Void->Void;
 
 	/**
-		Enum type associated with this GameInput
+		Enum type associated with this Controller
 	**/
 	public var actionsEnum(default,null) : Enum<T>;
 
 
-	var allAccesses : Array<GameInputAccess<T>> = [];
+	var allAccesses : Array<ControllerAccess<T>> = [];
 	var bindings : Map<T, Array< InputBinding<T> >> = new Map();
 	var destroyed = false;
 	var enumMapping : Map<PadButton,Int> = new Map();
-	var exclusive : Null<GameInputAccess<T>>;
+	var exclusive : Null<ControllerAccess<T>>;
 
 
 	public function new(actionsEnum:Enum<T>) {
@@ -82,7 +82,7 @@ class GameInput<T:EnumValue> {
 
 
 	@:keep public function toString() {
-		return "GameInput"
+		return "Controller"
 			+ "(access="+allAccesses.length +", "+ ( pad==null || pad.index<0 ? '<NoPad>' : '"'+pad.name+'"#'+pad.index ) + ")";
 	}
 
@@ -93,21 +93,21 @@ class GameInput<T:EnumValue> {
 		exclusive = null;
 	}
 
-	public function makeExclusive(ia:GameInputAccess<T>) {
+	public function makeExclusive(ia:ControllerAccess<T>) {
 		exclusive = ia;
 	}
 
 	/**
-		Create a `GameInputAccess` instance for this GameInput.
+		Create a `ControllerAccess` instance for this Controller.
 	**/
-	public function createAccess() : GameInputAccess<T> {
-		var ia = new GameInputAccess(this);
+	public function createAccess() : ControllerAccess<T> {
+		var ia = new ControllerAccess(this);
 		allAccesses.push(ia);
 		return ia;
 	}
 
 
-	function unregisterAccess(ia:GameInputAccess<T>) {
+	function unregisterAccess(ia:ControllerAccess<T>) {
 		allAccesses.remove(ia);
 	}
 
@@ -368,7 +368,7 @@ class GameInput<T:EnumValue> {
 	Internal binding definition
 **/
 class InputBinding<T:EnumValue> {
-	var input : GameInput<T>;
+	var input : Controller<T>;
 	public var action : T;
 
 	public var padButton : Null<PadButton>;
@@ -386,7 +386,7 @@ class InputBinding<T:EnumValue> {
 	var analogDownDeadZone = 0.84;
 
 
-	public function new(i:GameInput<T>, a:T) {
+	public function new(i:Controller<T>, a:T) {
 		input = i;
 		action = a;
 	}
