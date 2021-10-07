@@ -2,7 +2,7 @@ package dn.heaps.input;
 
 
 /**
-	This class should only be instanciated by GameInput.Access.
+	This class should only be instanciated by a ControllerAccess.
 **/
 class ControllerDebug<T:EnumValue> extends dn.Process {
 	static var BT_SIZE = 10;
@@ -15,7 +15,9 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 
 	var afterRender : Null< ControllerDebug<T>->Void >;
 
-	public function new(inputAccess:ControllerAccess<T>, ?f:h2d.Font, p:dn.Process, ?afterRender) {
+
+	@:allow(dn.heaps.input.ControllerAccess)
+	private function new(inputAccess:ControllerAccess<T>, ?f:h2d.Font, p:dn.Process, ?afterRender) {
 		super(p);
 
 		if( p.root==null )
