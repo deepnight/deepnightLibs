@@ -1,6 +1,6 @@
-package dn.heaps;
+package dn.legacy;
 
-import dn.heaps.GamePad;
+import dn.legacy.GamePad;
 import hxd.Key;
 
 enum Mode {
@@ -8,7 +8,7 @@ enum Mode {
 	Pad;
 }
 
-@:allow(dn.heaps.ControllerAccess)
+@:allow(dn.legacy.ControllerAccess)
 class Controller {
 	static var UNIQ_ID = 0;
 	static var LONG_PRESS = 0.35; // seconds
@@ -171,7 +171,7 @@ class Controller {
 
 }
 
-@:allow(dn.heaps.Controller)
+@:allow(dn.legacy.Controller)
 class ControllerAccess {
 
 	var parent : Controller;
