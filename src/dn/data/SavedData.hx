@@ -64,7 +64,7 @@ class SavedData {
 	/**
 		Load previously saved data, using provided "default" anonymous structure to add missing fields (doesn't work with anonymous objects nested in arrays, lists and maps).
 	**/
-	public static function load<T>(name:String, def:T, format:SaveFormat=Serialized) : T {
+	public static function load<T>(name:String, def:T, format:SaveFormat=Serialized, ?patchData:T->Void) : T {
 		var ser = read(name);
 		if( ser==null )
 			return def;
@@ -85,6 +85,10 @@ class SavedData {
 			case Json:
 				try haxe.Json.parse(ser) catch(_) def;
 		}
+
+		// Update low-level data
+		if( patchData!=null )
+			patchData(loaded);
 
 		function _iterateObj(defObj:Dynamic, loadObj:Dynamic) {
 			for(k in Reflect.fields(defObj)) {
