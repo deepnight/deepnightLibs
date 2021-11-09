@@ -266,12 +266,12 @@ class Controller<T:EnumValue> {
 		_bindPadButtonsAsStick(yAction, false, up, down);
 	}
 
-	public inline function bindPadButtonsAsStickX(action:T, negative:PadButton, positive:PadButton, invert=false) {
-		_bindPadButtonsAsStick(action, true, negative, positive, invert);
+	public inline function bindPadButtonsAsStickX(action:T, negativeKey:PadButton, positiveKey:PadButton, invert=false) {
+		_bindPadButtonsAsStick(action, true, negativeKey, positiveKey, invert);
 	}
 
-	public inline function bindPadButtonsAsStickY(action:T, negative:PadButton, positive:PadButton, invert=false) {
-		_bindPadButtonsAsStick(action, false, negative, positive, invert);
+	public inline function bindPadButtonsAsStickY(action:T, negativeKey:PadButton, positiveKey:PadButton, invert=false) {
+		_bindPadButtonsAsStick(action, false, negativeKey, positiveKey, invert);
 	}
 
 
@@ -282,16 +282,15 @@ class Controller<T:EnumValue> {
 	}
 
 
-	public inline function bindKeyboardAsStickX(action:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardAsStick(action, true, negative, positive, invert);
+	public inline function bindKeyboardAsStickX(action:T, negativeKey:Int, positiveKey:Int, invert=false) {
+		_bindKeyboardAsStick(action, true, negativeKey, positiveKey, invert);
 	}
 
-	public inline function bindKeyboardAsStickY(action:T, negative:Int, positive:Int, invert=false) {
-		_bindKeyboardAsStick(action, false, negative, positive, invert);
+	public inline function bindKeyboardAsStickY(action:T, negativeKey:Int, positiveKey:Int, invert=false) {
+		_bindKeyboardAsStick(action, false, negativeKey, positiveKey, invert);
 	}
 
-
-	function _bindKeyboardAsStick(action:T, isXaxis:Bool, negative:Int, positive:Int, invert=false) {
+	function _bindKeyboardAsStick(action:T, isXaxis:Bool, negativeKey:Int, positiveKey:Int, invert=false) {
 		if( destroyed )
 			return;
 
@@ -300,13 +299,13 @@ class Controller<T:EnumValue> {
 		var b = new InputBinding(this,action);
 		bindings.get(action).push(b);
 		b.isX = isXaxis;
-		b.kbNeg = negative;
-		b.kbPos = positive;
+		b.kbNeg = negativeKey;
+		b.kbPos = positiveKey;
 		b.invert = invert;
 	}
 
 
-	function _bindPadButtonsAsStick(action:T, isXaxis:Bool, negative:PadButton, positive:PadButton, invert=false) {
+	function _bindPadButtonsAsStick(action:T, isXaxis:Bool, negativeKey:PadButton, positiveKey:PadButton, invert=false) {
 		if( destroyed )
 			return;
 
@@ -316,8 +315,8 @@ class Controller<T:EnumValue> {
 		bindings.get(action).push(b);
 		b.isLStick = true;
 		b.isX = isXaxis;
-		b.padNeg = negative;
-		b.padPos = positive;
+		b.padNeg = negativeKey;
+		b.padPos = positiveKey;
 		b.invert = invert;
 	}
 
