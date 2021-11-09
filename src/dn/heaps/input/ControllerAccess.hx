@@ -14,7 +14,7 @@ class ControllerAccess<T:EnumValue> {
 	var destroyed(get,never) : Bool;
 	var bindings(get,never) : Map<T, Array< InputBinding<T> >>;
 	var pad(get,never) : hxd.Pad;
-	var locked = false;
+	var lockedUntilS = -1.;
 	var holdTimeS : Map<T,Float> = new Map();
 
 	@:allow(dn.heaps.input.Controller)
@@ -55,7 +55,10 @@ class ControllerAccess<T:EnumValue> {
 		- another Access must not have taken "exclusivity".
 	**/
 	public function isActive() {
-		return !destroyed && !locked && !lockCondition() && ( input.exclusive==null || input.exclusive==this );
+		return !destroyed
+			&& ( lockedUntilS<0 || haxe.Timer.stamp()>=lockedUntilS )
+			&& !lockCondition()
+			&& ( input.exclusive==null || input.exclusive==this );
 	}
 
 	/**
@@ -244,22 +247,35 @@ class ControllerAccess<T:EnumValue> {
 	}
 
 	/**
-		This method can be re-assigned. The function must return TRUE if this Access should be marked as "locked", FALSE otherwise. A locked Access will stop checking for inputs.
+		This method is meant be re-assigned. The function should either return TRUE if this Access should be marked as "locked", FALSE otherwise. A locked Access will stop checking for inputs.
 	**/
 	public dynamic function lockCondition() return false;
 
-	public inline function lock() {
-		locked = true;
+	/**
+		Lock controller for specificed duration (in seconds), which defaults to "long enough to be considered as infinite".
+	**/
+	public inline function lock(durationSeconds=999999.) {
+		lockedUntilS = haxe.Timer.stamp() + durationSeconds;
 	}
 
+	/**
+		Remove previous locked status from `lock()` call. This doesn't remove the potential lock from `lockCondition()`.
+	**/
 	public inline function unlock() {
-		locked = false;
+		lockedUntilS = -1;
 	}
 
+
+	/**
+		Take exclusivity over all other `ControllerAccess` (they will not receive any input while this access has exclusivity)
+	**/
 	public inline function takeExclusivity() {
 		input.makeExclusive(this);
 	}
 
+	/**
+		Release current exclusivity (even if it wasn't taken by this access)
+	**/
 	public inline function releaseExclusivity() {
 		input.releaseExclusivity();
 	}
