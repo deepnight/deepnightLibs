@@ -72,6 +72,7 @@ class Controller<T:EnumValue> {
 	var destroyed = false;
 	var enumMapping : Map<PadButton,Int> = new Map();
 	var exclusive : Null<ControllerAccess<T>>;
+	var globalDeadZone = 0.1;
 
 
 	public function new(actionsEnum:Enum<T>) {
@@ -174,6 +175,7 @@ class Controller<T:EnumValue> {
 
 	function _onPadConnected(p:hxd.Pad) {
 		pad = p;
+		pad.axisDeadZone = globalDeadZone;
 		updateEnumMapping();
 		pad.onDisconnect = _onPadDisconnected;
 
@@ -361,6 +363,14 @@ class Controller<T:EnumValue> {
 			b.kbPos = k;
 			bindings.get(action).push(b);
 		}
+	}
+
+
+	/**
+		Change dead-zone ratio for all Pad sticks.
+	**/
+	public function setGlobalAxisDeadZone(dz:Float) {
+		pad.axisDeadZone = globalDeadZone = M.fclamp(dz, 0, 1);
 	}
 }
 
