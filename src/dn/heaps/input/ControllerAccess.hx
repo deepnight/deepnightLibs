@@ -171,6 +171,7 @@ class ControllerAccess<T:EnumValue> {
 		return false;
 	}
 
+
 	/**
 		Return TRUE if given action Enum is "held down" for more than `seconds` seconds.
 		Note: "down" for a digital binding means the button/key is pushed. For an analog binding, this means it is pushed *beyond* a specific threshold.
@@ -210,6 +211,27 @@ class ControllerAccess<T:EnumValue> {
 				: M.fclamp( getHoldTimeS(action) / seconds, 0, 1 );
 	}
 
+
+	/**
+		Return TRUE if given action Enum has a negative value.
+		NOTE: Only works with Analog bindings (ie. pad stick or its corresponding keyboard bindings).
+
+		@param threshold If provided, this will be an additional threshold to check against, like the "dead-zone" factor of the Controller.
+	**/
+	public function isNegative(action:T, threshold=0.) {
+		return getAnalogValue(action) < -M.fabs(threshold);
+	}
+
+
+	/**
+		Return TRUE if given action Enum has a positive value.
+		NOTE: Only works with Analog bindings (ie. pad stick or its corresponding keyboard bindings).
+
+		@param threshold If provided, this will be an additional threshold to check against, like the "dead-zone" factor of the Controller.
+	**/
+	public function isPositive(action:T, threshold=0.) {
+		return getAnalogValue(action) > M.fabs(threshold);
+	}
 
 	/**
 		Directly check if a keyboard key is pushed.
