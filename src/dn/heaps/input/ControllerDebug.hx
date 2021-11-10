@@ -140,6 +140,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		p.onUpdateCb = ()->{
 			var a = gia.getAnalogAngle(xAxis, yAxis);
 			var d = gia.getAnalogDist(xAxis, yAxis);
+			tf.textColor = d<=0 ? 0xff0000 : 0x00ff00;
 			bmp.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
 			bmp.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
 
@@ -156,7 +157,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 
 		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
 		var tf = new h2d.Text(font, p.root);
-		tf.text = a.getName();
+		tf.text = a.getName()+"(AF)";
 		tf.x = BT_SIZE+4;
 		tf.y = -4;
 
@@ -169,6 +170,39 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 				tf.textColor = 0xff0000;
 				bmp.color.setColor( dn.Color.addAlphaF(0xff0000) );
 			}
+		}
+	}
+
+	/**
+		Create an "held" button display
+	**/
+	public function createHeld(a:T, durationS:Float) {
+		var p = createChildProcess();
+		p.createRoot(flow);
+
+		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
+		var tf = new h2d.Text(font, p.root);
+		var base = a.getName()+"(H)";
+		tf.x = BT_SIZE+4;
+		tf.y = -4;
+
+		p.onUpdateCb = ()->{
+			if( gia.isHeld(a,durationS) ) {
+				tf.scaleX = 1.4;
+				tf.textColor = 0x55ff00;
+			}
+			else if( gia.isDown(a) )
+				tf.textColor = dn.Color.interpolateInt(0x000044, 0x0088ff, gia.getHoldRatio(a,durationS));
+			else
+				tf.textColor = 0xff0000;
+
+			tf.text = base + ": " + M.round( gia.getHoldRatio(a,durationS)*100 ) + "%";
+			if( gia.isHeld(a,durationS) )
+				tf.text +=" <OK>";
+			else
+				tf.scaleX += (1-tf.scaleX)*0.3;
+
+			bmp.color.setColor( dn.Color.addAlphaF(tf.textColor) );
 		}
 	}
 
