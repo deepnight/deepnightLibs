@@ -16,6 +16,8 @@ class ControllerAccess<T:EnumValue> {
 	var pad(get,never) : hxd.Pad;
 	var lockedUntilS = -1.;
 	var holdTimeS : Map<T,Float> = new Map();
+	var autoFireFirstDone : Map<T,Bool> = new Map();
+	var autoFireNextS : Map<T,Float> = new Map();
 
 	@:allow(dn.heaps.input.Controller)
 	function new(m:Controller<T>) {
@@ -211,6 +213,29 @@ class ControllerAccess<T:EnumValue> {
 				: M.fclamp( getHoldTimeS(action) / seconds, 0, 1 );
 	}
 
+
+	/**
+		Return TRUE if given action is "pressed", and this will repeatedly return TRUE, just like a keyboard key that is held down for an extended period of time.
+		@param firstDelayS Delay in seconds after the first press to start firing other presses.
+		@param subsequentDelayS Delay in seconds between presses after the first one.
+	**/
+	public inline function isPressedAutoFire(action:T, firstDelayS=0.28, subsequentDelayS=0.07) {
+		if( !isDown(action) ) {
+			autoFireNextS.set(action, 0);
+			autoFireFirstDone.remove(action);
+			return false;
+		}
+		else {
+			var now = haxe.Timer.stamp();
+			if( !autoFireNextS.exists(action) || now>=autoFireNextS.get(action) ) {
+				autoFireNextS.set(action, now + ( !autoFireFirstDone.exists(action) ? firstDelayS : subsequentDelayS ));
+				autoFireFirstDone.set(action, true);
+				return true;
+			}
+			else
+				return false;
+		}
+	}
 
 	/**
 		Return TRUE if given action Enum has a negative value.

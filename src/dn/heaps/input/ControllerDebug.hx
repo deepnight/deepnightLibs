@@ -147,6 +147,31 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		}
 	}
 
+	/**
+		Create an "auto-fire" button display
+	**/
+	public function createAutoFire(a:T) {
+		var p = createChildProcess();
+		p.createRoot(flow);
+
+		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
+		var tf = new h2d.Text(font, p.root);
+		tf.text = a.getName();
+		tf.x = BT_SIZE+4;
+		tf.y = -4;
+
+		p.onUpdateCb = ()->{
+			if( gia.isPressedAutoFire(a) ) {
+				tf.textColor = 0x00ff00;
+				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );
+			}
+			else {
+				tf.textColor = 0xff0000;
+				bmp.color.setColor( dn.Color.addAlphaF(0xff0000) );
+			}
+		}
+	}
+
 
 	override function update() {
 		super.update();
