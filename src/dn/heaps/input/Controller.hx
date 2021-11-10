@@ -26,20 +26,38 @@ enum PadButton {
 }
 
 
+
 /**
 	Controller wrapper for `hxd.Pad` and `hxd.Key` which provides a *much* more convenient binding system, to make keyboard/gamepad usage fully transparent.
 
-	**Usage:**
+	For example, you may bind analog controls (ie. pad left stick) with keyboard keys, or have as many bindings as you want per game action.
+
+	**Example:**
 	```haxe
 	enum MyGameActions {
 		MoveX;
+		MoveY;
 		Jump;
 		Attack;
 	}
-	var gi = new Controller(MyGameActions);
-	TODO
-	```
+	var ctrl = new Controller(MyGameActions);
+	ctrl.bindKeyboardAsStick(MoveX,MoveY, hxd.Key.UP, hxd.Key.LEFT, hxd.Key.DOWN, hxd.Key.RIGHT);
+	ctrl.bindKeyboardAsStick(MoveX,MoveY, hxd.Key.W, hxd.Key.A, hxd.Key.S, hxd.Key.D);
+	ctrl.bindKeyboard(Jump, hxd.Key.SPACE);
+	ctrl.bindKeyboard(Attack, [hxd.Key.X, hxd.Key.CTRL, hxd.Key.W, hxd.Key.Z] );
 
+	ctrl.bindPadLStick(MoveX,MoveY);
+	ctrl.bindPadButtonsAsStick(MoveX,MoveY, DPAD_UP, DPAD_LEFT, DPAD_DOWN, DPAD_RIGHT);
+	ctrl.bindPad(Jump, A);
+	ctrl.bindPad(Attack, [X,RT,LT]);
+
+	var access = ctrl.createAccess();
+	trace( access.isPressed(Jump) );
+	trace( access.getAnalogAngle(MoveX,MoveY) );
+	trace( access.isPositive(MoveY) );
+
+	var debug = access.createDebugger(myParentProcess);
+	```
 **/
 @:allow(dn.heaps.input.ControllerAccess)
 class Controller<T:EnumValue> {
@@ -75,6 +93,9 @@ class Controller<T:EnumValue> {
 	var globalDeadZone = 0.1;
 
 
+	/**
+		Create a Controller that will bind keyboard or gamepad inputs with "actions" represented by the values of the `actionsEnum` parameter.
+	**/
 	public function new(actionsEnum:Enum<T>) {
 		this.actionsEnum = actionsEnum;
 		waitForPad();
