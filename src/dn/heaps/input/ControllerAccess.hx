@@ -237,6 +237,8 @@ class ControllerAccess<T:EnumValue> {
 		}
 	}
 
+
+
 	/**
 		Return TRUE if given action Enum has a negative value.
 		NOTE: Only works with Analog bindings (ie. pad stick or its corresponding keyboard bindings).
