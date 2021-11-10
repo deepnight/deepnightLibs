@@ -261,11 +261,25 @@ class ControllerAccess<T:EnumValue> {
 	}
 
 
+	/**
+		Return TRUE if any **button** of the pad is pressed (doesn't apply to stick or dpad)
+	**/
 	public inline function anyPadButtonPressed() {
 		return isPadPressed(A) || isPadPressed(B) || isPadPressed(X) || isPadPressed(Y)
 			|| isPadPressed(LT) || isPadPressed(RT)
 			|| isPadPressed(LB) || isPadPressed(RB)
 			|| isPadPressed(START) || isPadPressed(SELECT);
+	}
+
+
+	/**
+		Return TRUE if any **button** of the pad is down (doesn't apply to stick or dpad)
+	**/
+	public inline function anyPadButtonDown() {
+		return isPadDown(A) || isPadDown(B) || isPadDown(X) || isPadDown(Y)
+			|| isPadDown(LT) || isPadDown(RT)
+			|| isPadDown(LB) || isPadDown(RB)
+			|| isPadDown(START) || isPadDown(SELECT);
 	}
 
 
