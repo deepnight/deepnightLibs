@@ -218,7 +218,7 @@ class ControllerAccess<T:EnumValue> {
 
 		@param threshold If provided, this will be an additional threshold to check against, like the "dead-zone" factor of the Controller.
 	**/
-	public function isNegative(action:T, threshold=0.) {
+	public inline function isNegative(action:T, threshold=0.) {
 		return getAnalogValue(action) < -M.fabs(threshold);
 	}
 
@@ -229,9 +229,18 @@ class ControllerAccess<T:EnumValue> {
 
 		@param threshold If provided, this will be an additional threshold to check against, like the "dead-zone" factor of the Controller.
 	**/
-	public function isPositive(action:T, threshold=0.) {
+	public inline function isPositive(action:T, threshold=0.) {
 		return getAnalogValue(action) > M.fabs(threshold);
 	}
+
+
+	public inline function anyPadButtonPressed() {
+		return isPadPressed(A) || isPadPressed(B) || isPadPressed(X) || isPadPressed(Y)
+			|| isPadPressed(LT) || isPadPressed(RT)
+			|| isPadPressed(LB) || isPadPressed(RB)
+			|| isPadPressed(START) || isPadPressed(SELECT);
+	}
+
 
 	/**
 		Directly check if a keyboard key is pushed.
