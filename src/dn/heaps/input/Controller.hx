@@ -423,6 +423,19 @@ class InputBinding<T:EnumValue> {
 		action = a;
 	}
 
+	@:keep
+	public function toString() {
+		var all = [];
+		if( isLStick && padPos==null ) all.push( "LSTICK" + (isX?"_X":"_Y") + (invert?"-":"+") );
+		if( isRStick && padPos==null ) all.push("RSTICK");
+		if( padNeg!=null ) all.push( Std.string(padNeg) );
+		if( padPos!=null ) all.push( Std.string(padPos) );
+		if( padButton!=null ) all.push( Std.string(padButton) );
+		if( kbNeg>=0 ) all.push( Key.getKeyName(kbNeg) );
+		if( kbPos>=0 && kbNeg!=kbPos ) all.push( Key.getKeyName(kbPos) );
+		return all.join("/");
+	}
+
 	public inline function getValue(pad:hxd.Pad) : Float {
 		if( isLStick && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
 			return pad.xAxis * (invert?-1:1);

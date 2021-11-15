@@ -7,7 +7,7 @@ package dn.heaps.input;
 class ControllerDebug<T:EnumValue> extends dn.Process {
 	static var BT_SIZE = 10;
 
-	var gia : ControllerAccess<T>;
+	var ca : ControllerAccess<T>;
 	var flow : h2d.Flow;
 	var font : h2d.Font;
 	var status : Null<h2d.Text>;
@@ -25,7 +25,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		else
 			createRootInLayers(p.root, 99999);
 
-		this.gia = inputAccess;
+		this.ca = inputAccess;
 		this.afterRender = afterRender;
 		font = f!=null ? f : hxd.res.DefaultFont.get();
 
@@ -45,10 +45,10 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		status = new h2d.Text(font, flow);
 		flow.addSpacing(4);
 
-		for(k in gia.input.actionsEnum.getConstructors()) {
-			var a = gia.input.actionsEnum.createByName(k);
+		for(k in ca.input.actionsEnum.getConstructors()) {
+			var a = ca.input.actionsEnum.createByName(k);
 			createButton(a);
-			if( gia.input.isBoundToAnalog(a) )
+			if( ca.input.isBoundToAnalog(a) )
 				createAnalog(a);
 		}
 
@@ -67,14 +67,27 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 	@:keep override function toString() return getName();
 
 	inline function getName() {
-		return gia.toString();
+		return ca.toString();
 	}
 
 
 	override function onDispose() {
 		super.onDispose();
 		font = null;
-		gia = null;
+		ca = null;
+	}
+
+
+	function getBindingsList(a:T) : String {
+		var all = @:privateAccess ca.bindings;
+		if( !all.exists(a) )
+			return "<none>";
+		else {
+			var arr = [];
+			for(b in all.get(a))
+				arr.push(b.toString());
+			return arr.join(", ");
+		}
 	}
 
 
@@ -88,8 +101,12 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		tf.x = BT_SIZE+4;
 		tf.y = -4;
 
+		var btf = new h2d.Text(font,p.root);
+		btf.x = 150;
+
 		p.onUpdateCb = ()->{
-			if( gia.isDown(a) ) {
+			btf.text = getBindingsList(a);
+			if( ca.isDown(a) ) {
 				tf.textColor = 0x00ff00;
 				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );
 			}
@@ -112,10 +129,10 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		tf.y = -4;
 
 		p.onUpdateCb = ()->{
-			var v = gia.getAnalogValue(a);
+			var v = ca.getAnalogValue(a);
 			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
 			tf.textColor = v!=0 ? 0x00ff00 : 0xff0000;
-			tf.text = a.getName()+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(gia.getAnalogDist(a),1);
+			tf.text = a.getName()+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(ca.getAnalogDist(a),1);
 			bmp.color.setColor( dn.Color.addAlphaF(v!=0 ? 0x00ff00 : 0xff0000) );
 		}
 	}
@@ -138,8 +155,8 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		tf.y = -2;
 
 		p.onUpdateCb = ()->{
-			var a = gia.getAnalogAngle(xAxis, yAxis);
-			var d = gia.getAnalogDist(xAxis, yAxis);
+			var a = ca.getAnalogAngle(xAxis, yAxis);
+			var d = ca.getAnalogDist(xAxis, yAxis);
 			tf.textColor = d<=0 ? 0xff0000 : 0x00ff00;
 			bmp.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
 			bmp.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
@@ -162,7 +179,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		tf.y = -4;
 
 		p.onUpdateCb = ()->{
-			if( gia.isPressedAutoFire(a) ) {
+			if( ca.isPressedAutoFire(a) ) {
 				tf.textColor = 0x00ff00;
 				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );
 			}
@@ -187,17 +204,17 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		tf.y = -4;
 
 		p.onUpdateCb = ()->{
-			if( gia.isHeld(a,durationS) ) {
+			if( ca.isHeld(a,durationS) ) {
 				tf.scaleX = 1.4;
 				tf.textColor = 0x55ff00;
 			}
-			else if( gia.isDown(a) )
-				tf.textColor = dn.Color.interpolateInt(0x000044, 0x0088ff, gia.getHoldRatio(a,durationS));
+			else if( ca.isDown(a) )
+				tf.textColor = dn.Color.interpolateInt(0x000044, 0x0088ff, ca.getHoldRatio(a,durationS));
 			else
 				tf.textColor = 0xff0000;
 
-			tf.text = base + ": " + M.round( gia.getHoldRatio(a,durationS)*100 ) + "%";
-			if( gia.isHeld(a,durationS) )
+			tf.text = base + ": " + M.round( ca.getHoldRatio(a,durationS)*100 ) + "%";
+			if( ca.isHeld(a,durationS) )
 				tf.text +=" <OK>";
 			else
 				tf.scaleX += (1-tf.scaleX)*0.3;
@@ -210,13 +227,13 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 	override function update() {
 		super.update();
 
-		if( !connected && gia.input.isPadConnected() )
+		if( !connected && ca.input.isPadConnected() )
 			onConnect();
 
-		if( connected && !gia.input.isPadConnected() )
+		if( connected && !ca.input.isPadConnected() )
 			onDisconnect();
 
-		status.text = getName()+"\n"+ (gia.input.isPadConnected() ? "Pad connected" : "Pad disconnected");
-		status.textColor = gia.input.isPadConnected() ? 0x00ff00 : 0xff0000;
+		status.text = getName()+"\n"+ (ca.input.isPadConnected() ? "Pad connected" : "Pad disconnected");
+		status.textColor = ca.input.isPadConnected() ? 0x00ff00 : 0xff0000;
 	}
 }
