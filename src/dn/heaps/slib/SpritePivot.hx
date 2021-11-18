@@ -37,11 +37,11 @@ class SpritePivot {
 		isUndefined = false;
 	}
 
-	public function makeUndefined() {
+	public inline function makeUndefined() {
 		isUndefined = true;
 	}
 
-	public function copyFrom(from:SpritePivot) {
+	public inline function copyFrom(from:SpritePivot) {
 		if( from.isUsingCoord() )
 			setCoord(from.coordX, from.coordY);
 
