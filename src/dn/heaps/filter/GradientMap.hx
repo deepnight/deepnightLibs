@@ -22,17 +22,34 @@ class GradientMap extends h2d.filter.Shader<InternalShader> {
 		@param intensity Gradient map intensity factor (0-1)
 		@param mode Determine which range of luminance should be affected: Full (default), OnlyLights, OnlyShadows.
 	**/
-	public function new(gradientMap:h3d.mat.Texture, mode:AffectedLuminanceRange = Full, intensity=1.0) {
+	public function new(gradientMap:h3d.mat.Texture, intensity=1.0, mode:AffectedLuminanceRange = Full) {
 		super( new InternalShader() );
 
 		shader.gradientMap = gradientMap;
-		shader.mode = mode.getIndex();
 		this.intensity = intensity;
+		shader.mode = mode.getIndex();
 	}
 
 	override function draw(ctx:h2d.RenderContext, t:h2d.Tile):h2d.Tile {
 		shader.paletteY = M.fclamp( paletteY * 1/t.height, 0, 1 );
 		return super.draw(ctx, t);
+	}
+
+	public static function createGradientMapTexture(darkest:Int, brightest:Int) : h3d.mat.Texture {
+		var p = hxd.Pixels.alloc(256,1, RGBA);
+		for(x in 0...p.width)
+			p.setPixel( x, 0, paletteInterpolation(x/(p.width-1), darkest, brightest) );
+				// dn.Color.addAlphaF( dn.Color.interpolateInt(darkest, brightest, x/(p.width-1)) ) );
+		return h3d.mat.Texture.fromPixels(p);
+	}
+
+
+	static inline function paletteInterpolation(ratio:Float, darkest:Int, brightest:Int, white=0xffffff) : Int {
+		final lightLimit = 0.78;
+		if( ratio<=lightLimit )
+			return dn.Color.addAlphaF( dn.Color.interpolateInt( darkest, brightest, ratio/lightLimit ) );
+		else
+			return dn.Color.addAlphaF( dn.Color.interpolateInt( brightest, white, (ratio-lightLimit)/(1-lightLimit) ) );
 	}
 
 }
