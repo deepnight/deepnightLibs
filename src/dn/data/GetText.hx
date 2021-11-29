@@ -710,6 +710,8 @@ class GetText {
 		}
 
 		function _exploreSheet( idx:String, id:Null<String>, lines:Array<Dynamic>, columns:Array<Array<String>> ){
+			if (lines == null) 
+				return;
 			var n = 0;
 			var i = 0;
 			for( line in lines ){
