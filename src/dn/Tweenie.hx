@@ -47,7 +47,7 @@ class Tween {
 	public var type(default,set): TType;
 	public var plays		: Int; // -1 = infini, 1 et plus = nombre d'exécutions (1 par défaut)
 	var pixelSnap			: Bool; // arrondi toutes les valeurs si TRUE (utile pour les anims pixelart)
-	public var delay		: Int; // frame based
+	public var delay		: Float; // frame based
 
 	public function new(tw) {
 		this.tw = tw;
@@ -191,7 +191,7 @@ class Tween {
 			return false;
 
 		if( delay>0 ) {
-			delay--;
+			delay -= dt;
 			return false;
 		}
 
