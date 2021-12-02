@@ -71,6 +71,7 @@ class Sfx {
 	static var SPATIAL_LISTENER_X = 0.;
 	static var SPATIAL_LISTENER_Y = 0.;
 	static var SPATIAL_LISTENER_RANGE = 1.;
+	static var ON_PLAY_CB : Map<String, Sfx->Void> = new Map();
 	static var SOUND_VOLUMES_OVERRIDE : Map<String,Float> = new Map();
 	static var SOUND_DEFAULT_GROUPS : Map<String,Int> = new Map();
 
@@ -167,6 +168,14 @@ class Sfx {
 		SOUND_VOLUMES_OVERRIDE.set(s.identifier, newDefaultVolumeMul);
 	}
 
+	public static function setOnPlayCb(s:Sfx, cb:Sfx->Void) {
+		ON_PLAY_CB.set(s.identifier, cb);
+	}
+
+	public static function removeOnPlayCb(s:Sfx, cb:Sfx->Void) {
+		ON_PLAY_CB.remove(s.identifier);
+	}
+
 	public static function resetOverridenSoundVolume(s:Sfx) {
 		SOUND_VOLUMES_OVERRIDE.remove(s.identifier);
 	}
@@ -235,6 +244,10 @@ class Sfx {
 
 		}
 		applyVolume();
+
+		// On play global callbacks
+		if( ON_PLAY_CB.exists(identifier) )
+			ON_PLAY_CB.get(identifier)(this);
 	}
 
 	/**
