@@ -470,7 +470,7 @@ class GetText {
 			if( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT)>=0 ) {
 				var token = e.key.substr( e.key.indexOf(VDF_ACHIEVEMENT_CONTEXT) + VDF_ACHIEVEMENT_CONTEXT.length );
 				var loc = e.value;
-				allTokens.push('"$token" "$loc"');
+				allTokens.push('"$token" "${sanitizeVdfToken(loc)}"');
 			}
 
 		// Alpha sort
@@ -483,6 +483,10 @@ class GetText {
 		fo.close();
 
 		return true;
+	}
+
+	static function sanitizeVdfToken(str:String) {
+		return StringTools.replace(str, '"', '\\"');
 	}
 
 
@@ -710,7 +714,7 @@ class GetText {
 		}
 
 		function _exploreSheet( idx:String, id:Null<String>, lines:Array<Dynamic>, columns:Array<Array<String>> ){
-			if (lines == null) 
+			if (lines == null)
 				return;
 			var n = 0;
 			var i = 0;
