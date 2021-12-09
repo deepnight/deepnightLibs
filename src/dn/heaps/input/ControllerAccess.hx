@@ -311,6 +311,19 @@ class ControllerAccess<T:EnumValue> {
 		return isActive() ? pad.isPressed( input.getPadButtonId(button) ) : false;
 	}
 
+	/**
+		Directly check gamepad left stick dist (0->1)
+	**/
+	public inline function getPadLeftStickDist() {
+		return M.dist(0,0, pad.xAxis, pad.yAxis);
+	}
+
+	/**
+		Directly check gamepad left stick dist (0->1)
+	**/
+	public inline function getPadRightStickDist() {
+		return M.dist(0,0, pad.rxAxis, pad.ryAxis);
+	}
 
 	/** Rumbles physical controller, if supported **/
 	public function rumble(strength:Float, seconds:Float) {
