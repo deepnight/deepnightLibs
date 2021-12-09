@@ -7,53 +7,6 @@ import hxd.res.Sound;
 #end
 
 
-
-// --- GLOBAL PLAY GROUP ------------------------------------------------------
-#if !macro
-private class GlobalGroup {
-	var id : Int;
-	var volume : Float;
-
-	/** Currently associated Heaps SoundGroup **/
-	public var soundGroup(default,null) : SoundGroup;
-
-	/** Muted status of this group **/
-	public var muted(default,set) : Bool;
-
-	public function new(id:Int) {
-		this.id = id;
-		volume = 1;
-		soundGroup = new hxd.snd.SoundGroup("global"+id);
-	}
-
-	/**
-		Set the group volume (0-1)
-	**/
-	public inline function setVolume(v) {
-		volume = M.fclamp(v,0,1);
-		soundGroup.volume = getVolume();
-	}
-
-	/**
-		Return current group volume
-	**/
-	public inline function getVolume() {
-		return muted ? 0 : volume;
-	}
-
-	function set_muted(v) {
-		muted = v;
-		if( v )
-			soundGroup.volume = 0;
-		else
-			soundGroup.volume = volume;
-
-		return v;
-	}
-}
-#end
-
-
 // --- SFX ------------------------------------------------------
 
 class Sfx {
@@ -509,6 +462,54 @@ class Sfx {
 	}
 	#end
 }
+
+
+
+
+// --- GLOBAL PLAY GROUP ------------------------------------------------------
+#if !macro
+private class GlobalGroup {
+	var id : Int;
+	var volume : Float;
+
+	/** Currently associated Heaps SoundGroup **/
+	public var soundGroup(default,null) : SoundGroup;
+
+	/** Muted status of this group **/
+	public var muted(default,set) : Bool;
+
+	public function new(id:Int) {
+		this.id = id;
+		volume = 1;
+		soundGroup = new hxd.snd.SoundGroup("global"+id);
+	}
+
+	/**
+		Set the group volume (0-1)
+	**/
+	public inline function setVolume(v) {
+		volume = M.fclamp(v,0,1);
+		soundGroup.volume = getVolume();
+	}
+
+	/**
+		Return current group volume
+	**/
+	public inline function getVolume() {
+		return muted ? 0 : volume;
+	}
+
+	function set_muted(v) {
+		muted = v;
+		if( v )
+			soundGroup.volume = 0;
+		else
+			soundGroup.volume = volume;
+
+		return v;
+	}
+}
+#end
 
 
 
