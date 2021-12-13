@@ -106,7 +106,7 @@ class Delayer {
 			delays[i].t-=dt;
 			if( delays[i].t<=0 ) {
 				delays[i].cb();
-				if( delays[i]==null ) // can happen if cb() called a cancel method
+				if( delays==null || delays[i]==null ) // can happen if cb() called a cancel or dispose method
 					break;
 				delays[i].cb = null;
 				delays.shift();
