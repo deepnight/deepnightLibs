@@ -1,9 +1,7 @@
 package dn;
 
 /**
-	Simple debug "chronometer" class.
-
-	**NOTE**: this class will do nothing if `-debug` compiler option isn't set.
+	Basic "chronometer" class.
 **/
 class Chrono {
 	static var DEFAULT_ID = "";
@@ -24,19 +22,33 @@ class Chrono {
 		Start a chrono
 	**/
 	public static inline function start(?id:String) {
-		#if !debug
 		all.push({
 			id: id!=null ? id : DEFAULT_ID,
 			t: haxe.Timer.stamp(),
 		});
-		#end
+	}
+
+	static function exists(id:String) {
+		for(c in all)
+			if( c.id==id )
+				return true;
+		return false;
+	}
+
+	/**
+		Start or stop a chrono
+	**/
+	public static inline function t(id:String) {
+		if( exists(id) )
+			stop(id);
+		else
+			start(id);
 	}
 
 	/**
 		Stop all existing chrono then start a new one
 	**/
 	public static inline function startSingle(?id:String) {
-		#if !debug
 		while( all.length>0 )
 			stop();
 
@@ -44,16 +56,12 @@ class Chrono {
 			id: id!=null ? id : DEFAULT_ID,
 			t: haxe.Timer.stamp(),
 		});
-		#end
 	}
 
 
 	/**
 		Stop a chrono, print result and return elapsed time.
 	 **/
-	#if !debug
-	public static inline function stop(?id:String) : Float  return 0.;
-	#else
 	public static function stop(?id:String) : Float {
 		if( all.length==0 )
 			return 0;
@@ -65,15 +73,15 @@ class Chrono {
 			return t;
 		}
 		else {
-			for(c in all)
-				if( c.id==id ) {
-					var t = haxe.Timer.stamp() - c.t;
-					print('${c.id}: ${M.pretty(t)}s');
+			for(i in 0...all.length)
+				if( all[i].id==id ) {
+					var t = haxe.Timer.stamp() - all[i].t;
+					print('${all[i].id}: ${M.pretty(t)}s');
+					all.splice(i,1);
 					return t;
 				}
 
 			throw 'Unknown chrono $id';
 		}
 	}
-	#end
 }
