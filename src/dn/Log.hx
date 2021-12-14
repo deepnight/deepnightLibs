@@ -75,6 +75,14 @@ class Log {
 		return false;
 	}
 
+	public function countCriticalEntries() {
+		var n = 0;
+		for(e in entries)
+			if( e.critical )
+				n++;
+		return n;
+	}
+
 
 	/**
 		Dump all non-flushed log entries to the corresponding file
