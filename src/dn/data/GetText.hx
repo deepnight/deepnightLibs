@@ -328,7 +328,7 @@ class GetText {
 						_error(k, "Missing translation");
 			}
 		}
-		catch(e) {
+		catch(e:Dynamic) {
 			errors.push("EXCEPTION: "+e);
 		}
 		return errors;
