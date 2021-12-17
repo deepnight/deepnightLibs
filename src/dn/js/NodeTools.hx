@@ -72,12 +72,12 @@ class NodeTools {
 	}
 
 	/** Creates a path recursively **/
-	public static function createDirs(path:String) {
-		if( fileExists(path) )
+	public static function createDirs(dirPath:String) {
+		if( fileExists(dirPath) )
 			return false;
 
 		// Split sub dirs
-		var subDirs = dn.FilePath.fromDir(path).getSubDirectories(true);
+		var subDirs = dn.FilePath.fromDir(dirPath).getSubDirectories(true);
 		for(subPath in subDirs)
 			if( !fileExists(subPath) )
 				js.node.Fs.mkdirSync(subPath);
