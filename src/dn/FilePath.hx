@@ -394,6 +394,13 @@ class FilePath {
 		return backslashes ? "\\" : "/";
 	}
 
+	public static function cleanUpFileName(fileName:String) {
+		if( fileName==null )
+			return "";
+		else
+			return ~/[*{}\/\\<>?|:]/g.replace( fileName, "_" );
+	}
+
 	function sanitize(v:String, ignoreDoubleDots=false) {
 		return ignoreDoubleDots
 			? ~/[*{}\/\\<>?|]/g.replace( v, "_" )
