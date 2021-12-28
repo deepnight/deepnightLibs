@@ -394,11 +394,16 @@ class FilePath {
 		return backslashes ? "\\" : "/";
 	}
 
-	public static function cleanUpFileName(fileName:String) {
+
+	/**
+		Remove illegal characters (such as slashes/backslashes or *) from given file name. A file name should NOT include a path.
+		Example: my image file01.png
+	**/
+	public static function cleanUpFileName(fileName:String, replaceWith="_") {
 		if( fileName==null )
 			return "";
 		else
-			return ~/[*{}\/\\<>?|:]/g.replace( fileName, "_" );
+			return ~/[*{}\/\\<>?|:]/g.replace( fileName, replaceWith );
 	}
 
 	function sanitize(v:String, ignoreDoubleDots=false) {
@@ -881,5 +886,7 @@ class FilePath {
 		CiAssert.equals( FilePath.cleanUp("//home/dir/foo.txt",true), "/home/dir/foo.txt" );
 		CiAssert.equals( FilePath.cleanUp("file://home/dir/foo.txt",true), "file://home/dir/foo.txt" );
 		CiAssert.equals( FilePath.cleanUp("https://domain.com/foo/bar//pouet.txt",true), "https://domain.com/foo/bar/pouet.txt" );
+
+		CiAssert.equals( FilePath.cleanUpFileName("My file/name is*cool:.txt"), "My file_name is_cool_.txt" );
 	}
 }
