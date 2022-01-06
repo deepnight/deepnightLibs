@@ -46,7 +46,19 @@ class MacroTools {
 		return { pos:Context.currentPos(), expr:EConst( CString( Date.now().toString() ) ) }
 	}
 
-	/** Return the compilation date as standard Date string format **/
+	/**
+		Return the compilation timestamp in seconds as standard Date string format
+	**/
+	public static macro function getBuildTimeStampSeconds() {
+		return {
+			pos : Context.currentPos(),
+			expr : EConst(CFloat( Std.string(  haxe.Timer.stamp()  ) )),
+		}
+	}
+
+	/**
+		Return the compilation date as standard Date string format
+	**/
 	public static macro function getRawBuildDate() {
 		return { pos:Context.currentPos(), expr:EConst( CString( Date.now().toString() ) ) }
 	}
