@@ -21,6 +21,7 @@ enum JsonEnumSupport {
 }
 
 class JsonPretty {
+	public static var HEADER_VALUE_NAME = "__header__";
 
 	/** Used for "Compact" pretty level, when deciding between single or multi lines output. **/
 	static inline var APPROXIMATE_MAX_LINE_LENGTH = 85;
@@ -88,6 +89,9 @@ class JsonPretty {
 
 	static var floatReg = ~/^([-0-9.]+)f$/g;
 	static function addValue(name:Null<String>, v:Dynamic, forceMultilines=false) : Void {
+		if( name==HEADER_VALUE_NAME )
+			forceMultilines = true;
+
 		if( level!=Minified && name!=null && customFormaters.exists(name) ) {
 			buf.add('"$name"$preSpace:$postSpace');
 			customFormaters.get(name)(v, buf);
@@ -234,7 +238,7 @@ class JsonPretty {
 					}
 				}
 				else
-					addValue("__header__", header, true);
+					addValue(HEADER_VALUE_NAME, header, true);
 
 			case TClass(haxe.ds.StringMap):
 				if( inlineHeader ) {
@@ -250,7 +254,7 @@ class JsonPretty {
 					}
 				}
 				else
-					addValue("__header__", header, true);
+					addValue(HEADER_VALUE_NAME, header, true);
 
 			case _:
 				throw "Unsupported header type";
