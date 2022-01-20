@@ -18,6 +18,8 @@ enum PathSlashMode {
 }
 
 class FilePath {
+	static var WIN_NETWORK_DRIVE_REG = ~/^\\\\([a-z0-9-]+)\\(.*)/i;
+
 	/**
 		Change the way FilePath parser deals with slashes/backslashes.
 
@@ -26,6 +28,12 @@ class FilePath {
 		[OnlySlashes] or [OnlyBackslashes] - Convert to the corresponding type
 	**/
 	public static var SLASH_MODE = Preserve;
+
+	/**
+		If TRUE, net drive paths will be converted to a valid file URI (eg. "\\host\dir\file.txt" => "file://host/dir/file.txt"). `uriAuthority` and `uriScheme` will contain correct values.
+		If FALSE (default), network drives will be kept as-they-are and the first dir will contain a double-backslash. The `uriAuthority` and `uriScheme` values will be null.
+	**/
+	// public static var CONVERT_WINDOWS_NET_DRIVES = false;
 
 	/**
 		URI scheme part not including ":" nor slashes (eg. "file" in "file://localhost/c:/windows/foo.txt")
@@ -82,6 +90,12 @@ class FilePath {
 		[READ-ONLY] Returns the full representation of the current path
 	**/
 	public var full(get,never) : String;
+
+	/** TRUE if current path is a Windows Network Drive (eg. "\\host\dir\file.txt") **/
+	public var isWindowsNetworkDrive(default,null) = false;
+
+	/** TRUE means Windows Network path was previously converted to URI format **/
+	var _useWinNetDriveUriFormat = false;
 
 
 	public function new() {
@@ -160,6 +174,21 @@ class FilePath {
 	public static inline function convertToBackslashes(path:String) {
 		return StringTools.replace(path, "/", "\\");
 	}
+
+
+	/**
+		Convert the current network drive path to a valid file URI format (eg. "\\host\dir\file.txt" => "file://host/dir/file.txt"). This only works if current path is a Windows Network Drive path.
+	**/
+	public function convertWindowsNetworkDriveToUri() {
+		if( !_useWinNetDriveUriFormat && isWindowsNetworkDrive ) {
+			useSlashes();
+			removeFirstDirectory();
+			removeFirstDirectory();
+			_useWinNetDriveUriFormat = true;
+		}
+		return this;
+	}
+
 
 	/**
 		Extract URI prefix from a directory (eg. file URI "file:///test.txt")
@@ -319,12 +348,11 @@ class FilePath {
 			}
 
 			// Windows network adress (eg. "\\host\dir\file.txt" is turned into "file://")
-			var winNetDrive = ~/^\\\\([a-z0-9-]+)\\(.*)/i;
-			if( winNetDrive.match(rawPath) ) {
+			isWindowsNetworkDrive = false;
+			if( WIN_NETWORK_DRIVE_REG.match(rawPath) ) {
+				isWindowsNetworkDrive = true;
 				uriScheme = "file";
-				uriAuthority = winNetDrive.matched(1);
-				rawPath = StringTools.replace( winNetDrive.matched(2), "\\", "/" );
-				backslashes = false;
+				uriAuthority = WIN_NETWORK_DRIVE_REG.matched(1);
 			}
 
 			// Clean up double-slashes
@@ -468,9 +496,12 @@ class FilePath {
 	inline function get_full() {
 		return
 			// URI
-			( uriScheme!=null
-				? uriAuthority==null ? '$uriScheme:/' : '$uriScheme://$uriAuthority/'
-				: ""
+			( isWindowsNetworkDrive && !_useWinNetDriveUriFormat
+				? slash() // re-add second leading slash
+				: ( uriScheme!=null
+					? uriAuthority==null ? '$uriScheme:/' : '$uriScheme://$uriAuthority/'
+					: ""
+				)
 			)
 			+
 			// Directory
@@ -895,9 +926,19 @@ class FilePath {
 		CiAssert.equals( FilePath.fromFile("file:/foo//pouet.txt").full, "file:/foo/pouet.txt" );
 
 		// Windows network drives
-		CiAssert.equals( FilePath.fromFile("\\\\foo\\bar\\test.txt").full, "file://foo/bar/test.txt" );
-		CiAssert.equals( FilePath.fromFile("\\\\host-abc5\\dir\\test.txt").full, "file://host-abc5/dir/test.txt" );
-		CiAssert.equals( FilePath.fromDir("\\\\host-abc5\\dir").full, "file://host-abc5/dir" );
+		CiAssert.equals( FilePath.fromFile("\\\\foo\\bar\\test.txt").isWindowsNetworkDrive, true );
+		CiAssert.equals( FilePath.fromDir("\\\\host-abc5\\dir").isWindowsNetworkDrive, true );
+		CiAssert.equals( FilePath.fromDir("\\\\host-abc5\\dir").convertWindowsNetworkDriveToUri().isWindowsNetworkDrive, true );
+
+		CiAssert.equals( FilePath.fromFile("\\\\foo\\bar\\test.txt").full, "\\\\foo\\bar\\test.txt" );
+		CiAssert.equals( FilePath.fromFile("\\\\foo\\bar\\test.txt").uriAuthority, "foo" );
+		CiAssert.equals( FilePath.fromDir("\\\\host-abc5\\dir").full, "\\\\host-abc5\\dir" );
+
+		CiAssert.equals( FilePath.fromFile("\\\\foo\\bar\\test.txt").convertWindowsNetworkDriveToUri().full, "file://foo/bar/test.txt" );
+		CiAssert.equals( FilePath.fromFile("\\\\host-abc5\\dir\\test.txt").convertWindowsNetworkDriveToUri().full, "file://host-abc5/dir/test.txt" );
+		CiAssert.equals( FilePath.fromFile("\\\\host-abc5\\dir\\test.txt").convertWindowsNetworkDriveToUri().uriAuthority, "host-abc5" );
+		CiAssert.equals( FilePath.fromDir("\\\\host-abc5\\dir").convertWindowsNetworkDriveToUri().full, "file://host-abc5/dir" );
+
 
 		// Cleanup
 		CiAssert.equals( FilePath.cleanUp("/home//dir/./foo.txt",true), "/home/dir/foo.txt" );
