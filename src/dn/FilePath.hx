@@ -318,6 +318,15 @@ class FilePath {
 				rawPath = uriSchemeReg.matchedRight();
 			}
 
+			// Windows network adress (eg. "\\host\dir\file.txt" is turned into "file://")
+			var winNetDrive = ~/^\\\\([a-z0-9-]+)\\(.*)/i;
+			if( winNetDrive.match(rawPath) ) {
+				uriScheme = "file";
+				uriAuthority = winNetDrive.matched(1);
+				rawPath = StringTools.replace( winNetDrive.matched(2), "\\", "/" );
+				backslashes = false;
+			}
+
 			// Clean up double-slashes
 			while( rawPath.indexOf( slash()+slash() ) >= 0 )
 				rawPath = StringTools.replace(rawPath, slash()+slash(), slash() );
@@ -328,7 +337,9 @@ class FilePath {
 
 			// Directory
 			directory = containsFileName ? rawPath.substr( 0, rawPath.lastIndexOf(slash()) ) : rawPath;
-			if( directory.length==0 )
+			if( directory.length==0 && containsFileName && rawPath.charAt(0)==slash() )
+				directory = "/"; // dir is only a single leading slash (eg. "/file.txt")
+			else if( directory.length==0 )
 				directory = null;
 
 			// File name & extension
@@ -780,6 +791,9 @@ class FilePath {
 		CiAssert.isTrue( FilePath.fromFile("").extension == null );
 		CiAssert.isTrue( FilePath.fromFile("/user/foo.png").full=="/user/foo.png" );
 		CiAssert.isTrue( FilePath.fromFile("/user/").full=="/user" );
+		CiAssert.equals( FilePath.fromFile("file.txt").directory, null );
+		CiAssert.equals( FilePath.fromFile("/file.txt").directory, "/" );
+		CiAssert.equals( FilePath.fromFile("./file.txt").directory, "." );
 
 
 		CiAssert.isTrue( FilePath.extractFileName("/user/test.png") == "test" );
@@ -879,6 +893,11 @@ class FilePath {
 
 		CiAssert.equals( FilePath.fromFile("file://localhost/foo//pouet.txt").full, "file://localhost/foo/pouet.txt" );
 		CiAssert.equals( FilePath.fromFile("file:/foo//pouet.txt").full, "file:/foo/pouet.txt" );
+
+		// Windows network drives
+		CiAssert.equals( FilePath.fromFile("\\\\foo\\bar\\test.txt").full, "file://foo/bar/test.txt" );
+		CiAssert.equals( FilePath.fromFile("\\\\host-abc5\\dir\\test.txt").full, "file://host-abc5/dir/test.txt" );
+		CiAssert.equals( FilePath.fromDir("\\\\host-abc5\\dir").full, "file://host-abc5/dir" );
 
 		// Cleanup
 		CiAssert.equals( FilePath.cleanUp("/home//dir/./foo.txt",true), "/home/dir/foo.txt" );
