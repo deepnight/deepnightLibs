@@ -153,13 +153,24 @@ class FilePath {
 		return this;
 	}
 
+	/**
+		Convert path to use slashes (/) instead of backslashes. NOTE: this won't work if the path is a Windows Network Drive (eg. "\\host\dir\file.txt").
+	**/
 	public function useSlashes() {
-		if( directory!=null )
-			directory = StringTools.replace(directory, "\\", "/");
-		backslashes = false;
-		return this;
+		if( isWindowsNetworkDrive && !_useWinNetDriveUriFormat )
+			return this;
+		else {
+			if( directory!=null )
+				directory = StringTools.replace(directory, "\\", "/");
+			backslashes = false;
+			return this;
+		}
 	}
 
+
+	/**
+		Convert path to use backslashes instead of slashes.
+	**/
 	public function useBackslashes() {
 		if( directory!=null )
 			directory = StringTools.replace(directory, "/", "\\");
@@ -181,10 +192,10 @@ class FilePath {
 	**/
 	public function convertWindowsNetworkDriveToUri() {
 		if( !_useWinNetDriveUriFormat && isWindowsNetworkDrive ) {
-			useSlashes();
-			removeFirstDirectory();
-			removeFirstDirectory();
 			_useWinNetDriveUriFormat = true;
+			removeFirstDirectory();
+			removeFirstDirectory();
+			useSlashes();
 		}
 		return this;
 	}
