@@ -2,65 +2,92 @@ package dn;
 
 /**
 	Basic "chronometer" class.
+	 - `init()` to start a session
+	 - to measure the time of a block, either:
+	 	- call `start("someId")` and `stop("someId")` around the code block
+		- or just call `start("someId",true)` (which stops all previous chrono before starting a new one) at the beginning of each block you need to measure
+	 - `printResults()` or `getResultsStr()` to end session
 **/
 class Chrono {
+	/** Precision **/
+	public static var DECIMALS = 2;
 	static var DEFAULT_ID = "";
-	static var all : Array<{ id:String, t:Float }> = [];
 
-	public static inline function reset() {
+	static var all : Array<{ id:String, t:Float }> = [];
+	static var results : Array<{ id:String, t:Float }> = [];
+
+
+	/** Init chrono session **/
+	public static inline function init() {
 		all = [];
+		results = [];
+	}
+
+
+	/**
+		Stop every chrono then return results as an Array of Strings (one line per result)
+	**/
+	public static inline function getResultsStr() {
+		stopAll();
+		return results.map( (r)->r.id+" => "+M.pretty(r.t,DECIMALS)+"s" );
 	}
 
 	/**
-		Print chrono result to output. Can be replaced by your own callback.
+		Stop every chrono then print results using `printer()` method (defaults to `trace()`).
 	**/
-	public static dynamic function print(str:String) {
+	public static inline function printResults(init=true) {
+		stopAll();
+		printer("--Chrono--");
+		for(r in getResultsStr())
+			printer(r);
+
+		if( init )
+			Chrono.init();
+	}
+
+
+	/**
+		Print something to output (default is `trace()`). This method can be replaced by a custom method.
+	**/
+	public static dynamic function printer(str:String) {
 		trace(str);
 	}
 
 	/**
 		Start a chrono
 	**/
-	public static inline function start(?id:String) {
-		all.push({
-			id: id!=null ? id : DEFAULT_ID,
-			t: haxe.Timer.stamp(),
-		});
+	public static inline function start(?id:String, stopAllOthers=false) {
+		id = id!=null ? id : DEFAULT_ID;
+
+		if( stopAllOthers )
+			stopAll();
+		else
+			stop(id);
+
+		all.push({ id:id, t:haxe.Timer.stamp() });
 	}
 
-	static function exists(id:String) {
+	/**
+		Return TRUE if a chrono with this `id` exists
+	**/
+	public static function exists(id:String) {
 		for(c in all)
 			if( c.id==id )
 				return true;
 		return false;
 	}
 
-	/**
-		Start or stop a chrono
-	**/
-	public static inline function t(id:String) {
-		if( exists(id) )
-			stop(id);
-		else
-			start(id);
-	}
 
 	/**
-		Stop all existing chrono then start a new one
+		Stop every running chrono
 	**/
-	public static inline function startSingle(?id:String) {
+	public static inline function stopAll() {
 		while( all.length>0 )
 			stop();
-
-		all.push({
-			id: id!=null ? id : DEFAULT_ID,
-			t: haxe.Timer.stamp(),
-		});
 	}
 
-
 	/**
-		Stop a chrono, print result and return elapsed time.
+		Stop a chrono and return elapsed time (in seconds). If `id` is not provided, stops only the last one.
 	 **/
 	public static function stop(?id:String) : Float {
 		if( all.length==0 )
@@ -69,14 +96,14 @@ class Chrono {
 		if( id==null ) {
 			var last = all.pop();
 			var t = haxe.Timer.stamp() - last.t;
-			print('${last.id}: ${t}s');
+			results.push({ id:last.id, t:t });
 			return t;
 		}
 		else {
 			for(i in 0...all.length)
 				if( all[i].id==id ) {
 					var t = haxe.Timer.stamp() - all[i].t;
-					print('${all[i].id}: ${M.pretty(t)}s');
+					results.push({ id:all[i].id, t:t });
 					all.splice(i,1);
 					return t;
 				}
