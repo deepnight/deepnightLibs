@@ -68,6 +68,16 @@ class Chrono {
 	}
 
 	/**
+		Start a quick chrono, or stop it and print its result immediately.
+	**/
+	public static inline function quick(?id:String) {
+		if( all.length==0 || id!=null && !exists(id) )
+			start(id,true);
+		else
+			printResults();
+	}
+
+	/**
 		Return TRUE if a chrono with this `id` exists
 	**/
 	public static function exists(id:String) {
