@@ -238,6 +238,10 @@ class Log {
 		"network" => "#9664ff",
 	];
 
+	public dynamic function def(str:String) {
+		add("general", str);
+	}
+
 	public inline function getTagColor(tag:String) : UInt {
 		return tagColors.exists(tag) ? Color.hexToInt(tagColors.get(tag)) : 0xffffff;
 	}
