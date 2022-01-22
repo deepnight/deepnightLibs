@@ -634,7 +634,6 @@ class Lib {
 			}
 			cb(arr[i], (v)->arr[i]=v);
 		}
-
 	}
 
 	public static function iterateObjectRec( obj:Dynamic, cb:(value:Dynamic, setter:Dynamic->Void)->Void ) {
@@ -668,6 +667,41 @@ class Lib {
 
         return lines.join("\n");
     }
+
+	static var VOWELS = [ "a"=>true, "e"=>true, "i"=>true, "o"=>true, "u"=>true, "y"=>true, ];
+	static inline function isVowel(c:String) {
+		return c!=null && c.length>=1 && VOWELS.exists( c.charAt(0).toLowerCase() );
+	}
+	static inline function isConsonant(c:String) {
+		return c!=null && c.length>=1 && !VOWELS.exists( c.charAt(0).toLowerCase() ) && ( c>="a" && c<="z" || c>="A" && c<="Z" );
+	}
+
+
+	/**
+		Create a "short name" from a long one by removing lowercase vowels (eg. "AVeryLongName" => "AVrLngNm")
+	**/
+	public static function buildShortName(longName:String, maxLen=8) {
+		var out = "";
+		var i = 0;
+		var c = "";
+		while( out.length<maxLen && i<longName.length ) {
+			c = longName.charAt(i);
+			switch c {
+				case _ if( i==0 ): // First char
+					out+=c;
+
+				case _ if( isConsonant(c) ): // Consonants
+					out+=c;
+
+				case _ if( c>="A" && c<="Z" ): // Caps
+					out+=c;
+
+				case _:
+			}
+			i++;
+		}
+		return out;
+	}
 
 	@:noCompletion
 	public static function __test() {
