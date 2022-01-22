@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.66",
+	"version": "1.0.67",
 	"classPath": "src/",
-	"releasenote": "Gamepad controller fixes, other enhancements, Haxe ",
+	"releasenote": "Various FilePath fixes, Chrono class rework, miscs",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
