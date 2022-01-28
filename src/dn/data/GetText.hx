@@ -154,7 +154,7 @@ class GetText {
 					switch vars.expr {
 						case EConst( CIdent("null") ):
 							if( Lambda.count(textVars)>0 )
-								Context.fatalError('Missing variable values', Context.currentPos());
+								Context.fatalError('Missing variable values', vars.pos);
 
 						case EObjectDecl(fields):
 							var fieldVars = new Map();
