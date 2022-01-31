@@ -55,6 +55,7 @@ class ElectronTools {
 		IpcMain.on("getRawArgs", ev->ev.returnValue = getRawArgs());
 		IpcMain.on("getAppResourceDir", ev->ev.returnValue = getAppResourceDir());
 		IpcMain.on("getExeDir", ev->ev.returnValue = getExeDir());
+		IpcMain.on("getLogDir", ev->ev.returnValue = getLogDir());
 		IpcMain.on("getUserDataDir", ev->ev.returnValue = getUserDataDir());
 		IpcMain.on("isFullScreen", ev->ev.returnValue = isFullScreen());
 		IpcMain.on("locate", (ev,path,isFile)->ev.returnValue = locate(path,isFile));
@@ -118,6 +119,10 @@ class ElectronTools {
 	/** Get the root of the app resources (where `package.json` is) **/
 	public static function getAppResourceDir() : String
 		return isRenderer() ? IpcRenderer.sendSync("getAppResourceDir") : App.getAppPath();
+
+	/** Get the path to app log files (or create it if missing) **/
+	public static function getLogDir() : String
+		return isRenderer() ? IpcRenderer.sendSync("getLogDir") : App.getPath("logs");
 
 	/** Get the path to the app EXE (Electron itself in debug, or the app executable in packaged versions) **/
 	public static function getExeDir() : String
