@@ -622,7 +622,7 @@ class Color {
 	}
 
 	public static inline function autoContrast(c:Int, ?ifLight=0x0, ?ifDark=0xffffff) { // returns ifLight color if c is light, ifDark otherwise
-		return getPerceivedLuminosityInt(c)>=0.5 ? ifLight : ifDark;
+		return getPerceivedLuminosityInt(c)>=0.65 ? ifLight : ifDark;
 	}
 
 	public static inline function autoContrastCustom(c:Int, lumiThreshold:Float, ?ifLight=0x0, ?ifDark=0xffffff) { // returns ifLight color if c is light, ifDark otherwise
