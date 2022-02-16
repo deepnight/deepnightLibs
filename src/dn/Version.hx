@@ -1,8 +1,13 @@
 package dn;
 
-// Version numbers should follow SemVer semantic "x.y.z-preReleaseLabel"
-// Everything except x is optional
-// See: https://semver.org/
+/**
+	Version numbers should follow SemVer semantic "x.y.z-preReleaseLabel". Everything except x is optional.
+	"preReleaseLabel" can only contain numbers, letters and "-" and can have multiple parts separated by dots.
+
+	Ex: 1.2.3-alpha.1,  1.0,  2-beta.20
+
+	See: https://semver.org/
+**/
 
 class Version {
 	static var VERSION_REG = ~/^[ \t]*([0-9]+)[.]*([0-9a-z]*)[.]*([0-9]*)\-*([a-z0-9.-]*)/gim;
