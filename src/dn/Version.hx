@@ -336,6 +336,8 @@ class Version {
 		CiAssert.isTrue( Version.greater("0.6.0-alpha", "0.5.9-beta.debug", false) );
 		CiAssert.isTrue( Version.greater("0.6.0-beta", "0.6.0-alpha", false) );
 		CiAssert.isTrue( Version.greater("0.6.0-beta.2", "0.6.0-beta.1", false) );
+		CiAssert.isTrue( Version.greater("0.6.0", "0.6.0-beta.1", false) );
+		CiAssert.isTrue( Version.greater("0.6.0-rc.10", "0.6.0-rc.2", false) );
 		CiAssert.isTrue( !Version.greater("0.6.0-beta.2", "0.6.0-beta.1", true) );
 		CiAssert.isTrue( Version.greaterEq("1.0.5", "1.0.5", false) );
 
@@ -343,6 +345,8 @@ class Version {
 		CiAssert.isTrue( Version.lower("1.0.5", "1.1.0-alpha",false) );
 		CiAssert.isTrue( Version.lower("0.5.9-beta-debug", "0.6",false) );
 		CiAssert.isTrue( Version.lower("0.6.0-alpha", "0.6.0-beta",false) );
+		CiAssert.isTrue( Version.lower("0.6.0-beta.1", "0.6.0", false) );
+		CiAssert.isTrue( Version.lower("0.6.0-rc.2", "0.6.0-rc.10", false) );
 		CiAssert.isTrue( !Version.lower("0.6.0-alpha", "0.6.0-beta",true) );
 		CiAssert.isTrue( Version.lowerEq("1.0.5", "1.0.5",false) );
 
