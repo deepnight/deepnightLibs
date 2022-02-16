@@ -110,15 +110,11 @@ class Version {
 		if( withClass==null )
 			withClass = new Version(withString);
 
-		var compare = compareNumbers(withClass);
-		if( compare==0 && !ignoreLabel && label!=withClass.label ) {
-			// trace(withString);
-			// trace(withClass);
-			// trace(label+" vs "+withClass.label);
+		var result = compareNumbers(withClass);
+		if( result==0 && !ignoreLabel && label!=withClass.label )
 			return false;
-		}
 		else
-			return compare==0;
+			return result==0;
 	}
 
 	/**
