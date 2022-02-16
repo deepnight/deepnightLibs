@@ -97,7 +97,7 @@ class Changelog {
 				var rawVersion = VERSION_TITLE_REG.matched(1);
 
 				// Parse version number according to SemVer format
-				if( !Version.isValid(rawVersion) )
+				if( !Version.isValid(rawVersion, true) )
 					throw 'Version number "$rawVersion" in changelog do not comply to SemVer semantics';
 
 				var ver = new Version(rawVersion);
@@ -121,7 +121,7 @@ class Changelog {
 				cur.notEmptyNoteLines.push(l);
 		}
 
-		entries.sort( function(a,b) return -a.version.compare( b.version ) );
+		entries.sort( function(a,b) return -a.version.compareNumbers( b.version ) );
 	}
 
 	function trimLine(l:String) {
