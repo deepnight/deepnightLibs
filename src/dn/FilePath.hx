@@ -30,12 +30,6 @@ class FilePath {
 	public static var SLASH_MODE = Preserve;
 
 	/**
-		If TRUE, net drive paths will be converted to a valid file URI (eg. "\\host\dir\file.txt" => "file://host/dir/file.txt"). `uriAuthority` and `uriScheme` will contain correct values.
-		If FALSE (default), network drives will be kept as-they-are and the first dir will contain a double-backslash. The `uriAuthority` and `uriScheme` values will be null.
-	**/
-	// public static var CONVERT_WINDOWS_NET_DRIVES = false;
-
-	/**
 		URI scheme part not including ":" nor slashes (eg. "file" in "file://localhost/c:/windows/foo.txt")
 
 		Can be null, always lowercase
@@ -426,8 +420,6 @@ class FilePath {
 			// Sanitize dirs
 			if( directory!=slash() && directory!=null ) {
 				var ignore = 0;
-				// if( hasUriScheme() )
-					// ignore++;
 				if( hasDriveLetter() )
 					ignore++;
 
