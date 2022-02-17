@@ -369,11 +369,16 @@ class FilePath {
 				rawPath = rawPath.substr(0,rawPath.length-1);
 
 			// Directory
-			directory = containsFileName ? rawPath.substr( 0, rawPath.lastIndexOf(slash()) ) : rawPath;
-			if( directory.length==0 && containsFileName && rawPath.charAt(0)==slash() )
-				directory = "/"; // dir is only a single leading slash (eg. "/file.txt")
-			else if( directory.length==0 )
-				directory = null;
+			if( rawPath.indexOf(slash())<0 ) {
+				directory = containsFileName ? null : rawPath;
+			}
+			else {
+				directory = containsFileName ? rawPath.substr( 0, rawPath.lastIndexOf(slash()) ) : rawPath;
+				if( directory.length==0 && containsFileName && rawPath.charAt(0)==slash() )
+					directory = "/"; // dir is only a single leading slash (eg. "/file.txt")
+				else if( directory.length==0 )
+					directory = null;
+			}
 
 			// File name & extension
 			if( containsFileName && rawPath.lastIndexOf(slash()) < rawPath.length-1 ) {
@@ -927,6 +932,7 @@ class FilePath {
 
 		CiAssert.equals( FilePath.fromFile("file://localhost/foo//pouet.txt").full, "file://localhost/foo/pouet.txt" );
 		CiAssert.equals( FilePath.fromFile("file:/foo//pouet.txt").full, "file:/foo/pouet.txt" );
+		CiAssert.equals( FilePath.fromFile("file:///pouet.txt").full, "file:/pouet.txt" );
 
 		// Windows network drives
 		CiAssert.equals( FilePath.fromFile("\\\\foo\\bar\\test.txt").isWindowsNetworkDrive, true );
