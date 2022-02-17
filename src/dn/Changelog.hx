@@ -121,7 +121,7 @@ class Changelog {
 				cur.notEmptyNoteLines.push(l);
 		}
 
-		entries.sort( function(a,b) return -a.version.compareNumbers( b.version ) );
+		entries.sort( function(a,b) return -a.version.compareEverything( b.version ) );
 	}
 
 	function trimLine(l:String) {
