@@ -238,6 +238,11 @@ class FilePath {
 	}
 
 
+	public function isAbsolute() {
+		return uriScheme!=null || directory!=null && getDirectoryArray()[0]=="" || hasDriveLetter();
+	}
+
+
 	public function makeRelativeTo(dirPath:String) {
 		var cur = getDirectoryArray();
 		var other = fromDir(dirPath);
@@ -884,6 +889,20 @@ class FilePath {
 		CiAssert.equals( FilePath.fromDir("/dir/a1/a2").makeRelativeTo("/dir/b1/b2").full, "../../a1/a2" );
 		CiAssert.equals( FilePath.fromDir("c:/dir").makeRelativeTo("d:/dir").full, "c:/dir" );
 		CiAssert.equals( FilePath.fromDir("c:/").makeRelativeTo("d:/").full, "c:" );
+
+		// Absolute paths
+		CiAssert.isTrue( FilePath.fromDir("c:/windows/system").isAbsolute() );
+		CiAssert.isTrue( FilePath.fromDir("file:///windows/system").isAbsolute() );
+		CiAssert.isTrue( FilePath.fromDir("file://host/windows/system").isAbsolute() );
+		CiAssert.isTrue( FilePath.fromDir("file:/windows/system").isAbsolute() );
+		CiAssert.isTrue( FilePath.fromDir("/windows/system").isAbsolute() );
+		CiAssert.isTrue( FilePath.fromFile("/windows/file.txt").isAbsolute() );
+		CiAssert.isTrue( !FilePath.fromFile("windows/file.txt").isAbsolute() );
+		CiAssert.isTrue( !FilePath.fromFile("./windows/file.txt").isAbsolute() );
+		CiAssert.isTrue( !FilePath.fromFile("../windows/file.txt").isAbsolute() );
+		CiAssert.isTrue( !FilePath.fromDir("windows").isAbsolute() );
+		CiAssert.isTrue( !FilePath.fromFile("file.txt").isAbsolute() );
+
 
 		// Drive letters
 		CiAssert.equals( FilePath.fromDir("c:/dir").getDriveLetter(), "c" );
