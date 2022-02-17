@@ -44,7 +44,7 @@ class FilePath {
 	public var uriAuthority(default,null) : Null<String>;
 
 	/**
-		Directory
+		Directory with drive letter
 
 		Can be null, no slash in the end.
 	**/
@@ -194,17 +194,6 @@ class FilePath {
 		return this;
 	}
 
-
-	/**
-		Extract URI prefix from a directory (eg. file URI "file:///test.txt")
-	**/
-	// public function getUriPrefix(forceLowerCase=true) : Null<String> {
-	// 	var prefixReg = ~/^([a-z]+):\/\//gi;
-	// 	if( directory!=null && prefixReg.match(directory) )
-	// 		return forceLowerCase ? prefixReg.matched(1).toLowerCase() : prefixReg.matched(1);
-	// 	else
-	// 		return null;
-	// }
 
 	/**
 		Return TRUE if contains a Windows drive letter
