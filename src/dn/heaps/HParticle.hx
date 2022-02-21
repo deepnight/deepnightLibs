@@ -281,6 +281,7 @@ class HParticle extends BatchElement {
 	public var onFadeOutStart	: Null<HParticle->Void>;
 	public var onKill : Null<Void->Void>;
 	public var onKillP : Null<HParticle->Void>;
+	public var onLeaveBounds : Null<HParticle->Void>;
 
 	public var killOnLifeOut	: Bool;
 	public var killed			: Bool;
@@ -430,6 +431,7 @@ class HParticle extends BatchElement {
 		onUpdate = null;
 		onFadeOutStart = null;
 		onTouchGround = null;
+		onLeaveBounds = null;
 	}
 
 
@@ -755,12 +757,21 @@ class HParticle extends BatchElement {
 					else if( alphaFlicker>0 )
 						alpha = M.fclamp( alpha + rnd(0, alphaFlicker, true), 0, maxAlpha );
 
-					// Death
-					if( rLifeF <= 0 && (alpha <= 0 || killOnLifeOut) ||
-					  bounds != null && !(x >= bounds.xMin && x < bounds.xMax && y >= bounds.yMin && y < bounds.yMax) )
+
+					if( bounds!=null && !( x>=bounds.xMin && x<bounds.xMax && y>=bounds.yMin && y<bounds.yMax ) ) {
+						// Left bounds
+						if( onLeaveBounds!=null )
+							onLeaveBounds(this);
 						kill();
-					else if( onUpdate!=null )
+					}
+					else if( rLifeF<=0 && ( alpha<=0 || killOnLifeOut ) ) {
+						// Timed out
+						kill();
+					}
+					else if( onUpdate!=null ) {
+						// Update CB
 						onUpdate(this);
+					}
 				}
 			}
 
