@@ -110,6 +110,16 @@ class GetText {
 	}
 
 
+	/**
+		Runs given callback on all keys
+	**/
+	public function fixTranslations( fixCb:(key:String, translation:String)->String ) {
+		for(k in dict.keys())
+			if( dict.get(k)!=null )
+				dict.set( k, fixCb(k, dict.get(k)) );
+	}
+
+
 	static function escapePoString(str:String) {
 		str = Lib.safeEscape(str, '"');
 		str = StringTools.replace(str, "\n", "\\n");
