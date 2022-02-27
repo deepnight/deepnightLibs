@@ -290,6 +290,14 @@ class ControllerAccess<T:EnumValue> {
 		return isActive() ? hxd.Key.isDown(k) : false;
 	}
 
+
+	/**
+		Return TRUE if any key among Control, Shift or Alt is down.
+	**/
+	public inline function anyKeyboardToggleDown() {
+		return isKeyboardDown(Key.ALT) || isKeyboardDown(Key.CTRL) || isKeyboardDown(Key.SHIFT);
+	}
+
 	/**
 		Directly check if a keyboard key is pressed (ie. it wasn't pushed in previous frame and it's now pushed).
 	**/
