@@ -29,9 +29,9 @@ class FileTools {
 	#end
 
 	#if sys
-	public static function copyDirectoryRec(from:String, to:String) {
+	public static function copyDirectoryRec(from:String, to:String, ?ignores:Array<String>) {
 		var to = dn.FilePath.extractDirectoryWithSlash(to,false);
-		var all = listAllFilesRec(from);
+		var all = listAllFilesRec(from, ignores);
 
 		var dirName = FilePath.fromDir(from).getLastDirectory();
 		if( dirName=="." || dirName==".." )
@@ -67,7 +67,13 @@ class FileTools {
 	#end
 
 	#if sys
-	public static function listAllFilesRec(path:String) : { dirs:Array<String>, files:Array<String> } {
+	public static function listAllFilesRec(path:String, ?ignores:Array<String>) : { dirs:Array<String>, files:Array<String> } {
+		// Create ignored names map
+		var ignoreMap = new Map();
+		if( ignores!=null )
+			for(e in ignores)
+				ignoreMap.set(e,true);
+
 		// List elements
 		var pendingDirs = [path];
 		var dirs = [];
@@ -76,6 +82,9 @@ class FileTools {
 			var cur = pendingDirs.shift();
 			dirs.push( FilePath.fromDir(cur).full );
 			for( e in sys.FileSystem.readDirectory(cur) ) {
+				if( ignoreMap.exists(e) )
+					continue;
+
 				if( sys.FileSystem.isDirectory(cur+"/"+e) )
 					pendingDirs.push(cur+"/"+e);
 				else
