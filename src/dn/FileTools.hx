@@ -29,9 +29,9 @@ class FileTools {
 	#end
 
 	#if sys
-	public static function copyDirectoryRec(from:String, to:String, ?ignores:Array<String>) {
+	public static function copyDirectoryRec(from:String, to:String, ?ignoredNames:Array<String>, ?ignoredExts:Array<String>) {
 		var to = dn.FilePath.extractDirectoryWithSlash(to,false);
-		var all = listAllFilesRec(from, ignores);
+		var all = listAllFilesRec(from, ignoredNames, ignoredExts);
 
 		var dirName = FilePath.fromDir(from).getLastDirectory();
 		if( dirName=="." || dirName==".." )
@@ -67,13 +67,12 @@ class FileTools {
 	#end
 
 	#if sys
-	public static function listAllFilesRec(path:String, ?ignores:Array<String>) : { dirs:Array<String>, files:Array<String> } {
-		// Create ignored names map
-		var ignoreMap = new Map();
-		if( ignores!=null )
-			for(e in ignores)
-				ignoreMap.set(e,true);
-
+	/**
+		Return a list of directories and files in given dir, including their full path.
+		`ignoredNames` is used to discard specific file or dir names.
+		`ignoredExts` is used to discard specific file extensions (extension should be provided without leading dot, eg. ["tmp"])
+	**/
+	public static function listAllFilesRec(path:String, ?ignoredNames:Array<String>, ?ignoredExts:Array<String>) : { dirs:Array<String>, files:Array<String> } {
 		// List elements
 		var pendingDirs = [path];
 		var dirs = [];
@@ -82,7 +81,10 @@ class FileTools {
 			var cur = pendingDirs.shift();
 			dirs.push( FilePath.fromDir(cur).full );
 			for( e in sys.FileSystem.readDirectory(cur) ) {
-				if( ignoreMap.exists(e) )
+				if( ignoredNames!=null && ignoredNames.indexOf(e)>=0 )
+					continue;
+
+				if( ignoredExts!=null && ignoredExts.indexOf(FilePath.extractExtension(e))>=0 )
 					continue;
 
 				if( sys.FileSystem.isDirectory(cur+"/"+e) )
