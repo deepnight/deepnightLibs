@@ -74,49 +74,77 @@ class Aseprite {
 
 
 
-  /**
-	Build an anonymous object containing all "slices" names found in given Aseprite file.
-	Example: `{  mySlice:"mySlice",  grass1:"grass1",  stoneBlock:"stoneBlock"  }`
-  **/
+	/**
+		Build an anonymous object containing all "slices" names found in given Aseprite file.
+		Example: `{  mySlice:"mySlice",  grass1:"grass1",  stoneBlock:"stoneBlock"  }`
+	**/
 	macro public static function getDict(asepriteRes:ExprOf<hxd.res.Resource>) {
 		var pos = Context.currentPos();
 		var path = dn.MacroTools.resolveResToPath(asepriteRes);
-		var ase = readAseprite(path);
+		var keys : Array<String> = null;
 
-		var all:Map<String, Bool> = new Map(); // "Map" type avoids duplicates
+		Context.registerModuleDependency(Context.getLocalModule(), path);
 
-		// List all slices
-		final magicId = 0x2022;
-		for (f in ase.frames) {
-			if (!f.chunkTypes.exists(magicId))
-				continue;
-			var chunk:Array<ase.chunks.SliceChunk> = cast f.chunkTypes.get(magicId);
-			for (s in chunk) {
-				all.set(s.name, true);
-				if( leadingIdxReg.match(s.name) && Std.parseInt(leadingIdxReg.matched(3))==0 )
-					all.set( leadingIdxReg.matched(1), true );
+		// Check cache
+		var mtime = Std.string( sys.FileSystem.stat(path).mtime.getTime() );
+		var cacheRawPath = MacroTools.getResPath()+"/.tmp/aseprite_cache/"+cleanUpIdentifier(path);
+		var cacheFp = FilePath.fromFile(cacheRawPath);
+		if( sys.FileSystem.exists(cacheFp.full) ) {
+			var rawCache = sys.io.File.getContent(cacheFp.full);
+			var chk = rawCache.substr(0, rawCache.indexOf("\n"));
+			if( chk==mtime ) {
+				// Read keys from file cache
+				keys = rawCache.split("\n");
+				keys.shift();
 			}
 		}
 
-		// List all tags
-		final magicId = 0x2018;
-		for (f in ase.frames) {
-			if (!f.chunkTypes.exists(magicId))
-				continue;
+		// Read Aseprite file (no cache)
+		if( keys==null ) {
+			var all:Map<String, Bool> = new Map(); // "Map" type avoids duplicates
+			var ase = readAseprite(path);
 
-			var tags:Array<ase.chunks.TagsChunk> = cast f.chunkTypes.get(magicId);
-			for (tc in tags)
-				for (t in tc.tags)
-					all.set(t.tagName, true);
+			// List all slices
+			final magicId = 0x2022;
+			for (f in ase.frames) {
+				if (!f.chunkTypes.exists(magicId))
+					continue;
+				var chunk:Array<ase.chunks.SliceChunk> = cast f.chunkTypes.get(magicId);
+				for (s in chunk) {
+					all.set(s.name, true);
+					if( leadingIdxReg.match(s.name) && Std.parseInt(leadingIdxReg.matched(3))==0 )
+						all.set( leadingIdxReg.matched(1), true );
+				}
+			}
+
+			// List all tags
+			final magicId = 0x2018;
+			for (f in ase.frames) {
+				if (!f.chunkTypes.exists(magicId))
+					continue;
+
+				var tags:Array<ase.chunks.TagsChunk> = cast f.chunkTypes.get(magicId);
+				for (tc in tags)
+					for (t in tc.tags)
+						all.set(t.tagName, true);
+			}
+
+			// Create keys array
+			keys = [];
+			for(e in all.keys())
+				keys.push( cleanUpIdentifier(e) );
 		}
+
+		// Cache keys
+		sys.FileSystem.createDirectory(cacheFp.directory);
+		sys.io.File.saveContent(cacheFp.full, mtime+"\n" + keys.join("\n"));
+
 
 		// Create anonymous structure fields
 		var fields:Array<ObjectField> = [];
-		for (e in all.keys())
-			fields.push({  field: cleanUpIdentifier(e),  expr: macro $v{e}  });
-
-		// Return anonymous structure
-		return {expr: EObjectDecl(fields), pos: pos}
+		for( k in keys )
+			fields.push({  field:k,  expr:macro $v{k}  });
+		return { expr: EObjectDecl(fields), pos: pos }
 	}
 
 
@@ -124,13 +152,17 @@ class Aseprite {
 
   #if macro
 
-	/** Cleanup a string to make a valid Haxe identifier **/
+	/**
+		Cleanup a string to make a valid Haxe identifier
+	**/
 	static inline function cleanUpIdentifier(v:String) {
 		return (~/[^a-z0-9_]/gi).replace(v, "_");
 	}
 
 
-	/** Parse Aseprite file from path **/
+	/**
+		Parse Aseprite file from path
+	**/
 	static function readAseprite(filePath:String):ase.Ase {
 		var pos = Context.currentPos();
 
