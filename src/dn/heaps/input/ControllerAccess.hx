@@ -299,6 +299,18 @@ class ControllerAccess<T:EnumValue> {
 	}
 
 	/**
+		Check if a pad or keyboard button traditionally used to "Continue" is pressed (like in "Press a key to continue").
+	**/
+	public inline function anyStandardContinuePressed() {
+		return anyPadButtonPressed()
+			|| isKeyboardPressed(Key.ESCAPE)
+			|| isKeyboardPressed(Key.SPACE)
+			|| isKeyboardPressed(Key.ENTER)
+			|| isKeyboardPressed(Key.NUMPAD_ENTER)
+			;
+	}
+
+	/**
 		Directly check if a keyboard key is pressed (ie. it wasn't pushed in previous frame and it's now pushed).
 	**/
 	public inline function isKeyboardPressed(k:Int) {
