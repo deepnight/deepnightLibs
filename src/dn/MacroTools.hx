@@ -117,6 +117,18 @@ class MacroTools {
 	#if macro
 
 	/**
+		Return relative path to the `res` folder of Heaps
+	**/
+	public static function getResPath() {
+		var resPath = Context.definedValue("resourcesPath");
+		if( resPath==null )
+			resPath = "res";
+		if( !sys.FileSystem.exists(resPath) )
+			Context.fatalError("Res dir not found: "+resPath, Context.currentPos());
+		return resPath;
+	}
+
+	/**
 	Try to resolve a `hxd.Res` expression (eg. hxd.Res.dir.myFile) to an actual file path (eg. "res/dir/myFile.aseprite").
 	The approach is a bit dirty but it should work in 99% non-exotic cases.
 	**/
