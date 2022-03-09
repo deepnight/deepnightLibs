@@ -20,14 +20,6 @@
         "priority": -2
       },
       {
-        "text": "✪ Neko tests",
-        "color": "cyan",
-        "command": "haxe tests.neko.hxml",
-        "alignment": "right",
-        "skipTerminateQuickPick": false,
-        "priority": -3
-      },
-      {
         "text": "🌍 Lang",
         "color": "white",
         "command": "haxe langParser.hxml",
