@@ -10,7 +10,7 @@ package dn;
 **/
 class Chrono {
 	/** Precision **/
-	public static var DECIMALS = 2;
+	public static var DECIMALS = 3;
 	static var DEFAULT_ID = "";
 
 	static var all : Array<{ id:String, t:Float }> = [];
@@ -29,7 +29,7 @@ class Chrono {
 	**/
 	public static inline function getResultsStr() {
 		stopAll();
-		return results.map( (r)->r.id+" => "+M.pretty(r.t,DECIMALS)+"s" );
+		return results.map( (r)->( r.id=="" || r.id==null ? "" : r.id+" => " ) + M.pretty(r.t,DECIMALS)+"s" );
 	}
 
 	/**
@@ -37,8 +37,10 @@ class Chrono {
 	**/
 	public static inline function printResults(init=true) {
 		stopAll();
-		printer("--Chrono--");
-		for(r in getResultsStr())
+		var res = getResultsStr();
+		if( res.length>1 )
+			printer("--Chrono--");
+		for(r in res)
 			printer(r);
 
 		if( init )
@@ -50,7 +52,13 @@ class Chrono {
 		Print something to output (default is `trace()`). This method can be replaced by a custom method.
 	**/
 	public static dynamic function printer(str:String) {
-		trace(str);
+		#if sys
+			Sys.println(str);
+		#elseif js
+			js.html.Console.log(str);
+		#else
+			trace(str);
+		#end
 	}
 
 	/**
