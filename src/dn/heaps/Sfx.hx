@@ -18,6 +18,15 @@ class Sfx {
 		return macro null;
 	}
 
+	#if placeholderSfx
+	/**
+		Return a hxd.res.Sound object from the provided placeholder path in `-D path/to/placeholder.wav`
+	**/
+	macro public static function getPlaceholderSfx() {
+		var path = haxe.macro.Context.getDefines().get("placeholderSfx");
+		return macro hxd.Res.load( $v{path} ).toSound();
+	}
+	#end
 
 
 	#if !macro

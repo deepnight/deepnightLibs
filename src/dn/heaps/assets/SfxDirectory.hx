@@ -78,6 +78,9 @@ class SfxDirectory {
 
 				// Init expressions
 				var resRelPath = fileFp.clone().removeFirstDirectory().full;
+				#if placeholderSfx
+				resRelPath = Context.getDefines().get("placeholderSfx");
+				#end
 				var resSoundExpr = macro hxd.Res.load( $v{resRelPath} ).toSound();
 
 				allCache.push(
@@ -140,7 +143,12 @@ class SfxDirectory {
 
 				// Found an actual series
 				if( series.length>1 ) {
+					#if placeholderSfx
+					var phPath = Context.getDefines().get("placeholderSfx");
+					var pathExprs : Array<Expr> = series.map( fp->macro $v{phPath} );
+					#else
 					var pathExprs : Array<Expr> = series.map( fp->macro $v{fp.full} );
+					#end
 					var arrExpr : Expr = { pos:pos, expr: EArrayDecl(pathExprs) }
 					fields.push({
 						field: baseName,
