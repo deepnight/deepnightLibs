@@ -426,14 +426,18 @@ class InputBinding<T:EnumValue> {
 	@:keep
 	public function toString() {
 		var all = [];
-		if( isLStick && padPos==null ) all.push( "LSTICK" + (isX?"_X":"_Y") + (invert?"-":"+") );
-		if( isRStick && padPos==null ) all.push("RSTICK");
-		if( padNeg!=null ) all.push( Std.string(padNeg) );
-		if( padPos!=null ) all.push( Std.string(padPos) );
-		if( padButton!=null ) all.push( Std.string(padButton) );
+		if( isLStick && padPos==null ) all.push( "Pad<LSTICK" + (isX?"_X":"_Y") + (invert?"-":"+") + ">" );
+		if( isRStick && padPos==null ) all.push( "Pad<RSTICK" + (isX?"_X":"_Y") + (invert?"-":"+") + ">" );
+		if( padNeg!=null ) all.push( getPadButtonAsString(padNeg) );
+		if( padPos!=null ) all.push( getPadButtonAsString(padPos) );
+		if( padButton!=null ) all.push( getPadButtonAsString(padButton) );
 		if( kbNeg>=0 ) all.push( Key.getKeyName(kbNeg) );
 		if( kbPos>=0 && kbNeg!=kbPos ) all.push( Key.getKeyName(kbPos) );
 		return all.join("/");
+	}
+
+	inline function getPadButtonAsString(b:PadButton) {
+		return 'Pad<$b>';
 	}
 
 	public inline function getValue(pad:hxd.Pad) : Float {
