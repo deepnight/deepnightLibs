@@ -273,14 +273,89 @@ class Controller<T:EnumValue> {
 		_bindPadStick(yAction, 1, false);
 	}
 
+	/**
+		Bind action to the HORIZONTAL axis of the LEFT Stick
+	**/
 	public inline function bindPadLStickX(action:T) {
 		_bindPadStick(action, 0, true);
 	}
 
+	/**
+		Bind action to the VERTICAL axis of the LEFT Stick
+	**/
 	public inline function bindPadLStickY(action:T) {
 		_bindPadStick(action, 0, false);
 	}
 
+	/**
+		Bind action to the UP direction of the LEFT stick
+	**/
+	public inline function bindPadLStickUp(action:T) {
+		_bindSpecificStickDir(action, true, false, -1);
+	}
+
+	/**
+		Bind action to the DOWN direction of the LEFT stick
+	**/
+	public inline function bindPadLStickDown(action:T) {
+		_bindSpecificStickDir(action, true, false, 1);
+	}
+
+	/**
+		Bind action to the LEFT direction of the LEFT stick
+	**/
+	public inline function bindPadLStickLeft(action:T) {
+		_bindSpecificStickDir(action, true, true, -1);
+	}
+
+	/**
+		Bind action to the RIGHT direction of the LEFT stick
+	**/
+	public inline function bindPadLStickRight(action:T) {
+		_bindSpecificStickDir(action, true, true, 1);
+	}
+
+	/**
+		Bind action to the UP direction of the RIGHT stick
+	**/
+	public inline function bindPadRStickUp(action:T) {
+		_bindSpecificStickDir(action, false, false, -1);
+	}
+
+	/**
+		Bind action to the DOWN direction of the RIGHT stick
+	**/
+	public inline function bindPadRStickDown(action:T) {
+		_bindSpecificStickDir(action, false, false, 1);
+	}
+
+	/**
+		Bind action to the LEFT direction of the RIGHT stick
+	**/
+	public inline function bindPadRStickLeft(action:T) {
+		_bindSpecificStickDir(action, false, true, -1);
+	}
+
+	/**
+		Bind action to the RIGHT direction of the RIGHT stick
+	**/
+	public inline function bindPadRStickRight(action:T) {
+		_bindSpecificStickDir(action, false, true, 1);
+	}
+
+	inline function _bindSpecificStickDir(action:T, isLStick:Bool, isX:Bool, sign:Int) {
+		if( !bindings.exists(action) )
+			bindings.set(action, []);
+
+		var b = new InputBinding(this, action);
+		bindings.get(action).push(b);
+		if( isLStick )
+			b.isLStick = true;
+		else
+			b.isRStick = true;
+		b.isX = isX;
+		b.signLimit = sign;
+	}
 
 	public inline function bindPadButtonsAsStick(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
 		_bindPadButtonsAsStick(xAction, true, left, right);
@@ -400,6 +475,8 @@ class Controller<T:EnumValue> {
 	Internal binding definition
 **/
 class InputBinding<T:EnumValue> {
+	final analogDownDeadZone = 0.84;
+
 	var input : Controller<T>;
 	public var action : T;
 
@@ -415,7 +492,8 @@ class InputBinding<T:EnumValue> {
 
 	public var invert = false;
 	public var isX = false;
-	var analogDownDeadZone = 0.84;
+
+	public var signLimit = 0;
 
 
 	public function new(i:Controller<T>, a:T) {
@@ -426,8 +504,10 @@ class InputBinding<T:EnumValue> {
 	@:keep
 	public function toString() {
 		var all = [];
-		if( isLStick && padPos==null ) all.push( "Pad<LSTICK" + (isX?"_X":"_Y") + (invert?"-":"+") + ">" );
-		if( isRStick && padPos==null ) all.push( "Pad<RSTICK" + (isX?"_X":"_Y") + (invert?"-":"+") + ">" );
+		if( isLStick && padPos==null && signLimit==0 ) all.push( "Pad<LSTICK_" + (isX?"X":"Y") + (invert?"-":"+") + ">" );
+		if( isRStick && padPos==null && signLimit==0 ) all.push( "Pad<RSTICK_" + (isX?"X":"Y") + (invert?"-":"+") + ">" );
+		if( isLStick && padPos==null && signLimit!=0 ) all.push( "Pad<LSTICK_" + (isX?signLimit<0?"LEFT":"RIGHT":signLimit<0?"UP":"DOWN") + (invert?"-":"+") + ">" );
+		if( isRStick && padPos==null && signLimit!=0 ) all.push( "Pad<RSTICK_" + (isX?signLimit<0?"LEFT":"RIGHT":signLimit<0?"UP":"DOWN") + (invert?"-":"+") + ">" );
 		if( padNeg!=null ) all.push( getPadButtonAsString(padNeg) );
 		if( padPos!=null ) all.push( getPadButtonAsString(padPos) );
 		if( padButton!=null ) all.push( getPadButtonAsString(padButton) );
@@ -441,28 +521,44 @@ class InputBinding<T:EnumValue> {
 	}
 
 	public inline function getValue(pad:hxd.Pad) : Float {
+		// Left stick X
 		if( isLStick && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
-			return pad.xAxis * (invert?-1:1);
+			return applySignLimit( pad.xAxis * (invert?-1:1) );
+		// Left stick Y
 		else if( isLStick && padNeg==null && kbNeg<0 && !isX && pad.yAxis!=0 )
-			return pad.yAxis * (invert?-1:1);
+			return applySignLimit( pad.yAxis * (invert?-1:1) );
+		// Right stick X
 		else if( isRStick && padNeg==null && kbNeg<0 && isX && pad.rxAxis!=0 )
-			return pad.rxAxis * (invert?-1:1);
+			return applySignLimit( pad.rxAxis * (invert?-1:1) );
+		// Right stick Y
 		else if( isRStick && padNeg==null && kbNeg<0 && !isX && pad.ryAxis!=0 )
-			return pad.ryAxis * (invert?-1:1);
+			return applySignLimit( pad.ryAxis * (invert?-1:1) );
+		// Negative button
 		else if( Key.isDown(kbNeg) || pad.isDown( input.getPadButtonId(padNeg) ) )
 			return invert ? 1 : -1;
+		// Positive button
 		else if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
 			return invert ? -1 : 1;
 		else
 			return 0;
 	}
 
+	inline function applySignLimit(v:Float) {
+		return signLimit==0
+			? v
+			: signLimit<0
+				? M.fclamp(v, -1, 0)
+				: M.fclamp(v, 0, 1);
+	}
+
 	public inline function isDown(pad:hxd.Pad) {
 		return
-			!isLStick && pad.isDown( input.getPadButtonId(padButton) )
+			!isLStick && !isRStick && pad.isDown( input.getPadButtonId(padButton) )
 			|| Key.isDown(kbPos) || Key.isDown(kbNeg)
 			|| pad.isDown( input.getPadButtonId(padPos) ) || pad.isDown( input.getPadButtonId(padNeg) )
-			|| isLStick && dn.M.fabs( getValue(pad) ) > analogDownDeadZone;
+			|| ( isLStick || isRStick ) && signLimit==0 && dn.M.fabs( getValue(pad) ) > analogDownDeadZone
+			|| ( isLStick || isRStick ) && signLimit==1 && getValue(pad) > analogDownDeadZone
+			|| ( isLStick || isRStick ) && signLimit==-1 && getValue(pad) < -analogDownDeadZone;
 	}
 
 	public inline function isPressed(pad:hxd.Pad) {
