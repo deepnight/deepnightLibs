@@ -416,6 +416,10 @@ class Controller<T:EnumValue> {
 		}
 	}
 
+
+	/**
+		Bind an action to a combination of multiple PadButtons (all of them are REQUIRED)
+	**/
 	public function bindPadCombo(action:T, combo:Array<PadButton>) {
 		if( combo.length==0 )
 			return;
@@ -431,7 +435,7 @@ class Controller<T:EnumValue> {
 
 
 	/**
-		Bind an action <T> to a single keyboard key or to multiple ones.
+		Bind an action to a single keyboard key or to multiple ones.
 		@param action The action enum
 		@param key A single key ID (integer) assigned to the action
 		@param keys An array of key IDs, all assigned to the action. NOTE: only one of them needs to be pressed for the action to be marked as "pressed".
