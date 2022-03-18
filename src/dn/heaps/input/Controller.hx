@@ -23,6 +23,23 @@ enum PadButton {
 	DPAD_DOWN;
 	DPAD_LEFT;
 	DPAD_RIGHT;
+
+	LSTICK_PUSH;
+	RSTICK_PUSH;
+
+	LSTICK_X;
+	LSTICK_Y;
+	LSTICK_UP;
+	LSTICK_DOWN;
+	LSTICK_LEFT;
+	LSTICK_RIGHT;
+
+	RSTICK_X;
+	RSTICK_Y;
+	RSTICK_UP;
+	RSTICK_DOWN;
+	RSTICK_LEFT;
+	RSTICK_RIGHT;
 }
 
 
@@ -170,6 +187,9 @@ class Controller<T:EnumValue> {
 		enumMapping.set(DPAD_DOWN, pad.config.dpadDown);
 		enumMapping.set(DPAD_LEFT, pad.config.dpadLeft);
 		enumMapping.set(DPAD_RIGHT, pad.config.dpadRight);
+
+		enumMapping.set(LSTICK_PUSH, pad.config.analogClick);
+		enumMapping.set(RSTICK_PUSH, pad.config.ranalogClick);
 	}
 
 
@@ -245,8 +265,10 @@ class Controller<T:EnumValue> {
 		destroyed = true;
 	}
 
-
-	function _bindPadStick(action:T, stick:Int, isXaxis:Bool, invert=false) {
+	/**
+		Bind a specific axis (X/Y) to an action
+	**/
+	function _bindPadStickAxis(action:T, stick:Int, isXaxis:Bool, invert=false) {
 		if( destroyed )
 			return;
 
@@ -263,87 +285,10 @@ class Controller<T:EnumValue> {
 		b.invert = invert;
 	}
 
-	public inline function bindPadLStick(xAction:T, yAction:T) {
-		_bindPadStick(xAction, 0, true);
-		_bindPadStick(yAction, 0, false);
-	}
-
-	public inline function bindPadRStick(xAction:T, yAction:T) {
-		_bindPadStick(xAction, 1, true);
-		_bindPadStick(yAction, 1, false);
-	}
-
 	/**
-		Bind action to the HORIZONTAL axis of the LEFT Stick
+		Binds a specific dir from a stick to an action
 	**/
-	public inline function bindPadLStickX(action:T) {
-		_bindPadStick(action, 0, true);
-	}
-
-	/**
-		Bind action to the VERTICAL axis of the LEFT Stick
-	**/
-	public inline function bindPadLStickY(action:T) {
-		_bindPadStick(action, 0, false);
-	}
-
-	/**
-		Bind action to the UP direction of the LEFT stick
-	**/
-	public inline function bindPadLStickUp(action:T) {
-		_bindSpecificStickDir(action, true, false, -1);
-	}
-
-	/**
-		Bind action to the DOWN direction of the LEFT stick
-	**/
-	public inline function bindPadLStickDown(action:T) {
-		_bindSpecificStickDir(action, true, false, 1);
-	}
-
-	/**
-		Bind action to the LEFT direction of the LEFT stick
-	**/
-	public inline function bindPadLStickLeft(action:T) {
-		_bindSpecificStickDir(action, true, true, -1);
-	}
-
-	/**
-		Bind action to the RIGHT direction of the LEFT stick
-	**/
-	public inline function bindPadLStickRight(action:T) {
-		_bindSpecificStickDir(action, true, true, 1);
-	}
-
-	/**
-		Bind action to the UP direction of the RIGHT stick
-	**/
-	public inline function bindPadRStickUp(action:T) {
-		_bindSpecificStickDir(action, false, false, -1);
-	}
-
-	/**
-		Bind action to the DOWN direction of the RIGHT stick
-	**/
-	public inline function bindPadRStickDown(action:T) {
-		_bindSpecificStickDir(action, false, false, 1);
-	}
-
-	/**
-		Bind action to the LEFT direction of the RIGHT stick
-	**/
-	public inline function bindPadRStickLeft(action:T) {
-		_bindSpecificStickDir(action, false, true, -1);
-	}
-
-	/**
-		Bind action to the RIGHT direction of the RIGHT stick
-	**/
-	public inline function bindPadRStickRight(action:T) {
-		_bindSpecificStickDir(action, false, true, 1);
-	}
-
-	inline function _bindSpecificStickDir(action:T, isLStick:Bool, isX:Bool, sign:Int) {
+	inline function _bindPadStickDir(action:T, isLStick:Bool, isX:Bool, sign:Int) {
 		if( !bindings.exists(action) )
 			bindings.set(action, []);
 
@@ -356,6 +301,18 @@ class Controller<T:EnumValue> {
 		b.isX = isX;
 		b.signLimit = sign;
 	}
+
+
+	public inline function bindPadLStick(xAction:T, yAction:T) {
+		_bindPadStickAxis(xAction, 0, true);
+		_bindPadStickAxis(yAction, 0, false);
+	}
+
+	public inline function bindPadRStick(xAction:T, yAction:T) {
+		_bindPadStickAxis(xAction, 1, true);
+		_bindPadStickAxis(yAction, 1, false);
+	}
+
 
 	public inline function bindPadButtonsAsStick(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
 		_bindPadButtonsAsStick(xAction, true, left, right);
@@ -418,7 +375,14 @@ class Controller<T:EnumValue> {
 
 
 
-	public function bindPad(action:T, ?button:PadButton, ?buttons:Array<PadButton>) {
+	/**
+		Bind an action <T> to a single PadButton or to multiple ones.
+		@param action The action enum
+		@param button A single PadButton assigned to the action
+		@param buttons An array of PadButtons, all assigned to the action. NOTE: only one of them needs to be pressed for the action to be marked as "pressed".
+		@param invert If TRUE, the value of the button will be inverted (only for axis, like `LSTICK_X`)
+	**/
+	public function bindPad(action:T, ?button:PadButton, ?buttons:Array<PadButton>, invertAxis=false) {
 		if( destroyed )
 			return;
 
@@ -432,9 +396,35 @@ class Controller<T:EnumValue> {
 			bindings.set(action, []);
 
 		for(bt in buttons) {
-			var b = new InputBinding(this,action);
-			b.padButton = bt;
-			bindings.get(action).push(b);
+			switch bt {
+				// Simple button bind
+				case A, B, X, Y, RT, RB, LT, LB, START, SELECT,
+				DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT,
+				LSTICK_PUSH, RSTICK_PUSH:
+					var b = new InputBinding(this,action);
+					b.padButton = bt;
+					bindings.get(action).push(b);
+
+				// Specific LEFT STICK direction
+				case LSTICK_UP: _bindPadStickDir(action, true, false, -1);
+				case LSTICK_DOWN: _bindPadStickDir(action, true, false, 1);
+				case LSTICK_LEFT: _bindPadStickDir(action, true, true, -1);
+				case LSTICK_RIGHT: _bindPadStickDir(action, true, true, 1);
+
+				// Left stick axis
+				case LSTICK_X: _bindPadStickAxis(action, 0, true, invertAxis);
+				case LSTICK_Y: _bindPadStickAxis(action, 0, false, invertAxis);
+
+				// Specific RIGHT STICK direction
+				case RSTICK_UP: _bindPadStickDir(action, false, false, -1);
+				case RSTICK_DOWN: _bindPadStickDir(action, false, false, 1);
+				case RSTICK_LEFT: _bindPadStickDir(action, false, true, -1);
+				case RSTICK_RIGHT: _bindPadStickDir(action, false, true, 1);
+
+				// Right stick axis
+				case RSTICK_X: _bindPadStickAxis(action, 1, true, invertAxis);
+				case RSTICK_Y: _bindPadStickAxis(action, 1, false, invertAxis);
+			}
 		}
 	}
 
@@ -459,6 +449,9 @@ class Controller<T:EnumValue> {
 			bindings.get(action).push(b);
 		}
 	}
+
+
+	public function bindKeyboardCombo(action:T, keys:Array<Int>) {}
 
 
 	/**
@@ -493,6 +486,7 @@ class InputBinding<T:EnumValue> {
 	public var invert = false;
 	public var isX = false;
 
+	/** For axis, if not zero, this will ignore values of the opposite sign (ie. signLimit=1 ignores negative values) **/
 	public var signLimit = 0;
 
 
