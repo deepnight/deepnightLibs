@@ -273,6 +273,25 @@ class ControllerAccess<T:EnumValue> {
 
 
 	/**
+		Return the first PadButton detected as "pressed"
+	**/
+	public inline function getPressedPadButton() : Null<PadButton> {
+		return
+			if( isPadPressed(A) ) A;
+			else if( isPadPressed(B) ) B;
+			else if( isPadPressed(X) ) X;
+			else if( isPadPressed(Y) ) Y;
+			else if( isPadPressed(LT) ) LT;
+			else if( isPadPressed(LB) ) LB;
+			else if( isPadPressed(RT) ) RT;
+			else if( isPadPressed(RB) ) RB;
+			else if( isPadPressed(START) ) START;
+			else if( isPadPressed(SELECT) ) SELECT;
+			else null;
+	}
+
+
+	/**
 		Return TRUE if any **button** of the pad is down (doesn't apply to stick or dpad)
 	**/
 	public inline function anyPadButtonDown() {
