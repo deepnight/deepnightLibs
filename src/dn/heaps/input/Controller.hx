@@ -357,7 +357,7 @@ class Controller<T:EnumValue> {
 
 	function createBindingFromPadButton(action:T, bt:PadButton, invertAxis=false) : InputBinding<T> {
 		var binding = switch bt {
-			// Simple button bind
+			// Simple button
 			case A, B, X, Y, RT, RB, LT, LB, START, SELECT,
 			  DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT,
 			  LSTICK_PUSH, RSTICK_PUSH:
@@ -365,7 +365,7 @@ class Controller<T:EnumValue> {
 				b.padButton = bt;
 				b;
 
-			// Specific LEFT STICK direction
+			// Single Left stick direction (up, left etc.)
 			case LSTICK_UP: InputBinding.createPadStickDirection(this, action, true, false, -1);
 			case LSTICK_DOWN: InputBinding.createPadStickDirection(this, action, true, false, 1);
 			case LSTICK_LEFT: InputBinding.createPadStickDirection(this, action, true, true, -1);
@@ -375,7 +375,7 @@ class Controller<T:EnumValue> {
 			case LSTICK_X: InputBinding.createPadStickAxis(this, action, 0, true, invertAxis);
 			case LSTICK_Y: InputBinding.createPadStickAxis(this, action, 0, false, invertAxis);
 
-			// Specific RIGHT STICK direction
+			// Single Right stick direction (up, left etc.)
 			case RSTICK_UP: InputBinding.createPadStickDirection(this, action, false, false, -1);
 			case RSTICK_DOWN: InputBinding.createPadStickDirection(this, action, false, false, 1);
 			case RSTICK_LEFT: InputBinding.createPadStickDirection(this, action, false, true, -1);
