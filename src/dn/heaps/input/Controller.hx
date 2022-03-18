@@ -416,6 +416,19 @@ class Controller<T:EnumValue> {
 		}
 	}
 
+	public function bindPadCombo(action:T, combo:Array<PadButton>) {
+		if( combo.length==0 )
+			return;
+		else if( combo.length==1 )
+			bindPad(action, combo[0]);
+		else {
+			var b = createBindingFromPadButton(action, combo[0]);
+			for(i in 1...combo.length)
+				b.comboBindings.push( createBindingFromPadButton(action, combo[i]) );
+			storeBinding(action, b);
+		}
+	}
+
 
 	/**
 		Bind an action <T> to a single keyboard key or to multiple ones.
@@ -483,6 +496,8 @@ class InputBinding<T:EnumValue> {
 	/** For axis, if not zero, this will ignore values of the opposite sign (ie. signLimit=1 ignores negative values) **/
 	public var signLimit = 0;
 
+	public var comboBindings : Array<InputBinding<T>> = [];
+
 
 	public function new(i:Controller<T>, a:T) {
 		input = i;
@@ -506,7 +521,7 @@ class InputBinding<T:EnumValue> {
 
 
 	/**
-		Create a binding for a specific axis (X/Y)
+		Create a binding for a stick axis (X/Y)
 	**/
 	public static function createPadStickAxis<E:EnumValue>(c:Controller<E>, action:E, stick:Int, isXaxis:Bool, invert=false) : InputBinding<E> {
 		var b = new InputBinding(c, action);
@@ -521,7 +536,7 @@ class InputBinding<T:EnumValue> {
 
 
 	/**
-		Binds a specific direction from a stick to an action
+		Create a binding for a specific stick direction (up, down, left or right)
 	**/
 	public static inline function createPadStickDirection<E:EnumValue>(c:Controller<E>, action:E, isLStick:Bool, isX:Bool, sign:Int) : InputBinding<E> {
 		var b = new InputBinding(c, action);
@@ -538,9 +553,20 @@ class InputBinding<T:EnumValue> {
 		return 'Pad<$b>';
 	}
 
+	var _tmpBool = false;
 	public inline function getValue(pad:hxd.Pad) : Float {
+		_tmpBool = false;
+		for(cb in comboBindings)
+			if( cb.getValue(pad)==0 ) {
+				_tmpBool = true;
+				break;
+			}
+
+		// Combo not active
+		if( _tmpBool )
+			return 0;
 		// Left stick X
-		if( isLStick && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
+		else if( isLStick && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
 			return applySignLimit( pad.xAxis * (invert?-1:1) );
 		// Left stick Y
 		else if( isLStick && padNeg==null && kbNeg<0 && !isX && pad.yAxis!=0 )
@@ -557,6 +583,9 @@ class InputBinding<T:EnumValue> {
 		// Positive button
 		else if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
 			return invert ? -1 : 1;
+		// Regular button
+		else if( padButton!=null && pad.isDown( input.getPadButtonId(padButton) ) )
+			return invert ? -1 : 1;
 		else
 			return 0;
 	}
@@ -570,16 +599,36 @@ class InputBinding<T:EnumValue> {
 	}
 
 	public inline function isDown(pad:hxd.Pad) {
-		return
-			!isLStick && !isRStick && pad.isDown( input.getPadButtonId(padButton) )
-			|| Key.isDown(kbPos) || Key.isDown(kbNeg)
-			|| pad.isDown( input.getPadButtonId(padPos) ) || pad.isDown( input.getPadButtonId(padNeg) )
-			|| ( isLStick || isRStick ) && signLimit==0 && dn.M.fabs( getValue(pad) ) > analogDownDeadZone
-			|| ( isLStick || isRStick ) && signLimit==1 && getValue(pad) > analogDownDeadZone
-			|| ( isLStick || isRStick ) && signLimit==-1 && getValue(pad) < -analogDownDeadZone;
+		_tmpBool = false;
+		for(cb in comboBindings)
+			if( !cb.isDown(pad) ) {
+				_tmpBool = true;
+				break;
+			}
+
+		if( _tmpBool )
+			return false;
+		else
+			return
+				!isLStick && !isRStick && pad.isDown( input.getPadButtonId(padButton) )
+				|| Key.isDown(kbPos) || Key.isDown(kbNeg)
+				|| pad.isDown( input.getPadButtonId(padPos) ) || pad.isDown( input.getPadButtonId(padNeg) )
+				|| ( isLStick || isRStick ) && signLimit==0 && dn.M.fabs( getValue(pad) ) > analogDownDeadZone
+				|| ( isLStick || isRStick ) && signLimit==1 && getValue(pad) > analogDownDeadZone
+				|| ( isLStick || isRStick ) && signLimit==-1 && getValue(pad) < -analogDownDeadZone;
 	}
 
 	public inline function isPressed(pad:hxd.Pad) {
-		return pad.isPressed( input.getPadButtonId(padButton) ) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
+		_tmpBool = false;
+		for(cb in comboBindings)
+			if( !cb.isPressed(pad) ) {
+				_tmpBool = true;
+				break;
+			}
+
+		if( _tmpBool )
+			return false;
+		else
+			return pad.isPressed( input.getPadButtonId(padButton) ) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
 	}
 }
