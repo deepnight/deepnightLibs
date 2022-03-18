@@ -287,6 +287,10 @@ class ControllerAccess<T:EnumValue> {
 			else if( isPadPressed(RB) ) RB;
 			else if( isPadPressed(START) ) START;
 			else if( isPadPressed(SELECT) ) SELECT;
+			else if( isPadPressed(DPAD_LEFT) ) DPAD_LEFT;
+			else if( isPadPressed(DPAD_RIGHT) ) DPAD_RIGHT;
+			else if( isPadPressed(DPAD_UP) ) DPAD_UP;
+			else if( isPadPressed(DPAD_DOWN) ) DPAD_DOWN;
 			else null;
 	}
 
