@@ -45,6 +45,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		status = new h2d.Text(font, flow);
 		flow.addSpacing(4);
 
+		@:privateAccess
 		for(k in ca.input.actionsEnum.getConstructors()) {
 			var a = ca.input.actionsEnum.createByName(k);
 			createButton(a);

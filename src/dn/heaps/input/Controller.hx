@@ -99,7 +99,7 @@ class Controller<T:EnumValue> {
 	/**
 		Enum type associated with this Controller
 	**/
-	public var actionsEnum(default,null) : Enum<T>;
+	var actionsEnum(default,null) : Enum<T>;
 
 
 	var allAccesses : Array<ControllerAccess<T>> = [];
@@ -265,52 +265,33 @@ class Controller<T:EnumValue> {
 		destroyed = true;
 	}
 
-	/**
-		Bind a specific axis (X/Y) to an action
-	**/
-	function _bindPadStickAxis(action:T, stick:Int, isXaxis:Bool, invert=false) {
+	inline function storeBinding(action:T, b:InputBinding<T>) : Bool {
 		if( destroyed )
-			return;
-
-		if( !bindings.exists(action) )
-			bindings.set(action, []);
-
-		var b = new InputBinding(this,action);
-		bindings.get(action).push(b);
-		if( stick==0 )
-			b.isLStick = true;
-		else
-			b.isRStick = true;
-		b.isX = isXaxis;
-		b.invert = invert;
-	}
-
-	/**
-		Binds a specific dir from a stick to an action
-	**/
-	inline function _bindPadStickDir(action:T, isLStick:Bool, isX:Bool, sign:Int) {
-		if( !bindings.exists(action) )
-			bindings.set(action, []);
-
-		var b = new InputBinding(this, action);
-		bindings.get(action).push(b);
-		if( isLStick )
-			b.isLStick = true;
-		else
-			b.isRStick = true;
-		b.isX = isX;
-		b.signLimit = sign;
+			return false;
+		else {
+			if( action!=null && !bindings.exists(action) )
+				bindings.set(action, []);
+			bindings.get(action).push(b);
+			return true;
+		}
 	}
 
 
-	public inline function bindPadLStick(xAction:T, yAction:T) {
-		_bindPadStickAxis(xAction, 0, true);
-		_bindPadStickAxis(yAction, 0, false);
+
+	public inline function bindPadLStick(xAction:T, yAction:T, invertX=false, invertY=false) {
+		var b = InputBinding.createPadStickAxis(this, xAction, 0, true, invertX);
+		storeBinding(xAction, b);
+
+		var b = InputBinding.createPadStickAxis(this, yAction, 0, false, invertY);
+		storeBinding(yAction, b);
 	}
 
-	public inline function bindPadRStick(xAction:T, yAction:T) {
-		_bindPadStickAxis(xAction, 1, true);
-		_bindPadStickAxis(yAction, 1, false);
+	public inline function bindPadRStick(xAction:T, yAction:T, invertX=false, invertY=false) {
+		var b = InputBinding.createPadStickAxis(this, xAction, 1, true, invertX);
+		storeBinding(xAction, b);
+
+		var b = InputBinding.createPadStickAxis(this, yAction, 1, false, invertY);
+		storeBinding(yAction, b);
 	}
 
 
@@ -374,6 +355,40 @@ class Controller<T:EnumValue> {
 	}
 
 
+	function createBindingFromPadButton(action:T, bt:PadButton, invertAxis=false) : InputBinding<T> {
+		var binding = switch bt {
+			// Simple button bind
+			case A, B, X, Y, RT, RB, LT, LB, START, SELECT,
+			  DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT,
+			  LSTICK_PUSH, RSTICK_PUSH:
+				var b = new InputBinding(this,action);
+				b.padButton = bt;
+				b;
+
+			// Specific LEFT STICK direction
+			case LSTICK_UP: InputBinding.createPadStickDirection(this, action, true, false, -1);
+			case LSTICK_DOWN: InputBinding.createPadStickDirection(this, action, true, false, 1);
+			case LSTICK_LEFT: InputBinding.createPadStickDirection(this, action, true, true, -1);
+			case LSTICK_RIGHT: InputBinding.createPadStickDirection(this, action, true, true, 1);
+
+			// Left stick axis
+			case LSTICK_X: InputBinding.createPadStickAxis(this, action, 0, true, invertAxis);
+			case LSTICK_Y: InputBinding.createPadStickAxis(this, action, 0, false, invertAxis);
+
+			// Specific RIGHT STICK direction
+			case RSTICK_UP: InputBinding.createPadStickDirection(this, action, false, false, -1);
+			case RSTICK_DOWN: InputBinding.createPadStickDirection(this, action, false, false, 1);
+			case RSTICK_LEFT: InputBinding.createPadStickDirection(this, action, false, true, -1);
+			case RSTICK_RIGHT: InputBinding.createPadStickDirection(this, action, false, true, 1);
+
+			// Right stick axis
+			case RSTICK_X: InputBinding.createPadStickAxis(this, action, 1, true, invertAxis);
+			case RSTICK_Y: InputBinding.createPadStickAxis(this, action, 1, false, invertAxis);
+		}
+
+		return binding;
+	}
+
 
 	/**
 		Bind an action <T> to a single PadButton or to multiple ones.
@@ -396,39 +411,18 @@ class Controller<T:EnumValue> {
 			bindings.set(action, []);
 
 		for(bt in buttons) {
-			switch bt {
-				// Simple button bind
-				case A, B, X, Y, RT, RB, LT, LB, START, SELECT,
-				DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT,
-				LSTICK_PUSH, RSTICK_PUSH:
-					var b = new InputBinding(this,action);
-					b.padButton = bt;
-					bindings.get(action).push(b);
-
-				// Specific LEFT STICK direction
-				case LSTICK_UP: _bindPadStickDir(action, true, false, -1);
-				case LSTICK_DOWN: _bindPadStickDir(action, true, false, 1);
-				case LSTICK_LEFT: _bindPadStickDir(action, true, true, -1);
-				case LSTICK_RIGHT: _bindPadStickDir(action, true, true, 1);
-
-				// Left stick axis
-				case LSTICK_X: _bindPadStickAxis(action, 0, true, invertAxis);
-				case LSTICK_Y: _bindPadStickAxis(action, 0, false, invertAxis);
-
-				// Specific RIGHT STICK direction
-				case RSTICK_UP: _bindPadStickDir(action, false, false, -1);
-				case RSTICK_DOWN: _bindPadStickDir(action, false, false, 1);
-				case RSTICK_LEFT: _bindPadStickDir(action, false, true, -1);
-				case RSTICK_RIGHT: _bindPadStickDir(action, false, true, 1);
-
-				// Right stick axis
-				case RSTICK_X: _bindPadStickAxis(action, 1, true, invertAxis);
-				case RSTICK_Y: _bindPadStickAxis(action, 1, false, invertAxis);
-			}
+			var binding = createBindingFromPadButton(action, bt, invertAxis);
+			storeBinding(action, binding);
 		}
 	}
 
 
+	/**
+		Bind an action <T> to a single keyboard key or to multiple ones.
+		@param action The action enum
+		@param key A single key ID (integer) assigned to the action
+		@param keys An array of key IDs, all assigned to the action. NOTE: only one of them needs to be pressed for the action to be marked as "pressed".
+	**/
 	public function bindKeyboard(action:T, ?key:Int, ?keys:Array<Int>) {
 		if( destroyed )
 			return;
@@ -508,6 +502,36 @@ class InputBinding<T:EnumValue> {
 		if( kbNeg>=0 ) all.push( Key.getKeyName(kbNeg) );
 		if( kbPos>=0 && kbNeg!=kbPos ) all.push( Key.getKeyName(kbPos) );
 		return all.join("/");
+	}
+
+
+	/**
+		Create a binding for a specific axis (X/Y)
+	**/
+	public static function createPadStickAxis<E:EnumValue>(c:Controller<E>, action:E, stick:Int, isXaxis:Bool, invert=false) : InputBinding<E> {
+		var b = new InputBinding(c, action);
+		if( stick==0 )
+			b.isLStick = true;
+		else
+			b.isRStick = true;
+		b.isX = isXaxis;
+		b.invert = invert;
+		return b;
+	}
+
+
+	/**
+		Binds a specific direction from a stick to an action
+	**/
+	public static inline function createPadStickDirection<E:EnumValue>(c:Controller<E>, action:E, isLStick:Bool, isX:Bool, sign:Int) : InputBinding<E> {
+		var b = new InputBinding(c, action);
+		if( isLStick )
+			b.isLStick = true;
+		else
+			b.isRStick = true;
+		b.isX = isX;
+		b.signLimit = sign;
+		return b;
 	}
 
 	inline function getPadButtonAsString(b:PadButton) {
