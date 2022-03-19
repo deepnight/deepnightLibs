@@ -348,9 +348,9 @@ class Process {
 	public inline function msToFrames(v:Float) return (v/1000)*getDefaultFrameRate();
 	public inline function framesToMs(v:Float) return 1000*v/getDefaultFrameRate();
 
-	function getDefaultFrameRate() : Float {
+	function getDefaultFrameRate() : Int {
 		#if heaps
-			return hxd.Timer.wantedFPS;
+			return M.round( hxd.Timer.wantedFPS );
 		#elseif flash
 			return flash.Lib.current.stage.frameRate;
 		#else
