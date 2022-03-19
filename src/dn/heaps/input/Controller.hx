@@ -109,6 +109,10 @@ class Controller<T:EnumValue> {
 	var exclusive : Null<ControllerAccess<T>>;
 	var globalDeadZone = 0.1;
 
+	var iconLib : Null<dn.heaps.slib.SpriteLib>;
+	var libAlloc = false;
+	public var iconForcedSuffix : Null<String> = null;
+
 
 	/**
 		Create a Controller that will bind keyboard or gamepad inputs with "actions" represented by the values of the `actionsEnum` parameter.
@@ -126,6 +130,53 @@ class Controller<T:EnumValue> {
 	}
 
 
+	function disposeIconLib() {
+		if( iconLib!=null && libAlloc )
+			iconLib.destroy();
+		iconLib = null;
+	}
+
+	public function useSpriteLibForIcons(slib:dn.heaps.slib.SpriteLib) {
+		disposeIconLib();
+		iconLib = slib;
+		libAlloc = false;
+	}
+
+	#if "heaps-aseprite"
+	public function useAsepriteForIcons(ase:aseprite.Aseprite, fps:Int) {
+		disposeIconLib();
+		iconLib = dn.heaps.assets.Aseprite.convertToSLib(fps, ase);
+		libAlloc = true;
+	}
+	#end
+
+	inline function _errorTile() {
+		return h2d.Tile.fromColor(0xff0000, 16, 16);
+	}
+
+	public function getPadIcon(b:PadButton) : h2d.Tile {
+		if( iconLib==null )
+			return _errorTile();
+
+		var baseId = Std.string(b);
+
+		// Suffix for vendor specific icons
+		var suffix = "";
+		if( iconForcedSuffix!=null )
+			suffix = iconForcedSuffix;
+		else {
+			var name = pad.name.toLowerCase();
+			if( name.indexOf("xinput")>=0 || name.indexOf("xbox")>=0 )
+				suffix = "_xbox";
+		}
+
+		if( iconLib.exists(baseId+suffix) )
+			return iconLib.getTile(baseId+suffix);
+		else if( iconLib.exists(baseId) )
+			return iconLib.getTile(baseId);
+		else
+			return _errorTile();
+	}
 
 
 	public function releaseExclusivity() {
