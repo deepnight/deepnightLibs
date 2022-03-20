@@ -102,11 +102,17 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		tf.x = BT_SIZE+4;
 		tf.y = -4;
 
-		var btf = new h2d.Text(font,p.root);
-		btf.x = 150;
+		var bFlow = new h2d.Flow(p.root);
+		bFlow.x = 150;
+		// var btf = new h2d.Text(font, bFlow);
 
 		p.onUpdateCb = ()->{
-			btf.text = getBindingsList(a);
+			bFlow.removeChildren();
+			var all = @:privateAccess ca.bindings;
+			for(b in all.get(a))
+				new h2d.Bitmap( b.getIcon(), bFlow );
+
+			// btf.text = getBindingsList(a);
 			if( ca.isDown(a) ) {
 				tf.textColor = 0x00ff00;
 				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );

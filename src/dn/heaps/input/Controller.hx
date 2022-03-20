@@ -150,8 +150,13 @@ class Controller<T:EnumValue> {
 	}
 	#end
 
+	@:allow(dn.heaps.input.InputBinding)
 	inline function _errorTile() {
 		return h2d.Tile.fromColor(0xff0000, 16, 16);
+	}
+
+	public inline function hasIcons() {
+		return iconLib!=null;
 	}
 
 	public function getPadIcon(b:PadButton) : h2d.Tile {
@@ -572,6 +577,15 @@ class InputBinding<T:EnumValue> {
 		if( kbNeg>=0 ) all.push( Key.getKeyName(kbNeg) );
 		if( kbPos>=0 && kbNeg!=kbPos ) all.push( Key.getKeyName(kbPos) );
 		return all.join("/");
+	}
+
+	public function getIcon() : h2d.Tile {
+		if( !input.hasIcons() )
+			return input._errorTile();
+		if( padButton!=null )
+			return input.getPadIcon(padButton);
+		else
+			return input._errorTile();
 	}
 
 
