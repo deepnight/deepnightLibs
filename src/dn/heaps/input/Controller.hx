@@ -523,7 +523,7 @@ class Controller<T:EnumValue> {
 		return h2d.Tile.fromColor(0xff0000, 16, 16);
 	}
 
-	public function getPadIcon(b:PadButton) : h2d.Tile {
+	public function getPadIconTile(b:PadButton) : h2d.Tile {
 		if( iconLib==null )
 			return _errorTile();
 
@@ -547,10 +547,30 @@ class Controller<T:EnumValue> {
 			return _errorTile();
 	}
 
-	public function getKeyboardKey(keyId:Int) : h2d.Flow {
-		var f = new h2d.Flow();
+	public function getPadIcon(b:PadButton, ?parent:h2d.Object) : h2d.Flow {
+		var f = new h2d.Flow(parent);
+		new h2d.Bitmap(getPadIconTile(b), f);
+		return f;
+	}
+
+	public function getKeyboardKey(keyId:Int, ?parent:h2d.Object) : h2d.Flow {
+		var f = new h2d.Flow(parent);
 		if( !hasIconsAtlas() )
 			return f;
+
+		f.backgroundTile = iconLib.getTile("keyBg");
+		f.borderWidth = 6;
+		f.borderHeight = 7;
+		f.paddingHorizontal = 5;
+		f.paddingTop = -1;
+		f.paddingBottom = 6;
+		f.minHeight = f.minWidth = 8;
+
+		var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
+		tf.text = Key.getKeyName(keyId).toUpperCase();
+		tf.textColor = 0x242234;
+
+		return f;
 	}
 
 }
@@ -605,25 +625,30 @@ class InputBinding<T:EnumValue> {
 		return all.join("/");
 	}
 
-	public function getIcon() : h2d.Tile {
-		return
-			if( !input.hasIconsAtlas() ) input._errorTile();
-			else if( isLStick && padPos==null && signLimit!=0 ) {
-				// Left stick dir
-				signLimit>0 && isX ? input.getPadIcon(LSTICK_RIGHT)
-				: signLimit<0 && isX ? input.getPadIcon(LSTICK_LEFT)
-				: signLimit<0 && !isX ? input.getPadIcon(LSTICK_UP)
-				: input.getPadIcon(LSTICK_DOWN);
-			}
-			else if( !isLStick && padPos==null && signLimit!=0 ) {
-				// Right stick dir
-				signLimit>0 && isX ? input.getPadIcon(RSTICK_RIGHT)
-				: signLimit<0 && isX ? input.getPadIcon(RSTICK_LEFT)
-				: signLimit<0 && !isX ? input.getPadIcon(RSTICK_UP)
-				: input.getPadIcon(RSTICK_DOWN);
-			}
-			else if( padButton!=null ) input.getPadIcon(padButton);
-			else input._errorTile();
+	public function getIcon() : h2d.Flow {
+		var f = new h2d.Flow();
+		f.horizontalSpacing = 1;
+		f.verticalAlign = Middle;
+
+		if( isLStick && padPos==null && signLimit!=0 ) {
+			// Left stick dir
+			signLimit>0 && isX ? input.getPadIcon(LSTICK_RIGHT, f)
+			: signLimit<0 && isX ? input.getPadIcon(LSTICK_LEFT, f)
+			: signLimit<0 && !isX ? input.getPadIcon(LSTICK_UP, f)
+			: input.getPadIcon(LSTICK_DOWN, f);
+		}
+		if( !isLStick && padPos==null && signLimit!=0 ) {
+			// Right stick dir
+			signLimit>0 && isX ? input.getPadIcon(RSTICK_RIGHT, f)
+			: signLimit<0 && isX ? input.getPadIcon(RSTICK_LEFT, f)
+			: signLimit<0 && !isX ? input.getPadIcon(RSTICK_UP, f)
+			: input.getPadIcon(RSTICK_DOWN, f);
+		}
+		if( padButton!=null ) input.getPadIcon(padButton, f);
+		if( kbNeg>=0 ) input.getKeyboardKey(kbNeg, f);
+		if( kbPos>=0 && kbPos!=kbNeg ) input.getKeyboardKey(kbPos, f);
+
+		return f;
 	}
 
 

@@ -111,7 +111,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			bFlow.removeChildren();
 			var all = @:privateAccess ca.bindings;
 			for(b in all.get(a))
-				new h2d.Bitmap( b.getIcon(), bFlow );
+				bFlow.addChild( b.getIcon() );
 
 			// btf.text = getBindingsList(a);
 			if( ca.isDown(a) ) {
