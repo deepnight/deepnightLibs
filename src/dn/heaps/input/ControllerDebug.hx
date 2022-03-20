@@ -104,7 +104,8 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 
 		var bFlow = new h2d.Flow(p.root);
 		bFlow.x = 150;
-		// var btf = new h2d.Text(font, bFlow);
+		bFlow.horizontalSpacing = 1;
+		bFlow.verticalAlign = Middle;
 
 		p.onUpdateCb = ()->{
 			bFlow.removeChildren();

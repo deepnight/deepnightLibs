@@ -129,61 +129,6 @@ class Controller<T:EnumValue> {
 			+ "(access="+allAccesses.length +", "+ ( pad==null || pad.index<0 ? '<NoPad>' : '"'+pad.name+'"#'+pad.index ) + ")";
 	}
 
-
-	function disposeIconLib() {
-		if( iconLib!=null && libAlloc )
-			iconLib.destroy();
-		iconLib = null;
-	}
-
-	public function useSpriteLibForIcons(slib:dn.heaps.slib.SpriteLib) {
-		disposeIconLib();
-		iconLib = slib;
-		libAlloc = false;
-	}
-
-	#if "heaps-aseprite"
-	public function useAsepriteForIcons(ase:aseprite.Aseprite, fps:Int) {
-		disposeIconLib();
-		iconLib = dn.heaps.assets.Aseprite.convertToSLib(fps, ase);
-		libAlloc = true;
-	}
-	#end
-
-	@:allow(dn.heaps.input.InputBinding)
-	inline function _errorTile() {
-		return h2d.Tile.fromColor(0xff0000, 16, 16);
-	}
-
-	public inline function hasIcons() {
-		return iconLib!=null;
-	}
-
-	public function getPadIcon(b:PadButton) : h2d.Tile {
-		if( iconLib==null )
-			return _errorTile();
-
-		var baseId = Std.string(b);
-
-		// Suffix for vendor specific icons
-		var suffix = "";
-		if( iconForcedSuffix!=null )
-			suffix = iconForcedSuffix;
-		else {
-			var name = pad.name.toLowerCase();
-			if( name.indexOf("xinput")>=0 || name.indexOf("xbox")>=0 )
-				suffix = "_xbox";
-		}
-
-		if( iconLib.exists(baseId+suffix) )
-			return iconLib.getTile(baseId+suffix);
-		else if( iconLib.exists(baseId) )
-			return iconLib.getTile(baseId);
-		else
-			return _errorTile();
-	}
-
-
 	public function releaseExclusivity() {
 		exclusive = null;
 	}
@@ -527,6 +472,87 @@ class Controller<T:EnumValue> {
 	public function setGlobalAxisDeadZone(dz:Float) {
 		pad.axisDeadZone = globalDeadZone = M.fclamp(dz, 0, 1);
 	}
+
+
+
+
+	/**
+		Remove existing icons SpriteLib
+	**/
+	function disposeIconLib() {
+		if( iconLib!=null && libAlloc )
+			iconLib.destroy();
+		iconLib = null;
+	}
+
+
+	/**
+		Use a `dn.heaps.slib.SpriteLib` for icons rendering
+	**/
+	public function useSpriteLibForIcons(slib:dn.heaps.slib.SpriteLib) {
+		disposeIconLib();
+		iconLib = slib;
+		libAlloc = false;
+	}
+
+
+	#if "heaps-aseprite"
+	/**
+		Use an Aseprite file (as Heaps resource) for icons rendering
+	**/
+	public function useAsepriteForIcons(ase:aseprite.Aseprite, fps:Int) {
+		disposeIconLib();
+		iconLib = dn.heaps.assets.Aseprite.convertToSLib(fps, ase);
+		libAlloc = true;
+	}
+	#end
+
+	/**
+		Return TRUE if an atlas was provided to render button icons
+	**/
+	public inline function hasIconsAtlas() : Bool {
+		return iconLib!=null;
+	}
+
+
+	/**
+		Render an empty "error" Tile when something is wrong with icon rendering
+	**/
+	@:allow(dn.heaps.input.InputBinding)
+	inline function _errorTile() {
+		return h2d.Tile.fromColor(0xff0000, 16, 16);
+	}
+
+	public function getPadIcon(b:PadButton) : h2d.Tile {
+		if( iconLib==null )
+			return _errorTile();
+
+		var baseId = Std.string(b);
+
+		// Suffix for vendor specific icons
+		var suffix = "";
+		if( iconForcedSuffix!=null )
+			suffix = iconForcedSuffix;
+		else {
+			var name = pad.name.toLowerCase();
+			if( name.indexOf("xinput")>=0 || name.indexOf("xbox")>=0 )
+				suffix = "_xbox";
+		}
+
+		if( iconLib.exists(baseId+suffix) )
+			return iconLib.getTile(baseId+suffix);
+		else if( iconLib.exists(baseId) )
+			return iconLib.getTile(baseId);
+		else
+			return _errorTile();
+	}
+
+	public function getKeyboardKey(keyId:Int) : h2d.Flow {
+		var f = new h2d.Flow();
+		if( !hasIconsAtlas() )
+			return f;
+	}
+
 }
 
 
@@ -580,12 +606,24 @@ class InputBinding<T:EnumValue> {
 	}
 
 	public function getIcon() : h2d.Tile {
-		if( !input.hasIcons() )
-			return input._errorTile();
-		if( padButton!=null )
-			return input.getPadIcon(padButton);
-		else
-			return input._errorTile();
+		return
+			if( !input.hasIconsAtlas() ) input._errorTile();
+			else if( isLStick && padPos==null && signLimit!=0 ) {
+				// Left stick dir
+				signLimit>0 && isX ? input.getPadIcon(LSTICK_RIGHT)
+				: signLimit<0 && isX ? input.getPadIcon(LSTICK_LEFT)
+				: signLimit<0 && !isX ? input.getPadIcon(LSTICK_UP)
+				: input.getPadIcon(LSTICK_DOWN);
+			}
+			else if( !isLStick && padPos==null && signLimit!=0 ) {
+				// Right stick dir
+				signLimit>0 && isX ? input.getPadIcon(RSTICK_RIGHT)
+				: signLimit<0 && isX ? input.getPadIcon(RSTICK_LEFT)
+				: signLimit<0 && !isX ? input.getPadIcon(RSTICK_UP)
+				: input.getPadIcon(RSTICK_DOWN);
+			}
+			else if( padButton!=null ) input.getPadIcon(padButton);
+			else input._errorTile();
 	}
 
 
