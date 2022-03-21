@@ -109,9 +109,24 @@ class Controller<T:EnumValue> {
 	var exclusive : Null<ControllerAccess<T>>;
 	var globalDeadZone = 0.1;
 
+	/**
+		Optional SpriteLib to be used to render binding icons
+	**/
 	var iconLib : Null<dn.heaps.slib.SpriteLib>;
+	/**
+		If TRUE, then the current SpriteLib was allocated and needs to be disposed later.
+	**/
 	var libAlloc = false;
+	/**
+		Advanced: optional forced suffix when picking icons (defaults are "_xbox" and "_ps")
+	**/
+	@:noCompletion
 	public var iconForcedSuffix : Null<String> = null;
+	/**
+		Default font for keyboard icons
+	**/
+	@:allow(dn.heaps.input.InputBinding)
+	var iconFont : h2d.Font;
 
 
 	/**
@@ -119,6 +134,7 @@ class Controller<T:EnumValue> {
 	**/
 	public function new(actionsEnum:Enum<T>) {
 		this.actionsEnum = actionsEnum;
+		iconFont = hxd.res.DefaultFont.get();
 		waitForPad();
 	}
 
@@ -257,6 +273,11 @@ class Controller<T:EnumValue> {
 		for(a in allAccesses.copy())
 			a.dispose();
 		allAccesses = null;
+
+		if( libAlloc && iconLib!=null )
+			iconLib.destroy();
+		iconLib = null;
+		iconFont = null;
 
 		exclusive = null;
 		pad = null;
@@ -492,6 +513,7 @@ class Controller<T:EnumValue> {
 	public function useSpriteLibForIcons(slib:dn.heaps.slib.SpriteLib) {
 		disposeIconLib();
 		iconLib = slib;
+		checkIconLib();
 		libAlloc = false;
 	}
 
@@ -503,9 +525,23 @@ class Controller<T:EnumValue> {
 	public function useAsepriteForIcons(ase:aseprite.Aseprite, fps:Int) {
 		disposeIconLib();
 		iconLib = dn.heaps.assets.Aseprite.convertToSLib(fps, ase);
+		checkIconLib();
 		libAlloc = true;
 	}
 	#end
+
+
+	function checkIconLib() {
+		inline function _check(k) {
+			if( !iconLib.exists(k) )
+				throw "Missing icon "+k+" in Controller iconLib";
+		}
+
+		for(k in PadButton.getConstructors())
+			_check(k);
+		_check("keyBg");
+	}
+
 
 	/**
 		Return TRUE if an atlas was provided to render button icons
@@ -523,6 +559,10 @@ class Controller<T:EnumValue> {
 		return h2d.Tile.fromColor(0xff0000, 16, 16);
 	}
 
+
+	/**
+		Return a visual representation (as h2d.Tile) of given gamepad button.
+	**/
 	public function getPadIconTile(b:PadButton) : h2d.Tile {
 		if( iconLib==null )
 			return _errorTile();
@@ -547,28 +587,115 @@ class Controller<T:EnumValue> {
 			return _errorTile();
 	}
 
+
+	/**
+		Return the first binding visual representation of given Action. If no binding is found, an empty h2d.Flow is returned.
+		@param action The action to lookup
+		@param keyboard If TRUE, then the binding will be the first one associated with a Keyboard key. If FALSE, then it will be the first for Gamepad.
+		@param parent  Optional display object to add the icon to.
+	**/
+	public function getFirstBindindIconFor(action:T, keyboardOnly:Bool, ?parent:h2d.Object) : h2d.Flow {
+		if( !bindings.exists(action) || bindings.get(action).length==0 )
+			return new h2d.Flow(parent);
+
+		for( b in bindings.get(action) )
+			if( keyboardOnly && b.isKeyboard() || !keyboardOnly && b.isGamepad() ) {
+				var f = b.getIcon();
+				if( parent!=null )
+					parent.addChild(f);
+				return f;
+			}
+
+		return new h2d.Flow(parent);
+	}
+
+
+	/**
+		Return the first binding visual representation of given Action.
+		@param action The action to lookup
+		@param keyboardOnly If TRUE, then the binding will be the first one associated with a Keyboard key. If FALSE, then it will be the first for Gamepad.
+		@param parent  Optional display object to add the icon to.
+	**/
+	public function getAllBindindIconsFor(action:T, keyboardOnly:Bool) : Array<h2d.Flow> {
+		if( !bindings.exists(action) || bindings.get(action).length==0 )
+			return [];
+
+		var all = [];
+		for( b in bindings.get(action) )
+			if( keyboardOnly && b.isKeyboard() || !keyboardOnly && b.isGamepad() )
+				all.push( b.getIcon() );
+
+		return all;
+	}
+
+
+	/**
+		Return a visual representation (as h2d.Flow) of given gamepad button.
+	**/
 	public function getPadIcon(b:PadButton, ?parent:h2d.Object) : h2d.Flow {
 		var f = new h2d.Flow(parent);
-		new h2d.Bitmap(getPadIconTile(b), f);
+		new h2d.Bitmap( getPadIconTile(b), f );
 		return f;
 	}
 
-	public function getKeyboardKey(keyId:Int, ?parent:h2d.Object) : h2d.Flow {
+
+	/**
+		Return a visual representation (as h2d.Flow) of given keyboard key.
+	**/
+	public function getKeyboardIcon(keyId:Int, ?parent:h2d.Object) : h2d.Flow {
 		var f = new h2d.Flow(parent);
-		if( !hasIconsAtlas() )
-			return f;
+		if( hasIconsAtlas() ) {
+			f.backgroundTile = iconLib.getTile("keyBg");
+			f.borderWidth = 6;
+			f.borderHeight = 7;
+			f.paddingTop = -1;
+			f.paddingHorizontal = 5;
+			f.paddingBottom = 6;
+			f.minHeight = f.minWidth = 8;
+		}
+		else {
+			f.backgroundTile = h2d.Tile.fromColor(0xbdc8e9);
+			f.padding = 3;
+			f.paddingTop = 0;
+		}
 
-		f.backgroundTile = iconLib.getTile("keyBg");
-		f.borderWidth = 6;
-		f.borderHeight = 7;
-		f.paddingHorizontal = 5;
-		f.paddingTop = -1;
-		f.paddingBottom = 6;
-		f.minHeight = f.minWidth = 8;
+		inline function _useKeyIcon(id:String) {
+			if( !iconLib.exists(id) )
+				new h2d.Bitmap( _errorTile(), f );
+			else {
+				f.minWidth = f.minHeight = 22;
+				var i = iconLib.getBitmap(id, f);
+				i.tile.setCenterRatio();
+				i.x = Std.int( f.minWidth*0.5 );
+				i.y = Std.int( f.minHeight*0.5-2 );
+				f.getProperties(i).isAbsolute = true;
+			}
+		}
 
-		var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
-		tf.text = Key.getKeyName(keyId).toUpperCase();
-		tf.textColor = 0x242234;
+		switch keyId {
+			case Key.LEFT if( hasIconsAtlas() ):  _useKeyIcon("iconLeft");
+			case Key.RIGHT if( hasIconsAtlas() ):  _useKeyIcon("iconRight");
+			case Key.UP if( hasIconsAtlas() ):  _useKeyIcon("iconUp");
+			case Key.DOWN if( hasIconsAtlas() ):  _useKeyIcon("iconDown");
+			case _:
+				var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
+				switch keyId {
+					case Key.ESCAPE:
+						tf.text = "ESC.";
+
+					case Key.DELETE:
+						tf.text = "DEL";
+
+					case Key.SPACE:
+						tf.text = "SPACE";
+						f.paddingLeft+=8;
+						f.paddingRight+=8;
+
+					case _:
+						tf.text = Key.getKeyName(keyId).toUpperCase();
+				}
+				tf.textColor = 0x242234;
+		}
 
 		return f;
 	}
@@ -593,7 +720,9 @@ class InputBinding<T:EnumValue> {
 	public var kbPos = -1;
 	public var kbNeg = -1;
 
+	/** Button for negative axis (`padPos` and `padNeg` are tied, both are null or are not null) **/
 	public var padPos : Null<PadButton>;
+	/** Button for positive axis (`padPos` and `padNeg` are tied, both are null or are not null) **/
 	public var padNeg : Null<PadButton>;
 
 	public var invert = false;
@@ -610,13 +739,14 @@ class InputBinding<T:EnumValue> {
 		action = a;
 	}
 
+
 	@:keep
 	public function toString() {
 		var all = [];
-		if( isLStick && padPos==null && signLimit==0 ) all.push( "Pad<LSTICK_" + (isX?"X":"Y") + (invert?"-":"+") + ">" );
-		if( isRStick && padPos==null && signLimit==0 ) all.push( "Pad<RSTICK_" + (isX?"X":"Y") + (invert?"-":"+") + ">" );
-		if( isLStick && padPos==null && signLimit!=0 ) all.push( "Pad<LSTICK_" + (isX?signLimit<0?"LEFT":"RIGHT":signLimit<0?"UP":"DOWN") + (invert?"-":"+") + ">" );
-		if( isRStick && padPos==null && signLimit!=0 ) all.push( "Pad<RSTICK_" + (isX?signLimit<0?"LEFT":"RIGHT":signLimit<0?"UP":"DOWN") + (invert?"-":"+") + ">" );
+		if( isLStick && padNeg==null && signLimit==0 ) all.push( "Pad<LSTICK_" + (isX?"X":"Y") + (invert?"-":"+") + ">" );
+		if( isRStick && padNeg==null && signLimit==0 ) all.push( "Pad<RSTICK_" + (isX?"X":"Y") + (invert?"-":"+") + ">" );
+		if( isLStick && padNeg==null && signLimit!=0 ) all.push( "Pad<LSTICK_" + (isX?signLimit<0?"LEFT":"RIGHT":signLimit<0?"UP":"DOWN") + (invert?"-":"+") + ">" );
+		if( isRStick && padNeg==null && signLimit!=0 ) all.push( "Pad<RSTICK_" + (isX?signLimit<0?"LEFT":"RIGHT":signLimit<0?"UP":"DOWN") + (invert?"-":"+") + ">" );
 		if( padNeg!=null ) all.push( getPadButtonAsString(padNeg) );
 		if( padPos!=null ) all.push( getPadButtonAsString(padPos) );
 		if( padButton!=null ) all.push( getPadButtonAsString(padButton) );
@@ -625,30 +755,87 @@ class InputBinding<T:EnumValue> {
 		return all.join("/");
 	}
 
+	inline function getPadButtonAsString(b:PadButton) {
+		return 'Pad<$b>';
+	}
+
+
+	/**
+		Return the visual representation of this binding
+	**/
 	public function getIcon() : h2d.Flow {
 		var f = new h2d.Flow();
 		f.horizontalSpacing = 1;
 		f.verticalAlign = Middle;
 
-		if( isLStick && padPos==null && signLimit!=0 ) {
+		if( isLStick && padNeg==null && signLimit!=0 ) {
 			// Left stick dir
 			signLimit>0 && isX ? input.getPadIcon(LSTICK_RIGHT, f)
 			: signLimit<0 && isX ? input.getPadIcon(LSTICK_LEFT, f)
 			: signLimit<0 && !isX ? input.getPadIcon(LSTICK_UP, f)
 			: input.getPadIcon(LSTICK_DOWN, f);
 		}
-		if( !isLStick && padPos==null && signLimit!=0 ) {
+		if( !isLStick && padNeg==null && signLimit!=0 ) {
 			// Right stick dir
 			signLimit>0 && isX ? input.getPadIcon(RSTICK_RIGHT, f)
 			: signLimit<0 && isX ? input.getPadIcon(RSTICK_LEFT, f)
 			: signLimit<0 && !isX ? input.getPadIcon(RSTICK_UP, f)
 			: input.getPadIcon(RSTICK_DOWN, f);
 		}
+		// Left stick axis
+		if( isLStick && signLimit==0 ) {
+			if( padNeg==null )
+				input.getPadIcon(isX ? LSTICK_X : LSTICK_Y, f);
+			else {
+				input.getPadIcon(padNeg, f);
+				input.getPadIcon(padPos, f);
+			}
+		}
+		// Right stick axis
+		if( isRStick && signLimit==0 ) {
+			if( padNeg==null )
+				input.getPadIcon(isX ? RSTICK_X : RSTICK_Y, f);
+			else {
+				input.getPadIcon(padNeg, f);
+				input.getPadIcon(padPos, f);
+			}
+		}
+
 		if( padButton!=null ) input.getPadIcon(padButton, f);
-		if( kbNeg>=0 ) input.getKeyboardKey(kbNeg, f);
-		if( kbPos>=0 && kbPos!=kbNeg ) input.getKeyboardKey(kbPos, f);
+		if( kbNeg>=0 ) input.getKeyboardIcon(kbNeg, f);
+		if( kbPos>=0 && kbPos!=kbNeg ) input.getKeyboardIcon(kbPos, f);
+
+		if( comboBindings.length>0 ) {
+			for(b in comboBindings) {
+				_addText("+",f);
+				f.addChild( b.getIcon() );
+			}
+		}
 
 		return f;
+	}
+
+
+	inline function _addText(t:String, f:h2d.Flow) {
+		var tf = new h2d.Text(input.iconFont, f);
+		tf.text = t;
+		return tf;
+	}
+
+
+	/**
+		Return TRUE if this InputBinding is using the Keyboard
+	**/
+	public inline function isKeyboard() {
+		return kbPos>=0 || kbNeg>=0;
+	}
+
+
+	/**
+		Return TRUE if this InputBinding is using the Gamepad
+	**/
+	public inline function isGamepad() {
+		return !isKeyboard();
 	}
 
 
@@ -681,10 +868,10 @@ class InputBinding<T:EnumValue> {
 		return b;
 	}
 
-	inline function getPadButtonAsString(b:PadButton) {
-		return 'Pad<$b>';
-	}
 
+	/**
+		Return the current value (-1 to 1 usually) of this binding
+	**/
 	var _tmpBool = false;
 	public inline function getValue(pad:hxd.Pad) : Float {
 		_tmpBool = false;
@@ -730,6 +917,10 @@ class InputBinding<T:EnumValue> {
 				: M.fclamp(v, 0, 1);
 	}
 
+
+	/**
+		Return TRUE if this binding is considered as "down"
+	**/
 	public inline function isDown(pad:hxd.Pad) {
 		_tmpBool = false;
 		for(cb in comboBindings)
@@ -750,6 +941,10 @@ class InputBinding<T:EnumValue> {
 				|| ( isLStick || isRStick ) && signLimit==-1 && getValue(pad) < -analogDownDeadZone;
 	}
 
+
+	/**
+		Return TRUE if this binding is considered as "pressed". NOTE: this will only work for buttons and keys, NOT axis movements.
+	**/
 	public inline function isPressed(pad:hxd.Pad) {
 		_tmpBool = false;
 		for(cb in comboBindings)

@@ -97,23 +97,48 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		p.createRoot(flow);
 
 		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
+		bmp.y = 8;
 		var tf = new h2d.Text(font, p.root);
 		tf.text = a.getName();
 		tf.x = BT_SIZE+4;
-		tf.y = -4;
+		tf.y = 4;
 
 		var bFlow = new h2d.Flow(p.root);
 		bFlow.x = 150;
 		bFlow.horizontalSpacing = 1;
 		bFlow.verticalAlign = Middle;
 
+		inline function _addText(t:String, f:h2d.Flow) {
+			var tf = new h2d.Text(@:privateAccess ca.input.iconFont, f);
+			tf.text = t;
+			return tf;
+		}
+
 		p.onUpdateCb = ()->{
 			bFlow.removeChildren();
-			var all = @:privateAccess ca.bindings;
-			for(b in all.get(a))
-				bFlow.addChild( b.getIcon() );
 
-			// btf.text = getBindingsList(a);
+			// Gamepad icons
+			var gpFlow = new h2d.Flow(bFlow);
+			gpFlow.verticalAlign = Middle;
+			gpFlow.minWidth = 100;
+			var first = true;
+			for(f in ca.input.getAllBindindIconsFor(a,false)) {
+				if( !first )
+					_addText(", ", gpFlow);
+				gpFlow.addChild(f);
+				first = false;
+			}
+			// Keyboard icons
+			var kbFlow = new h2d.Flow(bFlow);
+			kbFlow.verticalAlign = Middle;
+			var first = true;
+			for(f in ca.input.getAllBindindIconsFor(a,true)) {
+				if( !first )
+					_addText(", ", kbFlow);
+				kbFlow.addChild(f);
+				first = false;
+			}
+
 			if( ca.isDown(a) ) {
 				tf.textColor = 0x00ff00;
 				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );
