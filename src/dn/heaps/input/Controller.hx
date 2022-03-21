@@ -91,6 +91,11 @@ class Controller<T:EnumValue> {
 	static var _iconsAsepriteBase64 = dn.MacroTools.embedClassPathFile("assets/deepnightControllerIcons.aseprite");
 
 	/**
+		The dictionnary of all the tags present in the Aseprite.
+	**/
+	public static var ICONS_DICT = dn.heaps.assets.Aseprite.getDictFromFile("assets/deepnightControllerIcons.aseprite");
+
+	/**
 		Embed icons SpriteLib
 	**/
 	public static var ICONS_LIB(get,never) : Null<dn.heaps.slib.SpriteLib>;
