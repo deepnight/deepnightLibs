@@ -911,20 +911,20 @@ class InputBinding<T:EnumValue> {
 	/**
 		Return the current value (-1 to 1 usually) of this binding
 	**/
-	var _tmpBool = false;
+	var _comboBreak = false;
 	public inline function getValue(pad:hxd.Pad) : Float {
-		_tmpBool = false;
+		// Check if a binding in the combo (not including current one) is not down
+		_comboBreak = false;
 		for(cb in comboBindings)
 			if( cb.getValue(pad)==0 ) {
-				_tmpBool = true;
+				_comboBreak = true;
 				break;
 			}
-
-		// Combo not active
-		if( _tmpBool )
+		if( _comboBreak )
 			return 0;
+
 		// Left stick X
-		else if( isLStick && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
+		if( isLStick && padNeg==null && kbNeg<0 && isX && pad.xAxis!=0 )
 			return applySignLimit( pad.xAxis * (invert?-1:1) );
 		// Left stick Y
 		else if( isLStick && padNeg==null && kbNeg<0 && !isX && pad.yAxis!=0 )
@@ -961,14 +961,14 @@ class InputBinding<T:EnumValue> {
 		Return TRUE if this binding is considered as "down"
 	**/
 	public inline function isDown(pad:hxd.Pad) {
-		_tmpBool = false;
+		_comboBreak = false;
 		for(cb in comboBindings)
 			if( !cb.isDown(pad) ) {
-				_tmpBool = true;
+				_comboBreak = true;
 				break;
 			}
 
-		if( _tmpBool )
+		if( _comboBreak )
 			return false;
 		else
 			return
@@ -984,17 +984,32 @@ class InputBinding<T:EnumValue> {
 	/**
 		Return TRUE if this binding is considered as "pressed". NOTE: this will only work for buttons and keys, NOT axis movements.
 	**/
+	var _pressedLocked = false;
 	public inline function isPressed(pad:hxd.Pad) {
-		_tmpBool = false;
-		for(cb in comboBindings)
-			if( !cb.isDown(pad) ) {
-				_tmpBool = true;
-				break;
+		// Specific check for combos
+		if( comboBindings.length>0 ) {
+			// Check if a binding in the combo (not including current one) is not down
+			_comboBreak = false;
+			for(cb in comboBindings)
+				if( !cb.isDown(pad) ) {
+					_comboBreak = true;
+					break;
+				}
+			if( _comboBreak ) {
+				_pressedLocked = false;
+				return false;
 			}
 
-		if( _tmpBool )
-			return false;
-		else
+			if( _pressedLocked )
+				return false;
+			else {
+				_pressedLocked = pad.isDown( input.getPadButtonId(padButton) ) || Key.isDown(kbPos) || Key.isDown(kbNeg);
+				return _pressedLocked;
+			}
+		}
+		else {
+			// General case
 			return pad.isPressed( input.getPadButtonId(padButton) ) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
+		}
 	}
 }
