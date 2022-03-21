@@ -655,6 +655,25 @@ class Controller<T:EnumValue> {
 
 
 	/**
+		Return the first binding visual representation of given Action.
+		@param action The action to lookup
+		@param ctrlType Optionally, only show bindings associated with the given controller type
+		@param parent  Optional display object to add the icon to.
+	**/
+	public function getAllBindindTextsFor(action:T, ?ctrlType:ControllerType) : Array<String> {
+		if( !bindings.exists(action) || bindings.get(action).length==0 )
+			return [];
+
+		var all = [];
+		for( b in bindings.get(action) )
+			if( ctrlType==null || ctrlType==Keyboard && b.isKeyboard() || ctrlType==Gamepad && b.isGamepad() )
+				all.push( b.toString() );
+
+		return all;
+	}
+
+
+	/**
 		Return a visual representation (as h2d.Flow) of given gamepad button.
 	**/
 	public function getPadIcon(b:PadButton, ?parent:h2d.Object) : h2d.Flow {
