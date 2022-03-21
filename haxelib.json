@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.69",
+	"version": "1.0.70",
 	"classPath": "src/",
-	"releasenote": "Added caching to Aseprite getDict method resulting in huge perf boost in Haxe completion server. Various other changes.",
+	"releasenote": "Controller rework. Added embed Controller icons (require -lib heaps-aseprite)",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
