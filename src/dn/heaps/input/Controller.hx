@@ -84,6 +84,39 @@ enum ControllerType {
 **/
 @:allow(dn.heaps.input.ControllerAccess)
 class Controller<T:EnumValue> {
+	#if heaps_aseprite
+	/**
+		Embed icons in Aseprite-Base64 format
+	 **/
+	static var _iconsAsepriteBase64 = dn.MacroTools.embedClassPathFile("assets/deepnightControllerIcons.aseprite");
+
+	/**
+		Embed icons SpriteLib
+	**/
+	public static var ICONS_LIB(get,never) : Null<dn.heaps.slib.SpriteLib>;
+		static inline function get_ICONS_LIB() {
+			if( _cachedLib==null ) {
+				var bytes = haxe.crypto.Base64.decode(_iconsAsepriteBase64);
+				var ase = aseprite.Aseprite.fromBytes(bytes);
+				_cachedLib = dn.heaps.assets.Aseprite.convertToSLib(60,ase);
+			}
+			return _cachedLib;
+		}
+	static var _cachedLib : dn.heaps.slib.SpriteLib;
+	#end
+
+	/**
+		Default h2d.Font to render keyboard keys icons
+	**/
+	public static var ICON_FONT(get,never) : h2d.Font;
+		static inline function get_ICON_FONT() {
+			if( _cachedFont==null )
+				_cachedFont = hxd.res.DefaultFont.get();
+			return _cachedFont;
+		}
+	static var _cachedFont : h2d.Font;
+
+
 	/**
 		Actual `hxd.Pad` behind
 	**/
@@ -115,32 +148,12 @@ class Controller<T:EnumValue> {
 	var exclusive : Null<ControllerAccess<T>>;
 	var globalDeadZone = 0.1;
 
-	/**
-		Optional SpriteLib to be used to render binding icons
-	**/
-	var iconLib : Null<dn.heaps.slib.SpriteLib>;
-	/**
-		If TRUE, then the current SpriteLib was allocated and needs to be disposed later.
-	**/
-	var libAlloc = false;
-	/**
-		Advanced: optional forced suffix when picking icons (defaults are "_xbox" and "_ps")
-	**/
-	@:noCompletion
-	public var iconForcedSuffix : Null<String> = null;
-	/**
-		Default font for keyboard icons
-	**/
-	@:allow(dn.heaps.input.InputBinding)
-	var iconFont : h2d.Font;
-
 
 	/**
 		Create a Controller that will bind keyboard or gamepad inputs with "actions" represented by the values of the `actionsEnum` parameter.
 	**/
 	public function new(actionsEnum:Enum<T>) {
 		this.actionsEnum = actionsEnum;
-		iconFont = hxd.res.DefaultFont.get();
 		waitForPad();
 	}
 
@@ -280,11 +293,6 @@ class Controller<T:EnumValue> {
 		for(a in allAccesses.copy())
 			a.dispose();
 		allAccesses = null;
-
-		if( libAlloc && iconLib!=null )
-			iconLib.destroy();
-		iconLib = null;
-		iconFont = null;
 
 		exclusive = null;
 		pad = null;
@@ -497,6 +505,10 @@ class Controller<T:EnumValue> {
 	}
 
 
+
+	/**
+		Bind an action to a combination of multiple keybaord keys (all of them are REQUIRED)
+	**/
 	public function bindKeyboardCombo(action:T, combo:Array<Int>) {
 		if( combo.length==0 )
 			return;
@@ -521,61 +533,6 @@ class Controller<T:EnumValue> {
 
 
 
-
-	/**
-		Remove existing icons SpriteLib
-	**/
-	function disposeIconLib() {
-		if( iconLib!=null && libAlloc )
-			iconLib.destroy();
-		iconLib = null;
-	}
-
-
-	/**
-		Use a `dn.heaps.slib.SpriteLib` for icons rendering
-	**/
-	public function useSpriteLibForIcons(slib:dn.heaps.slib.SpriteLib) {
-		disposeIconLib();
-		iconLib = slib;
-		checkIconLib();
-		libAlloc = false;
-	}
-
-
-	#if "heaps-aseprite"
-	/**
-		Use an Aseprite file (as Heaps resource) for icons rendering
-	**/
-	public function useAsepriteForIcons(ase:aseprite.Aseprite, fps:Int) {
-		disposeIconLib();
-		iconLib = dn.heaps.assets.Aseprite.convertToSLib(fps, ase);
-		checkIconLib();
-		libAlloc = true;
-	}
-	#end
-
-
-	function checkIconLib() {
-		inline function _check(k) {
-			if( !iconLib.exists(k) )
-				throw "Missing icon "+k+" in Controller iconLib";
-		}
-
-		for(k in PadButton.getConstructors())
-			_check(k);
-		_check("keyBg");
-	}
-
-
-	/**
-		Return TRUE if an atlas was provided to render button icons
-	**/
-	public inline function hasIconsAtlas() : Bool {
-		return iconLib!=null;
-	}
-
-
 	/**
 		Render an empty "error" Tile when something is wrong with icon rendering
 	**/
@@ -589,27 +546,32 @@ class Controller<T:EnumValue> {
 		Return a visual representation (as h2d.Tile) of given gamepad button.
 	**/
 	public function getPadIconTile(b:PadButton) : h2d.Tile {
-		if( iconLib==null )
-			return _errorTile();
+		#if heaps_aseprite
+			var baseId = Std.string(b);
 
-		var baseId = Std.string(b);
-
-		// Suffix for vendor specific icons
-		var suffix = "";
-		if( iconForcedSuffix!=null )
-			suffix = iconForcedSuffix;
-		else {
+			// Suffix for vendor specific icons
+			var suffix = "";
 			var name = pad.name.toLowerCase();
 			if( name.indexOf("xinput")>=0 || name.indexOf("xbox")>=0 )
 				suffix = "_xbox";
-		}
 
-		if( iconLib.exists(baseId+suffix) )
-			return iconLib.getTile(baseId+suffix);
-		else if( iconLib.exists(baseId) )
-			return iconLib.getTile(baseId);
-		else
-			return _errorTile();
+			if( ICONS_LIB.exists(baseId+suffix) )
+				return ICONS_LIB.getTile(baseId+suffix);
+			else if( ICONS_LIB.exists(baseId) )
+				return ICONS_LIB.getTile(baseId);
+			else
+				return _errorTile();
+		#else
+			// Placeholder tile
+			var c = switch b {
+				case A: 0x81d94e;
+				case B: 0xf33a1e;
+				case X: 0x3d7df5;
+				case Y: 0xe9c200;
+				case _: 0xb1a6d1;
+			}
+			return h2d.Tile.fromColor(c, 16,16, 1);
+		#end
 	}
 
 
@@ -635,6 +597,7 @@ class Controller<T:EnumValue> {
 	}
 
 
+
 	/**
 		Return the first binding visual representation of given Action.
 		@param action The action to lookup
@@ -652,6 +615,7 @@ class Controller<T:EnumValue> {
 
 		return all;
 	}
+
 
 
 	/**
@@ -673,14 +637,27 @@ class Controller<T:EnumValue> {
 	}
 
 
+
 	/**
 		Return a visual representation (as h2d.Flow) of given gamepad button.
 	**/
 	public function getPadIcon(b:PadButton, ?parent:h2d.Object) : h2d.Flow {
 		var f = new h2d.Flow(parent);
-		new h2d.Bitmap( getPadIconTile(b), f );
+		#if heaps_aseprite
+			new h2d.Bitmap( getPadIconTile(b), f );
+		#else
+			f.backgroundTile = getPadIconTile(b);
+			f.paddingHorizontal = 2;
+			f.paddingBottom = 2;
+			var tf = new h2d.Text(ICON_FONT, f);
+			tf.text = Std.string(b);
+			tf.textColor = 0x0;
+			tf.alpha = 0.5;
+		#end
+
 		return f;
 	}
+
 
 
 	/**
@@ -688,48 +665,52 @@ class Controller<T:EnumValue> {
 	**/
 	public function getKeyboardIcon(keyId:Int, ?parent:h2d.Object) : h2d.Flow {
 		var f = new h2d.Flow(parent);
-		if( hasIconsAtlas() ) {
-			f.backgroundTile = iconLib.getTile("keyBg");
+		#if heaps_aseprite
+			f.backgroundTile = ICONS_LIB.getTile("keyBg");
 			f.borderWidth = 6;
 			f.borderHeight = 7;
 			f.paddingTop = -1;
 			f.paddingHorizontal = 5;
 			f.paddingBottom = 6;
 			f.minHeight = f.minWidth = 8;
-		}
-		else {
+		#else
 			f.backgroundTile = h2d.Tile.fromColor(0xbdc8e9);
 			f.padding = 3;
 			f.paddingTop = 0;
-		}
+		#end
 
+		#if heaps_aseprite
 		inline function _useKeyIcon(id:String) {
-			if( !iconLib.exists(id) )
+			if( !ICONS_LIB.exists(id) )
 				new h2d.Bitmap( _errorTile(), f );
 			else {
 				f.minWidth = 18;
 				f.minHeight = 19;
-				var i = iconLib.getBitmap(id, f);
+				var i = ICONS_LIB.getBitmap(id, f);
 				i.tile.setCenterRatio();
 				i.x = Std.int( f.minWidth*0.5 );
 				i.y = Std.int( f.minHeight*0.5-1 );
 				f.getProperties(i).isAbsolute = true;
 			}
 		}
+		#end
 
 		switch keyId {
+
+			#if heaps_aseprite
 			// Special key icons
-			case Key.LEFT if( hasIconsAtlas() ):  _useKeyIcon("iconLeft");
-			case Key.RIGHT if( hasIconsAtlas() ):  _useKeyIcon("iconRight");
-			case Key.UP if( hasIconsAtlas() ):  _useKeyIcon("iconUp");
-			case Key.DOWN if( hasIconsAtlas() ):  _useKeyIcon("iconDown");
+			case Key.LEFT:  _useKeyIcon("iconLeft");
+			case Key.RIGHT:  _useKeyIcon("iconRight");
+			case Key.UP:  _useKeyIcon("iconUp");
+			case Key.DOWN:  _useKeyIcon("iconDown");
+			#end
 
 			case _:
 				// Key with text
 				var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
 				switch keyId {
 					case Key.ESCAPE:
-						tf.text = "ESC.";
+						tf.text = "ESC";
 
 					case Key.DELETE:
 						tf.text = "DEL";
@@ -865,7 +846,7 @@ class InputBinding<T:EnumValue> {
 
 
 	inline function _addText(t:String, f:h2d.Flow) {
-		var tf = new h2d.Text(input.iconFont, f);
+		var tf = new h2d.Text(Controller.ICON_FONT, f);
 		tf.text = t;
 		return tf;
 	}
