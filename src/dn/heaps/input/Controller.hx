@@ -307,7 +307,7 @@ class Controller<T:EnumValue> {
 
 
 
-	public inline function bindPadLStick(xAction:T, yAction:T, invertX=false, invertY=false) {
+	public inline function bindPadLStickXY(xAction:T, yAction:T, invertX=false, invertY=false) {
 		var b = InputBinding.createPadStickAxis(this, xAction, 0, true, invertX);
 		storeBinding(xAction, b);
 
@@ -315,7 +315,15 @@ class Controller<T:EnumValue> {
 		storeBinding(yAction, b);
 	}
 
-	public inline function bindPadRStick(xAction:T, yAction:T, invertX=false, invertY=false) {
+
+	public inline function bindPadLStick4(left:T, right:T, up:T, down:T) {
+		bindPad( left, LSTICK_LEFT );
+		bindPad( right, LSTICK_RIGHT );
+		bindPad( up, LSTICK_UP );
+		bindPad( down, LSTICK_DOWN );
+	}
+
+	public inline function bindPadRStickXY(xAction:T, yAction:T, invertX=false, invertY=false) {
 		var b = InputBinding.createPadStickAxis(this, xAction, 1, true, invertX);
 		storeBinding(xAction, b);
 
@@ -908,7 +916,7 @@ class InputBinding<T:EnumValue> {
 		else if( isRStick && padNeg==null && kbNeg<0 && !isX && pad.ryAxis!=0 )
 			return applySignLimit( pad.ryAxis * (invert?-1:1) );
 		// Negative button
-		else if( Key.isDown(kbNeg) || pad.isDown( input.getPadButtonId(padNeg) ) )
+		else if( Key.isDown(kbNeg) && kbPos!=kbNeg || pad.isDown( input.getPadButtonId(padNeg) ) )
 			return invert ? 1 : -1;
 		// Positive button
 		else if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
