@@ -122,7 +122,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			gpFlow.verticalAlign = Middle;
 			gpFlow.minWidth = 100;
 			var first = true;
-			for(f in ca.input.getAllBindindIconsFor(a,false)) {
+			for(f in ca.input.getAllBindindIconsFor(a,Gamepad)) {
 				if( !first )
 					_addText(", ", gpFlow);
 				gpFlow.addChild(f);
@@ -132,7 +132,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			var kbFlow = new h2d.Flow(bFlow);
 			kbFlow.verticalAlign = Middle;
 			var first = true;
-			for(f in ca.input.getAllBindindIconsFor(a,true)) {
+			for(f in ca.input.getAllBindindIconsFor(a,Keyboard)) {
 				if( !first )
 					_addText(", ", kbFlow);
 				kbFlow.addChild(f);

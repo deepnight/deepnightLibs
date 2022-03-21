@@ -43,6 +43,12 @@ enum PadButton {
 }
 
 
+enum ControllerType {
+	Keyboard;
+	Gamepad;
+}
+
+
 
 /**
 	Controller wrapper for `hxd.Pad` and `hxd.Key` which provides a *much* more convenient binding system, to make keyboard/gamepad usage fully transparent.
@@ -591,15 +597,15 @@ class Controller<T:EnumValue> {
 	/**
 		Return the first binding visual representation of given Action. If no binding is found, an empty h2d.Flow is returned.
 		@param action The action to lookup
-		@param keyboard If TRUE, then the binding will be the first one associated with a Keyboard key. If FALSE, then it will be the first for Gamepad.
+		@param ctrlType Optionally, only show bindings associated with the given controller type
 		@param parent  Optional display object to add the icon to.
 	**/
-	public function getFirstBindindIconFor(action:T, keyboardOnly:Bool, ?parent:h2d.Object) : h2d.Flow {
+	public function getFirstBindindIconFor(action:T, ?ctrlType:ControllerType, filterAxisSign=0, ?parent:h2d.Object) : h2d.Flow {
 		if( !bindings.exists(action) || bindings.get(action).length==0 )
 			return new h2d.Flow(parent);
 
 		for( b in bindings.get(action) )
-			if( keyboardOnly && b.isKeyboard() || !keyboardOnly && b.isGamepad() ) {
+			if( ctrlType==null || ctrlType==Keyboard && b.isKeyboard() || ctrlType==Gamepad && b.isGamepad() ) {
 				var f = b.getIcon();
 				if( parent!=null )
 					parent.addChild(f);
@@ -613,16 +619,16 @@ class Controller<T:EnumValue> {
 	/**
 		Return the first binding visual representation of given Action.
 		@param action The action to lookup
-		@param keyboardOnly If TRUE, then the binding will be the first one associated with a Keyboard key. If FALSE, then it will be the first for Gamepad.
+		@param ctrlType Optionally, only show bindings associated with the given controller type
 		@param parent  Optional display object to add the icon to.
 	**/
-	public function getAllBindindIconsFor(action:T, keyboardOnly:Bool) : Array<h2d.Flow> {
+	public function getAllBindindIconsFor(action:T, ?ctrlType:ControllerType) : Array<h2d.Flow> {
 		if( !bindings.exists(action) || bindings.get(action).length==0 )
 			return [];
 
 		var all = [];
 		for( b in bindings.get(action) )
-			if( keyboardOnly && b.isKeyboard() || !keyboardOnly && b.isGamepad() )
+			if( ctrlType==null || ctrlType==Keyboard && b.isKeyboard() || ctrlType==Gamepad && b.isGamepad() )
 				all.push( b.getIcon() );
 
 		return all;
@@ -663,21 +669,25 @@ class Controller<T:EnumValue> {
 			if( !iconLib.exists(id) )
 				new h2d.Bitmap( _errorTile(), f );
 			else {
-				f.minWidth = f.minHeight = 22;
+				f.minWidth = 18;
+				f.minHeight = 19;
 				var i = iconLib.getBitmap(id, f);
 				i.tile.setCenterRatio();
 				i.x = Std.int( f.minWidth*0.5 );
-				i.y = Std.int( f.minHeight*0.5-2 );
+				i.y = Std.int( f.minHeight*0.5-1 );
 				f.getProperties(i).isAbsolute = true;
 			}
 		}
 
 		switch keyId {
+			// Special key icons
 			case Key.LEFT if( hasIconsAtlas() ):  _useKeyIcon("iconLeft");
 			case Key.RIGHT if( hasIconsAtlas() ):  _useKeyIcon("iconRight");
 			case Key.UP if( hasIconsAtlas() ):  _useKeyIcon("iconUp");
 			case Key.DOWN if( hasIconsAtlas() ):  _useKeyIcon("iconDown");
+
 			case _:
+				// Key with text
 				var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
 				switch keyId {
 					case Key.ESCAPE:
