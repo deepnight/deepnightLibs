@@ -62,6 +62,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			buttons.set(a, createButton(a));
 		}
 
+		flow.reflow();
 		if( afterRender!=null )
 			afterRender(this);
 	}
@@ -325,6 +326,10 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		}
 	}
 
+	override function postUpdate() {
+		super.postUpdate();
+		root.setScale( dn.heaps.Scaler.bestFit_f( width, height, w(), h() ) );
+	}
 
 	override function update() {
 		super.update();
