@@ -368,7 +368,7 @@ class Controller<T:EnumValue> {
 		if( !bindings.exists(action) )
 			bindings.set(action, []);
 		var b = new InputBinding(this,action);
-		bindings.get(action).push(b);
+		storeBinding(action, b);
 		b.isX = isXaxis;
 		b.kbNeg = negativeKey;
 		b.kbPos = positiveKey;
@@ -383,7 +383,7 @@ class Controller<T:EnumValue> {
 		if( !bindings.exists(action) )
 			bindings.set(action, []);
 		var b = new InputBinding(this,action);
-		bindings.get(action).push(b);
+		storeBinding(action, b);
 		b.isLStick = true;
 		b.isX = isXaxis;
 		b.padNeg = negativeKey;
@@ -491,15 +491,25 @@ class Controller<T:EnumValue> {
 			bindings.set(action, []);
 
 		for(k in keys) {
-			var b = new InputBinding(this,action);
-			b.kbNeg = k;
-			b.kbPos = k;
+			var b = InputBinding.createKeyboard(this, action, k);
 			bindings.get(action).push(b);
 		}
 	}
 
 
-	public function bindKeyboardCombo(action:T, keys:Array<Int>) {}
+	public function bindKeyboardCombo(action:T, combo:Array<Int>) {
+		if( combo.length==0 )
+			return;
+		else if( combo.length==1 )
+			bindKeyboard(action, combo[0]);
+		else {
+			var b = InputBinding.createKeyboard(this, action, combo[0]);
+			for(i in 1...combo.length)
+				b.comboBindings.push( InputBinding.createKeyboard(this, action, combo[i]) );
+			storeBinding(action, b);
+		}
+
+	}
 
 
 	/**
@@ -889,6 +899,16 @@ class InputBinding<T:EnumValue> {
 
 
 	/**
+		Create a basic keyboard key binding
+	**/
+	public static inline function createKeyboard<E:EnumValue>(c:Controller<E>, action:E, key:Int) : InputBinding<E> {
+		var b = new InputBinding(c, action);
+		b.kbNeg = b.kbPos = key;
+		return b;
+	}
+
+
+	/**
 		Return the current value (-1 to 1 usually) of this binding
 	**/
 	var _tmpBool = false;
@@ -967,7 +987,7 @@ class InputBinding<T:EnumValue> {
 	public inline function isPressed(pad:hxd.Pad) {
 		_tmpBool = false;
 		for(cb in comboBindings)
-			if( !cb.isPressed(pad) ) {
+			if( !cb.isDown(pad) ) {
 				_tmpBool = true;
 				break;
 			}
