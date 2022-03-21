@@ -347,7 +347,7 @@ class Controller<T:EnumValue> {
 
 
 
-	public inline function bindKeyboardAsStick(xAction:T, yAction:T,  up:Int, left:Int, down:Int, right:Int) {
+	public inline function bindKeyboardAsStickXY(xAction:T, yAction:T,  up:Int, left:Int, down:Int, right:Int) {
 		_bindKeyboardAsStick(xAction, true, left, right);
 		_bindKeyboardAsStick(yAction, false, up, down);
 	}
