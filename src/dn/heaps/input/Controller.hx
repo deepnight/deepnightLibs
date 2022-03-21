@@ -263,13 +263,14 @@ class Controller<T:EnumValue> {
 
 	/**
 		Return TRUE if given Enum is bound to at least one analog control.
+		@param fullAxis If TRUE, then the method will only return TRUE if the action is bound to both positive/negative directions of the axis.
 	**/
-	public function isBoundToAnalog(act:T) {
+	public function isBoundToAnalog(act:T, fullAxis:Bool) {
 		if( destroyed || !bindings.exists(act) )
 			return false;
 
 		for(b in bindings.get(act))
-			if( b.isLStick || b.isRStick )
+			if( ( b.isLStick || b.isRStick ) && (!fullAxis || b.signLimit==0 ) )
 				return true;
 		return false;
 	}
@@ -323,7 +324,7 @@ class Controller<T:EnumValue> {
 	}
 
 
-	public inline function bindPadButtonsAsStick(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
+	public inline function bindPadButtonsAsStickXY(xAction:T, yAction:T,  up:PadButton, left:PadButton, down:PadButton, right:PadButton) {
 		_bindPadButtonsAsStick(xAction, true, left, right);
 		_bindPadButtonsAsStick(yAction, false, up, down);
 	}

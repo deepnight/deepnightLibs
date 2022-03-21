@@ -117,12 +117,37 @@ class ControllerAccess<T:EnumValue> {
 
 
 	/**
-		Return analog Radian angle (-PI to PI).
-		@param xAction Enum action associated with horizontal analog
-		@param yAction Enum action associated with vertical analog
+		Return analog float value (-1.0 to 1.0) associated with given the 2 action Enum (this implies that these 2 actions refer to the negative/positive directions of the analog).
 	**/
-	public inline function getAnalogAngle(xAction:T, yAction:T) {
-		return Math.atan2( getAnalogValue(yAction), getAnalogValue(xAction) );
+	public function getAnalogValue2(negativeAction:T, positiveAction:T) : Float {
+		return getAnalogValue(negativeAction) + getAnalogValue(positiveAction);
+	}
+
+
+
+	/**
+		Return analog Radian angle (-PI to PI).
+		@param xAxisAction Enum action associated with horizontal analog axis (both positive and negative)
+		@param yAxisAction Enum action associated with vertical analog axis (both positive and negative)
+	**/
+	public inline function getAnalogAngleXY(xAxisAction:T, yAxisAction:T) {
+		return Math.atan2( getAnalogValue(yAxisAction), getAnalogValue(xAxisAction) );
+	}
+
+
+
+	/**
+		Return analog Radian angle (-PI to PI) using 4 actions.
+		@param leftAction Enum action associated with the LEFT analog direction
+		@param rightAction Enum action associated with the RIGHT analog direction
+		@param upAction Enum action associated with the UP analog direction
+		@param downAction Enum action associated with the DOWN analog direction
+	**/
+	public inline function getAnalogAngle4(leftAction:T, rightAction:T, upAction:T, downAction:T) {
+		return Math.atan2(
+			-M.fabs(getAnalogValue(upAction)) + M.fabs(getAnalogValue(downAction)),
+			-M.fabs(getAnalogValue(leftAction)) + M.fabs(getAnalogValue(rightAction))
+		);
 	}
 
 
@@ -132,13 +157,33 @@ class ControllerAccess<T:EnumValue> {
 		@param yAction Enum action associated with vertical analog. If omitted, only the xAction enum is considered
 		@param clamp If false, the returned distance might be greater than 1 (like 1.06), for corner directions.
 	**/
-	public inline function getAnalogDist(xAction:T, ?yAction:T, clamp=true) {
+	public inline function getAnalogDistXY(xAction:T, ?yAction:T, clamp=true) {
+		inline function _dist() {
+			return dn.M.dist( 0, 0, getAnalogValue(xAction), getAnalogValue(yAction) );
+		}
 		return
 			yAction==null
 				? dn.M.fabs( getAnalogValue(xAction) )
 				: clamp
-					? dn.M.fmin( dn.M.dist(0,0, getAnalogValue(xAction), getAnalogValue(yAction)), 1 )
-					: dn.M.dist(0,0, getAnalogValue(xAction), getAnalogValue(yAction));
+					? dn.M.fmin( _dist(), 1 )
+					: _dist();
+	}
+
+
+	/**
+		Return analog controller distance (0 to 1).
+		@param leftAction Enum action associated with the LEFT analog direction
+		@param rightAction Enum action associated with the RIGHT analog direction
+		@param upAction Enum action associated with the UP analog direction
+		@param downAction Enum action associated with the DOWN analog direction
+		@param clamp If false, the returned distance might be greater than 1 (like 1.06), for corner directions.
+	**/
+	public inline function getAnalogDist4(leftAction:T, rightAction:T, upAction:T, downAction:T, clamp=true) {
+		inline function _dist(){
+			return dn.M.dist( 0,0, getAnalogValue(leftAction)+getAnalogValue(rightAction), getAnalogValue(upAction)+getAnalogValue(downAction) );
+		}
+
+		return clamp ? M.fmin(_dist(),1) : _dist();
 	}
 
 

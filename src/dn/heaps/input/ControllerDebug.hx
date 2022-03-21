@@ -12,8 +12,15 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 	var font : h2d.Font;
 	var status : Null<h2d.Text>;
 	var connected = false;
+	var buttons : Map<T,Process> = new Map();
 
 	var afterRender : Null< ControllerDebug<T>->Void >;
+
+	public var width(get,never) : Int;
+		inline function get_width() return flow.outerWidth;
+
+	public var height(get,never) : Int;
+		inline function get_height() return flow.outerHeight;
 
 
 	@:allow(dn.heaps.input.ControllerAccess)
@@ -48,9 +55,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		@:privateAccess
 		for(k in ca.input.actionsEnum.getConstructors()) {
 			var a = ca.input.actionsEnum.createByName(k);
-			createButton(a);
-			if( ca.input.isBoundToAnalog(a) )
-				createAnalog(a);
+			buttons.set(a, createButton(a));
 		}
 
 		if( afterRender!=null )
@@ -76,6 +81,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		super.onDispose();
 		font = null;
 		ca = null;
+		buttons = null;
 	}
 
 
@@ -91,13 +97,27 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		}
 	}
 
+	function removeButton(a:T) {
+		if( buttons.exists(a) )
+			buttons.get(a).destroy();
+		buttons.remove(a);
+	}
+
 
 	function createButton(a:T) {
 		var p = createChildProcess();
 		p.createRoot(flow);
 
-		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
-		bmp.y = 8;
+		var isAnalog = ca.input.isBoundToAnalog(a,true);
+
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
+
+		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,isAnalog?2:BT_SIZE, BT_SIZE), p.root);
+		bt.y = 8;
+
+		bg.y = bt.y;
+		bg.color = bt.color;
+
 		var tf = new h2d.Text(font, p.root);
 		tf.text = a.getName();
 		tf.x = BT_SIZE+4;
@@ -139,15 +159,22 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 				first = false;
 			}
 
+			var alpha = isAnalog ? 0.4 : 1;
 			if( ca.isDown(a) ) {
 				tf.textColor = 0x00ff00;
-				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );
+				bt.color.setColor( dn.Color.addAlphaF(0x00ff00, alpha) );
 			}
 			else {
 				tf.textColor = 0xff0000;
-				bmp.color.setColor( dn.Color.addAlphaF(0xff0000) );
+				bt.color.setColor( dn.Color.addAlphaF(0xff0000, alpha) );
 			}
+
+			// Analog
+			if( isAnalog )
+				bt.x = BT_SIZE*0.5 + BT_SIZE*0.5* ca.getAnalogValue(a) - bt.tile.width*0.5;
 		}
+
+		return p;
 	}
 
 
@@ -155,6 +182,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		var p = createChildProcess();
 		p.createRoot(flow);
 
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
 		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,2,BT_SIZE), p.root);
 		bmp.tile.setCenterRatio(0.5,0);
 		var tf = new h2d.Text(font, p.root);
@@ -164,9 +192,10 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		p.onUpdateCb = ()->{
 			var v = ca.getAnalogValue(a);
 			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
-			tf.textColor = v!=0 ? 0x00ff00 : 0xff0000;
-			tf.text = a.getName()+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(ca.getAnalogDist(a),1);
 			bmp.color.setColor( dn.Color.addAlphaF(v!=0 ? 0x00ff00 : 0xff0000) );
+			bg.color.setColor( dn.Color.addAlphaF(v!=0 ? 0x00ff00 : 0xff0000, 0.45) );
+			tf.textColor = v!=0 ? 0x00ff00 : 0xff0000;
+			tf.text = a.getName()+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(ca.getAnalogDistXY(a),1);
 		}
 	}
 
@@ -174,29 +203,62 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 	/**
 		Create a combined X/Y (ie. stick) display
 	**/
-	public function createStick(xAxis:T, yAxis:T) {
+	public function createStickXY(xAxis:T, yAxis:T) {
 		var p = createChildProcess();
 		p.createRoot(flow);
 
 		var s = dn.M.round(BT_SIZE*0.3);
-		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), p.root);
-		bmp.rotation = dn.M.PIHALF*0.5;
-		bmp.tile.setCenterRatio(0.5,0);
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
+		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), p.root);
+		bt.rotation = dn.M.PIHALF*0.5;
+		bt.tile.setCenterRatio(0.5);
 
 		var tf = new h2d.Text(font, p.root);
 		tf.x = BT_SIZE+4;
 		tf.y = -2;
 
 		p.onUpdateCb = ()->{
-			var a = ca.getAnalogAngle(xAxis, yAxis);
-			var d = ca.getAnalogDist(xAxis, yAxis);
+			var a = ca.getAnalogAngleXY(xAxis, yAxis);
+			var d = ca.getAnalogDistXY(xAxis, yAxis);
 			tf.textColor = d<=0 ? 0xff0000 : 0x00ff00;
-			bmp.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
-			bmp.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
-
 			tf.text = xAxis.getName()+"/"+yAxis.getName()+" ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
+
+			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
+			bt.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
+			bg.color.setColor( Color.addAlphaF(tf.textColor,0.4) );
 		}
 	}
+
+
+	/**
+		Create a combined Left/Right/Up/Down (ie. stick) display
+	**/
+	public function createStick4(?name:String, left:T, right:T, up:T, down:T) {
+		var p = createChildProcess();
+		p.createRoot(flow);
+
+		var s = dn.M.round(BT_SIZE*0.3);
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
+		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), p.root);
+		bt.rotation = dn.M.PIHALF*0.5;
+		bt.tile.setCenterRatio(0.5);
+
+		var tf = new h2d.Text(font, p.root);
+		tf.x = BT_SIZE+4;
+		tf.y = -2;
+
+		p.onUpdateCb = ()->{
+			var a = ca.getAnalogAngle4(left,right,up,down);
+			var d = ca.getAnalogDist4(left,right,up,down);
+			tf.textColor = d<=0 ? 0xff0000 : 0x00ff00;
+			tf.text = (name!=null?name+" ":"") + "ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
+
+			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
+			bt.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
+			bg.color.setColor( Color.addAlphaF(tf.textColor,0.4) );
+		}
+	}
+
 
 	/**
 		Create an "auto-fire" button display
