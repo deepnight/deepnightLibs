@@ -13,6 +13,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 	var status : Null<h2d.Text>;
 	var connected = false;
 	var buttons : Map<T,Process> = new Map();
+	var odd = false;
 
 	var afterRender : Null< ControllerDebug<T>->Void >;
 
@@ -124,12 +125,15 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		tf.y = 4;
 
 		var bFlow = new h2d.Flow(p.root);
-		bFlow.x = 150;
-		bFlow.horizontalSpacing = 1;
+		bFlow.x = 120;
+		bFlow.minWidth = 300;
+		bFlow.paddingHorizontal = 4;
+		bFlow.paddingVertical = 1;
 		bFlow.verticalAlign = Middle;
+		bFlow.backgroundTile = h2d.Tile.fromColor( 0xff0000, 1,1, odd ? 0.4 : 0.2 );
 
 		inline function _addText(t:String, f:h2d.Flow) {
-			var tf = new h2d.Text(@:privateAccess ca.input.iconFont, f);
+			var tf = new h2d.Text(font, f);
 			tf.text = t;
 			return tf;
 		}
@@ -140,7 +144,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			// Gamepad icons
 			var gpFlow = new h2d.Flow(bFlow);
 			gpFlow.verticalAlign = Middle;
-			gpFlow.minWidth = 100;
+			gpFlow.minWidth = 150;
 			var first = true;
 			for(f in ca.input.getAllBindindIconsFor(a,Gamepad)) {
 				if( !first )
@@ -174,6 +178,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 				bt.x = BT_SIZE*0.5 + BT_SIZE*0.5* ca.getAnalogValue(a) - bt.tile.width*0.5;
 		}
 
+		odd = !odd;
 		return p;
 	}
 
