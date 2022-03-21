@@ -6,6 +6,8 @@ package dn.heaps.input;
 **/
 class ControllerDebug<T:EnumValue> extends dn.Process {
 	static var BT_SIZE = 10;
+	static var RED = 0xff4400;
+	static var GREEN = 0x66ff00;
 
 	var ca : ControllerAccess<T>;
 	var flow : h2d.Flow;
@@ -49,6 +51,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		connected = true;
 		killAllChildrenProcesses();
 		flow.removeChildren();
+		flow.backgroundTile = h2d.Tile.fromColor(0x0, 1,1, 0.4);
 
 		status = new h2d.Text(font, flow);
 		flow.addSpacing(4);
@@ -130,7 +133,6 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		bFlow.paddingHorizontal = 4;
 		bFlow.paddingVertical = 1;
 		bFlow.verticalAlign = Middle;
-		bFlow.backgroundTile = h2d.Tile.fromColor( 0xff0000, 1,1, odd ? 0.4 : 0.2 );
 
 		inline function _addText(t:String, f:h2d.Flow) {
 			var tf = new h2d.Text(font, f);
@@ -165,12 +167,12 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 
 			var alpha = isAnalog ? 0.4 : 1;
 			if( ca.isDown(a) ) {
-				tf.textColor = 0x00ff00;
-				bt.color.setColor( dn.Color.addAlphaF(0x00ff00, alpha) );
+				tf.textColor = GREEN;
+				bt.color.setColor( dn.Color.addAlphaF(GREEN, alpha) );
 			}
 			else {
-				tf.textColor = 0xff0000;
-				bt.color.setColor( dn.Color.addAlphaF(0xff0000, alpha) );
+				tf.textColor = RED;
+				bt.color.setColor( dn.Color.addAlphaF(RED, alpha) );
 			}
 
 			// Analog
@@ -197,9 +199,9 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		p.onUpdateCb = ()->{
 			var v = ca.getAnalogValue(a);
 			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
-			bmp.color.setColor( dn.Color.addAlphaF(v!=0 ? 0x00ff00 : 0xff0000) );
-			bg.color.setColor( dn.Color.addAlphaF(v!=0 ? 0x00ff00 : 0xff0000, 0.45) );
-			tf.textColor = v!=0 ? 0x00ff00 : 0xff0000;
+			bmp.color.setColor( dn.Color.addAlphaF(v!=0 ? GREEN : RED) );
+			bg.color.setColor( dn.Color.addAlphaF(v!=0 ? GREEN : RED, 0.45) );
+			tf.textColor = v!=0 ? GREEN : RED;
 			tf.text = a.getName()+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(ca.getAnalogDistXY(a),1);
 		}
 	}
@@ -225,7 +227,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		p.onUpdateCb = ()->{
 			var a = ca.getAnalogAngleXY(xAxis, yAxis);
 			var d = ca.getAnalogDistXY(xAxis, yAxis);
-			tf.textColor = d<=0 ? 0xff0000 : 0x00ff00;
+			tf.textColor = d<=0 ? RED : GREEN;
 			tf.text = xAxis.getName()+"/"+yAxis.getName()+" ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
 
 			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
@@ -255,7 +257,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 		p.onUpdateCb = ()->{
 			var a = ca.getAnalogAngle4(left,right,up,down);
 			var d = ca.getAnalogDist4(left,right,up,down);
-			tf.textColor = d<=0 ? 0xff0000 : 0x00ff00;
+			tf.textColor = d<=0 ? RED : GREEN;
 			tf.text = (name!=null?name+" ":"") + "ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
 
 			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
@@ -280,12 +282,12 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 
 		p.onUpdateCb = ()->{
 			if( ca.isPressedAutoFire(a) ) {
-				tf.textColor = 0x00ff00;
-				bmp.color.setColor( dn.Color.addAlphaF(0x00ff00) );
+				tf.textColor = GREEN;
+				bmp.color.setColor( dn.Color.addAlphaF(GREEN) );
 			}
 			else {
-				tf.textColor = 0xff0000;
-				bmp.color.setColor( dn.Color.addAlphaF(0xff0000) );
+				tf.textColor = RED;
+				bmp.color.setColor( dn.Color.addAlphaF(RED) );
 			}
 		}
 	}
@@ -311,7 +313,7 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			else if( ca.isDown(a) )
 				tf.textColor = dn.Color.interpolateInt(0x000044, 0x0088ff, ca.getHoldRatio(a,durationS));
 			else
-				tf.textColor = 0xff0000;
+				tf.textColor = RED;
 
 			tf.text = base + ": " + M.round( ca.getHoldRatio(a,durationS)*100 ) + "%";
 			if( ca.isHeld(a,durationS) )
@@ -334,6 +336,6 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 			onDisconnect();
 
 		status.text = getName()+"\n"+ (ca.input.isPadConnected() ? "Pad connected" : "Pad disconnected");
-		status.textColor = ca.input.isPadConnected() ? 0x00ff00 : 0xff0000;
+		status.textColor = ca.input.isPadConnected() ? GREEN : RED;
 	}
 }
