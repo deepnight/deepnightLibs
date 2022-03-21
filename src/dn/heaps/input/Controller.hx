@@ -64,20 +64,22 @@ enum ControllerType {
 		Attack;
 	}
 	var ctrl = new Controller(MyGameActions);
-	ctrl.bindKeyboardAsStick(MoveX,MoveY, hxd.Key.UP, hxd.Key.LEFT, hxd.Key.DOWN, hxd.Key.RIGHT);
-	ctrl.bindKeyboardAsStick(MoveX,MoveY, hxd.Key.W, hxd.Key.A, hxd.Key.S, hxd.Key.D);
+	ctrl.bindKeyboardAsStickXY(MoveX,MoveY, hxd.Key.UP, hxd.Key.LEFT, hxd.Key.DOWN, hxd.Key.RIGHT);
+	ctrl.bindKeyboardAsStickXY(MoveX,MoveY, hxd.Key.W, hxd.Key.A, hxd.Key.S, hxd.Key.D);
 	ctrl.bindKeyboard(Jump, hxd.Key.SPACE);
 	ctrl.bindKeyboard(Attack, [hxd.Key.X, hxd.Key.CTRL, hxd.Key.W, hxd.Key.Z] );
 
-	ctrl.bindPadLStick(MoveX,MoveY);
-	ctrl.bindPadButtonsAsStick(MoveX,MoveY, DPAD_UP, DPAD_LEFT, DPAD_DOWN, DPAD_RIGHT);
+	ctrl.bindPad(MoveLeft, LSTICK_LEFT);
+	ctrl.bindPad(MoveRight, LSTICK_RIGHT);
 	ctrl.bindPad(Jump, A);
-	ctrl.bindPad(Attack, [X,RT,LT]);
+	ctrl.bindPad(Attack, [X, RT, LT]);
+	ctrl.bindPadCombo(SuperAttack, [A, B]);
 
 	var access = ctrl.createAccess();
+	trace( access.isDown(MoveRight) );
 	trace( access.isPressed(Jump) );
-	trace( access.getAnalogAngle(MoveX,MoveY) );
-	trace( access.isPositive(MoveY) );
+	trace( access.isPressed(SuperAttack) );
+	trace( access.getAnalogAngleXY(MoveX, MoveY) );
 
 	var debug = access.createDebugger(myParentProcess);
 	```
