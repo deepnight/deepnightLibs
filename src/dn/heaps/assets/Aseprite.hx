@@ -79,8 +79,30 @@ class Aseprite {
 		Example: `{  mySlice:"mySlice",  grass1:"grass1",  stoneBlock:"stoneBlock"  }`
 	**/
 	macro public static function getDict(asepriteRes:ExprOf<hxd.res.Resource>) {
-		var pos = Context.currentPos();
 		var path = dn.MacroTools.resolveResToPath(asepriteRes);
+		return macro dn.heaps.assets.Aseprite.getDictFromFile($v{path});
+	}
+
+
+
+	/**
+		Build an anonymous object containing all "slices" names found in given Aseprite file.
+		Example: `{  mySlice:"mySlice",  grass1:"grass1",  stoneBlock:"stoneBlock"  }`
+	**/
+	macro public static function getDictFromFile(pathToAsepriteFile:ExprOf<String>) {
+		var pos = Context.currentPos();
+		var path = switch pathToAsepriteFile.expr {
+			case EConst( CString(v) ): v;
+			case _: Context.fatalError("Path should be a constant string", pathToAsepriteFile.pos);
+		}
+
+		// Try to find file in class paths if not found as-is
+		if( !sys.FileSystem.exists(path) ) {
+			path = dn.MacroTools.locateFileInClassPath(path);
+			if( !sys.FileSystem.exists(path) )
+				Context.fatalError("Aseprite file not found: "+path, pathToAsepriteFile.pos);
+		}
+
 		var keys : Array<String> = null;
 
 		Context.registerModuleDependency(Context.getLocalModule(), path);
