@@ -14,6 +14,26 @@ class MacroTools {
 		return {pos:pos, expr:EBlock([])}
 	}
 
+
+	public static macro function embedClassPathFile(pathToFile:ExprOf<String>) {
+		var filePath = switch pathToFile.expr {
+			case EConst(CString(v)): v;
+			case _: Context.fatalError("A constant String is expected here", pathToFile.pos);
+		}
+
+		for(dir in Context.getClassPath()) {
+			if( !sys.FileSystem.exists(dir+filePath) )
+				continue;
+			var bytes = sys.io.File.getBytes(dir+filePath);
+			var b64 = haxe.crypto.Base64.encode(bytes);
+			return macro $v{b64};
+		}
+
+		Context.fatalError("File not found in class paths", pathToFile.pos);
+		return macro null;
+	}
+
+
 	public static macro function getBuild(pathToBuildFile:ExprOf<String>, preIncrement:ExprOf<Bool>) {
 		var pos = Context.currentPos();
 		var path = switch( pathToBuildFile.expr ) {
