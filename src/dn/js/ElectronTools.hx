@@ -58,6 +58,7 @@ class ElectronTools {
 		IpcMain.on("getLogDir", ev->ev.returnValue = getLogDir());
 		IpcMain.on("getUserDataDir", ev->ev.returnValue = getUserDataDir());
 		IpcMain.on("isFullScreen", ev->ev.returnValue = isFullScreen());
+		IpcMain.on("isDevToolsOpened", ev->ev.returnValue = isDevToolsOpened());
 		IpcMain.on("locate", (ev,path,isFile)->ev.returnValue = locate(path,isFile));
 	}
 
@@ -97,6 +98,10 @@ class ElectronTools {
 	/** Return fullscreen mode **/
 	public static function isFullScreen() : Bool
 		return isRenderer() ? IpcRenderer.sendSync("isFullScreen") : mainWindow.isFullScreen();
+
+	/** Return status of the dev tools panel **/
+	public static function isDevToolsOpened() : Bool
+		return isRenderer() ? IpcRenderer.sendSync("isDevToolsOpened") : mainWindow.webContents.isDevToolsOpened();
 
 	/** Get primary display width in pixels **/
 	public static function getScreenWidth() : Float
