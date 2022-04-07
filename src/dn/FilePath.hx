@@ -682,8 +682,12 @@ class FilePath {
 	/**
 		Extract the file extension from a path. Returns null if it doesn't exist.
 	**/
-	public static inline function extractExtension(path:String) : Null<String> {
-		return FilePath.fromFile(path).extension;
+	public static inline function extractExtension(path:String, lowercase=false) : Null<String> {
+		var e = FilePath.fromFile(path).extension;
+		if( lowercase && e!=null )
+			return e.toLowerCase();
+		else
+			return e;
 	}
 
 
