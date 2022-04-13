@@ -4,23 +4,8 @@ import electron.main.IpcMain;
 import electron.renderer.IpcRenderer;
 
 #if !electron
-#error "HaxeLib \"electron\" is required";
+	#error "HaxeLib \"electron\" is required";
 #end
-
-private typedef UpdateInfo = {
-	var version: String;
-	var files: Array<Dynamic>;
-	var ?releaseName: Null<String>;
-	var ?releaseNotes: Null< haxe.extern.EitherType<String, Array<Dynamic>> >;
-	var releaseDate: String;
-	var ?stagingPercentage: Int;
-}
-
-private extern class AutoUpdater {
-	public function checkForUpdates() : Dynamic;
-	public function on(eventId:String, onEvent:UpdateInfo->Void) : Dynamic;
-	public function quitAndInstall(isSilent:Bool=false, isForceRunAfter:Bool=false) : Dynamic;
-}
 
 
 class ElectronUpdater {
@@ -33,40 +18,66 @@ class ElectronUpdater {
 		if( IpcMain==null )
 			throw "Should only be called in electorn Main!";
 
-		var autoUpdater : electronUpdater.AutoUpdater = js.node.Require.require("electron-updater").autoUpdater;
+		var autoUpdater : AutoUpdater = js.node.Require.require("electron-updater").autoUpdater;
 		isIntalling = false;
 		var isChecking = false;
 		var hasDownloadedUpdate = false;
 
-		autoUpdater.on("checking-for-update", function(info) {
+		autoUpdater.on("checking-for-update", function(info:UpdateInfo) {
 			isChecking = true;
 			win.webContents.send("updateCheckStart", info);
 		});
 
-		autoUpdater.on("update-available", function(info) {
+		autoUpdater.on("update-available", function(info:UpdateInfo) {
 			isChecking = false;
 			win.webContents.send("updateFound", info);
 		});
 
-		autoUpdater.on("update-not-available", function(info) {
+		autoUpdater.on("download-progress", function(progressObj:UpdateProgress) {
+			isChecking = false;
+			win.webContents.send("updateDownloadProgress", progressObj.transferred, progressObj.total);
+		});
+
+		autoUpdater.on("update-not-available", function(info:UpdateInfo) {
 			isChecking = false;
 			win.webContents.send("updateNotFound");
 		});
 
-		autoUpdater.on("update-downloaded", function(info) {
+		autoUpdater.on("update-downloaded", function(info:UpdateInfo) {
 			js.html.Console.log("Update ready!");
 			win.webContents.send("updateDownloaded");
 			hasDownloadedUpdate = true;
 		});
 
-		autoUpdater.on("error", function(ev) {
-			var ev : js.lib.Error = cast ev;
+		autoUpdater.on("error", function(ev:js.lib.Error) {
 			if( isChecking )
 				win.webContents.send("updateError", ev.message);
 			isChecking = false;
 		});
 
-		IpcMain.handle("checkUpdate", function(event,args) {
+		IpcMain.handle("checkAndInstall", function(event,args) {
+			trace("check & download");
+			autoUpdater.autoDownload = true;
+			autoUpdater.autoInstallOnAppQuit = true;
+			trace(autoUpdater);
+			var prom = autoUpdater.checkForUpdates();
+			prom.then(()->{}, (err)->{});
+		});
+
+		IpcMain.handle("downloadAndInstall", function(event,args) {
+			trace("download");
+			autoUpdater.autoDownload = true;
+			autoUpdater.autoInstallOnAppQuit = true;
+			trace(autoUpdater);
+			var prom = autoUpdater.downloadUpdate();
+			prom.then(()->{}, (err)->{});
+		});
+
+		IpcMain.handle("checkOnly", function(event,args) {
+			trace("checkonly");
+			autoUpdater.autoDownload = false;
+			autoUpdater.autoInstallOnAppQuit = false;
+			trace(autoUpdater);
 			var prom = autoUpdater.checkForUpdates();
 			prom.then(()->{}, (err)->{});
 		});
@@ -109,6 +120,10 @@ class ElectronUpdater {
 		IpcRenderer.on("updateNotFound", function(ev) {
 			onUpdateNotFound();
 			onUpdateCheckComplete();
+		});
+
+		IpcRenderer.on("updateDownloadProgress", function(ev, cur:Int, total:Int) {
+			onUpdateDownloadProgress(cur, total);
 		});
 
 		IpcRenderer.on("updateDownloaded", function(ev) {
@@ -183,8 +198,22 @@ class ElectronUpdater {
 		}).on( "error", ()->onLoad(null) );
 	}
 
-	public static function checkNow() {
-		IpcRenderer.invoke("checkUpdate");
+	/**
+		Check for update, download it and install it
+	**/
+	public static function checkAndInstall() {
+		IpcRenderer.invoke("checkAndInstall");
+	}
+
+	/**
+		Check for update
+	**/
+	public static function checkOnly() {
+		IpcRenderer.invoke("checkOnly");
+	}
+
+	public static function downloadAndInstall() {
+		IpcRenderer.invoke("downloadAndInstall");
 	}
 
 	public static function installNow() {
@@ -195,6 +224,7 @@ class ElectronUpdater {
 	// Callbacks
 	public static dynamic function onUpdateCheckStart() {}
 	public static dynamic function onUpdateFound(info:UpdateInfo) {}
+	public static dynamic function onUpdateDownloadProgress(cur:Int, total:Int) {}
 	public static dynamic function onUpdateDownloaded(info:UpdateInfo) {}
 	public static dynamic function onUpdateNotFound() {}
 	public static dynamic function onError(msg:String) {}
@@ -202,3 +232,58 @@ class ElectronUpdater {
 
 }
 
+
+
+
+/**  Extern JS bindings **********************************************************************/
+
+typedef UpdateInfo = {
+	/**
+	* The version.
+	*/
+	var version: String;
+	var files: Array<Dynamic>;
+
+	/**
+	* The release name.
+	*/
+	var ?releaseName: Null<String>;
+
+	/**
+	* The release notes. List if `updater.fullChangelog` is set to `true`, `string` otherwise.
+	*/
+	var ?releaseNotes: Null< haxe.extern.EitherType<String, Array<Dynamic>> >;
+
+	/**
+	* The release date.
+	*/
+	var releaseDate: String;
+
+	/**
+	* The [staged rollout](/auto-update#staged-rollouts) percentage, 0-100.
+	*/
+	var ?stagingPercentage: Int;
+}
+
+typedef UpdateProgress = {
+	var bytesPerSecond: Int;
+	var percent: Int; // 0-100
+	var transferred: Int;
+	var total: Int;
+}
+
+extern class AutoUpdater {
+	/** If TRUE (default), update is automatically downloaded after check. **/
+	public var autoDownload : Bool;
+
+	/** If TRUE (default), update is automatically installed after exit. **/
+	public var autoInstallOnAppQuit : Bool;
+
+	public function downloadUpdate() : Dynamic;
+	public function checkForUpdates() : Dynamic;
+	public function on(eventId:String, onEvent:Dynamic->Void) : Dynamic;
+	public function quitAndInstall(isSilent:Bool=false, isForceRunAfter:Bool=false) : Dynamic;
+
+	/** Expected values: latest/null, beta or alpha **/
+	public var channel : Null<String>;
+}
