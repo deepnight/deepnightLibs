@@ -56,33 +56,26 @@ class ElectronUpdater {
 		});
 
 		IpcMain.handle("checkAndInstall", function(event,args) {
-			trace("check & download");
 			autoUpdater.autoDownload = true;
 			autoUpdater.autoInstallOnAppQuit = true;
-			trace(autoUpdater);
 			var prom = autoUpdater.checkForUpdates();
 			prom.then(()->{}, (err)->{});
 		});
 
-		IpcMain.handle("downloadAndInstall", function(event,args) {
-			trace("download");
-			autoUpdater.autoDownload = true;
-			autoUpdater.autoInstallOnAppQuit = true;
-			trace(autoUpdater);
+		IpcMain.handle("download", function(event,args) {
+			autoUpdater.autoInstallOnAppQuit = false;
 			var prom = autoUpdater.downloadUpdate();
 			prom.then(()->{}, (err)->{});
 		});
 
 		IpcMain.handle("checkOnly", function(event,args) {
-			trace("checkonly");
 			autoUpdater.autoDownload = false;
 			autoUpdater.autoInstallOnAppQuit = false;
-			trace(autoUpdater);
 			var prom = autoUpdater.checkForUpdates();
 			prom.then(()->{}, (err)->{});
 		});
 
-		IpcMain.handle("installUpdate", function(event) {
+		IpcMain.handle("quitAndInstall", function(event) {
 			if( !hasDownloadedUpdate ) {
 				js.html.Console.log("Need to download update first!");
 				return;
@@ -212,12 +205,12 @@ class ElectronUpdater {
 		IpcRenderer.invoke("checkOnly");
 	}
 
-	public static function downloadAndInstall() {
-		IpcRenderer.invoke("downloadAndInstall");
+	public static function download() {
+		IpcRenderer.invoke("download");
 	}
 
-	public static function installNow() {
-		IpcRenderer.invoke("installUpdate");
+	public static function quitAndInstall() {
+		IpcRenderer.invoke("quitAndInstall");
 	}
 
 
