@@ -151,14 +151,15 @@ class LocalStorage {
 	/**
 		Read an anonymous object right from storage.
 	**/
-	public static function readObject<T>(storageName:String, isJsonStorage:Bool, ?defValue:T) : T {
+	public static function readObject<T>(storageName:String, format:StorageFormat, ?defValue:T) : T {
 		var raw = _loadRawStorage(storageName);
 		if( raw==null )
 			return defValue;
 		else {
-			var obj =
-				try isJsonStorage ? haxe.Json.parse(raw) : haxe.Unserializer.run(raw)
-				catch( err:Dynamic ) null;
+			var obj = switch format {
+				case Json: try haxe.Json.parse(raw) catch(_) null;
+				case Serialized: try haxe.Unserializer.run(raw) catch(_) null;
+			}
 
 			if( obj==null )
 				return defValue;
@@ -175,28 +176,32 @@ class LocalStorage {
 						Reflect.setField(obj, k, Reflect.field(defValue,k));
 			}
 
-			// Remap JsonPretty enums
-			if( isJsonStorage ) {
-				var enumError = false;
-				Lib.iterateObjectRec(obj, (v,setter)->{
-					if( Type.typeof(v)==TObject ) {
-						var enumObj : Dynamic = cast v;
-						if( enumObj.__jsonEnum!=null ) {
-							try {
-								var enumStr : String = enumObj.__jsonEnum;
-								var e = Type.resolveEnum(enumStr);
-								var ev = e.createByName(enumObj.v, enumObj.p==null ? [] : enumObj.p);
-								setter(ev);
-							}
-							catch(err:Dynamic) {
-								enumError = true;
+			// Fix final object
+			switch format {
+				case Json:
+					// Remap JsonPretty enums
+					var enumError = false;
+					Lib.iterateObjectRec(obj, (v,setter)->{
+						if( Type.typeof(v)==TObject ) {
+							var enumObj : Dynamic = cast v;
+							if( enumObj.__jsonEnum!=null ) {
+								try {
+									var enumStr : String = enumObj.__jsonEnum;
+									var e = Type.resolveEnum(enumStr);
+									var ev = e.createByName(enumObj.v, enumObj.p==null ? [] : enumObj.p);
+									setter(ev);
+								}
+								catch(err:Dynamic) {
+									enumError = true;
+								}
 							}
 						}
-					}
-				});
+					});
 
-				if( enumError )
-					return defValue;
+					if( enumError )
+						return defValue;
+
+				case Serialized:
 			}
 
 			return obj;
@@ -207,13 +212,14 @@ class LocalStorage {
 		Write an anonymous object to specified storage name. If `storeAsJson` is FALSE, the object will be serialized.
 	**/
 	public static function writeObject<T>(storageName:String, format:StorageFormat, obj:T) {
-		switch format {
+		var str = switch format {
 			case Json:
-				_saveStorage( storageName, JsonPretty.stringify(obj, JSON_PRETTY_LEVEL, UseEnumObject) );
+				JsonPretty.stringify(obj, JSON_PRETTY_LEVEL, UseEnumObject);
 
 			case Serialized:
-				_saveStorage( storageName, haxe.Serializer.run(obj) );
+				haxe.Serializer.run(obj);
 		}
+		_saveStorage( storageName, str );
 	}
 
 
@@ -289,7 +295,7 @@ class LocalStorage {
 		CiAssert.printIfVerbose("LocaleStorage for objects:");
 
 		// Default value test
-		var firstLoaded = readObject(baseStorageName, false, { a:0, b:10, str:"foo", enu:ValueA });
+		var firstLoaded = readObject(baseStorageName, Json, { a:0, b:10, str:"foo", enu:ValueA });
 		CiAssert.isTrue( !exists(baseStorageName) );
 		CiAssert.isTrue( firstLoaded!=null );
 		CiAssert.equals( firstLoaded.a, 0 );
@@ -304,12 +310,14 @@ class LocalStorage {
 			firstLoaded.b++;
 			firstLoaded.str = null;
 
+
 			// Json format
 			var name = baseStorageName+"_json";
 			CiAssert.printIfVerbose("Json format:");
 			writeObject(name, Json, firstLoaded);
 			CiAssert.isTrue( exists(name) );
-			var jsonLoaded = readObject(name, true);
+
+			var jsonLoaded = readObject(name, Json);
 			CiAssert.equals( jsonLoaded.a, 1 );
 			CiAssert.equals( jsonLoaded.b, 11 );
 			CiAssert.equals( jsonLoaded.str, null );
@@ -317,12 +325,14 @@ class LocalStorage {
 			delete(name);
 			CiAssert.isFalse( exists(name) );
 
+
 			// Serialized format
 			var name = baseStorageName+"_ser";
 			CiAssert.printIfVerbose("Serialized format:");
 			writeObject(name, Serialized, firstLoaded);
 			CiAssert.isTrue( exists(name) );
-			var serializedLoaded = readObject(name, false);
+
+			var serializedLoaded = readObject(name, Serialized);
 			CiAssert.equals( serializedLoaded.a, 1 );
 			CiAssert.equals( serializedLoaded.b, 11 );
 			CiAssert.equals( serializedLoaded.str, null );
