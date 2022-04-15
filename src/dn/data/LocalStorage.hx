@@ -7,8 +7,6 @@ enum StorageFormat {
 
 class LocalStorage {
 
-	#if( sys || hl || hxnodejs )
-
 	/** Relative path to the store the data files (only relevant on platformss that support file writing) **/
 	public static var STORAGE_PATH : Null<String> =
 		try {
@@ -20,6 +18,9 @@ class LocalStorage {
 				null;
 			#end
 		} catch(e) null;
+
+
+	#if( sys || hl || hxnodejs )
 
 	/** Return path to the storage file for specified storage name **/
 	static function getStoragePath(storageName:String) : dn.FilePath {
