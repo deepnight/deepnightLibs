@@ -66,6 +66,14 @@ class LocalStorage {
 	}
 
 
+	/**
+		Change the extension of the storage file (only works for platforms that have file system access).
+	**/
+	public function setStorageFileDir(dir:Null<String>) {
+		storagePath.setDirectory( dir );
+	}
+
+
 	/** Return TRUE if this platform supports local storage **/
 	public static function isSupported() : Bool {
 		#if( hl || sys || hxnodejs || flash )
