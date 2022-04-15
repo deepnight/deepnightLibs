@@ -16,39 +16,53 @@ class LocalStorage {
 	static var CRC_SEPARATOR = "/||/";
 	static var CRC_SALT = "s*al!t";
 
-	/** Relative path to the store the data files (only applies to platformss that support file writing) **/
-	public var dir: Null<String>;
-
-	/** Extension of the storage files (only applies to platformss that support file writing) **/
-	public var fileExt = "cfg";
-
-	var format : StorageFormat;
-
 	/** If TRUE, a checksum will be written along with data, which will be verified on loading. **/
 	public var useCRC = false;
 
-	function new(f:StorageFormat) {
-		format = f;
-		dir = try {
-			#if hxnodejs
-				js.node.Require.require("process").cwd();
-			#elseif sys
-				Sys.getCwd();
-			#else
-				null;
-			#end
-		} catch(e) null;
-	}
+	var storagePath : dn.FilePath;
+	var format : StorageFormat;
 
-	public static function createJson(prettyLevel : dn.data.JsonPretty.JsonPrettyLevel = Full) : LocalStorage {
-		var ls = new LocalStorage( Json(prettyLevel) );
+
+
+	/**
+		Create a storage where data uses JSON format
+	**/
+	public static function createJsonStorage(name:String, prettyLevel : dn.data.JsonPretty.JsonPrettyLevel = Full) : LocalStorage {
+		var ls = new LocalStorage( name, Json(prettyLevel) );
 		return ls;
 	}
 
-	public static function createSerialized(useCrc=false) : LocalStorage {
-		var ls = new LocalStorage(Serialized);
+	/**
+		Create a storage where data uses Haxe Serializer format
+	**/
+	public static function createSerializedStorage(name:String, useCrc=false) : LocalStorage {
+		var ls = new LocalStorage(name, Serialized);
 		ls.useCRC = useCrc;
 		return ls;
+	}
+
+
+
+	function new(storageName:String, f:StorageFormat) {
+		format = f;
+
+		// Init path
+		storagePath = FilePath.fromFile(storageName+".cfg");
+		#if hxnodejs
+			storagePath.setDirectory( try js.node.Require.require("process").cwd() catch(_) null );
+		#elseif sys
+			storagePath.setDirectory( Sys.getCwd() );
+		#end
+	}
+
+
+	/**
+		Change the extension of the storage file (only works for platforms that have file system access).
+	**/
+	public function setStorageFileExtension(ext:Null<String>) {
+		if( ext.indexOf(".")==0 )
+			ext = ext.substr(1);
+		storagePath.extension = ext;
 	}
 
 
@@ -64,16 +78,6 @@ class LocalStorage {
 	}
 
 
-	/** Return path to the storage file for specified storage name **/
-	function getStoragePath(storageName:String) : dn.FilePath {
-		var fp = FilePath.fromDir( dir==null ? "" : dir );
-		fp.fileName = storageName;
-		fp.extension = fileExt;
-		fp.useSlashes();
-		return fp;
-	}
-
-
 	/** Build checksum for given string **/
 	function makeCRC(data:String) {
 		return haxe.crypto.Sha1.encode( data + haxe.crypto.Sha1.encode(data + CRC_SALT) ).substr(4, 32);
@@ -83,29 +87,25 @@ class LocalStorage {
 	/**
 		Read unparsed String for specified storage name
 	**/
-	function fromStorage(storageName:String) : Null<String> {
-		if( storageName==null )
-			return null;
-
+	function fromStorage() : Null<String> {
 		var raw : Null<String> = {
 			#if flash
 
-				try flash.net.SharedObject.getLocal( storageName ).data.content catch(e:Dynamic) null;
+				try flash.net.SharedObject.getLocal( storagePath.fileName ).data.content catch(e:Dynamic) null;
 
 			#elseif( sys || hl || hxnodejs )
 
-				var fp = getStoragePath(storageName);
 				#if hxnodejs
-				try js.node.Fs.readFileSync(fp.full).toString() catch(e) null;
+				try js.node.Fs.readFileSync(storagePath.full).toString() catch(e) null;
 				#else
-				try sys.io.File.getContent(fp.full) catch( e : Dynamic ) null;
+				try sys.io.File.getContent(storagePath.full) catch( e : Dynamic ) null;
 				#end
 
 			#elseif js
 
 				var jsStorage = js.Browser.getLocalStorage();
 				if( jsStorage!=null )
-					jsStorage.getItem(storageName);
+					jsStorage.getItem(storagePath.full);
 				else
 					null;
 
@@ -134,32 +134,30 @@ class LocalStorage {
 	/**
 		Save raw storage data.
 	**/
-	function toStorage(storageName:String, raw:String) : Bool {
+	function toStorage(raw:String) : Bool {
 		try {
 			if( useCRC )
 				raw = makeCRC(raw) + CRC_SEPARATOR + raw;
 
 			#if flash
 
-				var so = flash.net.SharedObject.getLocal( storageName );
+				var so = flash.net.SharedObject.getLocal( storagePath.fileName );
 				so.data.content = raw;
 				so.flush();
 
 			#elseif( sys || hl || hxnodejs )
 
-				var fp = getStoragePath(storageName);
-
 				#if hxnodejs
 
-				if( !js.node.Fs.existsSync(fp.directory) )
-					js.node.Fs.mkdirSync(fp.directory);
-				js.node.Fs.writeFileSync( fp.full, raw );
+				if( storagePath.directory!=null && !js.node.Fs.existsSync(storagePath.directory) )
+					js.node.Fs.mkdirSync(storagePath.directory);
+				js.node.Fs.writeFileSync( storagePath.full, raw );
 
 				#else
 
-				if( !sys.FileSystem.exists(fp.directory) )
-					sys.FileSystem.createDirectory(fp.directory);
-				sys.io.File.saveContent(fp.full, raw);
+				if( storagePath.directory!=null && !sys.FileSystem.exists(storagePath.directory) )
+					sys.FileSystem.createDirectory(storagePath.directory);
+				sys.io.File.saveContent(storagePath.full, raw);
 
 				#end
 
@@ -167,7 +165,7 @@ class LocalStorage {
 
 				var jsStorage = js.Browser.getLocalStorage();
 				if( jsStorage!=null )
-					jsStorage.setItem(storageName, raw);
+					jsStorage.setItem(storagePath.fileName, raw);
 				else
 					null;
 
@@ -186,23 +184,23 @@ class LocalStorage {
 	/**
 		Read the specified storage as a String.
 	**/
-	public function readString(storageName:String, ?defValue:String) : Null<String> {
-		var raw = fromStorage(storageName);
+	public function readString(?defValue:String) : Null<String> {
+		var raw = fromStorage();
 		return raw==null ? defValue : raw;
 	}
 
 	/**
 		Save a String to specified storage.
 	**/
-	public function writeString(storageName:String, raw:String) {
-		toStorage(storageName, raw);
+	public function writeString(raw:String) {
+		toStorage(raw);
 	}
 
 	/**
 		Read an anonymous object right from storage.
 	**/
-	public function readObject<T>(storageName:String, format:StorageFormat, ?defValue:T) : T {
-		var raw = fromStorage(storageName);
+	public function readObject<T>(?defValue:T) : T {
+		var raw = fromStorage();
 		if( raw==null )
 			return defValue;
 		else {
@@ -261,7 +259,7 @@ class LocalStorage {
 	/**
 		Write an anonymous object to specified storage name. If `storeAsJson` is FALSE, the object will be serialized.
 	**/
-	public function writeObject<T>(storageName:String, obj:T) {
+	public function writeObject<T>(obj:T) {
 		var str = switch format {
 			case Json(prettyLevel):
 				JsonPretty.stringify(obj, prettyLevel, UseEnumObject);
@@ -269,44 +267,43 @@ class LocalStorage {
 			case Serialized:
 				haxe.Serializer.run(obj);
 		}
-		toStorage( storageName, str );
+		toStorage( str );
 	}
 
 
 	/**
-		Return TRUE if specified storage data exists.
+		Return TRUE if the storage file exists on disk
 	**/
-	public function exists(storageName:String) : Bool {
+	public function exists() : Bool {
 		return
-			try fromStorage(storageName)!=null
+			try fromStorage()!=null
 			catch( e:Dynamic ) false;
 	}
 
 
 	/**
-		Remove specified storage data.
+		Remove storage file from disk
 	**/
-	public function delete(storageName:String) {
+	public function delete() {
 		try {
 			#if flash
 
-				var so = flash.net.SharedObject.getLocal( storageName );
+				var so = flash.net.SharedObject.getLocal( storagePath.fileName );
 				if( so==null )
 					return;
 				so.clear();
 
 			#elseif( sys || hl || hxnodejs )
 
-				var fp = getStoragePath(storageName);
 				#if hxnodejs
-				js.node.Fs.unlinkSync(fp.full);
+				js.node.Fs.unlinkSync(storagePath.full);
 				#else
-				sys.FileSystem.deleteFile(fp.full);
+				sys.FileSystem.deleteFile(storagePath.full);
 				#end
 
 			#elseif js
 
-				js.Browser.window.localStorage.removeItem(storageName);
+				js.Browser.window.localStorage.removeItem(storagePath.fileName);
 
 			#else
 
@@ -321,128 +318,122 @@ class LocalStorage {
 
 	@:noCompletion
 	public static function __test() {
-		/*
-		var baseStorageName = "test";
-		delete(baseStorageName);
-		CiAssert.isTrue( !exists(baseStorageName) );
+		CiAssert.isTrue( isSupported() );
 
-		CiAssert.printIfVerbose("LocaleStorage for Strings:");
+		var baseName = "localStorage";
+		CiAssert.printIfVerbose("LocalStorage for Strings:");
 
-		// Object: default value
-		var v = readString(baseStorageName, "foo");
-		CiAssert.isTrue( !exists(baseStorageName) );
+		// String: default value
+		var ls = createJsonStorage(baseName);
+		ls.delete();
+		var v = ls.readString("foo");
 		CiAssert.isTrue( v!=null );
 		CiAssert.equals( v, "foo" );
 
 		// String: writing
-		if( isSupported() ) {
-			v = "bar";
-			writeString(baseStorageName, v);
-			CiAssert.isTrue( exists(baseStorageName) );
-			var v = readString(baseStorageName);
-			CiAssert.equals(v, "bar");
-			delete(baseStorageName);
-		}
+		v = "bar";
+		ls.writeString(v);
+		CiAssert.equals( ls.exists(), true);
 
-		CiAssert.printIfVerbose("LocaleStorage for objects:");
+		// String: reading
+		var saved = ls.readString();
+		CiAssert.equals(saved, "bar");
+		ls.delete();
+		CiAssert.equals( ls.exists(), false );
+
+
+		CiAssert.printIfVerbose("LocalStorage for objects:");
 
 		// Default value test
-		var firstLoaded = readObject(baseStorageName, Json, { a:0, b:10, str:"foo", enu:ValueA });
-		CiAssert.isTrue( !exists(baseStorageName) );
-		CiAssert.isTrue( firstLoaded!=null );
-		CiAssert.equals( firstLoaded.a, 0 );
-		CiAssert.equals( firstLoaded.b, 10 );
-		CiAssert.equals( firstLoaded.str, "foo" );
-		CiAssert.equals( firstLoaded.enu, ValueA );
+		var ls = createJsonStorage(baseName+"_defObject");
+		var testObj = ls.readObject({ a:0, b:10, str:"foo", enu:ValueA });
+		CiAssert.equals( ls.exists(), false );
+		CiAssert.isTrue( testObj!=null );
+		CiAssert.equals( testObj.a, 0 );
+		CiAssert.equals( testObj.b, 10 );
+		CiAssert.equals( testObj.str, "foo" );
+		CiAssert.equals( testObj.enu, ValueA );
+		ls.delete();
+		CiAssert.equals( ls.exists(), false );
 
 		// Writing
 		if( isSupported() ) {
-			CRC = false;
-			JSON_PRETTY_LEVEL = Full;
-			firstLoaded.a++;
-			firstLoaded.b++;
-			firstLoaded.str = null;
+			testObj.a++;
+			testObj.b++;
+			testObj.str = null;
 
 
 			// Json format
-			var name = baseStorageName+"_json";
 			CiAssert.printIfVerbose("Json format:");
-			writeObject(name, Json, firstLoaded);
-			CiAssert.isTrue( exists(name) );
+			var ls = createJsonStorage(baseName+"_json");
+			CiAssert.equals( ls.exists(), false );
+			ls.writeObject(testObj);
+			CiAssert.equals( ls.exists(), true );
 
-			var jsonLoaded = readObject(name, Json);
+			var jsonLoaded = ls.readObject();
 			CiAssert.equals( jsonLoaded.a, 1 );
 			CiAssert.equals( jsonLoaded.b, 11 );
 			CiAssert.equals( jsonLoaded.str, null );
 			CiAssert.equals( jsonLoaded.enu, ValueA );
-			delete(name);
-			CiAssert.isFalse( exists(name) );
+			ls.delete();
+			CiAssert.equals( ls.exists(), false );
 
 
 			// Json format with CRC
-			CRC = true;
-			var name = baseStorageName+"_jsonCrc";
-			CiAssert.printIfVerbose("Json format:");
-			writeObject(name, Json, firstLoaded);
-			CiAssert.isTrue( exists(name) );
+			CiAssert.printIfVerbose("Json format with CRC:");
+			var ls = createJsonStorage(baseName+"_jsonCrc");
+			ls.useCRC = true;
+			ls.writeObject(testObj);
+			CiAssert.equals( ls.exists(), true );
 
-			var jsonLoaded = readObject(name, Json);
+			var jsonLoaded = ls.readObject();
 			CiAssert.equals( jsonLoaded.enu, ValueA );
-			delete(name);
-			CiAssert.isFalse( exists(name) );
-			CRC = false;
+			ls.delete();
+			CiAssert.equals( ls.exists(), false );
 
 
 			// Serialized format
-			var name = baseStorageName+"_ser";
 			CiAssert.printIfVerbose("Serialized format:");
-			writeObject(name, Serialized, firstLoaded);
-			CiAssert.isTrue( exists(name) );
+			var ls = createSerializedStorage(baseName+"_ser");
+			ls.writeObject(testObj);
+			CiAssert.equals( ls.exists(), true );
 
-			var serializedLoaded = readObject(name, Serialized);
+			var serializedLoaded = ls.readObject();
 			CiAssert.equals( serializedLoaded.a, 1 );
 			CiAssert.equals( serializedLoaded.b, 11 );
 			CiAssert.equals( serializedLoaded.str, null );
-			delete(name);
-			CiAssert.isFalse( exists(name) );
+			ls.delete();
+			CiAssert.equals( ls.exists(), false );
 
 
 			// Serialized format with CRC
-			var name = baseStorageName+"_serCrc";
-			CRC = true;
 			CiAssert.printIfVerbose("Serialized format:");
-			writeObject(name, Serialized, firstLoaded);
-			CiAssert.isTrue( exists(name) );
+			var ls = createSerializedStorage(baseName+"_serCrc", true);
+			ls.writeObject(testObj);
+			CiAssert.equals( ls.exists(), true );
 
-			var serializedLoaded = readObject(name, Serialized);
+			var serializedLoaded = ls.readObject();
 			CiAssert.equals( serializedLoaded.a, 1 );
 			CiAssert.equals( serializedLoaded.b, 11 );
 			CiAssert.equals( serializedLoaded.str, null );
 
 
 			// Alter storage on disk to break CRC
-			CRC = false;
-			var alteredRaw = fromStorage(name);
+			ls.useCRC = false;
+			var alteredRaw = ls.fromStorage();
 			alteredRaw+="_changed";
-			CRC = true;
-
-			// Write altered file
-			var fp = getStoragePath(name);
-			#if hxnodejs
-				js.node.Fs.writeFileSync( fp.full, alteredRaw );
-			#elseif sys
-				sys.io.File.saveContent(fp.full, alteredRaw);
-			#end
+			ls.toStorage(alteredRaw);
 
 			// Check CRC breaking
-			var o : Dynamic = readObject(name, Serialized);
+			ls.useCRC = true;
+			var o : Dynamic = ls.readObject();
 			CiAssert.equals( o, null );
-			delete(name);
-			CiAssert.isFalse( exists(name) );
+
+			ls.delete();
+			CiAssert.equals( ls.exists(), false );
 		}
 		else
-			CiAssert.printIfVerbose("WARNING: LocaleStorage isn't supported on this platform!");
-		*/
+			CiAssert.printIfVerbose("WARNING: LocalStorage isn't supported on this platform!");
 	}
 }
 
