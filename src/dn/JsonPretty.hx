@@ -146,7 +146,10 @@ class JsonPretty {
 
 					case UseEnumObject:
 						var ev : EnumValue = cast v;
-						addValue( name, { __jsonEnum:e.getName(), v:ev.getName(), p:ev.getParameters() } );
+						var enumObj : Dynamic = { __jsonEnum:e.getName(), v:ev.getName() }
+						if( ev.getParameters().length>0 )
+							enumObj.p = ev.getParameters();
+						addValue( name, enumObj );
 
 					case UseEnumName:
 						var ev : EnumValue = cast v;
