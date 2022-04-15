@@ -16,9 +16,6 @@ class LocalStorage {
 			#end
 		} catch(e) null;
 
-	/** Defines the type of "prettifying applied to the JSON output. Only applies if the data is stored as JSON.  **/
-	public static var JSON_PRETTY_LEVEL : dn.data.JsonPretty.JsonPrettyLevel = Compact;
-
 	/** Return path to the storage file for specified storage name **/
 	static function getStoragePath(storageName:String) : dn.FilePath {
 		var fp = FilePath.fromDir( STORAGE_PATH==null ? "" : STORAGE_PATH );
@@ -29,6 +26,9 @@ class LocalStorage {
 	}
 
 	#end
+
+	/** Defines the type of "prettifying applied to the JSON output. Only applies if the data is stored as JSON.  **/
+	public static var JSON_PRETTY_LEVEL : dn.data.JsonPretty.JsonPrettyLevel = Compact;
 
 
 	/** Return TRUE if this platform supports local storage **/

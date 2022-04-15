@@ -19,6 +19,7 @@ class Main {
 		dn.Cooldown.__test();
 		dn.legacy.GetText.__test();
 		dn.data.GetText.__test();
+		dn.data.LocalStorage.__test();
 		dn.DecisionHelper.__test();
 		dn.Delayer.__test();
 		dn.Rand.__test();
@@ -31,7 +32,6 @@ class Main {
 		dn.Version.__test();
 		dn.M.__test();
 		dn.Changelog.__test();
-		dn.LocalStorage.__test();
 		dn.Args.__test();
 		dn.Process.__test();
 		dn.RandomTools.__test();
