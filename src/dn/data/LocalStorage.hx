@@ -1,29 +1,29 @@
-package dn;
+package dn.data;
 
 class LocalStorage {
 
 	#if( sys || hl || hxnodejs )
 
-	/** Base path to the storage folder **/
-	public static var BASE_PATH : Null<String> =
+	/** Relative path to the store the data files (only relevant on platformss that support file writing) **/
+	public static var RELATIVE_PATH : Null<String> =
 		try {
 			#if hxnodejs
-			js.node.Require.require("process").cwd();
+				js.node.Require.require("process").cwd();
+			#elseif sys
+				Sys.getCwd();
 			#else
-			Sys.getCwd();
+				null;
 			#end
 		} catch(e) null;
 
-	/** Default storage sub-folder **/
-	public static var SUB_FOLDER_NAME : Null<String> = "userSettings";
+	/** Defines the type of "prettifying applied to the JSON output. Only applies if the data is stored as JSON.  **/
+	public static var JSON_PRETTY_LEVEL : dn.JsonPretty.JsonPrettyLevel = Compact;
 
 	/** Return path to the storage file for specified storage name **/
 	static function getStoragePath(storageName:String) : dn.FilePath {
-		var fp = FilePath.fromFile(
-			( BASE_PATH==null ? "" : BASE_PATH+"/" )
-			+ ( SUB_FOLDER_NAME==null ? "" : SUB_FOLDER_NAME + "/" )
-			+ storageName + ".cfg"
-		);
+		var fp = FilePath.fromDir( RELATIVE_PATH==null ? "" : RELATIVE_PATH+"/" );
+		fp.fileName = storageName;
+		fp.extension = "cfg";
 		fp.useSlashes();
 		return fp;
 	}
@@ -176,12 +176,12 @@ class LocalStorage {
 				var enumError = false;
 				Lib.iterateObjectRec(obj, (v,setter)->{
 					if( Type.typeof(v)==TObject ) {
-						var obj : Dynamic = cast v;
-						if( obj.__jsonEnum!=null ) {
+						var enumObj : Dynamic = cast v;
+						if( enumObj.__jsonEnum!=null ) {
 							try {
-								var enumStr : String = obj.__jsonEnum;
+								var enumStr : String = enumObj.__jsonEnum;
 								var e = Type.resolveEnum(enumStr);
-								var ev = e.createByName(obj.v, obj.p);
+								var ev = e.createByName(enumObj.v, enumObj.p==null ? [] : enumObj.p);
 								setter(ev);
 							}
 							catch(err:Dynamic) {
@@ -204,7 +204,7 @@ class LocalStorage {
 	**/
 	public static function writeObject<T>(storageName:String, storeAsJson:Bool, obj:T) {
 		if( storeAsJson )
-			_saveStorage( storageName, JsonPretty.stringify(obj, Full, UseEnumObject) );
+			_saveStorage( storageName, JsonPretty.stringify(obj, JSON_PRETTY_LEVEL, UseEnumObject) );
 		else
 			_saveStorage( storageName, haxe.Serializer.run(obj) );
 	}
