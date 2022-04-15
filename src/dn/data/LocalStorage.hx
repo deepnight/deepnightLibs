@@ -5,7 +5,7 @@ class LocalStorage {
 	#if( sys || hl || hxnodejs )
 
 	/** Relative path to the store the data files (only relevant on platformss that support file writing) **/
-	public static var RELATIVE_PATH : Null<String> =
+	public static var STORAGE_PATH : Null<String> =
 		try {
 			#if hxnodejs
 				js.node.Require.require("process").cwd();
@@ -21,7 +21,7 @@ class LocalStorage {
 
 	/** Return path to the storage file for specified storage name **/
 	static function getStoragePath(storageName:String) : dn.FilePath {
-		var fp = FilePath.fromDir( RELATIVE_PATH==null ? "" : RELATIVE_PATH+"/" );
+		var fp = FilePath.fromDir( STORAGE_PATH==null ? "" : STORAGE_PATH );
 		fp.fileName = storageName;
 		fp.extension = "cfg";
 		fp.useSlashes();
