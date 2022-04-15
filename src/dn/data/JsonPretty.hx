@@ -1,4 +1,4 @@
-package dn;
+package dn.data;
 
 enum JsonPrettyLevel {
 	/** No pretty at all, no space or indentation **/
