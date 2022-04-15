@@ -36,6 +36,17 @@ class LocalStorage {
 	/** Defines the type of "prettifying applied to the JSON output. Only applies if the data is stored as JSON.  **/
 	public static var JSON_PRETTY_LEVEL : dn.data.JsonPretty.JsonPrettyLevel = Compact;
 
+	/** If TRUE, a checksum will be written along with data, which will be verified on loading. **/
+	public static var CRC = false;
+
+
+	/** Build checksum for given string **/
+	static function makeCRC(data:String) {
+		return haxe.crypto.Sha1.encode( data + haxe.crypto.Sha1.encode(data + SALT) ).substr(4, 32);
+	}
+	static var SALT = "s*al!t";
+	static var CHECKSUM_SEPARATOR = "/||/";
+
 
 	/** Return TRUE if this platform supports local storage **/
 	public static function isSupported() : Bool {
@@ -55,7 +66,7 @@ class LocalStorage {
 		if( storageName==null )
 			return null;
 
-		return {
+		var raw : Null<String> = {
 			#if flash
 
 				try flash.net.SharedObject.getLocal( storageName ).data.content catch(e:Dynamic) null;
@@ -83,6 +94,20 @@ class LocalStorage {
 
 			#end
 		}
+
+		if( CRC ) {
+			// Check CRC
+			var parts = raw.split(CHECKSUM_SEPARATOR);
+			if( parts.length!=2 )
+				return null;
+
+			if( makeCRC( parts[1] ) != parts[0] )
+				return null;
+			else
+				return parts[1];
+		}
+		else
+			return raw;
 	}
 
 	/**
@@ -90,6 +115,9 @@ class LocalStorage {
 	**/
 	static function _saveStorage(storageName:String, raw:String) : Bool {
 		try {
+			if( CRC )
+				raw = makeCRC(raw) + CHECKSUM_SEPARATOR + raw;
+
 			#if flash
 
 				var so = flash.net.SharedObject.getLocal( storageName );
@@ -306,6 +334,7 @@ class LocalStorage {
 
 		// Writing
 		if( isSupported() ) {
+			CRC = false;
 			JSON_PRETTY_LEVEL = Full;
 			firstLoaded.a++;
 			firstLoaded.b++;
@@ -327,6 +356,20 @@ class LocalStorage {
 			CiAssert.isFalse( exists(name) );
 
 
+			// Json format with CRC
+			CRC = true;
+			var name = baseStorageName+"_jsonCrc";
+			CiAssert.printIfVerbose("Json format:");
+			writeObject(name, Json, firstLoaded);
+			CiAssert.isTrue( exists(name) );
+
+			var jsonLoaded = readObject(name, Json);
+			CiAssert.equals( jsonLoaded.enu, ValueA );
+			delete(name);
+			CiAssert.isFalse( exists(name) );
+			CRC = false;
+
+
 			// Serialized format
 			var name = baseStorageName+"_ser";
 			CiAssert.printIfVerbose("Serialized format:");
@@ -337,6 +380,38 @@ class LocalStorage {
 			CiAssert.equals( serializedLoaded.a, 1 );
 			CiAssert.equals( serializedLoaded.b, 11 );
 			CiAssert.equals( serializedLoaded.str, null );
+			delete(name);
+			CiAssert.isFalse( exists(name) );
+
+			// Serialized format with CRC
+			var name = baseStorageName+"_serCrc";
+			CRC = true;
+			CiAssert.printIfVerbose("Serialized format:");
+			writeObject(name, Serialized, firstLoaded);
+			CiAssert.isTrue( exists(name) );
+
+			var serializedLoaded = readObject(name, Serialized);
+			CiAssert.equals( serializedLoaded.a, 1 );
+			CiAssert.equals( serializedLoaded.b, 11 );
+			CiAssert.equals( serializedLoaded.str, null );
+
+			// Alter storage on disk to break CRC
+			CRC = false;
+			var alteredRaw = _loadRawStorage(name);
+			alteredRaw+="_changed";
+			CRC = true;
+
+			// Write altered file
+			var fp = getStoragePath(name);
+			#if hxnodejs
+				js.node.Fs.writeFileSync( fp.full, alteredRaw );
+			#elseif sys
+				sys.io.File.saveContent(fp.full, alteredRaw);
+			#end
+
+			// Check CRC breaking
+			var o : Dynamic = readObject(name, Serialized);
+			CiAssert.equals( o, null );
 			delete(name);
 			CiAssert.isFalse( exists(name) );
 		}
