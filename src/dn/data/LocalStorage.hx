@@ -158,18 +158,17 @@ class LocalStorage {
 			if( obj==null )
 				return defValue;
 
-			if( defValue==null )
-				return obj;
+			if( defValue!=null ) {
+				// Remove old fields
+				for(k in Reflect.fields(obj))
+					if( !Reflect.hasField(defValue,k) )
+						Reflect.deleteField(obj, k);
 
-			// Remove old fields
-			for(k in Reflect.fields(obj))
-				if( !Reflect.hasField(defValue,k) )
-					Reflect.deleteField(obj, k);
-
-			// Add missing fields
-			for(k in Reflect.fields(defValue))
-				if( !Reflect.hasField(obj,k) )
-					Reflect.setField(obj, k, Reflect.field(defValue,k));
+				// Add missing fields
+				for(k in Reflect.fields(defValue))
+					if( !Reflect.hasField(obj,k) )
+						Reflect.setField(obj, k, Reflect.field(defValue,k));
+			}
 
 			// Remap JsonPretty enums
 			if( isJsonStorage ) {
@@ -257,67 +256,79 @@ class LocalStorage {
 
 	@:noCompletion
 	public static function __test() {
-		var storageName = "test";
-		delete(storageName);
-		CiAssert.isTrue( !exists(storageName) );
+		var baseStorageName = "test";
+		delete(baseStorageName);
+		CiAssert.isTrue( !exists(baseStorageName) );
 
 		CiAssert.printIfVerbose("LocaleStorage for Strings:");
 
 		// Object: default value
-		var v = readString(storageName, "foo");
-		CiAssert.isTrue( !exists(storageName) );
+		var v = readString(baseStorageName, "foo");
+		CiAssert.isTrue( !exists(baseStorageName) );
 		CiAssert.isTrue( v!=null );
 		CiAssert.equals( v, "foo" );
 
 		// String: writing
 		if( isSupported() ) {
 			v = "bar";
-			writeString(storageName, v);
-			CiAssert.isTrue( exists(storageName) );
-			var v = readString(storageName);
+			writeString(baseStorageName, v);
+			CiAssert.isTrue( exists(baseStorageName) );
+			var v = readString(baseStorageName);
 			CiAssert.equals(v, "bar");
-			delete(storageName);
+			delete(baseStorageName);
 		}
 
 		CiAssert.printIfVerbose("LocaleStorage for objects:");
 
-		// Object: default value
-		var obj = readObject(storageName, false, { a:0, b:10, str:"foo" });
-		CiAssert.isTrue( !exists(storageName) );
-		CiAssert.isTrue( obj!=null );
-		CiAssert.equals( obj.a, 0 );
-		CiAssert.equals( obj.b, 10 );
-		CiAssert.equals( obj.str, "foo" );
+		// Default value test
+		var firstLoaded = readObject(baseStorageName, false, { a:0, b:10, str:"foo", enu:ValueA });
+		CiAssert.isTrue( !exists(baseStorageName) );
+		CiAssert.isTrue( firstLoaded!=null );
+		CiAssert.equals( firstLoaded.a, 0 );
+		CiAssert.equals( firstLoaded.b, 10 );
+		CiAssert.equals( firstLoaded.str, "foo" );
+		CiAssert.equals( firstLoaded.enu, ValueA );
 
 		// Writing
 		if( isSupported() ) {
-			obj.a++;
-			obj.b++;
-			obj.str = null;
+			JSON_PRETTY_LEVEL = Full;
+			firstLoaded.a++;
+			firstLoaded.b++;
+			firstLoaded.str = null;
 
 			// Json format
+			var name = baseStorageName+"_json";
 			CiAssert.printIfVerbose("Json format:");
-			writeObject(storageName, true, obj);
-			CiAssert.isTrue( exists(storageName) );
-			var obj = readObject(storageName, true);
-			CiAssert.equals( obj.a, 1 );
-			CiAssert.equals( obj.b, 11 );
-			CiAssert.equals( obj.str, null );
+			writeObject(name, true, firstLoaded);
+			CiAssert.isTrue( exists(name) );
+			var jsonLoaded = readObject(name, true);
+			CiAssert.equals( jsonLoaded.a, 1 );
+			CiAssert.equals( jsonLoaded.b, 11 );
+			CiAssert.equals( jsonLoaded.str, null );
+			CiAssert.equals( jsonLoaded.enu, ValueA );
+			delete(name);
+			CiAssert.isFalse( exists(name) );
 
 			// Serialized format
+			var name = baseStorageName+"_ser";
 			CiAssert.printIfVerbose("Serialized format:");
-			delete(storageName);
-			writeObject(storageName, false, obj);
-			CiAssert.isTrue( exists(storageName) );
-			var obj = readObject(storageName, false);
-			CiAssert.equals( obj.a, 1 );
-			CiAssert.equals( obj.b, 11 );
-			CiAssert.equals( obj.str, null );
-
-			delete(storageName);
-			CiAssert.isTrue( !exists(storageName) );
+			writeObject(name, false, firstLoaded);
+			CiAssert.isTrue( exists(name) );
+			var serializedLoaded = readObject(name, false);
+			CiAssert.equals( serializedLoaded.a, 1 );
+			CiAssert.equals( serializedLoaded.b, 11 );
+			CiAssert.equals( serializedLoaded.str, null );
+			delete(name);
+			CiAssert.isFalse( exists(name) );
 		}
 		else
 			CiAssert.printIfVerbose("WARNING: LocaleStorage isn't supported on this platform!");
 	}
 }
+
+private enum StorageTestEnum {
+	ValueA;
+	ValueB;
+	ValueC;
+}
+
