@@ -1,15 +1,35 @@
 package dn.data;
 
-enum StorageFormat {
-	Json;
+private enum StorageFormat {
+	Json(prettyLevel:dn.data.JsonPretty.JsonPrettyLevel);
 	Serialized;
 }
 
+/**
+	Store strings and objects.
+	Actual storage type depends on platform:
+	 - File system for Sys targets and NodeJS
+	 - Browser local storage for pure JS
+	 - SharedObject for Flash
+**/
 class LocalStorage {
+	static var CRC_SEPARATOR = "/||/";
+	static var CRC_SALT = "s*al!t";
 
-	/** Relative path to the store the data files (only relevant on platformss that support file writing) **/
-	public static var STORAGE_PATH : Null<String> =
-		try {
+	/** Relative path to the store the data files (only applies to platformss that support file writing) **/
+	public var dir: Null<String>;
+
+	/** Extension of the storage files (only applies to platformss that support file writing) **/
+	public var fileExt = "cfg";
+
+	var format : StorageFormat;
+
+	/** If TRUE, a checksum will be written along with data, which will be verified on loading. **/
+	public var useCRC = false;
+
+	function new(f:StorageFormat) {
+		format = f;
+		dir = try {
 			#if hxnodejs
 				js.node.Require.require("process").cwd();
 			#elseif sys
@@ -18,34 +38,18 @@ class LocalStorage {
 				null;
 			#end
 		} catch(e) null;
-
-
-	#if( sys || hl || hxnodejs )
-
-	/** Return path to the storage file for specified storage name **/
-	static function getStoragePath(storageName:String) : dn.FilePath {
-		var fp = FilePath.fromDir( STORAGE_PATH==null ? "" : STORAGE_PATH );
-		fp.fileName = storageName;
-		fp.extension = "cfg";
-		fp.useSlashes();
-		return fp;
 	}
 
-	#end
-
-	/** Defines the type of "prettifying applied to the JSON output. Only applies if the data is stored as JSON.  **/
-	public static var JSON_PRETTY_LEVEL : dn.data.JsonPretty.JsonPrettyLevel = Compact;
-
-	/** If TRUE, a checksum will be written along with data, which will be verified on loading. **/
-	public static var CRC = false;
-
-
-	/** Build checksum for given string **/
-	static function makeCRC(data:String) {
-		return haxe.crypto.Sha1.encode( data + haxe.crypto.Sha1.encode(data + SALT) ).substr(4, 32);
+	public static function createJson(prettyLevel : dn.data.JsonPretty.JsonPrettyLevel = Full) : LocalStorage {
+		var ls = new LocalStorage( Json(prettyLevel) );
+		return ls;
 	}
-	static var SALT = "s*al!t";
-	static var CHECKSUM_SEPARATOR = "/||/";
+
+	public static function createSerialized(useCrc=false) : LocalStorage {
+		var ls = new LocalStorage(Serialized);
+		ls.useCRC = useCrc;
+		return ls;
+	}
 
 
 	/** Return TRUE if this platform supports local storage **/
@@ -59,10 +63,27 @@ class LocalStorage {
 		#end
 	}
 
+
+	/** Return path to the storage file for specified storage name **/
+	function getStoragePath(storageName:String) : dn.FilePath {
+		var fp = FilePath.fromDir( dir==null ? "" : dir );
+		fp.fileName = storageName;
+		fp.extension = fileExt;
+		fp.useSlashes();
+		return fp;
+	}
+
+
+	/** Build checksum for given string **/
+	function makeCRC(data:String) {
+		return haxe.crypto.Sha1.encode( data + haxe.crypto.Sha1.encode(data + CRC_SALT) ).substr(4, 32);
+	}
+
+
 	/**
 		Read unparsed String for specified storage name
 	**/
-	static function _loadRawStorage(storageName:String) : Null<String> {
+	function fromStorage(storageName:String) : Null<String> {
 		if( storageName==null )
 			return null;
 
@@ -95,9 +116,9 @@ class LocalStorage {
 			#end
 		}
 
-		if( CRC ) {
+		if( useCRC ) {
 			// Check CRC
-			var parts = raw.split(CHECKSUM_SEPARATOR);
+			var parts = raw.split(CRC_SEPARATOR);
 			if( parts.length!=2 )
 				return null;
 
@@ -113,10 +134,10 @@ class LocalStorage {
 	/**
 		Save raw storage data.
 	**/
-	static function _saveStorage(storageName:String, raw:String) : Bool {
+	function toStorage(storageName:String, raw:String) : Bool {
 		try {
-			if( CRC )
-				raw = makeCRC(raw) + CHECKSUM_SEPARATOR + raw;
+			if( useCRC )
+				raw = makeCRC(raw) + CRC_SEPARATOR + raw;
 
 			#if flash
 
@@ -165,28 +186,28 @@ class LocalStorage {
 	/**
 		Read the specified storage as a String.
 	**/
-	public static function readString(storageName:String, ?defValue:String) : Null<String> {
-		var raw = _loadRawStorage(storageName);
+	public function readString(storageName:String, ?defValue:String) : Null<String> {
+		var raw = fromStorage(storageName);
 		return raw==null ? defValue : raw;
 	}
 
 	/**
 		Save a String to specified storage.
 	**/
-	public static function writeString(storageName:String, raw:String) {
-		_saveStorage(storageName, raw);
+	public function writeString(storageName:String, raw:String) {
+		toStorage(storageName, raw);
 	}
 
 	/**
 		Read an anonymous object right from storage.
 	**/
-	public static function readObject<T>(storageName:String, format:StorageFormat, ?defValue:T) : T {
-		var raw = _loadRawStorage(storageName);
+	public function readObject<T>(storageName:String, format:StorageFormat, ?defValue:T) : T {
+		var raw = fromStorage(storageName);
 		if( raw==null )
 			return defValue;
 		else {
 			var obj = switch format {
-				case Json: try haxe.Json.parse(raw) catch(_) null;
+				case Json(prettyLevel): try haxe.Json.parse(raw) catch(_) null;
 				case Serialized: try haxe.Unserializer.run(raw) catch(_) null;
 			}
 
@@ -207,7 +228,7 @@ class LocalStorage {
 
 			// Fix final object
 			switch format {
-				case Json:
+				case Json(prettyLevel):
 					// Remap JsonPretty enums
 					var enumError = false;
 					Lib.iterateObjectRec(obj, (v,setter)->{
@@ -240,31 +261,32 @@ class LocalStorage {
 	/**
 		Write an anonymous object to specified storage name. If `storeAsJson` is FALSE, the object will be serialized.
 	**/
-	public static function writeObject<T>(storageName:String, format:StorageFormat, obj:T) {
+	public function writeObject<T>(storageName:String, obj:T) {
 		var str = switch format {
-			case Json:
-				JsonPretty.stringify(obj, JSON_PRETTY_LEVEL, UseEnumObject);
+			case Json(prettyLevel):
+				JsonPretty.stringify(obj, prettyLevel, UseEnumObject);
 
 			case Serialized:
 				haxe.Serializer.run(obj);
 		}
-		_saveStorage( storageName, str );
+		toStorage( storageName, str );
 	}
 
 
 	/**
 		Return TRUE if specified storage data exists.
 	**/
-	public static function exists(storageName:String) : Bool {
-		try return _loadRawStorage(storageName)!=null
-		catch( e:Dynamic ) return false;
+	public function exists(storageName:String) : Bool {
+		return
+			try fromStorage(storageName)!=null
+			catch( e:Dynamic ) false;
 	}
 
 
 	/**
 		Remove specified storage data.
 	**/
-	public static function delete(storageName:String) {
+	public function delete(storageName:String) {
 		try {
 			#if flash
 
@@ -299,6 +321,7 @@ class LocalStorage {
 
 	@:noCompletion
 	public static function __test() {
+		/*
 		var baseStorageName = "test";
 		delete(baseStorageName);
 		CiAssert.isTrue( !exists(baseStorageName) );
@@ -399,7 +422,7 @@ class LocalStorage {
 
 			// Alter storage on disk to break CRC
 			CRC = false;
-			var alteredRaw = _loadRawStorage(name);
+			var alteredRaw = fromStorage(name);
 			alteredRaw+="_changed";
 			CRC = true;
 
@@ -419,6 +442,7 @@ class LocalStorage {
 		}
 		else
 			CiAssert.printIfVerbose("WARNING: LocaleStorage isn't supported on this platform!");
+		*/
 	}
 }
 
