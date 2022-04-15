@@ -1,5 +1,10 @@
 package dn.data;
 
+enum StorageFormat {
+	Json;
+	Serialized;
+}
+
 class LocalStorage {
 
 	#if( sys || hl || hxnodejs )
@@ -201,11 +206,14 @@ class LocalStorage {
 	/**
 		Write an anonymous object to specified storage name. If `storeAsJson` is FALSE, the object will be serialized.
 	**/
-	public static function writeObject<T>(storageName:String, storeAsJson:Bool, obj:T) {
-		if( storeAsJson )
-			_saveStorage( storageName, JsonPretty.stringify(obj, JSON_PRETTY_LEVEL, UseEnumObject) );
-		else
-			_saveStorage( storageName, haxe.Serializer.run(obj) );
+	public static function writeObject<T>(storageName:String, format:StorageFormat, obj:T) {
+		switch format {
+			case Json:
+				_saveStorage( storageName, JsonPretty.stringify(obj, JSON_PRETTY_LEVEL, UseEnumObject) );
+
+			case Serialized:
+				_saveStorage( storageName, haxe.Serializer.run(obj) );
+		}
 	}
 
 
@@ -299,7 +307,7 @@ class LocalStorage {
 			// Json format
 			var name = baseStorageName+"_json";
 			CiAssert.printIfVerbose("Json format:");
-			writeObject(name, true, firstLoaded);
+			writeObject(name, Json, firstLoaded);
 			CiAssert.isTrue( exists(name) );
 			var jsonLoaded = readObject(name, true);
 			CiAssert.equals( jsonLoaded.a, 1 );
@@ -312,7 +320,7 @@ class LocalStorage {
 			// Serialized format
 			var name = baseStorageName+"_ser";
 			CiAssert.printIfVerbose("Serialized format:");
-			writeObject(name, false, firstLoaded);
+			writeObject(name, Serialized, firstLoaded);
 			CiAssert.isTrue( exists(name) );
 			var serializedLoaded = readObject(name, false);
 			CiAssert.equals( serializedLoaded.a, 1 );
