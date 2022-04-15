@@ -383,6 +383,7 @@ class LocalStorage {
 			delete(name);
 			CiAssert.isFalse( exists(name) );
 
+
 			// Serialized format with CRC
 			var name = baseStorageName+"_serCrc";
 			CRC = true;
@@ -394,6 +395,7 @@ class LocalStorage {
 			CiAssert.equals( serializedLoaded.a, 1 );
 			CiAssert.equals( serializedLoaded.b, 11 );
 			CiAssert.equals( serializedLoaded.str, null );
+
 
 			// Alter storage on disk to break CRC
 			CRC = false;
