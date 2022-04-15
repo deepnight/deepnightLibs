@@ -1,4 +1,4 @@
-package dn.data;
+package dn.legacy;
 
 enum SaveFormat {
 	Serialized;
@@ -8,6 +8,8 @@ enum SaveFormat {
 
 /**
 	A simple system to save and load data. The Serialized format is highly recommended as it supports mroe variable types.
+
+	DEPRECATED: it is recommended to switch to LocaleStorage class.
 **/
 class SavedData {
 	public static var DEFAULT_SAVE_FOLDER = "";
