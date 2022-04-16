@@ -158,7 +158,7 @@ class NodeTools {
 			return [];
 
 		js.node.Require.require("fs");
-		return js.node.Fs.readdirSync(path);
+		return try js.node.Fs.readdirSync(path) catch(_) [];
 	}
 
 	/** Find all files in given directory and its subdirs **/
