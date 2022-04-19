@@ -229,6 +229,10 @@ class ControllerAccess<T:EnumValue> {
 	}
 
 
+	public inline function initHeldStatus(action:T) {
+		updateHoldStatus(action, false);
+	}
+
 	/**
 		Return TRUE if given action Enum is "held down" for more than `seconds` seconds.
 		Note: "down" for a digital binding means the button/key is pushed. For an analog binding, this means it is pushed *beyond* a specific threshold.
