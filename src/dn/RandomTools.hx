@@ -79,6 +79,11 @@ class RandomTools {
 		return ang + rng(0, maxDist, true);
 	}
 
+	/** Return TRUE if a random percentage (ie. 0-100) is below given threshold **/
+	public static inline function pct(thresholdOrBelow:Int) {
+		return Std.random(100) < thresholdOrBelow;
+	}
+
 
 	/** Pick a value randomly in an array **/
 	public static inline function pick<T>(a:Array<T>) : Null<T> {
