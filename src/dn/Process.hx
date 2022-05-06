@@ -663,6 +663,16 @@ class Process {
 			RESIZE_REQUESTED = true;
 	}
 
+	/** Request a onResize() call for ALL processes at the end of current frame. **/
+	inline function emitResizeAtEndOfFrame() {
+		resizeAll(false);
+	}
+
+	/** Request a onResize() call for ALL processes immediately. **/
+	inline function emitResizeNow() {
+		resizeAll(true);
+	}
+
 
 	@:noCompletion
 	public static function __test() {
