@@ -149,9 +149,10 @@ class Controller<T:EnumValue> {
 
 
 	var allAccesses : Array<ControllerAccess<T>> = [];
-	var bindings : Map<T, Array< InputBinding<T> >> = new Map();
+	var actions : Array<T> = [];
+	var bindings : Array<Array<InputBinding<T>>> = [];
 	var destroyed = false;
-	var enumMapping : Map<PadButton,Int> = new Map();
+	var enumMapping : Array<PadButton> = [];
 	var exclusive : Null<ControllerAccess<T>>;
 	var globalDeadZone = 0.1;
 
@@ -210,35 +211,36 @@ class Controller<T:EnumValue> {
 	}
 
 	function updateEnumMapping() {
-		enumMapping = new Map();
+		enumMapping = [];
+		enumMapping.resize(pad.config.names.length);
 
-		enumMapping.set(A, pad.config.A);
-		enumMapping.set(B, pad.config.B);
-		enumMapping.set(X, pad.config.X);
-		enumMapping.set(Y, pad.config.Y);
+		enumMapping[pad.config.A] = A;
+		enumMapping[pad.config.B] = B;
+		enumMapping[pad.config.X] = X;
+		enumMapping[pad.config.Y] = Y;
 
-		enumMapping.set(LT, pad.config.LT);
-		enumMapping.set(LB, pad.config.LB);
+		enumMapping[pad.config.LT] = LT;
+		enumMapping[pad.config.LB] = LB;
 
-		enumMapping.set(RT, pad.config.RT);
-		enumMapping.set(RB, pad.config.RB);
+		enumMapping[pad.config.RT] = RT;
+		enumMapping[pad.config.RB] = RB;
 
-		enumMapping.set(START, pad.config.start);
-		enumMapping.set(SELECT, pad.config.back);
+		enumMapping[pad.config.start] = START;
+		enumMapping[pad.config.back] = SELECT;
 
-		enumMapping.set(DPAD_UP, pad.config.dpadUp);
-		enumMapping.set(DPAD_DOWN, pad.config.dpadDown);
-		enumMapping.set(DPAD_LEFT, pad.config.dpadLeft);
-		enumMapping.set(DPAD_RIGHT, pad.config.dpadRight);
+		enumMapping[pad.config.dpadUp] = DPAD_UP;
+		enumMapping[pad.config.dpadDown] = DPAD_DOWN;
+		enumMapping[pad.config.dpadLeft] = DPAD_LEFT;
+		enumMapping[pad.config.dpadRight] = DPAD_RIGHT;
 
-		enumMapping.set(LSTICK_PUSH, pad.config.analogClick);
-		enumMapping.set(RSTICK_PUSH, pad.config.ranalogClick);
+		enumMapping[pad.config.analogClick] = LSTICK_PUSH;
+		enumMapping[pad.config.ranalogClick] = RSTICK_PUSH;
 	}
 
 
 	@:noCompletion
 	public inline function getPadButtonId(bt:PadButton) {
-		return bt!=null && enumMapping.exists(bt) ? enumMapping.get(bt) : -1;
+		return bt!=null ? enumMapping.indexOf(bt) : -1;
 	}
 
 
@@ -273,23 +275,39 @@ class Controller<T:EnumValue> {
 		@param action If omitted, all existing bindings are removed. Otherwise, only given Enum action is unbound.
 	**/
 	public function removeBindings(?action:T) {
-		if( action==null )
-			bindings = new Map();
-		else
-			bindings.remove(action);
+		if( action==null ){
+			actions = [];
+			bindings = [];
+		}
+		else{
+			var index = getActionIndex(action);
+			actions.remove(action);
+			bindings.remove(bindings[index]);
+		}
 	}
 
+	public inline function getActionIndex(?action:T): Int{
+		return (action == null)?-1:actions.lastIndexOf(action);
+	}
+	
+	public inline function bindingExist(action:T):Bool{
+		return getActionIndex(action) > -1;
+	}
 
+	public inline function getBindings(action:T):Array<InputBinding<T>>{
+		return bindings[getActionIndex(action)];
+	}
 
 	/**
 		Return TRUE if given Enum is bound to at least one analog control.
 		@param fullAxis If TRUE, then the method will only return TRUE if the action is bound to both positive/negative directions of the axis.
 	**/
 	public function isBoundToAnalog(act:T, fullAxis:Bool) {
-		if( destroyed || !bindings.exists(act) )
+		var index = getActionIndex(act);
+		if( destroyed || index > -1)
 			return false;
 
-		for(b in bindings.get(act))
+		for(b in bindings[index])
 			if( ( b.isLStick || b.isRStick ) && (!fullAxis || b.signLimit==0 ) )
 				return true;
 		return false;
@@ -313,9 +331,13 @@ class Controller<T:EnumValue> {
 		if( destroyed )
 			return false;
 		else {
-			if( action!=null && !bindings.exists(action) )
-				bindings.set(action, []);
-			bindings.get(action).push(b);
+			var index = getActionIndex(action);
+			if( action!=null && index == -1 ){
+				actions.push(action);
+				bindings.push([]);
+				index = actions.length-1;
+			}
+			bindings[index].push(b);
 			return true;
 		}
 	}
@@ -380,8 +402,6 @@ class Controller<T:EnumValue> {
 		if( destroyed )
 			return;
 
-		if( !bindings.exists(action) )
-			bindings.set(action, []);
 		var b = new InputBinding(this,action);
 		storeBinding(action, b);
 		b.isX = isXaxis;
@@ -395,8 +415,6 @@ class Controller<T:EnumValue> {
 		if( destroyed )
 			return;
 
-		if( !bindings.exists(action) )
-			bindings.set(action, []);
 		var b = new InputBinding(this,action);
 		storeBinding(action, b);
 		b.isLStick = true;
@@ -459,8 +477,6 @@ class Controller<T:EnumValue> {
 		if( buttons==null )
 			buttons = [button];
 
-		if( !bindings.exists(action) )
-			bindings.set(action, []);
 
 		for(bt in buttons) {
 			var binding = createBindingFromPadButton(action, bt, invertAxis);
@@ -502,12 +518,9 @@ class Controller<T:EnumValue> {
 		if( keys==null )
 			keys = [key];
 
-		if( !bindings.exists(action) )
-			bindings.set(action, []);
-
 		for(k in keys) {
 			var b = InputBinding.createKeyboard(this, action, k);
-			bindings.get(action).push(b);
+			storeBinding(action, b);
 		}
 	}
 
@@ -589,10 +602,10 @@ class Controller<T:EnumValue> {
 		@param parent  Optional display object to add the icon to.
 	**/
 	public function getFirstBindindIconFor(action:T, ?ctrlType:ControllerType, filterAxisSign=0, ?parent:h2d.Object) : h2d.Flow {
-		if( !bindings.exists(action) || bindings.get(action).length==0 )
+		if( !bindingExist(action) || getBindings(action).length==0 )
 			return new h2d.Flow(parent);
 
-		for( b in bindings.get(action) )
+		for( b in getBindings(action) )
 			if( ctrlType==null || ctrlType==Keyboard && b.isKeyboard() || ctrlType==Gamepad && b.isGamepad() ) {
 				var f = b.getIcon();
 				if( parent!=null )
@@ -612,11 +625,11 @@ class Controller<T:EnumValue> {
 		@param parent  Optional display object to add the icon to.
 	**/
 	public function getAllBindindIconsFor(action:T, ?ctrlType:ControllerType) : Array<h2d.Flow> {
-		if( !bindings.exists(action) || bindings.get(action).length==0 )
+		if( !bindingExist(action) || getBindings(action).length==0 )
 			return [];
 
 		var all = [];
-		for( b in bindings.get(action) )
+		for( b in getBindings(action) )
 			if( ctrlType==null || ctrlType==Keyboard && b.isKeyboard() || ctrlType==Gamepad && b.isGamepad() )
 				all.push( b.getIcon() );
 
@@ -632,11 +645,11 @@ class Controller<T:EnumValue> {
 		@param parent  Optional display object to add the icon to.
 	**/
 	public function getAllBindindTextsFor(action:T, ?ctrlType:ControllerType) : Array<String> {
-		if( !bindings.exists(action) || bindings.get(action).length==0 )
+		if( !bindingExist(action) || getBindings(action).length==0 )
 			return [];
 
 		var all = [];
-		for( b in bindings.get(action) )
+		for( b in getBindings(action) )
 			if( ctrlType==null || ctrlType==Keyboard && b.isKeyboard() || ctrlType==Gamepad && b.isGamepad() )
 				all.push( b.toString() );
 

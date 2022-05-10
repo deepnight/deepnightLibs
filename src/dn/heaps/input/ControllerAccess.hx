@@ -12,7 +12,7 @@ class ControllerAccess<T:EnumValue> {
 	public var input(default,null) : Controller<T>;
 
 	var destroyed(get,never) : Bool;
-	var bindings(get,never) : Map<T, Array< InputBinding<T> >>;
+	var bindings(get,never) : Array<Array<InputBinding<T>>>;
 	var pad(get,never) : hxd.Pad;
 	var lockedUntilS = -1.;
 	var holdTimeS : Map<T,Float> = new Map();
@@ -98,15 +98,13 @@ class ControllerAccess<T:EnumValue> {
 			createDebugger(parent, afterRender);
 	}
 
-
-
 	/**
 		Return analog float value (-1.0 to 1.0) associated with given action Enum.
 	**/
 	public function getAnalogValue(action:T) : Float {
 		var out = 0.;
-		if( isActive() && input.bindings.exists(action) )
-			for(b in input.bindings.get(action) ) {
+		if( isActive() && input.bindingExist(action) )
+			for(b in input.getBindings(action) ) {
 				out = b.getValue(input.pad);
 				if( out!=0 )
 					return out;
@@ -201,8 +199,8 @@ class ControllerAccess<T:EnumValue> {
 		Return TRUE if given action Enum is "down". For a digital binding, this means the button/key is pushed. For an analog binding, this means it is pushed beyond a specific threshold.
 	**/
 	public function isDown(v:T) : Bool {
-		if( isActive() && bindings.exists(v) )
-			for(b in bindings.get(v))
+		if( isActive() && input.bindingExist(v) )
+			for(b in input.getBindings(v))
 				if( b.isDown(pad) ) {
 					updateHoldStatus(v,true);
 					return true;
@@ -217,8 +215,8 @@ class ControllerAccess<T:EnumValue> {
 		Return TRUE if given action Enum is "pressed" (ie. pushed while it was previously released). By definition, this only happens during 1 frame, when control is pushed.
 	**/
 	public function isPressed(v:T) : Bool {
-		if( isActive() && bindings.exists(v) )
-			for(b in bindings.get(v))
+		if( isActive() && input.bindingExist(v) )
+			for(b in input.getBindings(v))
 				if( b.isPressed(pad) ) {
 					updateHoldStatus(v,true);
 					return true;

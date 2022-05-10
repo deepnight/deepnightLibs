@@ -92,11 +92,12 @@ class ControllerDebug<T:EnumValue> extends dn.Process {
 
 	function getBindingsList(a:T) : String {
 		var all = @:privateAccess ca.bindings;
-		if( !all.exists(a) )
+
+		if( ! @:privateAccess ca.input.bindingExist(a))
 			return "<none>";
 		else {
 			var arr = [];
-			for(b in all.get(a))
+			for(b in @:privateAccess ca.input.getBindings(a))
 				arr.push(b.toString());
 			return arr.join(", ");
 		}
