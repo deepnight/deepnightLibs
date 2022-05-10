@@ -264,12 +264,17 @@ class HParticle extends BatchElement {
 	public var alphaFlicker		: Float;
 	public var customTmod		: Void->Float;
 
+	var delayedCb : Null< HParticle->Void >;
+	var delayedCbTimeS : Float;
+
+
 	public var lifeS(never,set)	: Float;
 	public var lifeF(never,set)	: Float;
 	var rLifeF					: Float;
 	var maxLifeF				: Float;
-	public var remainingLifeS(get,never)	: Float;
-	public var curLifeRatio(get,never)		: Float; // 0(start) -> 1(end)
+	public var elapsedLifeS(get,never) : Float;
+	public var remainingLifeS(get,never) : Float;
+	public var curLifeRatio(get,never) : Float; // 0(start) -> 1(end)
 
 	public var delayS(get, set)		: Float;
 	public var delayF(default, set)	: Float;
@@ -373,6 +378,15 @@ class HParticle extends BatchElement {
 		this.t.switchTexture(tile);
 	}
 
+	public inline function inc0() return Math.isNaN(data0) ? data0=1 : ++data0;
+	public inline function inc1() return Math.isNaN(data1) ? data1=1 : ++data1;
+	public inline function inc2() return Math.isNaN(data2) ? data2=1 : ++data2;
+	public inline function inc3() return Math.isNaN(data3) ? data3=1 : ++data3;
+	public inline function inc4() return Math.isNaN(data4) ? data4=1 : ++data4;
+	public inline function inc5() return Math.isNaN(data5) ? data5=1 : ++data5;
+	public inline function inc6() return Math.isNaN(data6) ? data6=1 : ++data6;
+	public inline function inc7() return Math.isNaN(data7) ? data7=1 : ++data7;
+
 	function reset(sb:Null<SpriteBatch>, ?tile:Tile, x:Float=0., y:Float=0.) {
 		if( tile!=null )
 			setTile(tile);
@@ -422,6 +436,7 @@ class HParticle extends BatchElement {
 		groundY = null;
 		groupId = null;
 		autoRotateSpeed = 0;
+		delayedCbTimeS = 0;
 
 		// Callbacks
 		onStart = null;
@@ -432,6 +447,7 @@ class HParticle extends BatchElement {
 		onFadeOutStart = null;
 		onTouchGround = null;
 		onLeaveBounds = null;
+		delayedCb = null;
 	}
 
 
@@ -483,6 +499,11 @@ class HParticle extends BatchElement {
 
 	public inline function colorizeRandom(min:UInt, max:UInt) {
 		dn.Color.colorizeBatchElement(this, dn.Color.interpolateInt(min,max,rnd(0,1)), 1);
+	}
+
+	public inline function delayCallback(cb:HParticle->Void, sec:Float) {
+		delayedCb = cb;
+		delayedCbTimeS = sec;
 	}
 
 	public function fade(targetAlpha:Float, fadeInSpd=1.0, fadeOutSpd=1.0) {
@@ -554,6 +575,7 @@ class HParticle extends BatchElement {
 		rLifeF*=f;
 	}
 
+	inline function get_elapsedLifeS() return (maxLifeF-rLifeF)/fps;
 	inline function get_remainingLifeS() return rLifeF/fps;
 	inline function get_curLifeRatio() return 1-rLifeF/maxLifeF; // 0(start) -> 1(end)
 
@@ -771,6 +793,14 @@ class HParticle extends BatchElement {
 					else if( onUpdate!=null ) {
 						// Update CB
 						onUpdate(this);
+					}
+
+					// Delayed callback
+					if( delayedCb!=null && elapsedLifeS>=delayedCbTimeS ) {
+						var cb = delayedCb;
+						delayedCb = null;
+						delayedCbTimeS = 0;
+						cb(this);
 					}
 				}
 			}
