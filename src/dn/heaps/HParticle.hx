@@ -423,7 +423,10 @@ class HParticle extends BatchElement {
 		setCenterRatio(0.5, 0.5);
 		killed = false;
 		maxAlpha = 1;
-		dx = dy = da = dr = ds = dsX = dsY = 0;
+		dx = dy = 0;
+		da = 0;
+		dr = 0;
+		ds = dsX = dsY = 0;
 		gx = gy = 0;
 		frictX = frictY = 1;
 		drFrict = 1;
@@ -675,14 +678,16 @@ class HParticle extends BatchElement {
 	}
 
 	public inline function optimPow(v:Float, p:Float) {
-		return (p==1||v==0||v==1) ? v : Math.pow(v,p);
+		return ( p==1 || v==0 || v==1 ) ? v : Math.pow(v,p);
 	}
 
 	inline function updatePart(tmod:Float) {
 		if( customTmod!=null )
 			tmod = customTmod();
 		delayF -= tmod;
+
 		if( delayF<=0 && !killed ) {
+			// Start callback
 			if( onStart!=null ) {
 				var cb = onStart;
 				onStart = null;
@@ -709,20 +714,21 @@ class HParticle extends BatchElement {
 			}
 
 			if( !killed ) {
-				// gravité
+				// Gravity
 				dx += gx * tmod;
 				dy += gy * tmod;
 
-				// mouvement
+				// Velocities
 				x += dx * tmod;
 				y += dy * tmod;
 
-				// friction
+				// Frictions
 				if( frictX==frictY ){
 					var frictTmod = optimPow(frictX, tmod);
 					dx *= frictTmod;
 					dy *= frictTmod;
-				}else{
+				}
+				else {
 					dx *= optimPow(frictX, tmod);
 					dy *= optimPow(frictY, tmod);
 				}
@@ -737,7 +743,7 @@ class HParticle extends BatchElement {
 						onTouchGround(this);
 				}
 
-				if( !killed ) { // can be killed in onBounce
+				if( !killed ) { // Could have been killed in onBounce
 					rotation += dr * tmod;
 					dr *= optimPow(drFrict, tmod);
 					scaleX += (ds+dsX) * tmod;
@@ -769,8 +775,10 @@ class HParticle extends BatchElement {
 						}
 					}
 
+					// Fade out start callback
 					if( onFadeOutStart!=null && rLifeF>0 && rLifeF-tmod<=0 )
 						onFadeOutStart(this);
+
 					rLifeF -= tmod;
 
 					// Fade out (life)
@@ -780,8 +788,8 @@ class HParticle extends BatchElement {
 						alpha = M.fclamp( alpha + rnd(0, alphaFlicker, true), 0, maxAlpha );
 
 
+					// Check bounds
 					if( bounds!=null && !( x>=bounds.xMin && x<bounds.xMax && y>=bounds.yMin && y<bounds.yMax ) ) {
-						// Left bounds
 						if( onLeaveBounds!=null )
 							onLeaveBounds(this);
 						kill();
@@ -796,7 +804,7 @@ class HParticle extends BatchElement {
 					}
 
 					// Delayed callback
-					if( delayedCb!=null && elapsedLifeS>=delayedCbTimeS ) {
+					if( !killed && delayedCb!=null && elapsedLifeS>=delayedCbTimeS ) {
 						var cb = delayedCb;
 						delayedCb = null;
 						delayedCbTimeS = 0;
