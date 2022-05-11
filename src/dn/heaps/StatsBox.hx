@@ -43,6 +43,8 @@ class StatsBox extends dn.Process {
 	var fpsHistory = new haxe.ds.Vector(HISTORY_CHUNK*3);
 	var histCursor = 0;
 
+	public var font : Null<h2d.Font>;
+
 
 	public function new(parent:dn.Process, showFpsChart=true) {
 		super(parent);
@@ -65,18 +67,30 @@ class StatsBox extends dn.Process {
 		var f = new h2d.Flow(flow);
 		f.layout = Horizontal;
 		f.verticalAlign = Middle;
-		fps = new h2d.Text(hxd.res.DefaultFont.get(), f);
+		fps = new h2d.Text(getFont(), f);
 		fpsChart = new h2d.Graphics(f);
 		fpsChart.visible = showFpsChart;
 
 		onResize();
 	}
 
+	inline function getFont() return font==null ? hxd.res.DefaultFont.get() : font;
+
 	public function addComponent( update:(f:h2d.Flow)->Void ) {
 		var f = new h2d.Flow();
 		flow.addChildAt(f,0);
 		f.layout = Horizontal;
 		components.push({ f:f, update:update });
+	}
+
+	public function addText( update:Void->String ) {
+		var f = new h2d.Flow();
+		flow.addChildAt(f,0);
+		f.layout = Horizontal;
+		var tf = new h2d.Text(getFont(), f);
+		components.push({ f:f, update:(_)->{
+			tf.text = update();
+		}});
 	}
 
 	public function removeAllComponents() {
