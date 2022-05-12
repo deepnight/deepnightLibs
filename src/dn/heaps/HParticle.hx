@@ -473,7 +473,14 @@ class HParticle extends BatchElement {
 		return v;
 	}
 
-	public inline function setCenterRatio(xr:Float, yr:Float) {
+	/**
+		Set pivot ratios. If `pixelPerfect` is true (default), then pivots will snap to closest pixel.
+	**/
+	public inline function setCenterRatio(xr:Float, yr:Float, pixelPerfect=false) {
+		if( pixelPerfect ) {
+			xr = M.round(t.width*xr) / t.width;
+			yr = M.round(t.height*yr) / t.height;
+		}
 		t.setCenterRatio(xr,yr);
 		animXr = xr;
 		animYr = yr;
