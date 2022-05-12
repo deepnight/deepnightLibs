@@ -13,7 +13,8 @@ import hxd.impl.AllocPos;
 class ParticlePool {
 	var all : haxe.ds.Vector<HParticle>;
 	var nalloc : Int;
-	public var size(get,never) : Int; inline function get_size() return all.length;
+	public var size(get,never) : Int;
+		inline function get_size() return all.length;
 
 	public function new(tile:h2d.Tile, count:Int, fps:Int) {
 		all = new haxe.ds.Vector(count);
@@ -42,7 +43,7 @@ class ParticlePool {
 			// Find oldest active part
 			var best : HParticle = null;
 			for(p in all)
-				if( best==null || @:privateAccess p.stamp<=@:privateAccess best.stamp )
+				if( best==null || @:privateAccess p.stamp<=@:privateAccess best.stamp ) // TODO optimize that
 					best = p;
 
 			@:privateAccess best.onKillCallbacks();
@@ -54,20 +55,18 @@ class ParticlePool {
 		}
 	}
 
-	function free(kp:HParticle) {
-		if( all==null )
-			return;
-
-		if( nalloc>1 ) {
-			var idx = @:privateAccess kp.poolIdx;
-			var tmp = all[idx];
-			all[idx] = all[nalloc-1];
-			@:privateAccess all[idx].poolIdx = idx;
-			all[nalloc-1] = tmp;
-			nalloc--;
-		}
-		else {
-			nalloc = 0;
+	inline function free(kp:HParticle) {
+		if( all!=null ) {
+			if( nalloc>1 ) {
+				var idx = @:privateAccess kp.poolIdx;
+				var tmp = all[idx];
+				all[idx] = all[nalloc-1];
+				@:privateAccess all[idx].poolIdx = idx;
+				all[nalloc-1] = tmp;
+				nalloc--;
+			}
+			else
+				nalloc = 0;
 		}
 	}
 
@@ -115,7 +114,7 @@ class ParticlePool {
 		all = null;
 	}
 
-	public function update(tmod:Float, ?updateCb:HParticle->Void) {
+	public inline function update(tmod:Float, ?updateCb:HParticle->Void) {
 		var i = 0;
 		while( i < nalloc ){
 			var p = all[i];
@@ -211,21 +210,22 @@ class Emitter {
 		cd = null;
 	}
 
-	public function update(tmod:Float) {
+	public inline function update(tmod:Float) {
 		if( activeCond!=null )
 			active = activeCond();
-		if( !active || destroyed )
-			return;
 
-		this.tmod = tmod;
-		cd.update(tmod);
-		delayer.update(tmod);
+		if( active && !destroyed ) {
+			this.tmod = tmod;
+			cd.update(tmod);
+			delayer.update(tmod);
 
-		if( tickS<=0 || !cd.hasSetS("emitterTick", tickS) )
-			onUpdate();
+			if( tickS<=0 || !cd.hasSetS("emitterTick", tickS) )
+				onUpdate();
 
-		if( !permanent && !cd.has("emitterLife") )
-			dispose();
+			if( !permanent && !cd.has("emitterLife") )
+				dispose();
+		}
+
 	}
 }
 
@@ -335,7 +335,7 @@ class HParticle extends BatchElement {
 	var animLoop : Bool;
 	var animStop : Bool;
 	public var animSpd : Float;
-	public function playAnimAndKill(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
+	public inline function playAnimAndKill(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
 		animLib = lib;
 		animId = k;
 		animCursor = 0;
@@ -343,7 +343,7 @@ class HParticle extends BatchElement {
 		animSpd = spd;
 		applyAnimFrame();
 	}
-	public function playAnimLoop(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
+	public inline function playAnimLoop(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
 		animLib = lib;
 		animId = k;
 		animCursor = 0;
@@ -351,7 +351,7 @@ class HParticle extends BatchElement {
 		animSpd = spd;
 		applyAnimFrame();
 	}
-	public function playAnimAndStop(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
+	public inline function playAnimAndStop(lib:dn.heaps.slib.SpriteLib, k:String, spd=1.0) {
 		animLib = lib;
 		animId = k;
 		animCursor = 0;
@@ -370,7 +370,7 @@ class HParticle extends BatchElement {
 
 
 	@:access(h2d.Tile)
-	public function setTile(tile:Tile) {
+	public inline function setTile(tile:Tile) {
 		this.t.setPosition(tile.x, tile.y);
 		this.t.setSize(tile.width, tile.height);
 		this.t.dx = tile.dx;
@@ -387,7 +387,7 @@ class HParticle extends BatchElement {
 	public inline function inc6() return Math.isNaN(data6) ? data6=1 : ++data6;
 	public inline function inc7() return Math.isNaN(data7) ? data7=1 : ++data7;
 
-	function reset(sb:Null<SpriteBatch>, ?tile:Tile, x:Float=0., y:Float=0.) {
+	inline function reset(sb:Null<SpriteBatch>, ?tile:Tile, x:Float=0., y:Float=0.) {
 		if( tile!=null )
 			setTile(tile);
 
@@ -455,7 +455,7 @@ class HParticle extends BatchElement {
 
 
 
-	public function colorAnimS(from:UInt, to:UInt, t:Float) {
+	public inline function colorAnimS(from:UInt, to:UInt, t:Float) {
 		fromColor = from;
 		toColor = to;
 		dColor = 1/(t*fps);
@@ -509,14 +509,14 @@ class HParticle extends BatchElement {
 		delayedCbTimeS = sec;
 	}
 
-	public function fade(targetAlpha:Float, fadeInSpd=1.0, fadeOutSpd=1.0) {
+	public inline function fade(targetAlpha:Float, fadeInSpd=1.0, fadeOutSpd=1.0) {
 		this.alpha = 0;
 		maxAlpha = targetAlpha;
 		da = targetAlpha*0.1*fadeInSpd;
 		fadeOutSpeed = targetAlpha*0.1*fadeOutSpd;
 	}
 
-	public function setFadeS(targetAlpha:Float, fadeInDurationS:Float, fadeOutDurationS:Float) {
+	public inline function setFadeS(targetAlpha:Float, fadeInDurationS:Float, fadeOutDurationS:Float) {
 		this.alpha = 0;
 		maxAlpha = targetAlpha;
 		if( fadeInDurationS<=0 )
@@ -529,7 +529,7 @@ class HParticle extends BatchElement {
 			fadeOutSpeed = targetAlpha / (fadeOutDurationS*fps);
 	}
 
-	public function fadeIn(alpha:Float, spd:Float) {
+	public inline function fadeIn(alpha:Float, spd:Float) {
 		this.alpha = 0;
 		maxAlpha = alpha;
 		da = spd;
@@ -540,11 +540,12 @@ class HParticle extends BatchElement {
 		rotation = getMoveAng();
 	}
 
-	function toString() {
+	@:keep
+	public function toString() {
 		return 'HPart@$x,$y (lifeS=$remainingLifeS)';
 	}
 
-	public function clone() : HParticle {
+	public inline function clone() : HParticle {
 		var s = new haxe.Serializer();
 		s.useCache = true;
 		s.serialize(this);
@@ -563,12 +564,12 @@ class HParticle extends BatchElement {
 		return delayF = d;
 	}
 
-	function set_lifeS(v:Float) {
+	inline function set_lifeS(v:Float) {
 		rLifeF = maxLifeF = M.fmax(fps*v,0);
 		return v;
 	}
 
-	function set_lifeF(v:Float) {
+	inline function set_lifeF(v:Float) {
 		rLifeF = maxLifeF = M.fmax(v,0);
 		return v;
 	}
@@ -599,19 +600,19 @@ class HParticle extends BatchElement {
 		return any;
 	}
 
-	public function kill() {
-		if( killed )
-			return;
+	public inline function kill() {
+		if( !killed ) {
+			onKillCallbacks();
 
-		onKillCallbacks();
+			alpha = 0;
+			lifeS = 0;
+			delayS = 0;
+			killed = true;
+			visible = false;
 
-		alpha = 0;
-		lifeS = 0;
-		delayS = 0;
-		killed = true;
-		visible = false;
+			@:privateAccess pool.free(this);
+		}
 
-		@:privateAccess pool.free(this);
 	}
 
 	function dispose() {
