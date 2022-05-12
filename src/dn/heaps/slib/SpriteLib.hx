@@ -305,7 +305,7 @@ class SpriteLib {
 		__defineAnim(groupName, frames);
 	}
 
-	public function multiplayAllAnimDurations(factor:Int) {
+	public function multiplyAllAnimDurations(factor:Int) {
 		for(g in getGroups())
 			if( g.anim.length>0 ) {
 				var old = g.anim.copy();
