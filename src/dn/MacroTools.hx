@@ -2,6 +2,7 @@ package dn;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;
+using haxe.macro.Tools;
 
 class MacroTools {
 	public static macro function error(err:ExprOf<String>) {
@@ -205,6 +206,29 @@ class MacroTools {
 		Context.fatalError("Couldn't locate file for resource: "+idents.join("."), resExpr.pos);
 		return null;
 	}
-
 	#end
+
+
+	/**
+		This creates an Array<String> containing all the "values" from an Abstract Enum, to be used at runtime.
+	**/
+	public static macro function getAbstractEnumKeys(typePath:haxe.macro.Expr) {
+		var typeName = typePath.toString();
+		var type = try Context.getType(typeName) catch(_) {
+			Context.fatalError('Type not found: $typeName', typePath.pos);
+			null;
+		}
+
+		var allKeys = [];
+		switch type.follow() {
+			case TAbstract(t, params):
+				for( field in t.get().impl.get().statics.get() )
+					allKeys.push(field.name);
+
+			case _:
+				Context.fatalError('Not an abstract enum: $typeName', typePath.pos);
+		}
+
+		return macro $v{allKeys}
+	}
 }
