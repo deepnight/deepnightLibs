@@ -133,7 +133,7 @@ class SpriteLib {
 		}
 	}
 
-	public function isDestroyed(){
+	public inline function isDestroyed(){
 		return pages == null || pages.length == 0;
 	}
 
@@ -164,8 +164,8 @@ class SpriteLib {
 		}
 	}
 
-	public function sameTile(t:h2d.Tile) {
-		return tile.getTexture().id==t.getTexture().id;
+	public inline function sameTile(t:h2d.Tile) {
+		return tile.getTexture().id == t.getTexture().id;
 	}
 
 
@@ -174,7 +174,7 @@ class SpriteLib {
 		defaultCenterY = ry;
 	}
 
-	public function setSliceGrid(w,h) {
+	public inline function setSliceGrid(w,h) {
 		gridX = w;
 		gridY = h;
 	}
@@ -318,6 +318,7 @@ class SpriteLib {
 
 
 
+	@:keep
 	public function toString() {
 		var l = [];
 		for ( k in getGroups().keys() ) {
@@ -333,7 +334,7 @@ class SpriteLib {
 	}
 
 
-	public function listAnims() {
+	public inline function listAnims() {
 		var l = [];
 		for ( k in getGroups().keys() ) {
 			var g = getGroup(k);
@@ -345,11 +346,11 @@ class SpriteLib {
 	}
 
 
-	public function addChild(s:SpriteInterface) {
+	public inline function addChild(s:SpriteInterface) {
 		children.push(s);
 	}
 
-	public function removeChild(s:SpriteInterface) {
+	public inline function removeChild(s:SpriteInterface) {
 		children.remove(s);
 	}
 
@@ -405,7 +406,7 @@ class SpriteLib {
 		return s;
 	}
 
-	public function be_get(sb:h2d.SpriteBatch, k:String, f=0, xr=0., yr=0.) : BatchElement {
+	public inline function be_get(sb:h2d.SpriteBatch, k:String, f=0, xr=0., yr=0.) : BatchElement {
 		var e = new h2d.SpriteBatch.BatchElement( getTile(k,f) );
 		e.t.setCenterRatio(xr,yr);
 		sb.add(e);
@@ -418,7 +419,7 @@ class SpriteLib {
 		return e;
 	}
 
-	public function getTile(g:String, frame=0, px:Float=0.0, py:Float=0.0) : h2d.Tile {
+	public inline function getTile(g:String, frame=0, px:Float=0.0, py:Float=0.0) : h2d.Tile {
 		var fd = getFrameData(g, frame);
 		if ( fd == null)
 			throw 'Unknown group $g#$frame!';
@@ -430,7 +431,7 @@ class SpriteLib {
 		return new h2d.Bitmap( getTile(g,frame,px,py), p );
 	}
 
-	public function updTile(t:h2d.Tile, g:String, frame=0, px:Float=0.0, py:Float=0.0) : h2d.Tile {
+	public inline function updTile(t:h2d.Tile, g:String, frame=0, px:Float=0.0, py:Float=0.0) : h2d.Tile {
 		var fd = getFrameData(g, frame);
 		if ( fd == null)
 			throw 'Unknown group $g#$frame!';
@@ -444,11 +445,11 @@ class SpriteLib {
 		return t;
 	}
 
-	public function getTileRandom(g:String, px:Float=0.0, py:Float=0.0, ?rndFunc) : h2d.Tile {
+	public inline function getTileRandom(g:String, px:Float=0.0, py:Float=0.0, ?rndFunc) : h2d.Tile {
 		return getTile(g, getRandomFrame(g,rndFunc), px, py);
 	}
 
-	public function getCachedTile( g:String, frame=0 ) : h2d.Tile {
+	public inline function getCachedTile( g:String, frame=0 ) : h2d.Tile {
 		var fd = getFrameData(g, frame);
 		if ( fd == null)
 			throw 'Unknown group $g#$frame!';
