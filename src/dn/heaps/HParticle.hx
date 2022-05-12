@@ -516,7 +516,7 @@ class HParticle extends BatchElement {
 		fadeOutSpeed = targetAlpha*0.1*fadeOutSpd;
 	}
 
-	public inline function setFadeS(targetAlpha:Float, fadeInDurationS:Float, fadeOutDurationS:Float) {
+	public inline function setFadeS(targetAlpha:Float, fadeInDurationS:Float, fadeOutDurationS:Float) : Void {
 		this.alpha = 0;
 		maxAlpha = targetAlpha;
 		if( fadeInDurationS<=0 )
