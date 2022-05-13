@@ -48,9 +48,9 @@ enum abstract PadButton(Int) {
 }
 
 
-enum ControllerType {
-	Keyboard;
-	Gamepad;
+enum abstract ControllerType(Int) {
+	var Keyboard;
+	var Gamepad;
 }
 
 
