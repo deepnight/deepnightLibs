@@ -288,8 +288,8 @@ class Controller<T:Int> {
 
 
 	@:noCompletion
-	public inline function getPadButtonId(bt:PadButton) {
-		return enumMapping.exists(bt) ? enumMapping.get(bt) : -1;
+	public inline function getPadButtonId(bt:Null<PadButton>) {
+		return bt!=null && enumMapping.exists(bt) ? enumMapping.get(bt) : -1;
 	}
 
 
