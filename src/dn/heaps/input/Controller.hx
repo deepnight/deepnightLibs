@@ -195,7 +195,8 @@ class Controller<T:Int> {
 	var exclusive : Null<ControllerAccess<T>>;
 	var globalDeadZone = 0.1;
 
-	var padButtonNameResolver : Map<Int,String> = new Map();
+	var padButtonNames : Map<Int,String> = new Map();
+	var padButtonResolver : Map<String,Int> = new Map();
 
 
 	/**
@@ -205,15 +206,21 @@ class Controller<T:Int> {
 		this.actionNames = actionNames;
 
 		var all = MacroTools.getAbstractEnumValues(PadButton);
-		for(v in all)
-			padButtonNameResolver.set(v.value, v.name);
+		for(v in all) {
+			padButtonNames.set(v.value, v.name);
+			padButtonResolver.set(v.name, v.value);
+		}
 
 		waitForPad();
 	}
 
 
-	inline function resolvePadButtonName(b:PadButton) {
-		return padButtonNameResolver.get(cast b);
+	public inline function getPadButtonName(b:PadButton) : String {
+		return padButtonNames.get(cast b);
+	}
+
+	public inline function resolvePadButton(name:String) : Null<PadButton> {
+		return cast padButtonResolver.get(name);
 	}
 
 
@@ -605,7 +612,7 @@ class Controller<T:Int> {
 	**/
 	public function getPadIconTile(b:PadButton) : h2d.Tile {
 		#if heaps_aseprite
-			var baseId = resolvePadButtonName(b);
+			var baseId = getPadButtonName(b);
 
 			// Suffix for vendor specific icons
 			var suffix = "";
