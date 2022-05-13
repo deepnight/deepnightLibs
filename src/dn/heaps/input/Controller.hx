@@ -195,15 +195,26 @@ class Controller<T:Int> {
 	var exclusive : Null<ControllerAccess<T>>;
 	var globalDeadZone = 0.1;
 
+	var padButtonNameResolver : Map<Int,String> = new Map();
+
 
 	/**
 		Create a Controller that will bind keyboard or gamepad inputs with "actions" represented by the values of the `actionsEnum` parameter.
 	**/
 	private function new(actionNames:Map<Int,String>) {
 		this.actionNames = actionNames;
+
+		var all = MacroTools.getAbstractEnumValues(PadButton);
+		for(v in all)
+			padButtonNameResolver.set(v.value, v.name);
+
 		waitForPad();
 	}
 
+
+	inline function resolvePadButtonName(b:PadButton) {
+		return padButtonNameResolver.get(cast b);
+	}
 
 
 	@:keep public function toString() {
@@ -594,7 +605,7 @@ class Controller<T:Int> {
 	**/
 	public function getPadIconTile(b:PadButton) : h2d.Tile {
 		#if heaps_aseprite
-			var baseId = Std.string(b);
+			var baseId = resolvePadButtonName(b);
 
 			// Suffix for vendor specific icons
 			var suffix = "";
@@ -697,7 +708,7 @@ class Controller<T:Int> {
 			f.paddingHorizontal = 2;
 			f.paddingBottom = 2;
 			var tf = new h2d.Text(ICON_FONT, f);
-			tf.text = Std.string(b);
+			tf.text = resolvePadButtonName(b);
 			tf.textColor = 0x0;
 			tf.alpha = 0.5;
 		#end
