@@ -9,42 +9,42 @@ import hxd.Pad;
 import hxd.Key;
 #end
 
-enum PadButton {
-	A;
-	B;
-	X;
-	Y;
+enum abstract PadButton(Int) {
+	var A;
+	var B;
+	var X;
+	var Y;
 
-	RT;
-	RB;
+	var RT;
+	var RB;
 
-	LT;
-	LB;
+	var LT;
+	var LB;
 
-	START;
-	SELECT;
+	var START;
+	var SELECT;
 
-	DPAD_UP;
-	DPAD_DOWN;
-	DPAD_LEFT;
-	DPAD_RIGHT;
+	var DPAD_UP;
+	var DPAD_DOWN;
+	var DPAD_LEFT;
+	var DPAD_RIGHT;
 
-	LSTICK_PUSH;
-	RSTICK_PUSH;
+	var LSTICK_PUSH;
+	var RSTICK_PUSH;
 
-	LSTICK_X;
-	LSTICK_Y;
-	LSTICK_UP;
-	LSTICK_DOWN;
-	LSTICK_LEFT;
-	LSTICK_RIGHT;
+	var LSTICK_X;
+	var LSTICK_Y;
+	var LSTICK_UP;
+	var LSTICK_DOWN;
+	var LSTICK_LEFT;
+	var LSTICK_RIGHT;
 
-	RSTICK_X;
-	RSTICK_Y;
-	RSTICK_UP;
-	RSTICK_DOWN;
-	RSTICK_LEFT;
-	RSTICK_RIGHT;
+	var RSTICK_X;
+	var RSTICK_Y;
+	var RSTICK_UP;
+	var RSTICK_DOWN;
+	var RSTICK_LEFT;
+	var RSTICK_RIGHT;
 }
 
 
@@ -278,7 +278,7 @@ class Controller<T:Int> {
 
 	@:noCompletion
 	public inline function getPadButtonId(bt:PadButton) {
-		return bt!=null && enumMapping.exists(bt) ? enumMapping.get(bt) : -1;
+		return enumMapping.exists(bt) ? enumMapping.get(bt) : -1;
 	}
 
 
