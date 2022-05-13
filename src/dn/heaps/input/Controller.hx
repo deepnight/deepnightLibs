@@ -104,7 +104,7 @@ class Controller<T:Int> {
 		```
 	**/
 	public static macro function createFromAbstractEnum(abstractEnumType:haxe.macro.Expr) {
-		var allValues = MacroTools.getAbstractEnumValues(abstractEnumType);
+		var allValues = MacroTools.getAbstractEnumValuesForMacros(abstractEnumType);
 
 		// Check enum underlying type
 		for(v in allValues)

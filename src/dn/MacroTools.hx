@@ -212,7 +212,7 @@ class MacroTools {
 	/**
 		Return an Array<String> containing all the "values" from an Abstract Enum
 	**/
-	public static function getAbstractEnumValues(abstractEnumType:haxe.macro.Expr) : Array<{ name:String, valueExpr:Expr }> {
+	public static function getAbstractEnumValuesForMacros(abstractEnumType:haxe.macro.Expr) : Array<{ name:String, valueExpr:Expr }> {
 		var typeName = abstractEnumType.toString();
 		var type = try Context.getType(typeName) catch(_) {
 			Context.fatalError('Type not found: $typeName', abstractEnumType.pos);
@@ -252,13 +252,31 @@ class MacroTools {
 
 
 	/**
-		Create an Array<String> containing all the "values" from an Abstract Enum, to be used at runtime.
+		Create an `Array<{ name:String, value:XXX }>` from an Abstract Enum, where XXX type depends on the underlying enum type (Int or String).
 	**/
-	public static macro function getAbstractEnumValueNames(abstractEnumType:haxe.macro.Expr) : ExprOf< Array<String> > {
-		var all = getAbstractEnumValues(abstractEnumType);
-		var allKeys = [];
-		for(v in all)
-			allKeys.push(v.name);
-		return macro $v{allKeys}
+	public static macro function getAbstractEnumValues(abstractEnumType:haxe.macro.Expr) {
+		var allValues = getAbstractEnumValuesForMacros(abstractEnumType);
+
+		// Check enum underlying type
+		if( allValues.length==0 )
+			Context.fatalError("Abstract enum has no values.", abstractEnumType.pos);
+		var underlyingComplexType = switch allValues[0].valueExpr.expr {
+			case EConst(CInt(_)): macro : Int;
+			case EConst(CString(_)): macro : String;
+			case _: Context.fatalError("Only supports abstract enum of Int or String.", abstractEnumType.pos);
+		}
+
+		// Build anonymous objects of value expressions
+		var valueInitExprs = [];
+		for(v in allValues)
+			valueInitExprs.push( macro { name: $v{v.name}, value: $e{v.valueExpr} } );
+
+		// Build Array declaration as `[ { name:..., value:... }, ... ]`
+		var arrayInitExpr : Expr = { pos:Context.currentPos(), expr: EArrayDecl(valueInitExprs) }
+		return macro {
+			var arr : Array<{ name:String, value:$underlyingComplexType }>;
+			arr = $arrayInitExpr;
+			arr;
+		}
 	}
 }
