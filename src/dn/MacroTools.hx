@@ -254,7 +254,6 @@ class MacroTools {
 	/**
 		Create an Array<String> containing all the "values" from an Abstract Enum, to be used at runtime.
 	**/
-	#if !macro
 	public static macro function getAbstractEnumValueNames(abstractEnumType:haxe.macro.Expr) : ExprOf< Array<String> > {
 		var all = getAbstractEnumValues(abstractEnumType);
 		var allKeys = [];
@@ -262,5 +261,4 @@ class MacroTools {
 			allKeys.push(v.name);
 		return macro $v{allKeys}
 	}
-	#end
 }

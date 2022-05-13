@@ -199,7 +199,7 @@ class Controller<T:Int> {
 	/**
 		Create a Controller that will bind keyboard or gamepad inputs with "actions" represented by the values of the `actionsEnum` parameter.
 	**/
-	function new(actionNames:Map<Int,String>) {
+	private function new(actionNames:Map<Int,String>) {
 		this.actionNames = actionNames;
 		waitForPad();
 	}
