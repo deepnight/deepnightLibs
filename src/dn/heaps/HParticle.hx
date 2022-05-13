@@ -607,6 +607,7 @@ class HParticle extends BatchElement {
 		return any;
 	}
 
+	/** Remove particle immediately without fading out **/
 	public inline function kill() {
 		if( !killed ) {
 			onKillCallbacks();
@@ -619,7 +620,11 @@ class HParticle extends BatchElement {
 
 			@:privateAccess pool.free(this);
 		}
+	}
 
+	/** Lower life to 0 and start fading out **/
+	public inline function timeoutNow() {
+		rLifeF = 0;
 	}
 
 	function dispose() {
