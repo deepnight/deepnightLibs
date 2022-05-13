@@ -206,29 +206,61 @@ class MacroTools {
 		Context.fatalError("Couldn't locate file for resource: "+idents.join("."), resExpr.pos);
 		return null;
 	}
+
+
+
+	/**
+		Return an Array<String> containing all the "values" from an Abstract Enum
+	**/
+	public static function getAbstractEnumValues(abstractEnumType:haxe.macro.Expr) : Array<{ name:String, valueExpr:Expr }> {
+		var typeName = abstractEnumType.toString();
+		var type = try Context.getType(typeName) catch(_) {
+			Context.fatalError('Type not found: $typeName', abstractEnumType.pos);
+			null;
+		}
+
+		var all = [];
+		switch type.follow() {
+			case TAbstract(t, params):
+				for( field in t.get().impl.get().statics.get() ) {
+					var valueExpr = switch field.expr().expr {
+						case TCast(t,_):
+							switch t.expr {
+								case TConst( TInt(v) ): macro $v{v};
+								case TConst( TString(v) ): macro $v{v};
+								case _: null;
+							}
+						case _: null;
+					}
+
+					if( valueExpr==null )
+						Context.fatalError("Only abstract enum of Int or String are supported.", abstractEnumType.pos);
+
+					all.push({
+						name: field.name,
+						valueExpr: valueExpr,
+					});
+				}
+
+			case _:
+				Context.fatalError('Not an abstract enum: $typeName', abstractEnumType.pos);
+		}
+
+		return all;
+	}
 	#end
 
 
 	/**
-		This creates an Array<String> containing all the "values" from an Abstract Enum, to be used at runtime.
+		Create an Array<String> containing all the "values" from an Abstract Enum, to be used at runtime.
 	**/
-	public static macro function getAbstractEnumKeys(typePath:haxe.macro.Expr) {
-		var typeName = typePath.toString();
-		var type = try Context.getType(typeName) catch(_) {
-			Context.fatalError('Type not found: $typeName', typePath.pos);
-			null;
-		}
-
+	#if !macro
+	public static macro function getAbstractEnumValueNames(abstractEnumType:haxe.macro.Expr) : ExprOf< Array<String> > {
+		var all = getAbstractEnumValues(abstractEnumType);
 		var allKeys = [];
-		switch type.follow() {
-			case TAbstract(t, params):
-				for( field in t.get().impl.get().statics.get() )
-					allKeys.push(field.name);
-
-			case _:
-				Context.fatalError('Not an abstract enum: $typeName', typePath.pos);
-		}
-
+		for(v in all)
+			allKeys.push(v.name);
 		return macro $v{allKeys}
 	}
+	#end
 }

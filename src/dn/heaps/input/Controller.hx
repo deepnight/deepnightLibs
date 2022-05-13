@@ -1,8 +1,13 @@
 package dn.heaps.input;
 
+#if macro
+import haxe.macro.Expr;
+import haxe.macro.Context;
+using haxe.macro.Tools;
+#else
 import hxd.Pad;
 import hxd.Key;
-
+#end
 
 enum PadButton {
 	A;
@@ -85,7 +90,23 @@ enum ControllerType {
 	```
 **/
 @:allow(dn.heaps.input.ControllerAccess)
-class Controller<T:EnumValue> {
+class Controller<T:Int> {
+	public static macro function createFromAbstractIntEnum(type:haxe.macro.Expr) {
+		var allValues = MacroTools.getAbstractEnumValues(type);
+
+		// Build `0 => "ValueName"` expressions
+		var valueInitExprs = [];
+		for(v in allValues)
+			valueInitExprs.push( macro $e{v.valueExpr} => $v{v.name} );
+
+		// Build Map declaration as `[ 0=>"ValueName", 1=>"ValueName" ]`
+		var mapInitExpr : Expr = { pos:Context.currentPos(), expr: EArrayDecl(valueInitExprs) }
+		return macro @:privateAccess new dn.heaps.input.Controller( $mapInitExpr );
+	}
+
+
+	#if !macro
+
 	#if heaps_aseprite
 	/**
 		Embed icons in Aseprite-Base64 format
@@ -142,10 +163,8 @@ class Controller<T:EnumValue> {
 	**/
 	public var onDisconnect : Void->Void;
 
-	/**
-		Enum type associated with this Controller
-	**/
-	var actionsEnum(default,null) : Enum<T>;
+	/** Resolve an action Int to a human readable String. **/
+	var actionNames : Map<Int,String> = new Map();
 
 
 	var allAccesses : Array<ControllerAccess<T>> = [];
@@ -159,8 +178,8 @@ class Controller<T:EnumValue> {
 	/**
 		Create a Controller that will bind keyboard or gamepad inputs with "actions" represented by the values of the `actionsEnum` parameter.
 	**/
-	public function new(actionsEnum:Enum<T>) {
-		this.actionsEnum = actionsEnum;
+	function new(actionNames:Map<Int,String>) {
+		this.actionNames = actionNames;
 		waitForPad();
 	}
 
@@ -305,7 +324,7 @@ class Controller<T:EnumValue> {
 		pad = null;
 		enumMapping = null;
 		bindings = null;
-		actionsEnum = null;
+		actionNames = null;
 		destroyed = true;
 	}
 
@@ -313,7 +332,7 @@ class Controller<T:EnumValue> {
 		if( destroyed )
 			return false;
 		else {
-			if( action!=null && !bindings.exists(action) )
+			if( !bindings.exists(action) )
 				bindings.set(action, []);
 			bindings.get(action).push(b);
 			return true;
@@ -736,14 +755,16 @@ class Controller<T:EnumValue> {
 		return f;
 	}
 
+	#end
 }
 
 
+#if !macro
 
 /**
 	Internal binding definition
 **/
-class InputBinding<T:EnumValue> {
+class InputBinding<T:Int> {
 	final analogDownDeadZone = 0.84;
 
 	var input : Controller<T>;
@@ -878,7 +899,7 @@ class InputBinding<T:EnumValue> {
 	/**
 		Create a binding for a stick axis (X/Y)
 	**/
-	public static function createPadStickAxis<E:EnumValue>(c:Controller<E>, action:E, stick:Int, isXaxis:Bool, invert=false) : InputBinding<E> {
+	public static function createPadStickAxis<E:Int>(c:Controller<E>, action:E, stick:Int, isXaxis:Bool, invert=false) : InputBinding<E> {
 		var b = new InputBinding(c, action);
 		if( stick==0 )
 			b.isLStick = true;
@@ -893,7 +914,7 @@ class InputBinding<T:EnumValue> {
 	/**
 		Create a binding for a specific stick direction (up, down, left or right)
 	**/
-	public static inline function createPadStickDirection<E:EnumValue>(c:Controller<E>, action:E, isLStick:Bool, isX:Bool, sign:Int) : InputBinding<E> {
+	public static inline function createPadStickDirection<E:Int>(c:Controller<E>, action:E, isLStick:Bool, isX:Bool, sign:Int) : InputBinding<E> {
 		var b = new InputBinding(c, action);
 		if( isLStick )
 			b.isLStick = true;
@@ -908,7 +929,7 @@ class InputBinding<T:EnumValue> {
 	/**
 		Create a basic keyboard key binding
 	**/
-	public static inline function createKeyboard<E:EnumValue>(c:Controller<E>, action:E, key:Int) : InputBinding<E> {
+	public static inline function createKeyboard<E:Int>(c:Controller<E>, action:E, key:Int) : InputBinding<E> {
 		var b = new InputBinding(c, action);
 		b.kbNeg = b.kbPos = key;
 		return b;
@@ -1020,3 +1041,5 @@ class InputBinding<T:EnumValue> {
 		}
 	}
 }
+
+#end

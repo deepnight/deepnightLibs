@@ -8,7 +8,7 @@ import dn.heaps.input.Controller;
 /**
 	This class should only be created through `Controller.createAccess()`.
 **/
-class ControllerAccess<T:EnumValue> {
+class ControllerAccess<T:Int> {
 	public var input(default,null) : Controller<T>;
 
 	var destroyed(get,never) : Bool;
