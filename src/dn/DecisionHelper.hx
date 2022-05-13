@@ -24,6 +24,20 @@ class DecisionHelper<T> {
 		}
 	}
 
+	public static inline function optimizedPick<T>(all:Array<T>, score:T->Float) : Null<T> {
+		var best : T = null;
+		var bestScore = -9999999.;
+		var s = 0.;
+		for(e in all) {
+			s = score(e);
+			if( s>bestScore ) {
+				best = e;
+				bestScore = s;
+			}
+		}
+		return best;
+	}
+
 	public function reset() {
 		for(e in all) {
 			e.out = false;
