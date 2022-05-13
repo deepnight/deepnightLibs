@@ -57,18 +57,17 @@ enum ControllerType {
 
 /**
 	Controller wrapper for `hxd.Pad` and `hxd.Key` which provides a *much* more convenient binding system, to make keyboard/gamepad usage fully transparent.
-
 	For example, you may bind analog controls (ie. pad left stick) with keyboard keys, or have as many bindings as you want per game action.
 
 	**Example:**
 	```haxe
-	enum MyGameActions {
-		MoveX;
-		MoveY;
-		Jump;
-		Attack;
+	enum abstract MyGameActions(Int) to Int {
+		var MoveX;
+		var MoveY;
+		var Jump;
+		var Attack;
 	}
-	var ctrl = new Controller(MyGameActions);
+	var ctrl = Controller.createFromAbstractEnum(MyGameActions);
 	ctrl.bindKeyboardAsStickXY(MoveX,MoveY, hxd.Key.UP, hxd.Key.LEFT, hxd.Key.DOWN, hxd.Key.RIGHT);
 	ctrl.bindKeyboardAsStickXY(MoveX,MoveY, hxd.Key.W, hxd.Key.A, hxd.Key.S, hxd.Key.D);
 	ctrl.bindKeyboard(Jump, hxd.Key.SPACE);
@@ -91,10 +90,30 @@ enum ControllerType {
 **/
 @:allow(dn.heaps.input.ControllerAccess)
 class Controller<T:Int> {
-	public static macro function createFromAbstractIntEnum(type:haxe.macro.Expr) {
-		var allValues = MacroTools.getAbstractEnumValues(type);
 
-		// Build `0 => "ValueName"` expressions
+	/**
+		Create a new Controller instance using an existing **Int based Abstract Enum**.
+
+		```haxe
+		enum abstract MyGameActions(Int) to Int {
+			var MoveX;
+			var MoveY;
+			var Jump;
+		}
+		var c = Controller.createFromAbstractEnum(MyGameActions);
+		```
+	**/
+	public static macro function createFromAbstractEnum(abstractEnumType:haxe.macro.Expr) {
+		var allValues = MacroTools.getAbstractEnumValues(abstractEnumType);
+
+		// Check enum underlying type
+		for(v in allValues)
+			switch v.valueExpr.expr {
+				case EConst(CInt(_)):
+				case _: Context.fatalError("Only abstract enum of Int is supported.", abstractEnumType.pos);
+			}
+
+		// Build `0=>"ValueName"` expressions
 		var valueInitExprs = [];
 		for(v in allValues)
 			valueInitExprs.push( macro $e{v.valueExpr} => $v{v.name} );
@@ -103,6 +122,8 @@ class Controller<T:Int> {
 		var mapInitExpr : Expr = { pos:Context.currentPos(), expr: EArrayDecl(valueInitExprs) }
 		return macro @:privateAccess new dn.heaps.input.Controller( $mapInitExpr );
 	}
+
+
 
 
 	#if !macro
