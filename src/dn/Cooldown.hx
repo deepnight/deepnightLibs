@@ -252,6 +252,8 @@ class Cooldown {
 		switch( k.expr ){
 		case EConst(CString(s)):
 			key = s;
+		case EField(e, _):
+			key = TypeTools.toString(Context.typeof(e));
 		case EBinop(OpAdd, {expr: EConst(CString(s)), pos: _}, e):
 			var t = TypeTools.toString( Context.typeof(e) );
 			switch( t ){
@@ -504,6 +506,19 @@ class Cooldown {
 		CiAssert.isTrue(coolDown.has("jump" + 2));
 		var id = 2;
 		CiAssert.isTrue(coolDown.has("jump" + id));
+
+		coolDown.setS(Dummy.id,1);
+		CiAssert.isTrue( coolDown.has(Dummy.id) );
+		for(i in 0...fps) coolDown.update(1);
+		CiAssert.isTrue( coolDown.getRatio(Dummy.id) == 0 );
 		#end
 	}
 }
+
+
+#if !macro
+@:noCompletion
+class Dummy {
+	public static var id: String = "jump";
+}
+#end
