@@ -1,0 +1,5 @@
+tests.base.hxml
+-lib hlsteam
+
+-hl tests/bin/test.hl
+--cmd hl tests/bin/test.hl

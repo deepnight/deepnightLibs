@@ -1,0 +1,57 @@
+{
+	"sheets": [
+		{
+			"name": "achievements",
+			"columns": [
+				{
+					"typeStr": "0",
+					"name": "Id"
+				},
+				{
+					"typeStr": "1",
+					"name": "Name",
+					"display": null
+				},
+				{
+					"typeStr": "1",
+					"name": "Description",
+					"display": null
+				},
+				{
+					"typeStr": "7",
+					"name": "Picture",
+					"opt": true,
+					"display": null
+				},
+				{
+					"typeStr": "1",
+					"name": "steamID",
+					"opt": true
+				},
+				{
+					"typeStr": "1",
+					"name": "xboxID",
+					"opt": true
+				},
+				{
+					"typeStr": "1",
+					"name": "psID",
+					"display": null
+				}
+			],
+			"lines": [
+				{
+					"Name": "test",
+					"psID": "qsd",
+					"steamID": "sd",
+					"xboxID": "sd",
+					"Id": "test"
+				}
+			],
+			"separators": [],
+			"props": {}
+		}
+	],
+	"customTypes": [],
+	"compress": false
+}
