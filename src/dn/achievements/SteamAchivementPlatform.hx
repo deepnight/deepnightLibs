@@ -1,5 +1,6 @@
 package dn.achievements;
 
+import cdb.Types.ArrayRead;
 #if hlsteam
 import dn.data.AchievementDb;
 
@@ -16,18 +17,25 @@ class SteamAchivementPlatform extends AbstractAchievementPlatform {
 		trace(ach.Id+": "+(ok?"Ok":"FAILED!"));
     }
 
-	public function getUnlocked():Map<String,Bool>{
-        var dones = new Map<String,Bool>();
+	public function getUnlocked(?achs:cdb.Types.ArrayRead<Achievements>):Array<String>{
+        var dones = new Array<String>();
 		for(idx in 0...steam.Api.getNumAchievements()) {
 			var id = steam.Api.getAchievementAPIName(idx);
 			if( steam.Api.getAchievement(id) )
-				dones.set(id, true);
+				dones.push(getAchById(id,achs).Id.toString());
 		}
         return dones;
     }
 
 	public function unlock(ach:Achievements):Bool {
 		return steam.Api.setAchievement(ach.steamID);
+	}
+
+	override function getAchById(id:String, achs:ArrayRead<Achievements>):Achievements {
+        for (ach in achs){
+            if(ach.steamID == id) return ach;
+        }
+        return null;
 	}
 }
 #end

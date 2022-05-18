@@ -5,15 +5,15 @@ import dn.data.AchievementDb;
 
 /**
  * Local Achivement platform
- * Save in localMap
- * Id => Bool
+ * Save in Array
  */
 class LocalAchivementPlatform extends AbstractAchievementPlatform {
-	var dones : Map<String,Bool>;
+	var dones : Array<String>;
 
-	public function new(?originalStatus:Map<String,Bool> = null) {
+	public function new(?originalStatus:Array<String> = null) {
 		super();
-		if(originalStatus == null) originalStatus = new Map<String,Bool>();
+		isLocal = true;
+		if(originalStatus == null) originalStatus = [];
 		dones = originalStatus;
 	}
 	public function init() {}
@@ -23,12 +23,12 @@ class LocalAchivementPlatform extends AbstractAchievementPlatform {
 		trace(ach.Id+": "+(ok?"Ok":"FAILED!"));
     }
 
-	public function getUnlocked():Map<String,Bool>{
+	public function getUnlocked(?achs:cdb.Types.ArrayRead<Achievements>):Array<String>{
         return dones;
     }
 
 	public function unlock(ach:Achievements):Bool {
-		dones.set(ach.Id.toString(),true);
+		dones.push(ach.Id.toString());
 		return true;
 	}
 }

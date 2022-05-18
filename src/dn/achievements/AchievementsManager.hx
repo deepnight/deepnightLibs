@@ -5,14 +5,16 @@ import dn.data.AchievementDb;
 
 
 class AchievementsManager {
-	var dones : Map<String,Bool>;
+	public var isLocal(get,never):Bool; inline function get_isLocal() return platform.isLocal;
+	
+	var dones : Array<String>;
 	var platform:AbstractAchievementPlatform;
 
 	public function new(platform:AbstractAchievementPlatform,?dbName:String = "achievements.cdb") {
 		this.platform = platform;
 		
 		AchievementDb.load(hxd.Res.load(dbName).toText());
-		dones = this.platform.getUnlocked();
+		dones = this.platform.getUnlocked(AchievementDb.achievements.all);
 	}
 
 	public function clear(id:String) {
@@ -29,8 +31,8 @@ class AchievementsManager {
 
 	public function complete(id:String) {
 		if( !isCompleted(id) ) {
-			dones.set(id,true);
 			platform.unlock(getAchievementByName(id));
+			dones.push(id);
 			return true;
 		}
 		else
@@ -38,7 +40,7 @@ class AchievementsManager {
 	}
 
 	public inline function isCompleted(id:String) {
-		return hasAchievement(id) && dones.exists(id) && dones.get(id)==true;
+		return hasAchievement(id) && dones.contains(id);
 	}
 
 	public inline function hasAchievement(id:String):Bool {

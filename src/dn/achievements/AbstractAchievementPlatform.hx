@@ -10,9 +10,10 @@ import dn.data.AchievementDb;
  */
 abstract class AbstractAchievementPlatform {
     
+    public var isLocal(default,null):Bool = false;
     public function new(){}
     
-    public function clear(ach:Achievements) {
+    inline public function clear(ach:Achievements) {
         #if(debug)
         internalClear(ach);
 		#else
@@ -21,8 +22,15 @@ abstract class AbstractAchievementPlatform {
 	}
     
     abstract public function init():Void;
-    abstract function internalClear(ach:Achievements):Void;
-    abstract public function getUnlocked():Map<String,Bool>;
+    abstract public function getUnlocked(?achs:cdb.Types.ArrayRead<Achievements>):Array<String>;
     abstract public function unlock(ach:Achievements):Bool;
+    
+    abstract function internalClear(ach:Achievements):Void;
+    function getAchById(id:String,achs:cdb.Types.ArrayRead<Achievements>):Achievements{
+        for (ach in achs){
+            if(ach.Id.toString() == id) return ach;
+        }
+        return null;
+    }
 
 }
