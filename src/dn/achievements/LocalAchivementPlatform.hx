@@ -10,9 +10,12 @@ import dn.data.AchievementDb;
 class LocalAchivementPlatform extends AbstractAchievementPlatform {
 	var dones : Array<String>;
 
-	public function new(?originalStatus:Array<String> = null) {
+	public function new() {
 		super();
 		isLocal = true;
+	}
+
+	public function updateDones(originalStatus:Array<String> = null) {
 		if(originalStatus == null) originalStatus = [];
 		dones = originalStatus;
 	}
