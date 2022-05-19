@@ -10,6 +10,9 @@ import dn.heaps.input.Controller;
 **/
 class ControllerAccess<T:Int> {
 	public var input(default,null) : Controller<T>;
+	
+	public var disableRumble(get,set) : Bool;
+	public var rumbleMultiplicator(get,set) : Float;
 
 	var destroyed(get,never) : Bool;
 	var bindings(get,never) : Map<T, Array< InputBinding<T> >>;
@@ -27,6 +30,10 @@ class ControllerAccess<T:Int> {
 	inline function get_destroyed() return input==null || input.destroyed;
 	inline function get_bindings() return destroyed ? null : input.bindings;
 	inline function get_pad() return destroyed ? null : input.pad;
+	inline function get_disableRumble() return destroyed ? false : input.disableRumble;
+	inline function set_disableRumble(v){ if(!destroyed)input.disableRumble = v; return disableRumble; }
+	inline function get_rumbleMultiplicator() return destroyed ? 0 : input.rumbleMultiplicator;
+	inline function set_rumbleMultiplicator(v){ if(!destroyed)input.rumbleMultiplicator = v; return rumbleMultiplicator; }
 
 	/** Current `ControllerDebug` instance, if it exists. This can be created using `createDebugger()` **/
 	public var debugger(default,null) : Null<ControllerDebug<T>>;
@@ -430,9 +437,8 @@ class ControllerAccess<T:Int> {
 	}
 
 	/** Rumbles physical controller, if supported **/
-	public function rumble(strength:Float, seconds:Float) {
-		if( pad.index>=0 )
-			pad.rumble(strength, seconds);
+	public inline function rumble(strength:Float, seconds:Float) {
+		input.rumble(strength, seconds);
 	}
 
 	/**
