@@ -31,7 +31,7 @@ class LocalAchivementPlatform extends AbstractAchievementPlatform {
     }
 
 	public function unlock(ach:Achievements):Bool {
-		dones.push(ach.Id.toString());
+		if(!dones.contains(ach.Id.toString()))dones.push(ach.Id.toString());
 		return true;
 	}
 }
