@@ -492,15 +492,15 @@ class HParticle extends BatchElement {
 	public inline function uncolorize() r = g = b = 1;
 
 	public inline function colorize(c:UInt, ratio=1.0) {
-		dn.Color.colorizeBatchElement(this, c, ratio);
+		dn.legacy.Color.colorizeBatchElement(this, c, ratio);
 	}
 
 	public inline function colorizeRandomDarker(c:UInt, range:Float) {
-		colorize( Color.toBlack(c,rnd(0,range)) );
+		colorize( dn.legacy.Color.toBlack(c,rnd(0,range)) );
 	}
 
 	public inline function colorizeRandomLighter(c:UInt, range:Float) {
-		colorize( Color.toWhite(c,rnd(0,range)) );
+		colorize( dn.legacy.Color.toWhite(c,rnd(0,range)) );
 	}
 
 	public inline function randScale(min:Float, max:Float, sign=false) {
@@ -508,7 +508,7 @@ class HParticle extends BatchElement {
 	}
 
 	public inline function colorizeRandom(min:UInt, max:UInt) {
-		dn.Color.colorizeBatchElement(this, dn.Color.interpolateInt(min,max,rnd(0,1)), 1);
+		dn.legacy.Color.colorizeBatchElement(this, dn.legacy.Color.interpolateInt(min,max,rnd(0,1)), 1);
 	}
 
 	public inline function delayCallback(cb:HParticle->Void, sec:Float) {
@@ -776,7 +776,7 @@ class HParticle extends BatchElement {
 					// Color animation
 					if( !Math.isNaN(rColor) ) {
 						rColor = M.fclamp(rColor+dColor*tmod, 0, 1);
-						colorize( dn.Color.interpolateInt(fromColor, toColor, rColor) );
+						colorize( dn.legacy.Color.interpolateInt(fromColor, toColor, rColor) );
 					}
 
 					// Fade in

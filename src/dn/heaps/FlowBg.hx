@@ -22,7 +22,7 @@ class FlowBg extends h2d.Flow {
 	}
 
 	public inline function colorizeBg(c:UInt) {
-		bg.color.setColor( Color.addAlphaF(c) );
+		bg.color.setColor( dn.legacy.Color.addAlphaF(c) );
 	}
 
 	override function sync(ctx:h2d.RenderContext) {

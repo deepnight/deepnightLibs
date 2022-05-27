@@ -179,11 +179,11 @@ class ControllerDebug<T:Int> extends dn.Process {
 			var alpha = isAnalog ? 0.4 : 1;
 			if( ca.isDown(a) ) {
 				tf.textColor = GREEN;
-				bt.color.setColor( dn.Color.addAlphaF(GREEN, alpha) );
+				bt.color.setColor( dn.legacy.Color.addAlphaF(GREEN, alpha) );
 			}
 			else {
 				tf.textColor = RED;
-				bt.color.setColor( dn.Color.addAlphaF(RED, alpha) );
+				bt.color.setColor( dn.legacy.Color.addAlphaF(RED, alpha) );
 			}
 
 			// Analog
@@ -210,8 +210,8 @@ class ControllerDebug<T:Int> extends dn.Process {
 		p.onUpdateCb = ()->{
 			var v = ca.getAnalogValue(a);
 			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
-			bmp.color.setColor( dn.Color.addAlphaF(v!=0 ? GREEN : RED) );
-			bg.color.setColor( dn.Color.addAlphaF(v!=0 ? GREEN : RED, 0.45) );
+			bmp.color.setColor( dn.legacy.Color.addAlphaF(v!=0 ? GREEN : RED) );
+			bg.color.setColor( dn.legacy.Color.addAlphaF(v!=0 ? GREEN : RED, 0.45) );
 			tf.textColor = v!=0 ? GREEN : RED;
 			tf.text = getActionName(a)+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(ca.getAnalogDistXY(a),1);
 		}
@@ -243,7 +243,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
 			bt.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
-			bg.color.setColor( Color.addAlphaF(tf.textColor,0.4) );
+			bg.color.setColor( dn.legacy.Color.addAlphaF(tf.textColor,0.4) );
 		}
 	}
 
@@ -273,7 +273,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
 			bt.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
-			bg.color.setColor( Color.addAlphaF(tf.textColor,0.4) );
+			bg.color.setColor( dn.legacy.Color.addAlphaF(tf.textColor,0.4) );
 		}
 	}
 
@@ -294,11 +294,11 @@ class ControllerDebug<T:Int> extends dn.Process {
 		p.onUpdateCb = ()->{
 			if( ca.isPressedAutoFire(a) ) {
 				tf.textColor = GREEN;
-				bmp.color.setColor( dn.Color.addAlphaF(GREEN) );
+				bmp.color.setColor( dn.legacy.Color.addAlphaF(GREEN) );
 			}
 			else {
 				tf.textColor = RED;
-				bmp.color.setColor( dn.Color.addAlphaF(RED) );
+				bmp.color.setColor( dn.legacy.Color.addAlphaF(RED) );
 			}
 		}
 	}
@@ -322,7 +322,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 				tf.textColor = 0x55ff00;
 			}
 			else if( ca.isDown(a) )
-				tf.textColor = dn.Color.interpolateInt(0x000044, 0x0088ff, ca.getHoldRatio(a,durationS));
+				tf.textColor = dn.legacy.Color.interpolateInt(0x000044, 0x0088ff, ca.getHoldRatio(a,durationS));
 			else
 				tf.textColor = RED;
 
@@ -332,7 +332,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 			else
 				tf.scaleX += (1-tf.scaleX)*0.3;
 
-			bmp.color.setColor( dn.Color.addAlphaF(tf.textColor) );
+			bmp.color.setColor( dn.legacy.Color.addAlphaF(tf.textColor) );
 		}
 	}
 

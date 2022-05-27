@@ -1,7 +1,7 @@
-package dn;
+package dn.legacy;
 
 import Type;
-
+import dn.*;
 
 typedef Rgb = { r:Int, g:Int, b:Int } // channels are [0-255]
 typedef Rgba = { >Rgb, a:Int } // channels are [0-255]

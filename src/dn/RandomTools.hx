@@ -57,12 +57,12 @@ class RandomTools {
 
 	/** Random color by interpolating R, G & B components **/
 	public static inline function colorMix(minColor:UInt, maxColor:UInt) : UInt {
-		return dn.Color.interpolateInt( minColor, maxColor, rng(0,1) );
+		return dn.legacy.Color.interpolateInt( minColor, maxColor, rng(0,1) );
 	}
 
 	/** Create a color with optional HSL parameters. If `hue` is omitted, it will be random. **/
 	public static inline function color(?hue:Float, sat=1.0, lum=1.0) {
-		return dn.Color.makeColorHsl( hue==null ? zto() : hue, sat, lum );
+		return dn.legacy.Color.makeColorHsl( hue==null ? zto() : hue, sat, lum );
 	}
 
 	/** Random radian angle in range [0,2PI] **/

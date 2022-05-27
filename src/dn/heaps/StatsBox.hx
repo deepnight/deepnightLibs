@@ -157,7 +157,7 @@ class StatsBox extends dn.Process {
 			// Draw chart
 			if( fpsChart.visible ) {
 				fpsChart.clear();
-				fpsChart.beginFill( Color.makeColorRgb( 1, M.fclamp(v/targetFps, 0, 1), 0 ), 0.33 );
+				fpsChart.beginFill( dn.legacy.Color.makeColorRgb( 1, M.fclamp(v/targetFps, 0, 1), 0 ), 0.33 );
 				fpsChart.drawRect(0,0,chartWid,chartHei);
 				fpsChart.drawRect(0, chartHei * (1-targetFps/(targetFps*1.1)), chartWid, 1);
 				fpsChart.endFill();
@@ -166,7 +166,7 @@ class StatsBox extends dn.Process {
 					if( i>=histCursor )
 						break;
 
-					fpsChart.lineStyle(1, Color.makeColorRgb( 1, M.fclamp(fpsHistory[i-1]/targetFps, 0, 1), 0 ) );
+					fpsChart.lineStyle(1, dn.legacy.Color.makeColorRgb( 1, M.fclamp(fpsHistory[i-1]/targetFps, 0, 1), 0 ) );
 					fpsChart.moveTo(
 						chartWid * (i-1)/fpsHistory.length,
 						chartHei * (1-fpsHistory[i-1]/(targetFps*1.1))
