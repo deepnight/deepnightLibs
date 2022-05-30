@@ -165,6 +165,16 @@ abstract Col(Int) from Int to Int {
 		inline function set_af(af:Float) { this = fromRGBf(rf, gf, bf, af); return af; }
 
 
+	/** Return color with given alpha (0-1) **/
+	public inline function withAlpha(a=1.0) {
+		return M.round(a*255) << 24 | withoutAlpha();
+	}
+
+	/** Return color without alpha **/
+	public inline function withoutAlpha() {
+		return this & 0xffffff;
+	}
+
 
 	/** Hue value (from HSL format) **/
 	public var hue(get,set) : Float;
@@ -249,24 +259,24 @@ abstract Col(Int) from Int to Int {
 		return RED_LUMA*rf + GREEN_LUMA*gf + BLUE_LUMA*bf;
 	}
 
-	/** Turn color to grayscale **/
+	/** Return the grayscale equivalent of current color **/
 	public inline function toGrayscale() : Col {
 		var f = getGrayscaleFactor();
-		return this = fromRGBf(f,f,f, af);
+		return fromRGBf(f,f,f, af);
 	}
 
 
-	/** Interpolate to Black, at % ratio **/
+	/** Return an interpolation to Black, at % ratio **/
 	public inline function toBlack(ratio:Float) : Col {
 		if( ratio<=0 )
-			return this;
+			return new Col(this);
 		else {
-			var black : Col = 0x0;
+			var black = new Col(0x0);
 			black.af = af;
 			if( ratio>=1 )
-				return this = black;
+				return black;
 			else
-				return this =
+				return
 					( ai<<24 ) |
 					( M.round(ri*(1-ratio))<<16 ) |
 					( M.round(gi*(1-ratio))<<8 ) |
@@ -278,21 +288,38 @@ abstract Col(Int) from Int to Int {
 	public inline function toWhite(ratio:Float) : Col {
 		var white : Col = 0xffffff;
 		white.af = af;
-		return this = interpolate(white, ratio);
+		return interpolate(white, ratio);
 	}
 
 	/** Interpolate to given color, at % ratio **/
 	public inline function interpolate(to:Col, ratio:Float) : Col {
 		if( ratio==0 )
-			return this;
+			return new Col(this);
 		else if( ratio>=1 )
-			return this = to;
+			return to;
 		else
-			return this =
+			return
 				( M.round( M.lerp( ai, to.ai, ratio ) ) << 24 ) |
 				( M.round( M.lerp( ri, to.ri, ratio ) ) << 16 ) |
 				( M.round( M.lerp( gi, to.gi, ratio ) ) << 8 ) |
 				( M.round( M.lerp( bi, to.bi, ratio ) ) );
+	}
+
+
+	/**
+		Return current color teinted to `target`, approximately preserving luminance of original color.
+	**/
+	public inline function teint(target:Col, ratio:Float) : Col {
+		if( ratio==0 )
+			return new Col(this);
+		else {
+			var l = luminance;
+			if( l<0.65 )
+				target = target.toBlack(1-l/0.65);
+			else
+				target = target.toWhite((l-0.65)/0.35);
+			return interpolate(target, ratio);
+		}
 	}
 }
 
