@@ -1,7 +1,5 @@
 package dn.heaps;
 
-import dn.Color;
-
 class GameFocusHelper extends dn.Process {
     var suspended = false;
     var mask : h2d.Object;
