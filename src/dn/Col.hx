@@ -254,9 +254,9 @@ abstract Col(Int) from Int to Int {
 
 	/** Perceived luminance of given color (0-1) **/
 	public var luminance(get,never) : Float;
-	static final RED_LUMA = 0.299;
-	static final GREEN_LUMA = 0.587;
-	static final BLUE_LUMA = 0.114;
+	static inline var RED_LUMA = 0.299;
+	static inline var GREEN_LUMA = 0.587;
+	static inline var BLUE_LUMA = 0.114;
 	inline function get_luminance() return Math.sqrt( RED_LUMA*(ri*ri) + GREEN_LUMA*(gi*gi) + BLUE_LUMA*(bi*bi) ) / 255;
 
 
