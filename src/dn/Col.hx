@@ -65,24 +65,18 @@ abstract Col(Int) from Int to Int {
 		else if( s<=0 )
 			return Col.gray(h);
 		else {
-			var r = 0.;
-			var g = 0.;
-			var b = 0.;
-
 			h*=6;
 			var i = M.floor(h);
-			var c1 = l * (1 - s);
-			var c2 = l * (1 - s * (h-i));
-			var c3 = l * (1 - s * (1 - (h-i)));
+			var c1 = l * (1-s);
+			var c2 = l * (1-s * (h-i));
+			var c3 = l * (1-s * (1-(h-i)));
 
-			if( i==0 || i==6 )	{ r = l; g = c3; b = c1; }
-			else if( i==1 )		{ r = c2; g = l; b = c1; }
-			else if( i==2 )		{ r = c1; g = l; b = c3; }
-			else if( i==3 )		{ r = c1; g = c2; b = l; }
-			else if( i==4 )		{ r = c3; g = c1; b = l; }
-			else 				{ r = l; g = c1; b = c2; }
-
-			return fromRGBf(r,g,b);
+			if( i==0 || i==6 )	return fromRGBf(l, c3, c1);
+			else if( i==1 )		return fromRGBf(c2, l, c1);
+			else if( i==2 )		return fromRGBf(c1, l, c3);
+			else if( i==3 )		return fromRGBf(c1, c2, l);
+			else if( i==4 )		return fromRGBf(c3, c1, l);
+			else 				return fromRGBf(l, c1, c2);
 		}
 	}
 
@@ -237,9 +231,10 @@ abstract Col(Int) from Int to Int {
 		var b = bf;
 
 		var max = r>=g && r>=b ? r : g>=b ? g : b;
-		var delta = max - ( r<=g && r<=b ? r : g<=b ? g : b );
-
-		return max==0 ? 0 : delta/max;
+		if( max>0 )
+			return ( max - ( r<=g && r<=b ? r : g<=b ? g : b ) )  /  max;
+		else
+			return 0;
 	}
 	inline function set_saturation(v:Float) {
 		return this = fromHsl(hue, v, lightness);
@@ -255,10 +250,7 @@ abstract Col(Int) from Int to Int {
 		return r>=g && r>=b ? r : g>=b ? g : b;
 	}
 	inline function set_lightness(v:Float) {
-		if( v<=0 )
-			return this = 0x0;
-		else
-			return this = fromHsl(hue, saturation, v);
+		return this = fromHsl(hue, saturation, v);
 	}
 
 
