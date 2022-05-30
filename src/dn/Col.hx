@@ -49,7 +49,7 @@ abstract Col(Int) from Int to Int {
 		if( l<=0 )
 			return new Col(0x0);
 		else if( s<=0 )
-			return Col.fromFloat(h);
+			return Col.gray(h);
 		else {
 			var r = 0.;
 			var g = 0.;
@@ -114,8 +114,8 @@ abstract Col(Int) from Int to Int {
 	}
 
 
-	/** Create a Col from a single float value (0.0 = 0x0  =>  0.5 = 0x7f7f7f  =>  1.0 = 0xffffff)  **/
-	@:from public static inline function fromFloat(v:Float) : Col {
+	/** Create a gray Col from a single float value (0.0 = black  =>  0.5 = mid gray =>  1.0 = white)  **/
+	@:from public static inline function gray(v:Float) : Col {
 		return fromRGBf(v,v,v);
 	}
 
