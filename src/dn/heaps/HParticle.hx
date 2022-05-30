@@ -297,8 +297,8 @@ class HParticle extends BatchElement {
 
 	public var userData : Dynamic;
 
-	var fromColor : UInt;
-	var toColor : UInt;
+	var fromColor : Col;
+	var toColor : Col;
 	var dColor : Float;
 	var rColor : Float;
 
@@ -455,7 +455,7 @@ class HParticle extends BatchElement {
 
 
 
-	public inline function colorAnimS(from:UInt, to:UInt, t:Float) {
+	public inline function colorAnimS(from:Col, to:Col, t:Float) {
 		fromColor = from;
 		toColor = to;
 		dColor = 1/(t*fps);
@@ -491,24 +491,24 @@ class HParticle extends BatchElement {
 
 	public inline function uncolorize() r = g = b = 1;
 
-	public inline function colorize(c:UInt, ratio=1.0) {
-		dn.legacy.Color.colorizeBatchElement(this, c, ratio);
+	public inline function colorize(c:Col, ratio=1.0) {
+		c.colorizeH2dBatchElement(this, ratio);
 	}
 
-	public inline function colorizeRandomDarker(c:UInt, range:Float) {
-		colorize( dn.legacy.Color.toBlack(c,rnd(0,range)) );
+	public inline function colorizeRandomDarker(c:Col, range:Float) {
+		colorize( c.toBlack( rnd(0,range) ) );
 	}
 
-	public inline function colorizeRandomLighter(c:UInt, range:Float) {
-		colorize( dn.legacy.Color.toWhite(c,rnd(0,range)) );
+	public inline function colorizeRandomLighter(c:Col, range:Float) {
+		colorize( c.toWhite( rnd(0,range) ) );
 	}
 
 	public inline function randScale(min:Float, max:Float, sign=false) {
 		setScale( rnd(min, max, sign) );
 	}
 
-	public inline function colorizeRandom(min:UInt, max:UInt) {
-		dn.legacy.Color.colorizeBatchElement(this, dn.legacy.Color.interpolateInt(min,max,rnd(0,1)), 1);
+	public inline function colorizeRandom(min:Col, max:Col) {
+		min.interpolate( max, rnd(0,1) ).colorizeH2dBatchElement(this, 1);
 	}
 
 	public inline function delayCallback(cb:HParticle->Void, sec:Float) {
@@ -776,7 +776,7 @@ class HParticle extends BatchElement {
 					// Color animation
 					if( !Math.isNaN(rColor) ) {
 						rColor = M.fclamp(rColor+dColor*tmod, 0, 1);
-						colorize( dn.legacy.Color.interpolateInt(fromColor, toColor, rColor) );
+						colorize( fromColor.interpolate(toColor, rColor) );
 					}
 
 					// Fade in
