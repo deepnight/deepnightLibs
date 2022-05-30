@@ -452,6 +452,13 @@ class UnitTest {
 		c = 0xff0000; dn.CiAssert.equals( c.toGrayscale(), 0x4c4c4c );
 		c = 0x00ff00; dn.CiAssert.equals( c.toGrayscale(), 0x969696 );
 		c = 0x0000ff; dn.CiAssert.equals( c.toGrayscale(), 0x1d1d1d );
+
+		// Enum
+		c = "#ff0000"; CiAssert.equals(Red, c);
+		c = "#00ff00"; CiAssert.equals(Green, c);
+		c = "#0000ff"; CiAssert.equals(Blue, c);
+		c = 0xffffff; CiAssert.equals(White, c);
+		c = 0x0; CiAssert.equals(Black, c);
 	}
 }
 #end
