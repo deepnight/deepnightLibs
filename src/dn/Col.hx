@@ -326,6 +326,17 @@ abstract Col(Int) from Int to Int {
 			target = target.toWhite((l-0.65)/0.35);
 		return interpolate(target, ratio);
 	}
+
+
+	/** Apply color to a `h2d.BatchElement` **/
+	#if !macro
+	public inline function colorizeH2dBatchElement(e:h2d.SpriteBatch.BatchElement, ratio=1.0) {
+		e.r = M.lerp( 0xffffff, rf, ratio );
+		e.g = M.lerp( 0xffffff, gf, ratio );
+		e.b = M.lerp( 0xffffff, bf, ratio );
+	}
+	#end
+
 }
 
 
