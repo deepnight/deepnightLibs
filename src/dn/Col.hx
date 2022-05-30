@@ -370,88 +370,109 @@ class UnitTest {
 		var c : Col = 0x12ff7f;
 
 		// Implicit casts
-		dn.CiAssert.equals( c, "#12ff7f" );
-		dn.CiAssert.equals( c, 1245055 );
+		CiAssert.equals( c, "#12ff7f" );
+		CiAssert.equals( c, 1245055 );
+
+		// Import methods
+		c = 0xff8000;
+		CiAssert.equals(c, Col.fromHex("#ff8000"));
+		CiAssert.equals(c, Col.fromHsl(30/360,1,1));
+		CiAssert.equals(c, Col.fromInt(0xff8000));
+		CiAssert.equals(c, Col.fromRGBf(1, 0.5, 0));
+		CiAssert.equals(c, Col.fromRGBi(255, 128, 0));
+
+		CiAssert.equals(Col.gray(0), 0x0);
+		CiAssert.equals(Col.gray(0), Black);
+		CiAssert.equals(Col.gray(0.5), 0x808080);
+		CiAssert.equals(Col.gray(0.5), MidGray);
+		CiAssert.equals(Col.gray(1), 0xffffff);
+		CiAssert.equals(Col.gray(1), White);
 
 		// Hex parsers
-		dn.CiAssert.equals( Col.fromHex("#ab123456"), 0xab123456 );
-		dn.CiAssert.equals( Col.fromHex("#123456"), 0x123456 );
-		dn.CiAssert.equals( Col.fromHex("#123"), 0x112233 );
-		dn.CiAssert.equals( Col.fromHex("#1"), 0x111111 );
+		CiAssert.equals( Col.fromHex("#ab123456"), 0xab123456 );
+		CiAssert.equals( Col.fromHex("#123456"), 0x123456 );
+		CiAssert.equals( Col.fromHex("#123"), 0x112233 );
+		CiAssert.equals( Col.fromHex("#1"), 0x111111 );
 
 		// ARGB getters
 		c = "#11aabbcc";
-		dn.CiAssert.equals( c.ai, 0x11 );
-		dn.CiAssert.equals( c.ri, 0xaa );
-		dn.CiAssert.equals( c.gi, 0xbb );
-		dn.CiAssert.equals( c.bi, 0xcc );
-		dn.CiAssert.equals( c.af, 0x11/255 );
-		dn.CiAssert.equals( c.rf, 0xaa/255 );
-		dn.CiAssert.equals( c.gf, 0xbb/255 );
-		dn.CiAssert.equals( c.bf, 0xcc/255 );
+		CiAssert.equals( c.ai, 0x11 );
+		CiAssert.equals( c.ri, 0xaa );
+		CiAssert.equals( c.gi, 0xbb );
+		CiAssert.equals( c.bi, 0xcc );
+		CiAssert.equals( c.af, 0x11/255 );
+		CiAssert.equals( c.rf, 0xaa/255 );
+		CiAssert.equals( c.gf, 0xbb/255 );
+		CiAssert.equals( c.bf, 0xcc/255 );
 
 		// ARGB setters
 		c = "#11aabbcc";
-		c.af = 0.0; dn.CiAssert.equals( c, "#aabbcc" );
-		c.af = 0.5; dn.CiAssert.equals( c, "#80aabbcc" );
-		c.af = 1.0; dn.CiAssert.equals( c, "#ffaabbcc" );
+		c.af = 0.0; CiAssert.equals( c, "#aabbcc" );
+		c.af = 0.5; CiAssert.equals( c, "#80aabbcc" );
+		c.af = 1.0; CiAssert.equals( c, "#ffaabbcc" );
 		c = "#11aabbcc";
-		c.rf = 0.0; dn.CiAssert.equals( c, "#1100bbcc" );
-		c.rf = 0.5; dn.CiAssert.equals( c, "#1180bbcc" );
-		c.rf = 1.0; dn.CiAssert.equals( c, "#11ffbbcc" );
+		c.rf = 0.0; CiAssert.equals( c, "#1100bbcc" );
+		c.rf = 0.5; CiAssert.equals( c, "#1180bbcc" );
+		c.rf = 1.0; CiAssert.equals( c, "#11ffbbcc" );
 		c = "#11aabbcc";
-		c.gf = 0.0; dn.CiAssert.equals( c, "#11aa00cc" );
-		c.gf = 0.5; dn.CiAssert.equals( c, "#11aa80cc" );
-		c.gf = 1.0; dn.CiAssert.equals( c, "#11aaffcc" );
+		c.gf = 0.0; CiAssert.equals( c, "#11aa00cc" );
+		c.gf = 0.5; CiAssert.equals( c, "#11aa80cc" );
+		c.gf = 1.0; CiAssert.equals( c, "#11aaffcc" );
 		c = "#11aabbcc";
-		c.bf = 0.0; dn.CiAssert.equals( c, "#11aabb00" );
-		c.bf = 0.5; dn.CiAssert.equals( c, "#11aabb80" );
-		c.bf = 1.0; dn.CiAssert.equals( c, "#11aabbff" );
+		c.bf = 0.0; CiAssert.equals( c, "#11aabb00" );
+		c.bf = 0.5; CiAssert.equals( c, "#11aabb80" );
+		c.bf = 1.0; CiAssert.equals( c, "#11aabbff" );
 
 		// HSL
-		dn.CiAssert.equals( { c="#ff0000"; c.hue; }, 0 );
-		dn.CiAssert.equals( { c="#00ffff"; c.hue; }, 0.5 );
+		CiAssert.equals( { c="#ff0000"; c.hue; }, 0 );
+		CiAssert.equals( { c="#00ffff"; c.hue; }, 0.5 );
 
-		dn.CiAssert.equals( { c="#000000"; c.saturation; }, 0 );
-		dn.CiAssert.equals( { c="#00ff00"; c.saturation; }, 1 );
+		CiAssert.equals( { c="#000000"; c.saturation; }, 0 );
+		CiAssert.equals( { c="#00ff00"; c.saturation; }, 1 );
 
-		dn.CiAssert.equals( { c="#000000"; c.lightness; }, 0 );
-		dn.CiAssert.equals( { c="#ff0000"; c.lightness; }, 1 );
+		CiAssert.equals( { c="#000000"; c.lightness; }, 0 );
+		CiAssert.equals( { c="#ff0000"; c.lightness; }, 1 );
 
 		// Interpolate
 		var def : Col = 0xff0000;
-		c = def; dn.CiAssert.equals( c.interpolate(0x00ff00, 0.0), 0xff0000 );
-		c = def; dn.CiAssert.equals( c.interpolate(0x00ff00, 0.5), 0x808000 );
-		c = def; dn.CiAssert.equals( c.interpolate(0x00ff00, 1.0), 0x00ff00 );
+		c = def; CiAssert.equals( c.interpolate(0x00ff00, 0.0), 0xff0000 );
+		c = def; CiAssert.equals( c.interpolate(0x00ff00, 0.5), 0x808000 );
+		c = def; CiAssert.equals( c.interpolate(0x00ff00, 1.0), 0x00ff00 );
 
-		c = def; dn.CiAssert.equals( c.toBlack(0.0), 0xff0000 );
-		c = def; dn.CiAssert.equals( c.toBlack(0.5), 0x800000 );
-		c = def; dn.CiAssert.equals( c.toBlack(1.0), 0x000000 );
+		c = def; CiAssert.equals( c.toBlack(0.0), 0xff0000 );
+		c = def; CiAssert.equals( c.toBlack(0.5), 0x800000 );
+		c = def; CiAssert.equals( c.toBlack(1.0), 0x000000 );
 
-		c = def; dn.CiAssert.equals( c.toWhite(0.0), 0xff0000 );
-		c = def; dn.CiAssert.equals( c.toWhite(0.5), 0xff8080 );
-		c = def; dn.CiAssert.equals( c.toWhite(1.0), 0xffffff );
+		c = def; CiAssert.equals( c.toWhite(0.0), 0xff0000 );
+		c = def; CiAssert.equals( c.toWhite(0.5), 0xff8080 );
+		c = def; CiAssert.equals( c.toWhite(1.0), 0xffffff );
 
 		// Luminance
-		c = 0x000000; dn.CiAssert.equals( M.pretty(c.luminance,2), 0 );
-		c = 0x808080; dn.CiAssert.equals( M.pretty(c.luminance,2), 0.5 );
-		c = 0xffffff; dn.CiAssert.equals( M.pretty(c.luminance,2), 1 );
-		c = 0xff0000; dn.CiAssert.equals( M.pretty(c.luminance,2), 0.55 );
-		c = 0x00ff00; dn.CiAssert.equals( M.pretty(c.luminance,2), 0.77 );
-		c = 0x0000ff; dn.CiAssert.equals( M.pretty(c.luminance,2), 0.34 );
+		c = 0x000000; CiAssert.equals( M.pretty(c.luminance,2), 0 );
+		c = 0x808080; CiAssert.equals( M.pretty(c.luminance,2), 0.5 );
+		c = 0xffffff; CiAssert.equals( M.pretty(c.luminance,2), 1 );
+		c = 0xff0000; CiAssert.equals( M.pretty(c.luminance,2), 0.55 );
+		c = 0x00ff00; CiAssert.equals( M.pretty(c.luminance,2), 0.77 );
+		c = 0x0000ff; CiAssert.equals( M.pretty(c.luminance,2), 0.34 );
 
 		// Grayscale
-		c = 0x000000; dn.CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0 );
-		c = 0x808080; dn.CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.5 );
-		c = 0xffffff; dn.CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 1 );
-		c = 0xff0000; dn.CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.30 );
-		c = 0x00ff00; dn.CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.59 );
-		c = 0x0000ff; dn.CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.11 );
+		c = 0x000000; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0 );
+		c = 0x808080; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.5 );
+		c = 0xffffff; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 1 );
+		c = 0xff0000; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.30 );
+		c = 0x00ff00; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.59 );
+		c = 0x0000ff; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.11 );
 
-		c = 0x000000; dn.CiAssert.equals( c.toGrayscale(), 0x000000 );
-		c = 0xff0000; dn.CiAssert.equals( c.toGrayscale(), 0x4c4c4c );
-		c = 0x00ff00; dn.CiAssert.equals( c.toGrayscale(), 0x969696 );
-		c = 0x0000ff; dn.CiAssert.equals( c.toGrayscale(), 0x1d1d1d );
+		c = 0x000000; CiAssert.equals( c.toGrayscale(), 0x000000 );
+		c = 0xff0000; CiAssert.equals( c.toGrayscale(), 0x4c4c4c );
+		c = 0x00ff00; CiAssert.equals( c.toGrayscale(), 0x969696 );
+		c = 0x0000ff; CiAssert.equals( c.toGrayscale(), 0x1d1d1d );
+
+		// Alpha
+		CiAssert.equals( Col.fromInt(0x112233).withAlpha(), 0xff112233);
+		CiAssert.equals( Col.fromInt(0x112233).withAlpha(0.5), 0x80112233);
+		CiAssert.equals( Col.fromInt(0xff112233).withoutAlpha(), 0x112233);
+		CiAssert.equals( Col.fromInt(0x112233).withoutAlpha(), 0x112233);
 
 		// Enum
 		c = "#ff0000"; CiAssert.equals(Red, c);
