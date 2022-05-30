@@ -7,6 +7,20 @@ package dn;
 
 import dn.M;
 
+enum abstract ColorEnum(Int) to Int  {
+	var Red = 0xff0000;
+	var Green = 0x00ff00;
+	var Blue = 0x0000ff;
+
+	var White = 0xffffff;
+	var Black = 0x0;
+	var MidGray = 0x808080;
+
+	var Yellow = 0xffcc00;
+	var Pink = 0xff00ff;
+	var Lime = 0xCAFF00;
+}
+
 abstract Col(Int) from Int to Int {
 	public inline function new(rgb:Int) {
 		this = rgb;
@@ -70,6 +84,10 @@ abstract Col(Int) from Int to Int {
 
 			return fromRGBf(r,g,b);
 		}
+	}
+
+	@:from public static inline function fromColorEnum(c:ColorEnum) {
+		return new Col(c);
 	}
 
 	/**
