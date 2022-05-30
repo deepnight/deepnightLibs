@@ -25,7 +25,7 @@ class ScreenWash extends dn.Process {
 	/** Duration of the wash animation in seconds **/
 	public var durationS : Float = 0.4;
 
-	var color : Int = 0x0;
+	var color : Col = 0x0;
 	var screenWidth : Int;
 	var screenHeight : Int;
 
@@ -48,7 +48,7 @@ class ScreenWash extends dn.Process {
 		`t` is the Tile to be repeated on the edge of the wash mask. It should be transparent with white pixels.
 		`color` (0xrrggbb) is applied to the wash mask and tile
 	**/
-	public function new(t:h2d.Tile, color:Int, ?displayCtx:h2d.Object, ?p:dn.Process) {
+	public function new(t:h2d.Tile, color:Col, ?displayCtx:h2d.Object, ?p:dn.Process) {
 		super(p);
 
 		if( displayCtx!=null )
@@ -68,7 +68,7 @@ class ScreenWash extends dn.Process {
 
 		tile = t;
 		sb = new h2d.SpriteBatch(tile, maskWrapper);
-		sb.color.setColor( dn.Color.addAlphaF(color) );
+		sb.color.setColor( color.withAlpha() );
 	}
 
 
@@ -76,8 +76,8 @@ class ScreenWash extends dn.Process {
 		Set wash color
 		NOTE: the provided Tile should be white for this to work!
 	**/
-	public inline function setColor(c:Int) {
-		sb.color.setColor( dn.Color.addAlphaF(color) );
+	public inline function setColor(c:Col) {
+		sb.color.setColor( c.withAlpha() );
 	}
 
 	/**
