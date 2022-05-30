@@ -814,6 +814,23 @@ class M {
 		}
 	}
 
+	public static inline function groupNumbers(v:Int, sep=" ") : String {
+		var str = Std.string(v);
+		if( str.length<=3 )
+			return str;
+		else {
+			var i = 1;
+			var out = "";
+			while( i<=str.length ) {
+				out = str.substr(-i,1) + out;
+				if( i%3==0 && i<str.length )
+					out = sep+out;
+				i++;
+			}
+			return out;
+		}
+	}
+
 
 	/**
 		Print a signed Integer as binary
