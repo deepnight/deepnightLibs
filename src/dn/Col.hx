@@ -274,41 +274,27 @@ abstract Col(Int) from Int to Int {
 
 	/** Return an interpolation to Black, at % ratio **/
 	public inline function toBlack(ratio:Float) : Col {
-		if( ratio<=0 )
-			return new Col(this);
-		else {
-			var black = new Col(0x0);
-			black.af = af;
-			if( ratio>=1 )
-				return black;
-			else
-				return
-					( ai<<24 ) |
-					( M.round(ri*(1-ratio))<<16 ) |
-					( M.round(gi*(1-ratio))<<8 ) |
-					M.round(bi*(1-ratio));
-		}
+		return
+			( ai<<24 ) |
+			( M.round(ri*(1-ratio))<<16 ) |
+			( M.round(gi*(1-ratio))<<8 ) |
+			M.round(bi*(1-ratio));
 	}
 
 	/** Interpolate to White, at % ratio **/
 	public inline function toWhite(ratio:Float) : Col {
 		var white : Col = 0xffffff;
-		white.af = af;
+		white.ai = ai;
 		return interpolate(white, ratio);
 	}
 
 	/** Interpolate to given color, at % ratio **/
 	public inline function interpolate(to:Col, ratio:Float) : Col {
-		if( ratio==0 )
-			return new Col(this);
-		else if( ratio>=1 )
-			return to;
-		else
-			return
-				( M.round( M.lerp( ai, to.ai, ratio ) ) << 24 ) |
-				( M.round( M.lerp( ri, to.ri, ratio ) ) << 16 ) |
-				( M.round( M.lerp( gi, to.gi, ratio ) ) << 8 ) |
-				( M.round( M.lerp( bi, to.bi, ratio ) ) );
+		return
+			( M.round( M.lerp( ai, to.ai, ratio ) ) << 24 ) |
+			( M.round( M.lerp( ri, to.ri, ratio ) ) << 16 ) |
+			( M.round( M.lerp( gi, to.gi, ratio ) ) << 8 ) |
+			( M.round( M.lerp( bi, to.bi, ratio ) ) );
 	}
 
 
