@@ -328,17 +328,16 @@ abstract Col(Int) from Int to Int {
 	}
 
 
-	/** Apply color to a `h2d.BatchElement` **/
 	#if( !macro && heaps )
+	/** Apply color to a `h2d.BatchElement` **/
 	public inline function colorizeH2dBatchElement(e:h2d.SpriteBatch.BatchElement, ratio=1.0) {
 		e.r = M.lerp( 0xffffff, rf, ratio );
 		e.g = M.lerp( 0xffffff, gf, ratio );
 		e.b = M.lerp( 0xffffff, bf, ratio );
 	}
-	#end
 
-	#if( !macro && heaps )
-	public inline function getColorizeMatrixH2d(ratioNewColor=1.0, ?ratioOldColor:Float) {
+	/** Return a h3d.Matrix to colorize an object **/
+	public inline function getColorizeMatrixH2d(ratioNewColor=1.0, ?ratioOldColor:Float) : h3d.Matrix {
 		if( ratioOldColor==null )
 			ratioOldColor = 1-ratioNewColor;
 
@@ -352,6 +351,11 @@ abstract Col(Int) from Int to Int {
 			0, 0, 0, 1,
 		];
 		return h3d.Matrix.L(m);
+	}
+
+	/** Return a ColorMatrix filter based on current color **/
+	public inline function getColorizeFilterH2d(?ratioNewColor=1.0, ?ratioOldColor:Float) : h2d.filter.ColorMatrix {
+		return new h2d.filter.ColorMatrix( getColorizeMatrixH2d(ratioNewColor, ratioOldColor) );
 	}
 	#end
 }
