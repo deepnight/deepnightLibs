@@ -218,9 +218,8 @@ abstract Col(Int) from Int to Int {
 		var g = gf;
 		var b = bf;
 
-		var min = r<=g && r<=b ? r : g<=b ? g : b;
 		var max = r>=g && r>=b ? r : g>=b ? g : b;
-		var delta = max-min;
+		var delta = max - ( r<=g && r<=b ? r : g<=b ? g : b );
 
 		return max==0 ? 0 : delta/max;
 	}
@@ -302,16 +301,12 @@ abstract Col(Int) from Int to Int {
 		Return current color teinted to `target`, approximately preserving luminance of original color.
 	**/
 	public inline function teint(target:Col, ratio:Float) : Col {
-		if( ratio==0 )
-			return new Col(this);
-		else {
-			var l = luminance;
-			if( l<0.65 )
-				target = target.toBlack(1-l/0.65);
-			else
-				target = target.toWhite((l-0.65)/0.35);
-			return interpolate(target, ratio);
-		}
+		var l = luminance;
+		if( l<0.65 )
+			target = target.toBlack(1-l/0.65);
+		else
+			target = target.toWhite((l-0.65)/0.35);
+		return interpolate(target, ratio);
 	}
 }
 
