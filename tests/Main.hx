@@ -25,7 +25,8 @@ class Main {
 		dn.Rand.__test();
 		dn.RandList.__test();
 		dn.RandDeck.__test();
-		dn.Color.__test();
+		dn.legacy.Color.__test();
+		dn.Col.UnitTest._test();
 		dn.Bresenham.__test();
 		dn.FilePath.__test();
 		dn.pathfinder.AStar.__test();
