@@ -57,9 +57,9 @@ abstract Col(Int) from Int to Int {
 
 			h*=6;
 			var i = M.floor(h);
-			final c1 = l * (1 - s);
-			final c2 = l * (1 - s * (h-i));
-			final c3 = l * (1 - s * (1 - (h-i)));
+			var c1 = l * (1 - s);
+			var c2 = l * (1 - s * (h-i));
+			var c3 = l * (1 - s * (1 - (h-i)));
 
 			if( i==0 || i==6 )	{ r = l; g = c3; b = c1; }
 			else if( i==1 )		{ r = c2; g = l; b = c1; }
@@ -176,28 +176,34 @@ abstract Col(Int) from Int to Int {
 	}
 
 
+
 	/** Hue value (from HSL format) **/
 	public var hue(get,set) : Float;
+	static var HUE_CACHE : Map<Int,Float> = new Map();
 	inline function get_hue() {
-		var max = rf>=gf && rf>=bf ? rf : gf>=bf ? gf : bf;
-		var delta = max - ( rf<=gf && rf<=bf ? rf : gf<=bf ? gf : bf ); // max-min
-
-		if( delta==0 )
-			return 0.;
+		if( HUE_CACHE.exists(this) )
+			return HUE_CACHE.get(this);
 		else {
-			var h = 0.;
-			var dr = ( (max-rf)/6 + (delta/2) ) / delta;
-			var dg = ( (max-gf)/6 + (delta/2) ) / delta;
-			var db = ( (max-bf)/6 + (delta/2) ) / delta;
+			var max = rf>=gf && rf>=bf ? rf : gf>=bf ? gf : bf;
+			var delta = max - ( rf<=gf && rf<=bf ? rf : gf<=bf ? gf : bf ); // max-min
 
-			if( rf==max ) h = db-dg;
-			else if( gf==max ) h = 1/3 + dr-db;
-			else if( bf==max ) h = 2/3 + dg-dr;
+			if( delta==0 ) {
+				HUE_CACHE.set(this, 0);
+				return 0.;
+			}
+			else {
+				var h = 0.;
+				var dr = ( (max-rf)/6 + (delta/2) ) / delta;
+				var dg = ( (max-gf)/6 + (delta/2) ) / delta;
+				var db = ( (max-bf)/6 + (delta/2) ) / delta;
 
-			if( h<0 ) h++;
-			if( h>1 ) h--;
+				if( rf==max ) h = db-dg;
+				else if( gf==max ) h = 1/3 + dr-db;
+				else if( bf==max ) h = 2/3 + dg-dr;
 
-			return h;
+				HUE_CACHE.set(this, h%1);
+				return h%1;
+			}
 		}
 	}
 	inline function set_hue(v) {
