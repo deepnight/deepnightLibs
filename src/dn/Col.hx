@@ -60,9 +60,7 @@ abstract Col(Int) from Int to Int {
 
 	/** Create a color from HSL (0-1.0) values **/
 	public static inline function fromHsl(h:Float, s:Float, l:Float) : Col {
-		if( l<=0 )
-			return new Col(0x0);
-		else if( s<=0 )
+		if( s==0 )
 			return Col.gray(h);
 		else {
 			h*=6;
