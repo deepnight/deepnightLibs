@@ -10,7 +10,7 @@ package dn;
 **/
 class Chrono {
 	/** Precision **/
-	public static var DECIMALS = 3;
+	public static var DECIMALS = 4;
 	static var DEFAULT_ID = "";
 
 	static var all : Array<{ id:String, t:Float }> = [];
