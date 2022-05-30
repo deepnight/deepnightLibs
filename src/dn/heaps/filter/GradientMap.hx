@@ -35,21 +35,20 @@ class GradientMap extends h2d.filter.Shader<InternalShader> {
 		return super.draw(ctx, t);
 	}
 
-	public static function createGradientMapTexture(darkest:Int, brightest:Int) : h3d.mat.Texture {
+	public static function createGradientMapTexture(darkest:Col, brightest:Col) : h3d.mat.Texture {
 		var p = hxd.Pixels.alloc(256,1, RGBA);
 		for(x in 0...p.width)
 			p.setPixel( x, 0, paletteInterpolation(x/(p.width-1), darkest, brightest) );
-				// dn.Color.addAlphaF( dn.Color.interpolateInt(darkest, brightest, x/(p.width-1)) ) );
 		return h3d.mat.Texture.fromPixels(p);
 	}
 
 
-	static inline function paletteInterpolation(ratio:Float, darkest:Int, brightest:Int, white=0xffffff) : Int {
+	static inline function paletteInterpolation(ratio:Float, darkest:Col, brightest:Col, white:Col=0xffffff) : Int {
 		final lightLimit = 0.78;
 		if( ratio<=lightLimit )
-			return dn.Color.addAlphaF( dn.Color.interpolateInt( darkest, brightest, ratio/lightLimit ) );
+			return darkest.interpolate(brightest, ratio/lightLimit).withAlpha();
 		else
-			return dn.Color.addAlphaF( dn.Color.interpolateInt( brightest, white, (ratio-lightLimit)/(1-lightLimit) ) );
+			return brightest.interpolate(white, (ratio-lightLimit)/(1-lightLimit)).withAlpha();
 	}
 
 }
