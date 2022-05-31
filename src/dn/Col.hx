@@ -371,9 +371,14 @@ abstract Col(Int) from Int to Int {
 
 	/** Interpolate to White, at % ratio **/
 	public inline function toWhite(ratio:Float) : Col {
-		var white : Col = 0xffffff;
-		white.ai = ai;
-		return interpolate(white, ratio);
+		var r = ri;
+		var g = gi;
+		var b = bi;
+		return
+			( ai<<24 ) |
+			( M.round(r + (255-r)*ratio)<<16 ) |
+			( M.round(g + (255-g)*ratio)<<8 ) |
+			( M.round(b + (255-b)*ratio) );
 	}
 
 	/** Interpolate to given color, at % ratio **/
@@ -460,10 +465,11 @@ class UnitTest {
 		CiAssert.equals(Col.gray(1), White);
 
 		// Hex parsers
-		CiAssert.equals( Col.fromHex("#ab123456"), 0xab123456 );
-		CiAssert.equals( Col.fromHex("#123456"), 0x123456 );
-		CiAssert.equals( Col.fromHex("#123"), 0x112233 );
-		CiAssert.equals( Col.fromHex("#1"), 0x111111 );
+		var h = "#ab123456"; CiAssert.equals( Col.fromHex(h), 0xab123456 );
+		var h = "#a123"; CiAssert.equals( Col.fromHex(h), 0xaa112233 );
+		var h = "#123456"; CiAssert.equals( Col.fromHex(h), 0x123456 );
+		var h = "#123"; CiAssert.equals( Col.fromHex(h), 0x112233 );
+		var h = "#1"; CiAssert.equals( Col.fromHex(h), 0x111111 );
 
 		// ARGB getters
 		c = "#11aabbcc";
