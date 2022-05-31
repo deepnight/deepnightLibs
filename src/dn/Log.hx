@@ -4,7 +4,7 @@ typedef LogEntry = {
 	var time: Float;
 	var tag: String;
 	var str: String;
-	var color: UInt;
+	var color: Col;
 	var flushed: Bool;
 	var critical: Bool;
 }
@@ -243,7 +243,7 @@ class Log {
 	}
 
 	public inline function getTagColor(tag:String) : UInt {
-		return tagColors.exists(tag) ? Color.hexToInt(tagColors.get(tag)) : 0xffffff;
+		return tagColors.exists(tag) ? dn.legacy.Color.hexToInt(tagColors.get(tag)) : 0xffffff;
 	}
 
 	public inline function emptyEntry()			add("","");
@@ -284,10 +284,10 @@ class Log {
 
 		#if js
 
-			var bgColor = Color.autoContrast( l.color, Color.toBlack(l.color,0.7), Color.toWhite(l.color,0.7) );
+			var bgColor = dn.legacy.Color.autoContrast( l.color, dn.legacy.Color.toBlack(l.color,0.7), dn.legacy.Color.toWhite(l.color,0.7) );
 			js.html.Console.log(
 				"%c"+str,
-				'color: ${dn.Color.intToHex(l.color)}; background: ${dn.Color.intToHex(bgColor)}; padding: 2px; border-radius: 3px');
+				'color: ${dn.legacy.Color.intToHex(l.color)}; background: ${dn.legacy.Color.intToHex(bgColor)}; padding: 2px; border-radius: 3px');
 
 		#elseif sys
 
