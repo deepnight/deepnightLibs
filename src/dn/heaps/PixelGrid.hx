@@ -41,20 +41,20 @@ class PixelGrid extends h2d.Object {
 
 
 	/** Apply a color modifier to all the grid. This only modifies the underlying TileGroup color Vector.**/
-	public inline function colorize(c:Int) {
-		tg.color.setColor( Color.addAlphaF(c,1) );
+	public inline function colorize(c:Col) {
+		tg.color.setColor( c.withAlpha() );
 	}
 
 	/** Fill a pixel using a 0xRRGGBB color, with optional alpha in a separate parameter **/
-	public inline function setPixel(x:Int, y:Int, rgb:Int, alpha=1.0) {
+	public inline function setPixel(x:Int, y:Int, rgb:Col, alpha=1.0) {
 		if( alpha>0 )
-			setPixelMap(x,y, Color.addAlphaF(rgb,alpha));
+			setPixelMap(x,y, rgb.withAlpha(alpha));
 		else
 			removePixelMap(x,y);
 	}
 
 	/** Fill a pixel using a 0xAARRGGBB color **/
-	public inline function setPixel24(x:Int, y:Int, argb:Int) {
+	public inline function setPixel24(x:Int, y:Int, argb:Col) {
 		if( alpha>0 )
 			setPixelMap(x,y, argb);
 		else
@@ -67,8 +67,8 @@ class PixelGrid extends h2d.Object {
 	}
 
 	/** Fill a rectangle **/
-	public inline function fillRect(x, y, w:Int, h:Int, rgb:Int, alpha=1.0) {
-		var c = Color.addAlphaF(rgb, alpha);
+	public inline function fillRect(x, y, w:Int, h:Int, rgb:Col, alpha=1.0) {
+		var c = rgb.withAlpha(alpha);
 		for(y in y...y+h)
 		for(x in x...x+w)
 			if( alpha>0 )
@@ -78,8 +78,8 @@ class PixelGrid extends h2d.Object {
 	}
 
 	/** Draw a hollow rectangle **/
-	public inline function lineRect(x, y, w:Int, h:Int, rgb:Int, alpha=1.0) {
-		var c = Color.addAlphaF(rgb, alpha);
+	public inline function lineRect(x, y, w:Int, h:Int, rgb:Col, alpha=1.0) {
+		var c = rgb.withAlpha(alpha);
 		line(x, y, x+w-1, y, rgb, alpha);
 		line(x, y+h-1, x+w-1, y+h-1, rgb, alpha);
 		line(x, y, x, y+h-1, rgb, alpha);
@@ -87,8 +87,8 @@ class PixelGrid extends h2d.Object {
 	}
 
 	/** Fill all pixels **/
-	public inline function fill(rgb:Int, alpha=1.0) {
-		var c = Color.addAlphaF(rgb, alpha);
+	public inline function fill(rgb:Col, alpha=1.0) {
+		var c = rgb.withAlpha(alpha);
 		for(y in 0...hei)
 		for(x in 0...wid)
 			if( alpha>0 )
@@ -130,12 +130,12 @@ class PixelGrid extends h2d.Object {
 	}
 
 	/** Return pixel color without alpha (`0xrrggbb`) **/
-	public inline function getPixelRGB(x:Int, y:Int) {
-		return isValid(x,y) && pixels.exists( coordId(x,y) ) ? Color.removeAlpha( pixels.get( coordId(x,y) ) ) : 0x0;
+	public inline function getPixelRGB(x:Int, y:Int) : Col {
+		return isValid(x,y) && pixels.exists( coordId(x,y) ) ? Col.removeAlpha( pixels.get( coordId(x,y) ) ) : 0x0;
 	}
 
 	/** Return pixel color including alpha (`0xaarrggbb`) **/
-	public inline function getPixelARGB(x:Int, y:Int) {
+	public inline function getPixelARGB(x:Int, y:Int) : Col {
 		return isValid(x,y) && pixels.exists( coordId(x,y) ) ? pixels.get( coordId(x,y) ) : 0x0;
 	}
 
@@ -202,7 +202,7 @@ class PixelGrid extends h2d.Object {
 						}
 
 						// Fill rect
-						tg.setDefaultColor( c, Color.getA(c) );
+						tg.setDefaultColor( c, Col.getAlphaf(c) );
 						tg.addTransform( x, y, w, h, 0, pixelTile );
 					}
 				}
@@ -216,7 +216,7 @@ class PixelGrid extends h2d.Object {
 					if( !hasPixel(x,y) )
 						continue;
 					c = getPixelARGB(x,y);
-					tg.setDefaultColor( c, Color.getA(c) );
+					tg.setDefaultColor( c, Col.getAlphaf(c) );
 					tg.add(x,y, pixelTile);
 				}
 			}
