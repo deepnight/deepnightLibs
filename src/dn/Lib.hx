@@ -115,6 +115,13 @@ class Lib {
 		return out;
 	}
 
+	/** Add `padChar` at the end of given String to ensure its length is at least `minLen` **/
+	public static inline function padRight(str:String, minLen:Int, padChar=" ") {
+		while( str.length<minLen )
+			str+=padChar;
+		return str;
+	}
+
 	#if neko
 	public static function drawExcept<T>(a:List<T>, except:T, ?randFn:Int->Int):T {
 		if (a.length==0)
