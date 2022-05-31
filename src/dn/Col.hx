@@ -189,31 +189,23 @@ abstract Col(Int) from Int to Int {
 
 	/** Hue value (from HSL format) **/
 	public var hue(get,set) : Float;
-	static var HUE_CACHE : Map<Int,Float> = new Map();
 	inline function get_hue() {
-		if( HUE_CACHE.exists(this) )
-			return HUE_CACHE.get(this);
+		var max = rf>=gf && rf>=bf ? rf : gf>=bf ? gf : bf;
+		var delta = max - ( rf<=gf && rf<=bf ? rf : gf<=bf ? gf : bf ); // max-min
+
+		if( delta==0 )
+			return 0.;
 		else {
-			var max = rf>=gf && rf>=bf ? rf : gf>=bf ? gf : bf;
-			var delta = max - ( rf<=gf && rf<=bf ? rf : gf<=bf ? gf : bf ); // max-min
+			var h = 0.;
+			var dr = ( (max-rf)/6 + (delta/2) ) / delta;
+			var dg = ( (max-gf)/6 + (delta/2) ) / delta;
+			var db = ( (max-bf)/6 + (delta/2) ) / delta;
 
-			if( delta==0 ) {
-				HUE_CACHE.set(this, 0);
-				return 0.;
-			}
-			else {
-				var h = 0.;
-				var dr = ( (max-rf)/6 + (delta/2) ) / delta;
-				var dg = ( (max-gf)/6 + (delta/2) ) / delta;
-				var db = ( (max-bf)/6 + (delta/2) ) / delta;
+			if( rf==max ) h = db-dg;
+			else if( gf==max ) h = 1/3 + dr-db;
+			else if( bf==max ) h = 2/3 + dg-dr;
 
-				if( rf==max ) h = db-dg;
-				else if( gf==max ) h = 1/3 + dr-db;
-				else if( bf==max ) h = 2/3 + dg-dr;
-
-				HUE_CACHE.set(this, h%1);
-				return h%1;
-			}
+			return h%1;
 		}
 	}
 	inline function set_hue(v) {
