@@ -7,7 +7,7 @@ package dn;
 
 import dn.M;
 
-enum abstract ColorEnum(Int) to Int {
+enum abstract ColorEnum(Int) to Col {
 	var Red = 0xff0000;
 	var Green = 0x00ff00;
 	var Blue = 0x0000ff;
@@ -78,8 +78,8 @@ abstract Col(Int) from Int to Int {
 		}
 	}
 
-	@:from public static inline function fromColorEnum(c:ColorEnum) {
-		return new Col(c);
+	@:from public static inline function fromColorEnum(c:ColorEnum) : Col {
+		return c;
 	}
 
 	/**
