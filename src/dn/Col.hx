@@ -87,40 +87,129 @@ abstract Col(Int) from Int to Int {
 		If the argument is a constant and not a variable, this call generates no allocation, as an Int value is directly inlined by the macro call itself.
 	**/
 	@:from public static macro function fromHex(e:haxe.macro.Expr.ExprOf<String>) : ExprOf<Col> {
+		function _warnOptim(e:haxe.macro.Expr) {
+			haxe.macro.Context.warning("String constant could probably be inlined for performance: use Col.fromHex([stringConst]) here.", e.pos);
+		}
+
+		function _checkTernary(eTern:haxe.macro.Expr) {
+			switch eTern.expr {
+				case ETernary(econd, eif, eelse):
+					switch eif.expr {
+						case EConst(CString(_)): _warnOptim(eif);
+						case ETernary(_): _checkTernary(eif);
+						case _:
+					}
+					switch eelse.expr {
+						case EConst(CString(_)): _warnOptim(eelse);
+						case ETernary(_): _checkTernary(eelse);
+						case _:
+					}
+				case _:
+			}
+		}
+
 		switch e.expr {
 			case EConst(CString(str,_)):
-				var clean = _cleanUpHex(str,false);
-				if( clean==null )
+				var colInt = _fastHexToInt(str);
+				if( colInt==-1 )
 					haxe.macro.Context.fatalError("Malformed color code (expected: #rrggbb, #rgb or #v)", e.pos);
-				var colInt = Std.parseInt("0x"+clean);
-				return macro Col.fromInt( $v{colInt} );
+				return macro $v{colInt}
+
+			case ETernary(econd, eif, eelse):
+				_checkTernary(e);
+				return macro Col.fromInt( Col._fastHexToInt($e) );
+
+			case EMeta(_):
+				_warnOptim(e);
+				return macro Col.fromInt( Col._fastHexToInt($e) );
 
 			case _:
-				return macro Std.parseInt("0x"+$e.substr(1));
+				return macro Col.fromInt( Col._fastHexToInt($e) );
 		}
 	}
 	/** Return a "#RRGGBB" string **/
-	@:to public static inline function toHex(c:Col) : String {
-		return "#"+StringTools.hex(c, 6);
+	public inline function toHex(withSharp=true) : String {
+		return withSharp ? "#"+StringTools.hex(this, 6) : StringTools.hex(this, 6);
 	}
-	/** Turn an hex string to [#]rrggbb format (supports #rrggbb, #rgb and #v formats) **/
-	static function _cleanUpHex(hex:String, includeSharp=true) : Null<String> {
-		hex = hex==null ? "" : StringTools.trim(hex);
-		var reg = ~/^#*([0-9abcdef]{8})|^#*([0-9abcdef]{6})|^#*([0-9abcdef]{3})$|^#*([0-9abcdef]{1})$/gi;
-		if( reg.match(hex) ) {
-			return
-				( includeSharp ? "#" : "" )
-				+ ( reg.matched(4)!=null
-					? { var c = reg.matched(4); c+c + c+c + c+c; }
-					: reg.matched(3)!=null
-						? { var c = reg.matched(3); c.charAt(0)+c.charAt(0) + c.charAt(1)+c.charAt(1) + c.charAt(2)+c.charAt(2); }
-						: reg.matched(2)!=null
-							? reg.matched(2)
-							: reg.matched(1)
-				);
+	@:to public static inline function toString(c:Col) : String {
+		return c.toHex(true);
+	}
+
+
+
+	// Hex parser cache
+	static var SHARP = "#".charCodeAt(0);
+	static var HEX_CHARS = "0123456789ABCDEFabcdef".split("").map( c->c.charCodeAt(0) );
+	static var SINGLE_HEX_VALUES = {
+		var m = new Map();
+		for(hc in HEX_CHARS) {
+			var h = String.fromCharCode(hc);
+			m.set(hc, Std.parseInt("0x"+h) );
+		}
+		m;
+	}
+	static var DOUBLE_HEX_VALUES = {
+		var m = new Map();
+		for(hc in HEX_CHARS) {
+			var h = String.fromCharCode(hc);
+			m.set(hc, Std.parseInt("0x"+h+h) );
+		}
+		m;
+	}
+	static var TRIPLE_HEX_VALUES = {
+		var m = new Map();
+		for(hc in HEX_CHARS) {
+			var h = String.fromCharCode(hc);
+			m.set(hc, Std.parseInt("0x"+ h+h + h+h + h+h) );
+		}
+		m;
+	}
+
+	/**
+		Convert a hex String to Int. Supported formats are #aa123456, #123456, #123 and #1. "#" is optional.
+		Return -1 if parsing failed
+	*/
+	@:noCompletion
+	public static inline function _fastHexToInt(hex:String) : Int {
+		if( hex.length==0 )
+			return -1;
+
+		var start = StringTools.fastCodeAt(hex,0)==SHARP ? 1 : 0;
+		var l = hex.length-start;
+
+		if( l==6 || l==8 ) {
+			// "#123456" or "#aa123456" formats
+			var i = 0;
+			var out = 0;
+			while( i<hex.length-start ) {
+				out |= SINGLE_HEX_VALUES.get( StringTools.fastCodeAt(hex, hex.length-1-i) ) << i*4;
+				i++;
+			}
+			return out;
+		}
+		else if( l==3 ) {
+			// "#123" format
+			return fromRGBi(
+				DOUBLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start) ),
+				DOUBLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start+1) ),
+				DOUBLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start+2) )
+			);
+		}
+		else if( l==4 ) {
+			// "#a123" format
+			return fromRGBi(
+				DOUBLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start+1) ),
+				DOUBLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start+2) ),
+				DOUBLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start+3) ),
+				DOUBLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start) )
+			);
+		}
+		else if( l==1 ) {
+			// "#1" format
+			return TRIPLE_HEX_VALUES.get( StringTools.fastCodeAt(hex,start) );
 		}
 		else
-			return null;
+			return -1;
 	}
 
 
