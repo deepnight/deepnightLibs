@@ -7,7 +7,7 @@ package dn;
 
 import dn.M;
 
-enum abstract ColorEnum(Int) to Int  {
+enum abstract ColorEnum(Int) to Int {
 	var Red = 0xff0000;
 	var Green = 0x00ff00;
 	var Blue = 0x0000ff;
@@ -340,17 +340,35 @@ abstract Col(Int) from Int to Int {
 		return s;
 	}
 
-	/** Perceived luminance of given color (0-1) **/
+	/** Perceived luminance (0-1) of given color, based on W3C algorithm. Result is less precise than `luminance`. **/
+	public var fastLuminance(get,never) : Float;
+	static inline var RED_LUMAi = 299;
+	static inline var GREEN_LUMAi = 587;
+	static inline var BLUE_LUMAi = 114;
+	inline function get_fastLuminance() {
+		return ( RED_LUMAi*ri + GREEN_LUMAi*gi + BLUE_LUMAi*bi ) / 1000 / 255;
+	}
+
+	/** Perceived luminance (0-1) of given color. Result is better than `fastLuminance`, but slower. **/
 	public var luminance(get,never) : Float;
-	static inline var RED_LUMA = 0.299;
-	static inline var GREEN_LUMA = 0.587;
-	static inline var BLUE_LUMA = 0.114;
-	inline function get_luminance() return Math.sqrt( RED_LUMA*(ri*ri) + GREEN_LUMA*(gi*gi) + BLUE_LUMA*(bi*bi) ) / 255;
+	static inline var RED_LUMAf = 0.299;
+	static inline var GREEN_LUMAf = 0.587;
+	static inline var BLUE_LUMAf = 0.114;
+	inline function get_luminance() {
+		return Math.sqrt( RED_LUMAf*(ri*ri) + GREEN_LUMAf*(gi*gi) + BLUE_LUMAf*(bi*bi) ) / 255;
+	}
+
+
+	/** Return White if current color is dark, Black otherwise. **/
+	public var autoContrast(get,never) : Col;
+	inline function get_autoContrast() {
+		return fastLuminance<=0.38 ? White : Black;
+	}
 
 
 	/** Get gray value (0-1), if the color was turned to grayscale using luminance. **/
 	public inline function getGrayscaleFactor() : Float {
-		return RED_LUMA*rf + GREEN_LUMA*gf + BLUE_LUMA*bf;
+		return luminance;
 	}
 
 	/** Return the grayscale equivalent of current color **/
@@ -395,12 +413,11 @@ abstract Col(Int) from Int to Int {
 		Return current color teinted to `target`, approximately preserving luminance of original color.
 	**/
 	public inline function teint(target:Col, ratio:Float) : Col {
-		var l = luminance;
+		var l = fastLuminance;
 		if( l<0.65 )
-			target = target.toBlack(1-l/0.65);
+			return interpolate( target.toBlack(1-l/0.65), ratio );
 		else
-			target = target.toWhite((l-0.65)/0.35);
-		return interpolate(target, ratio);
+			return interpolate( target.toWhite((l-0.65)/0.35), ratio );
 	}
 
 
