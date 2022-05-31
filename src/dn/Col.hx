@@ -587,11 +587,11 @@ class UnitTest {
 		CiAssert.equals( Col.fromInt(0x112233).withoutAlpha(), 0x112233);
 
 		// Enum
-		c = "#ff0000"; CiAssert.equals(Red, c);
-		c = "#00ff00"; CiAssert.equals(Green, c);
-		c = "#0000ff"; CiAssert.equals(Blue, c);
-		c = 0xffffff; CiAssert.equals(White, c);
-		c = 0x0; CiAssert.equals(Black, c);
+		CiAssert.equals( Col.fromColorEnum(Red), Col.fromHex("#ff0000") );
+		CiAssert.equals( Col.fromColorEnum(Green), Col.fromHex("#00ff00") );
+		CiAssert.equals( Col.fromColorEnum(Blue), Col.fromHex("#0000ff") );
+		CiAssert.equals( Col.fromColorEnum(White), Col.fromHex("#fff") );
+		CiAssert.equals( Col.fromColorEnum(Black), Col.fromHex("#000") );
 	}
 }
 #end
