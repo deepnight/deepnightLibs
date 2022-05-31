@@ -274,6 +274,16 @@ abstract Col(Int) from Int to Int {
 		return this & 0xffffff;
 	}
 
+	/** Remove alpha channel of given color **/
+	public static inline function removeAlpha(c:Col) : Col {
+		return c.withoutAlpha();
+	}
+
+	/** Get alpha channel as Float **/
+	public static inline function getAlphaf(c:Col) : Float {
+		return c.af;
+	}
+
 
 
 	/** Hue value (from HSL format) **/
@@ -585,6 +595,11 @@ class UnitTest {
 		CiAssert.equals( Col.fromInt(0x112233).withAlpha(0.5), 0x80112233);
 		CiAssert.equals( Col.fromInt(0xff112233).withoutAlpha(), 0x112233);
 		CiAssert.equals( Col.fromInt(0x112233).withoutAlpha(), 0x112233);
+		CiAssert.equals( Col.removeAlpha(0xaa112233), 0x112233);
+		CiAssert.equals( Col.removeAlpha(0x112233), 0x112233);
+		CiAssert.equals( Col.getAlphaf(0x112233), 0);
+		CiAssert.equals( M.pretty(Col.getAlphaf(0x80112233),1), 0.5);
+		CiAssert.equals( Col.getAlphaf(0xff112233), 1);
 
 		// Enum
 		CiAssert.equals( Col.fromColorEnum(Red), Col.fromHex("#ff0000") );
