@@ -553,14 +553,32 @@ class UnitTest {
 		c = 0x000000; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0 );
 		c = 0x808080; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.5 );
 		c = 0xffffff; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 1 );
-		c = 0xff0000; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.30 );
-		c = 0x00ff00; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.59 );
-		c = 0x0000ff; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.11 );
+		c = 0xff0000; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.55 );
+		c = 0x00ff00; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.77 );
+		c = 0x0000ff; CiAssert.equals( M.pretty(c.getGrayscaleFactor(),2), 0.34 );
+
+		c = 0xff0000; CiAssert.equals( c.toGrayscale(), 0x8b8b8b );
+		c = 0x00ff00; CiAssert.equals( c.toGrayscale(), 0xc3c3c3 );
+		c = 0x0000ff; CiAssert.equals( c.toGrayscale(), 0x565656 );
 
 		c = 0x000000; CiAssert.equals( c.toGrayscale(), 0x000000 );
-		c = 0xff0000; CiAssert.equals( c.toGrayscale(), 0x4c4c4c );
-		c = 0x00ff00; CiAssert.equals( c.toGrayscale(), 0x969696 );
-		c = 0x0000ff; CiAssert.equals( c.toGrayscale(), 0x1d1d1d );
+		c = 0x444444; CiAssert.equals( c.toGrayscale(), 0x444444 );
+		c = 0x808080; CiAssert.equals( c.toGrayscale(), 0x808080 );
+		c = 0xaaaaaa; CiAssert.equals( c.toGrayscale(), 0xaaaaaa );
+		c = 0xffffff; CiAssert.equals( c.toGrayscale(), 0xffffff );
+
+		// Luminance
+		CiAssert.equals( M.pretty( Col.fromInt(0x000000).luminance ), 0 );
+		CiAssert.equals( M.pretty( Col.fromInt(0xffffff).luminance ), 1 );
+		CiAssert.equals( M.pretty( Col.fromInt(0xff0000).luminance, 2 ), 0.55 );
+		CiAssert.equals( M.pretty( Col.fromInt(0x00ff00).luminance, 2 ), 0.77 );
+		CiAssert.equals( M.pretty( Col.fromInt(0x0000ff).luminance, 2 ), 0.34 );
+
+		CiAssert.equals( M.pretty( Col.fromInt(0x000000).fastLuminance ), 0 );
+		CiAssert.equals( M.pretty( Col.fromInt(0xffffff).fastLuminance ), 1 );
+		CiAssert.equals( M.pretty( Col.fromInt(0xff0000).fastLuminance, 2 ), 0.3 );
+		CiAssert.equals( M.pretty( Col.fromInt(0x00ff00).fastLuminance, 2 ), 0.59 );
+		CiAssert.equals( M.pretty( Col.fromInt(0x0000ff).fastLuminance, 2 ), 0.11 );
 
 		// Alpha
 		CiAssert.equals( Col.fromInt(0x112233).withAlpha(), 0xff112233);
