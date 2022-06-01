@@ -13,8 +13,12 @@ import hxd.impl.AllocPos;
 class ParticlePool {
 	var all : haxe.ds.Vector<HParticle>;
 	var nalloc : Int;
+
 	public var size(get,never) : Int;
 		inline function get_size() return all.length;
+
+	public var allocated(get,never) : Int;
+		inline function get_allocated() return nalloc;
 
 	public function new(tile:h2d.Tile, count:Int, fps:Int) {
 		all = new haxe.ds.Vector(count);
@@ -55,6 +59,9 @@ class ParticlePool {
 		}
 	}
 
+	/**
+		When a particle is killed, pick last allocated one and move it here. This prevents "gaps" in the pool.
+	**/
 	inline function free(kp:HParticle) {
 		if( all!=null ) {
 			if( nalloc>1 ) {
@@ -71,13 +78,14 @@ class ParticlePool {
 	}
 
 	/** Count active particles **/
+	@:noCompletion @:deprecated("Use `allocated` var")
 	public inline function count() return nalloc;
 
 
 	/** Destroy every active particles **/
 	public function clear() {
 		// Because new particles might be allocated during onKill() callbacks,
-		// it's sometimes necessary to repeat the clear() process multiple times.
+		// it's sometimes necessary to repeat the clearing loop multiple times.
 		var repeat = false;
 		var maxRepeats = 10;
 		var p : HParticle = null;
@@ -102,10 +110,8 @@ class ParticlePool {
 	public inline function killAll() clear();
 
 	public inline function killAllWithFade() {
-		for( i in 0...nalloc) {
-			var p = all[i];
-			p.lifeS = 0;
-		}
+		for( i in 0...nalloc)
+			all[i].lifeS = 0;
 	}
 
 	public function dispose() {
@@ -116,10 +122,11 @@ class ParticlePool {
 
 	public inline function update(tmod:Float, ?updateCb:HParticle->Void) {
 		var i = 0;
-		while( i < nalloc ){
-			var p = all[i];
+		var p : HParticle;
+		while( i < nalloc ) {
+			p = all[i];
 			@:privateAccess p.updatePart(tmod);
-			if( !p.killed ){
+			if( !p.killed ) {
 				if( updateCb!=null )
 					updateCb( p );
 				i++;
