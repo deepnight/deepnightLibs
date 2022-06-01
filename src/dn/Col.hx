@@ -87,7 +87,7 @@ abstract Col(Int) from Int to Int {
 
 	#if macro
 	static function _failToInlineHex(e:haxe.macro.Expr) {
-		haxe.macro.Context.fatalError("Cannot inline this expression.", e.pos);
+		haxe.macro.Context.fatalError("This expression should be a constant or conditions with constants.", e.pos);
 	}
 
 	static function _parseAndInlineHex(hex:String, pos:haxe.macro.Expr.Position) : Int {
@@ -120,12 +120,17 @@ abstract Col(Int) from Int to Int {
 				_inlineIfExpr(eblock);
 
 			case EConst(CIdent(id)):
-				// Assume that identifiers are ColorEnums. If proven wrongn, this will just fail later.
-				var identExpr : haxe.macro.Expr = {
-					expr: EConst(CIdent(id)),
-					pos: eblock.pos,
+				var startsWithCapReg = ~/^_*[A-Z]/g;
+				if( startsWithCapReg.match(id) ) {
+					// Assume that identifiers are ColorEnums. If proven wrongn, this will just fail later.
+					var identExpr : haxe.macro.Expr = {
+						expr: EConst(CIdent(id)),
+						pos: eblock.pos,
+					}
+					eblock.expr = ( macro Col.fromColorEnum($identExpr) ).expr;
 				}
-				eblock.expr = ( macro Col.fromColorEnum($identExpr) ).expr;
+				else
+					_failToInlineHex(eblock);
 
 			case EConst(CInt(_)):
 				// Keep integer constant as-is
@@ -200,7 +205,10 @@ abstract Col(Int) from Int to Int {
 	}
 
 	/**
-		Convert a hex String to Int. Supported formats are #aa123456, #123456, #123 and #1. "#" is optional. Because this methods works with String objects (slow and has memory allocations), it's HIGHLY recommended to use Col.inlineHex() when working with constant Strings.
+		Convert a hex String to Int. Supported formats are #aarrggbb, #rrggbb, #argb, #rgb and #v. "#" is optional.
+
+		Because this methods works with String objects (slow and has memory allocations), it's HIGHLY recommended to use Col.inlineHex() when working with constant Strings.
+
 		This method returns -1 if parsing failed.
 	*/
 	public static inline function parseHex(hex:String) : Col {
@@ -212,7 +220,14 @@ abstract Col(Int) from Int to Int {
 
 		if( l==6 || l==8 ) {
 			// "#123456" or "#aa123456" formats
+			#if js
+			// In JS, the js.Lib.parseInt returns UInt.
+			var v : UInt = Std.parseInt( "0x" + ( start>0 ? hex.substr(start) : hex ) );
+			var out : Int = (cast v :Int) & 0xffffffff;
+			return out;
+			#else
 			return Std.parseInt( "0x" + ( start>0 ? hex.substr(start) : hex ) );
+			#end
 		}
 		else if( l==3 ) {
 			// "#123" format
