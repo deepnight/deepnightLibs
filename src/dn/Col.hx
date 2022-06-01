@@ -179,14 +179,6 @@ abstract Col(Int) from Int to Int {
 	// Hex parser cache
 	static var SHARP = "#".charCodeAt(0);
 	static var HEX_CHARS = "0123456789ABCDEFabcdef".split("").map( c->c.charCodeAt(0) );
-	static var SINGLE_HEX_VALUES = {
-		var m = new Map();
-		for(hc in HEX_CHARS) {
-			var h = String.fromCharCode(hc);
-			m.set(hc, Std.parseInt("0x"+h) );
-		}
-		m;
-	}
 	static var DOUBLE_HEX_VALUES = {
 		var m = new Map();
 		for(hc in HEX_CHARS) {
