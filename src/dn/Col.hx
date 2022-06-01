@@ -158,22 +158,6 @@ abstract Col(Int) from Int to Int {
 	@:from public static macro function inlineHex(e:haxe.macro.Expr.ExprOf<String>) : ExprOf<Col> {
 		_inlineBlockExpr(e);
 		return e;
-		// switch e.expr {
-		// 	case EConst(CString(str,_)):
-		// 		return macro $v{ _inlineHex(str, e.pos) }
-
-		// 	case ETernary(econd, eif, eelse):
-		// 		_inlineIf(e);
-		// 		return e;
-
-		// 	case EIf(econd, eif, eelse):
-		// 		_inlineIf(e);
-		// 		return e;
-
-		// 	case _:
-		// 		_inlineBlock
-		// 		return macro Col.parseHex($e);
-		// }
 	}
 
 
