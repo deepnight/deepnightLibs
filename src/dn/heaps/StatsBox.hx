@@ -36,6 +36,7 @@ class StatsBox extends dn.Process {
 	var anchor : h2d.col.Point;
 	var flow : h2d.Flow;
 	var fps : h2d.Text;
+	var engineInf : h2d.Text;
 	var fpsChart : h2d.Graphics;
 
 	var components : Array<{ f:h2d.Flow, update:(f:h2d.Flow)->Void}> = [];
@@ -70,6 +71,8 @@ class StatsBox extends dn.Process {
 		fps = new h2d.Text(getFont(), f);
 		fpsChart = new h2d.Graphics(f);
 		fpsChart.visible = showFpsChart;
+
+		engineInf = new h2d.Text(getFont(), flow);
 
 		onResize();
 	}
@@ -153,6 +156,9 @@ class StatsBox extends dn.Process {
 
 			// Display FPS
 			fps.text = Std.string( dn.M.pretty(v, fpsPrecision) );
+
+			// Engine infos
+			engineInf.text = "DC="+engine.drawCalls+"/Trg="+engine.drawTriangles;
 
 			// Draw chart
 			if( fpsChart.visible ) {
