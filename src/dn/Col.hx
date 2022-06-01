@@ -650,6 +650,16 @@ class UnitTest {
 		CiAssert.equals( Col.fromColorEnum(Blue), Col.parseHex("#0000ff") );
 		CiAssert.equals( Col.fromColorEnum(White), Col.parseHex("#fff") );
 		CiAssert.equals( Col.fromColorEnum(Black), Col.parseHex("#000") );
+
+		// Inlining of constants
+		var i = 0;
+		CiAssert.equals( Col.inlineHex(i==0 ? "#f00" : "#fc0"), 0xff0000 );
+		CiAssert.equals( Col.inlineHex(i==0 ? Red : "#fc0"), 0xff0000 );
+		CiAssert.equals( Col.inlineHex(i==0 ? 0xff0000 : "#fc0"), 0xff0000 );
+
+		CiAssert.equals( Col.inlineHex(i==2 ? "#00f" : i==1 ? "#fc0" : "#f00" ), 0xff0000 );
+		CiAssert.equals( Col.inlineHex(i==2 ? "#00f" : i==1 ? Yellow : "#f00" ), 0xff0000 );
+		CiAssert.equals( Col.inlineHex(i==2 ? 0x0000ff : i==1 ? Yellow : "#f00" ), 0xff0000 );
 	}
 }
 #end
