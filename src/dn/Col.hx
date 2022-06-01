@@ -82,52 +82,102 @@ abstract Col(Int) from Int to Int {
 		return c;
 	}
 
-	/**
-		Parse a "#RRGGBB" string.
-		If the argument is a constant and not a variable, this call generates no allocation, as an Int value is directly inlined by the macro call itself.
-	**/
-	@:from public static macro function fromHex(e:haxe.macro.Expr.ExprOf<String>) : ExprOf<Col> {
-		function _warnOptim(e:haxe.macro.Expr) {
-			haxe.macro.Context.warning("String constant could probably be inlined for performance: use Col.fromHex([stringConst]) here.", e.pos);
-		}
 
-		function _checkTernary(eTern:haxe.macro.Expr) {
-			switch eTern.expr {
-				case ETernary(econd, eif, eelse):
-					switch eif.expr {
-						case EConst(CString(_)): _warnOptim(eif);
-						case ETernary(_): _checkTernary(eif);
-						case _:
-					}
-					switch eelse.expr {
-						case EConst(CString(_)): _warnOptim(eelse);
-						case ETernary(_): _checkTernary(eelse);
-						case _:
-					}
-				case _:
-			}
-		}
 
-		switch e.expr {
-			case EConst(CString(str,_)):
-				var colInt = _fastHexToInt(str);
-				if( colInt==-1 )
-					haxe.macro.Context.fatalError("Malformed color code (expected: #rrggbb, #rgb or #v)", e.pos);
-				return macro $v{colInt}
 
-			case ETernary(econd, eif, eelse):
-				_checkTernary(e);
-				return macro Col.fromInt( Col._fastHexToInt($e) );
+	#if macro
+	static function _failToInlineHex(e:haxe.macro.Expr) {
+		haxe.macro.Context.fatalError("Cannot inline this expression.", e.pos);
+	}
 
-			case EMeta(_):
-				_warnOptim(e);
-				return macro Col.fromInt( Col._fastHexToInt($e) );
+	static function _parseAndInlineHex(hex:String, pos:haxe.macro.Expr.Position) : Int {
+		var colInt = parseHex(hex);
+		if( colInt==-1 )
+			haxe.macro.Context.fatalError("Malformed color code (expected: #rrggbb, #rgb or #v)", pos);
+		return colInt;
+	}
+
+	static function _inlineIfExpr(eTern:haxe.macro.Expr) {
+		switch eTern.expr {
+			case ETernary(econd, eif, eelse), EIf(econd, eif, eelse):
+				_inlineBlockExpr(eif);
+				_inlineBlockExpr(eelse);
 
 			case _:
-				return macro Col.fromInt( Col._fastHexToInt($e) );
+				_failToInlineHex(eTern);
+
 		}
 	}
-	/** Return a "#RRGGBB" string **/
+
+	static function _inlineBlockExpr(eblock:haxe.macro.Expr) {
+		switch eblock.expr {
+			case EConst(CString(str,_)):
+				// Inline constant string
+				eblock.expr = ( macro $v{ _parseAndInlineHex(str, eblock.pos) } ).expr;
+
+			case ETernary(_), EIf(_):
+				// Inline another IF recursively
+				_inlineIfExpr(eblock);
+
+			case EConst(CIdent(id)):
+				// Assume that identifiers are ColorEnums. If proven wrongn, this will just fail later.
+				var identExpr : haxe.macro.Expr = {
+					expr: EConst(CIdent(id)),
+					pos: eblock.pos,
+				}
+				eblock.expr = ( macro Col.fromColorEnum($identExpr) ).expr;
+
+			case EConst(CInt(_)):
+				// Keep integer constant as-is
+
+			case EMeta(_):
+				// This can happen when using implicit String to Col cast, with a nested condition
+				// Ex: `myMethodThatExpectsCol( i==0 ? Red : "#fc0" );`
+				//   The "#fc0" cannot be implicitely inlined.
+				haxe.macro.Context.fatalError("Use `Col.inlineHex()` here: this String constant could not be automatically inlined.", eblock.pos);
+
+			case _:
+				// Unknown!
+				_failToInlineHex(eblock);
+		}
+	}
+	#end
+
+
+
+	/**
+		Parse a "#RRGGBB"/"#RGB"/"#V" constant string at compilation time and inline the result. This method supports nested conditions. Examples:
+
+		```haxe
+		Col.inlineHex("#fc0");
+			// becomes: 16763904
+		Col.inlineHex( i==0 ? "#fc0" : i==1 ? "#00f" : "#000" )
+			// becomes: if(i==0) 16763904 else if( i==1 ) 255 else 0
+		```
+	**/
+	@:from public static macro function inlineHex(e:haxe.macro.Expr.ExprOf<String>) : ExprOf<Col> {
+		_inlineBlockExpr(e);
+		return e;
+		// switch e.expr {
+		// 	case EConst(CString(str,_)):
+		// 		return macro $v{ _inlineHex(str, e.pos) }
+
+		// 	case ETernary(econd, eif, eelse):
+		// 		_inlineIf(e);
+		// 		return e;
+
+		// 	case EIf(econd, eif, eelse):
+		// 		_inlineIf(e);
+		// 		return e;
+
+		// 	case _:
+		// 		_inlineBlock
+		// 		return macro Col.parseHex($e);
+		// }
+	}
+
+
+	/** Return a "[#]RRGGBB" string **/
 	public inline function toHex(withSharp=true) : String {
 		return withSharp ? "#"+StringTools.hex(this, 6) : StringTools.hex(this, 6);
 	}
@@ -166,11 +216,10 @@ abstract Col(Int) from Int to Int {
 	}
 
 	/**
-		Convert a hex String to Int. Supported formats are #aa123456, #123456, #123 and #1. "#" is optional.
-		Return -1 if parsing failed
+		Convert a hex String to Int. Supported formats are #aa123456, #123456, #123 and #1. "#" is optional. Because this methods works with String objects (slow and has memory allocations), it's HIGHLY recommended to use Col.inlineHex() when working with constant Strings.
+		This method returns -1 if parsing failed.
 	*/
-	@:noCompletion
-	public static inline function _fastHexToInt(hex:String) : Int {
+	public static inline function parseHex(hex:String) : Col {
 		if( hex.length==0 )
 			return -1;
 
@@ -179,13 +228,7 @@ abstract Col(Int) from Int to Int {
 
 		if( l==6 || l==8 ) {
 			// "#123456" or "#aa123456" formats
-			var i = 0;
-			var out = 0;
-			while( i<hex.length-start ) {
-				out |= SINGLE_HEX_VALUES.get( StringTools.fastCodeAt(hex, hex.length-1-i) ) << i*4;
-				i++;
-			}
-			return out;
+			return Std.parseInt( "0x" + ( start>0 ? hex.substr(start) : hex ) );
 		}
 		else if( l==3 ) {
 			// "#123" format
@@ -478,7 +521,7 @@ class UnitTest {
 
 		// Import methods
 		c = 0xff8000;
-		CiAssert.equals(c, Col.fromHex("#ff8000"));
+		CiAssert.equals(c, Col.parseHex("#ff8000"));
 		CiAssert.equals(c, Col.fromHsl(30/360,1,1));
 		CiAssert.equals(c, Col.fromInt(0xff8000));
 		CiAssert.equals(c, Col.fromRGBf(1, 0.5, 0));
@@ -492,11 +535,11 @@ class UnitTest {
 		CiAssert.equals(Col.gray(1), White);
 
 		// Hex parsers
-		var h = "#ab123456"; CiAssert.equals( Col.fromHex(h), 0xab123456 );
-		var h = "#a123"; CiAssert.equals( Col.fromHex(h), 0xaa112233 );
-		var h = "#123456"; CiAssert.equals( Col.fromHex(h), 0x123456 );
-		var h = "#123"; CiAssert.equals( Col.fromHex(h), 0x112233 );
-		var h = "#1"; CiAssert.equals( Col.fromHex(h), 0x111111 );
+		var h = "#ab123456"; CiAssert.equals( Col.parseHex(h), 0xab123456 );
+		var h = "#a123"; CiAssert.equals( Col.parseHex(h), 0xaa112233 );
+		var h = "#123456"; CiAssert.equals( Col.parseHex(h), 0x123456 );
+		var h = "#123"; CiAssert.equals( Col.parseHex(h), 0x112233 );
+		var h = "#1"; CiAssert.equals( Col.parseHex(h), 0x111111 );
 
 		// ARGB getters
 		c = "#11aabbcc";
@@ -602,11 +645,11 @@ class UnitTest {
 		CiAssert.equals( Col.getAlphaf(0xff112233), 1);
 
 		// Enum
-		CiAssert.equals( Col.fromColorEnum(Red), Col.fromHex("#ff0000") );
-		CiAssert.equals( Col.fromColorEnum(Green), Col.fromHex("#00ff00") );
-		CiAssert.equals( Col.fromColorEnum(Blue), Col.fromHex("#0000ff") );
-		CiAssert.equals( Col.fromColorEnum(White), Col.fromHex("#fff") );
-		CiAssert.equals( Col.fromColorEnum(Black), Col.fromHex("#000") );
+		CiAssert.equals( Col.fromColorEnum(Red), Col.parseHex("#ff0000") );
+		CiAssert.equals( Col.fromColorEnum(Green), Col.parseHex("#00ff00") );
+		CiAssert.equals( Col.fromColorEnum(Blue), Col.parseHex("#0000ff") );
+		CiAssert.equals( Col.fromColorEnum(White), Col.parseHex("#fff") );
+		CiAssert.equals( Col.fromColorEnum(Black), Col.parseHex("#000") );
 	}
 }
 #end
