@@ -385,6 +385,15 @@ class HParticle extends BatchElement {
 		this.t.switchTexture(tile);
 	}
 
+	public inline function initIfNull0(v:Float) if( Math.isNaN(data0) ) data0 = v;
+	public inline function initIfNull1(v:Float) if( Math.isNaN(data1) ) data1 = v;
+	public inline function initIfNull2(v:Float) if( Math.isNaN(data2) ) data2 = v;
+	public inline function initIfNull3(v:Float) if( Math.isNaN(data3) ) data3 = v;
+	public inline function initIfNull4(v:Float) if( Math.isNaN(data4) ) data4 = v;
+	public inline function initIfNull5(v:Float) if( Math.isNaN(data5) ) data5 = v;
+	public inline function initIfNull6(v:Float) if( Math.isNaN(data6) ) data6 = v;
+	public inline function initIfNull7(v:Float) if( Math.isNaN(data7) ) data7 = v;
+
 	public inline function inc0() return Math.isNaN(data0) ? data0=1 : ++data0;
 	public inline function inc1() return Math.isNaN(data1) ? data1=1 : ++data1;
 	public inline function inc2() return Math.isNaN(data2) ? data2=1 : ++data2;
@@ -552,6 +561,10 @@ class HParticle extends BatchElement {
 	public inline function autoRotate(spd=1.0) {
 		autoRotateSpeed = spd;
 		rotation = getMoveAng();
+	}
+
+	public inline function disableAutoRotate() {
+		autoRotateSpeed = 0;
 	}
 
 	@:keep
