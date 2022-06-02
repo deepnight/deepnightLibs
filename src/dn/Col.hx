@@ -473,6 +473,11 @@ abstract Col(Int) from Int to Int {
 		e.b = M.lerp( 0xffffff, bf, ratio );
 	}
 
+	/** Apply color to a Drawable using its Vector color **/
+	public inline function colorizeH2dDrawable(e:h2d.Drawable, ratio=1.0) {
+		e.color.setColor( withAlpha(ratio) );
+	}
+
 	/** Return a h3d.Matrix to colorize an object **/
 	public inline function getColorizeMatrixH2d(ratioNewColor=1.0, ?ratioOldColor:Float) : h3d.Matrix {
 		if( ratioOldColor==null )
