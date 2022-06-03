@@ -10,15 +10,21 @@ package dn;
 class RandomTools {
 
 	/** Random Float value within specified range. If `sign` is true, the value will be either between [min,max] or [-max,-min].**/
-	public static inline function rng(min:Float, max:Float, sign=false) {
+	public static inline function rnd(min:Float, max:Float, sign=false) {
 		if( sign )
 			return (min + Math.random()*(max-min)) * (Std.random(2)*2-1);
 		else
 			return min + Math.random()*(max-min);
 	}
 
+	@:noCompletion @:deprecated("Use RandomTools.rnd()")
+	public static inline function rng(min:Float, max:Float, sign=false) {
+		return rnd(min,max,sign);
+	}
+
+
 	/** Random Integer value within specified range. If `sign` is true, the value will be either between [min,max] or [-max,-min]. **/
-	public static inline function irng(min:Int, max:Int, sign=false) {
+	public static inline function irnd(min:Int, max:Int, sign=false) {
 		if( sign )
 			return (min + Std.random(max-min+1)) * (Std.random(2)*2-1);
 		else
@@ -27,7 +33,7 @@ class RandomTools {
 
 	/** Randomly variate given value `v` in +/- `pct`%. If `sign` is true, the value will some times be multiplied by -1. **/
 	public static inline function around(v:Float, pct=10, sign=false) {
-		return v * ( 1 + rng(0,pct/100,true) ) * ( sign ? RandomTools.sign() : 1 );
+		return v * ( 1 + rnd(0,pct/100,true) ) * ( sign ? RandomTools.sign() : 1 );
 	}
 
 	/** Returns -1 or 1 randomly **/
@@ -37,27 +43,27 @@ class RandomTools {
 
 	/** Randomly variate given value `v` in +/- `pct`%, and ensures result is in range [0,1] **/
 	public static inline function aroundZTO(v:Float, pct=10) {
-		return M.fclamp( v * ( 1 + rng(0,pct/100,true) ), 0, 1 );
+		return M.fclamp( v * ( 1 + rnd(0,pct/100,true) ), 0, 1 );
 	}
 
 	/** Randomly variate given value `v` in +/- `pct`%, and ensures result is capped to 1 **/
 	public static inline function aroundBO(v:Float, pct=10) {
-		return M.fmin( v * ( 1 + rng(0,pct/100,true) ), 1 );
+		return M.fmin( v * ( 1 + rnd(0,pct/100,true) ), 1 );
 	}
 
 	/** Random float value in range [0,v]. If `sign` is true, the value will be in [-v,v]. **/
 	public static inline function zeroTo(v:Float, sign=false) {
-		return rng(0,v,sign);
+		return rnd(0,v,sign);
 	}
 
 	/** Random float in range [0,1]. If `sign` is true, the value will be in [-1,1]. **/
 	public static inline function zto(sign=false) {
-		return rng(0,1, sign);
+		return rnd(0,1, sign);
 	}
 
 	/** Random color by interpolating R, G & B components **/
 	public static inline function colorMix(minColor:UInt, maxColor:UInt) : UInt {
-		return dn.legacy.Color.interpolateInt( minColor, maxColor, rng(0,1) );
+		return dn.legacy.Color.interpolateInt( minColor, maxColor, rnd(0,1) );
 	}
 
 	/** Create a color with optional HSL parameters. If `hue` is omitted, it will be random. **/
@@ -66,17 +72,17 @@ class RandomTools {
 	}
 
 	/** Random radian angle in range [0,2PI] **/
-	public static inline function fullCircle() return rng(0, M.PI2);
+	public static inline function fullCircle() return rnd(0, M.PI2);
 
 	/** Random radian angle in range [0,PI] **/
-	public static inline function halfCircle() return rng(0, M.PI);
+	public static inline function halfCircle() return rnd(0, M.PI);
 
 	/** Random radian angle in range [0,PI/2] **/
-	public static inline function quarterCircle() return rng(0, M.PIHALF);
+	public static inline function quarterCircle() return rnd(0, M.PIHALF);
 
 	/** Random radian angle in range [ang-maxDist, ang+maxDist] **/
 	public static inline function angleAround(ang:Float, maxDist:Float) {
-		return ang + rng(0, maxDist, true);
+		return ang + rnd(0, maxDist, true);
 	}
 
 	/** Return TRUE if a random percentage (ie. 0-100) is below given threshold **/
