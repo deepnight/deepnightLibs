@@ -534,6 +534,19 @@ class HParticle extends BatchElement {
 		min.interpolate( max, rnd(0,1) ).colorizeH2dBatchElement(this, 1);
 	}
 
+
+	public inline function randFlipXY() {
+		scaleX *= RandomTools.sign();
+		scaleY *= RandomTools.sign();
+	}
+	public inline function randFlipX() scaleX *= RandomTools.sign();
+	public inline function randFlipY() scaleY *= RandomTools.sign();
+	public inline function randRotation() rotation = RandomTools.fullCircle();
+	public inline function randRotationAndFlips() {
+		randFlipXY();
+		randRotation();
+	}
+
 	public inline function delayCallback(cb:HParticle->Void, sec:Float) {
 		delayedCb = cb;
 		delayedCbTimeS = sec;
