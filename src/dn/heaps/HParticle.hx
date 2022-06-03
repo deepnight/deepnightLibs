@@ -144,11 +144,18 @@ class Emitter {
 	public var hei : Float;
 	public var cd : dn.Cooldown;
 	public var delayer : dn.Delayer;
+
+	/** If this method is set, it should return TRUE to enable the emitter or FALSE to disable it. **/
 	public var activeCond : Null<Void->Bool>;
+
+	/** Active state of the emitter **/
 	public var active(default,set) : Bool;
 	public var tmod : Float;
 	public var destroyed(default,null) : Bool;
+
+	/** Frequency (in seconds) of the `onUpdate` calls **/
 	public var tickS : Float;
+
 	public var padding : Int;
 
 	public var top(get,never) : Float;  inline function get_top() return y;
