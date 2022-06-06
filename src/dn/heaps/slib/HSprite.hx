@@ -1,5 +1,6 @@
 package dn.heaps.slib;
 
+import hxd.Timer;
 import h2d.Drawable;
 import dn.heaps.slib.*;
 import dn.heaps.slib.SpriteLib;
@@ -247,6 +248,6 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 	override function sync(ctx:h2d.RenderContext) {
 		super.sync(ctx);
 		if( animAllocated )
-			anim.update( lib!=null ? lib.tmod : 1 );
+			anim.update( lib!=null ? lib.tmod * Timer.tmod : Timer.tmod );
 	}
 }
