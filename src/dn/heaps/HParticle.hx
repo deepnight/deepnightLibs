@@ -233,8 +233,10 @@ class Emitter {
 			cd.update(tmod);
 			delayer.update(tmod);
 
-			if( tickS<=0 || !cd.hasSetS("emitterTick", tickS) )
+			if( tickS<=0 || !cd.has("emitterTick") ) {
 				onUpdate();
+				cd.setS("emitterTick", tickS);
+			}
 
 			if( !permanent && !cd.has("emitterLife") )
 				dispose();
