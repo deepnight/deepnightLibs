@@ -453,6 +453,12 @@ abstract Col(Int) from Int to Int {
 	}
 
 
+	/** Return an interpolated color from min->med->max, using given ratio **/
+	public static inline function graduate(ratio:Float, min:Col, med:Col, max:Col) {
+		return ratio<0.5 ? min.interpolate( med, ratio/0.5 ) : med.interpolate( max, (ratio-0.5)/0.5 );
+	}
+
+
 	/**
 		Return current color teinted to `target`, approximately preserving luminance of original color.
 	**/
@@ -589,6 +595,11 @@ class UnitTest {
 		c = def; CiAssert.equals( c.toWhite(0.0), 0xff0000 );
 		c = def; CiAssert.equals( c.toWhite(0.5), 0xff8080 );
 		c = def; CiAssert.equals( c.toWhite(1.0), 0xffffff );
+
+		CiAssert.equals( Col.graduate(0.0, Red, Green, Blue), Red );
+		CiAssert.equals( Col.graduate(0.5, Red, Green, Blue), Green );
+		CiAssert.equals( Col.graduate(1.0, Red, Green, Blue), Blue );
+		CiAssert.equals( Col.graduate(0.25, Red, Green, Blue), 0x808000 );
 
 		// Luminance
 		c = 0x000000; CiAssert.equals( M.pretty(c.luminance,2), 0 );
