@@ -24,7 +24,10 @@ class DecisionHelper<T> {
 		}
 	}
 
-	public static inline function optimizedPick<T>(all:Array<T>, score:T->Float) : Null<T> {
+	/**
+		Pick a single value from an Iterable without allocating an actual DecisionHelper
+	**/
+	public static inline function optimizedPick<T>(all:Iterable<T>, score:T->Float) : Null<T> {
 		var best : T = null;
 		var bestScore = -9999999.;
 		var s = 0.;
