@@ -7,7 +7,7 @@ package dn;
 
 import dn.M;
 
-enum abstract ColorEnum(Int) to Col {
+enum abstract ColorEnum(Int) to Col to Int {
 	var Red = 0xff0000;
 	var Green = 0x00ff00;
 	var Blue = 0x0000ff;
@@ -641,6 +641,9 @@ class UnitTest {
 		CiAssert.equals( Col.getAlphaf(0xff112233), 1);
 
 		// Enum
+		CiAssert.equals( Red, 0xff0000 );
+		CiAssert.equals( Green, 0x00ff00 );
+		CiAssert.equals( Blue, 0x0000ff );
 		CiAssert.equals( Col.fromColorEnum(Red), Col.parseHex("#ff0000") );
 		CiAssert.equals( Col.fromColorEnum(Green), Col.parseHex("#00ff00") );
 		CiAssert.equals( Col.fromColorEnum(Blue), Col.parseHex("#0000ff") );
