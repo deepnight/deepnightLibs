@@ -7,7 +7,7 @@ package dn;
 
 import dn.M;
 
-enum abstract ColorEnum(Int) to Col to Int {
+enum abstract ColorEnum(Int) to Int to Col {
 	var Red = 0xff0000;
 	var Green = 0x00ff00;
 	var Blue = 0x0000ff;
@@ -15,6 +15,11 @@ enum abstract ColorEnum(Int) to Col to Int {
 	var White = 0xffffff;
 	var Black = 0x0;
 	var MidGray = 0x808080;
+
+	var ColdLightGray = 0xadb4cc;
+	var ColdMidGray = 0x6a6e80;
+	var WarmLightGray = 0xccc3b8;
+	var WarmMidGray = 0x807a73;
 
 	var Yellow = 0xffcc00;
 	var Pink = 0xff00ff;
