@@ -5,7 +5,7 @@ package dn;
 
 		- FixedArray has a limit to the number of values it can hold, as defined at creation.
 		- Allocated values can be iterated over.
-		- Supports basic Array operations (push, pop, shift, get etc.)
+		- Supports basic Array operations (get/set, push, pop/shift, etc.)
 **/
 @:allow(dn.FixedArrayIterator)
 class FixedArray<T> {
@@ -49,13 +49,11 @@ class FixedArray<T> {
 	}
 
 	/** Get value at given index **/
-	@:arrayAccess
 	public inline function get(idx:Int) : Null<T> {
 		return idx<0 || idx>=nalloc ? null : values[idx];
 	}
 
 	/** Set value at given index. This throws an error if the index is above allocated count. **/
-	@:arrayAccess
 	public inline function set(idx:Int, v:T) : T {
 		if( idx<0 || idx>=nalloc )
 			throw 'Out-of-bounds FixedArray set (idx=$idx, allocated=$allocated)';
@@ -104,17 +102,21 @@ class FixedArray<T> {
 		nalloc++;
 	}
 
-	/** Search and remove given value **/
-	public inline function remove(e:T) {
+	/** Search and remove given value. Return True if the value was found and removed. **/
+	public function remove(e:T) : Bool {
+		var found = false;
 		for(i in 0...nalloc)
 			if( values[i]==e ) {
 				removeIndex(i);
+				found = true;
 				break;
 			}
+
+		return found;
 	}
 
 	/** Remove value at given array index **/
-	public inline function removeIndex(i:Int) {
+	public function removeIndex(i:Int) {
 		if( i<nalloc ) {
 			values[i] = null;
 			if( nalloc>1 ) {
@@ -131,6 +133,51 @@ class FixedArray<T> {
 	public function dispose() {
 		values = null;
 		nalloc = 0;
+	}
+
+
+	/** Unit tests **/
+	@:noCompletion
+	public static function __test() {
+		var a : FixedArray<Int> = new FixedArray(10);
+		CiAssert.equals(a.allocated, 0);
+		CiAssert.equals(a.maxSize, 10);
+
+		// Push/pops
+		CiAssert.equals({ a.push(16); a.allocated; }, 1);
+		CiAssert.equals({ a.push(32); a.allocated; }, 2);
+		CiAssert.equals(a.pop(), 32);
+		CiAssert.equals(a.allocated, 1);
+		CiAssert.equals(a.pop(), 16);
+		CiAssert.equals(a.allocated, 0);
+
+		// Shift
+		CiAssert.equals({ a.push(16); a.push(32); a.allocated; }, 2);
+		CiAssert.equals(a.shift(), 16);
+		CiAssert.equals(a.allocated, 1);
+		CiAssert.equals(a.shift(), 32);
+		CiAssert.equals(a.allocated, 0);
+
+		// Get/set
+		CiAssert.equals({ a.push(16); a.push(32); a.allocated; }, 2);
+		CiAssert.equals(a.get(0), 16);
+		CiAssert.equals(a.get(1), 32);
+		CiAssert.equals(a.get(2), null);
+		CiAssert.equals({ a.push(64); a.get(2); }, 64);
+		CiAssert.equals({ a.pop(); a.get(2); }, null);
+
+		// First/last
+		a.push(64);
+		CiAssert.equals(a.first(), 16);
+		CiAssert.equals(a.last(), 64);
+
+		// Removals
+		CiAssert.equals(a.remove(32), true);
+		CiAssert.equals(a.remove(99), false);
+		CiAssert.equals(a.allocated, 2);
+		CiAssert.equals({ a.removeIndex(10); a.allocated; }, 2);
+		CiAssert.equals({ a.removeIndex(0); a.allocated; }, 1);
+		CiAssert.equals(a.get(0), 64);
 	}
 }
 
@@ -156,5 +203,4 @@ private class FixedArrayIterator<T> {
 	public inline function next() {
 		return arr.values[i++];
 	}
-
 }

@@ -36,6 +36,7 @@ class Main {
 		dn.Args.__test();
 		dn.Process.__test();
 		dn.RandomTools.__test();
+		dn.FixedArray.__test();
 
 		// Done!
 		Lib.println("");
