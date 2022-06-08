@@ -182,6 +182,10 @@ class DecisionHelper<T> {
 		CiAssert.equals( dh.countRemaining(), 2 );
 		CiAssert.equals( dh.getBest(), "food" );
 
+		var ok = false;
+		dh.useBest( v->ok = (v=="food") );
+		CiAssert.isTrue(ok);
+
 		var dh = new dn.DecisionHelper(arr);
 		dh.score( v -> v.length*0.1 ); // longer is better
 		CiAssert.equals( dh.getBest(), "longworld" );
