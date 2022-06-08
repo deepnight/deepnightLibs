@@ -22,7 +22,7 @@ class Chart extends dn.Process {
 	var last : h2d.Text;
 	var font : h2d.Font;
 
-	public function new(label="", color=Col.inlineHex("#9ba3c1"), ?font:h2d.Font, p:Process) {
+	public function new(label="", color:Col=ColdLightGray, ?font:h2d.Font, p:Process) {
 		super(p);
 
 		this.color = color;

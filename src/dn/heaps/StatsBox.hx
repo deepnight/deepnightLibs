@@ -40,15 +40,10 @@ class StatsBox extends dn.Process {
 
 		flow = new h2d.Flow(root);
 		flow.layout = Vertical;
-		flow.horizontalSpacing = 8;
 		flow.backgroundTile = h2d.Tile.fromColor(0x0,1,1, 0.7);
-		flow.padding = 4;
+		flow.padding = 1;
 		flow.horizontalAlign = Right;
-		flow.verticalSpacing = 4;
-
-		var f = new h2d.Flow(flow);
-		f.layout = Horizontal;
-		f.verticalAlign = Middle;
+		flow.verticalSpacing = 2;
 
 		wid = 100;
 		Process.resizeAll();
@@ -57,6 +52,7 @@ class StatsBox extends dn.Process {
 
 	function set_wid(v) {
 		wid = v;
+		flow.minWidth = wid;
 		for(c in charts)
 			c.wid = wid;
 		return wid;
@@ -100,12 +96,15 @@ class StatsBox extends dn.Process {
 	}
 
 	public function addFpsChart(refFps=60) {
-		addCustomChart("FPS", "#9ba3c1", ()->hxd.Timer.fps(), refFps);
+		addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps);
 	}
 
 	#if heaps
 	public function addDrawCallsChart() {
-		var c = addCustomChart("DrawC", Red, ()->engine.drawCalls);
+		addCustomChart("DrawC", Red, ()->engine.drawCalls);
+	}
+	public function addTrianglesChart() {
+		addCustomChart("Trg", Red, ()->engine.drawTriangles);
 	}
 	#end
 
