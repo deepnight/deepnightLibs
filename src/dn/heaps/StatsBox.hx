@@ -119,6 +119,10 @@ class StatsBox extends dn.Process {
 	public function addMemoryChart() {
 		addCustomChart("MEM", Col.fromColorEnum(Blue).toWhite(0.4), ()->hl.Gc.stats().currentMemory);
 	}
+	/** Add a chart tracking **GC Allocation Count** **/
+	public function addGcAllocChart() {
+		addCustomChart("GCa", Col.fromColorEnum(Blue).toWhite(0.4), ()->hl.Gc.stats().allocationCount);
+	}
 	#end
 
 	/** Remove every components and charts**/
