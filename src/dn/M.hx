@@ -831,6 +831,12 @@ class M {
 		}
 	}
 
+	public static inline function unit(v:Float) : String {
+		return v<=1000 ? Std.string( pretty(v,1) )
+			: v<=1000000 ? round(v/100)/10+"k"
+			: round(v/100000)/10+"M";
+	}
+
 
 	/**
 		Print a signed Integer as binary
