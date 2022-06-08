@@ -89,13 +89,13 @@ class Chart extends dn.Process {
 
 		var labelTf = new h2d.Text(font, root);
 		labelTf.text = label;
-		labelTf.textColor = color.toBlack(0.4);
+		labelTf.textColor = color.toBlack(0.3);
 		labelTf.x = 4;
 		labelTf.y = hei-labelTf.textHeight-1;
 
 		last = new h2d.Text(font, root);
 		last.x = labelTf.x + labelTf.textWidth + 4;
-		last.textColor = color.toBlack(0.3);
+		last.textColor = color.toBlack(0.2);
 		if( curHistIdx>0 )
 			printLast(history[curHistIdx-1]);
 

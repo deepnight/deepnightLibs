@@ -67,6 +67,7 @@ class StatsBox extends dn.Process {
 
 	inline function getFont() return font==null ? hxd.res.DefaultFont.get() : font;
 
+	/** Add a custom dynamic Flow based component **/
 	public function addComponent( update:(f:h2d.Flow)->Void ) {
 		var f = new h2d.Flow();
 		flow.addChildAt(f,0);
@@ -74,6 +75,7 @@ class StatsBox extends dn.Process {
 		components.push({ f:f, update:update });
 	}
 
+	/** Add a dynamic text field **/
 	public function addText( update:Void->String ) {
 		var f = new h2d.Flow();
 		flow.addChildAt(f,0);
@@ -84,6 +86,7 @@ class StatsBox extends dn.Process {
 		}});
 	}
 
+	/** Add a chart tracking an arbitrary value **/
 	public function addCustomChart( label="", ?color:Col, valueGetter:Void->Float, refValue=0.) : Chart {
 		var c = new Chart(label, color, getFont(), this);
 		flow.addChild(c.root);
@@ -95,25 +98,30 @@ class StatsBox extends dn.Process {
 		return c;
 	}
 
+	/** Add a chart tracking **FPS** **/
 	public function addFpsChart(refFps=60) {
 		addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps);
 	}
 
 	#if heaps
+	/** Add a chart tracking **Draw Calls** **/
 	public function addDrawCallsChart() {
-		addCustomChart("DrawC", Red, ()->engine.drawCalls);
+		addCustomChart("DrawC", Col.fromColorEnum(Red).toWhite(0.4), ()->engine.drawCalls);
 	}
+	/** Add a chart tracking **Triangles Count** **/
 	public function addTrianglesChart() {
 		addCustomChart("Trg", Red, ()->engine.drawTriangles);
 	}
 	#end
 
 	#if hl
+	/** Add a chart tracking **Memory Usage** **/
 	public function addMemoryChart() {
-		addCustomChart("MEM", Blue, ()->hl.Gc.stats().currentMemory);
+		addCustomChart("MEM", Col.fromColorEnum(Blue).toWhite(0.4), ()->hl.Gc.stats().currentMemory);
 	}
 	#end
 
+	/** Remove every components and charts**/
 	public function removeAllComponents() {
 		for(c in components)
 			c.f.remove();
