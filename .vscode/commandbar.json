@@ -4,7 +4,7 @@
     "skipErrorMessage": true,
     "commands": [
       {
-        "text": "✪ JS tests",
+        "text": "✪ JS",
         "color": "yellow",
         "command": "haxe tests.js.hxml",
         "alignment": "right",
@@ -12,12 +12,20 @@
         "priority": -1
       },
       {
-        "text": "✪ HL tests",
+        "text": "✪ HL",
         "color": "orange",
         "command": "haxe tests.hl.hxml",
         "alignment": "right",
         "skipTerminateQuickPick": false,
         "priority": -2
+      },
+      {
+        "text": "✪ HL verbose",
+        "color": "orange",
+        "command": "haxe tests.hl.hxml -D verbose",
+        "alignment": "right",
+        "skipTerminateQuickPick": false,
+        "priority": -3
       },
       {
         "text": "🌍 Lang",
