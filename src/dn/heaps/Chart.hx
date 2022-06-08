@@ -81,22 +81,30 @@ class Chart extends dn.Process {
 		bg.lineStyle(1,color.toWhite(0.5));
 		bg.drawRect(0,0,wid,hei);
 
-		g = new h2d.Graphics(root);
-
-		var labelTf = new h2d.Text(font, root);
-		labelTf.text = label;
-		labelTf.textColor = Col.inlineHex("#bac0d7");
-		labelTf.x = 4;
-		labelTf.y = hei-labelTf.textHeight;
-
-		last = new h2d.Text(font, root);
-		last.x = labelTf.x + labelTf.textWidth + 4;
-
 		if( refValue!=0 ) {
 			var line = new h2d.Bitmap(h2d.Tile.fromColor(color.toBlack(0.6)), root);
 			line.scaleX = wid;
 			line.y = getY(refValue);
 		}
+
+		var labelTf = new h2d.Text(font, root);
+		labelTf.text = label;
+		labelTf.textColor = color.toBlack(0.4);
+		labelTf.x = 4;
+		labelTf.y = hei-labelTf.textHeight-1;
+
+		last = new h2d.Text(font, root);
+		last.x = labelTf.x + labelTf.textWidth + 4;
+		last.textColor = color.toBlack(0.3);
+		if( curHistIdx>0 )
+			printLast(history[curHistIdx-1]);
+
+		g = new h2d.Graphics(root);
+	}
+
+	inline function printLast(v:Float) {
+		last.text = Std.string( M.unit(v) );
+		last.y = hei-last.textHeight-1;
 	}
 
 	function renderFullChart() {
@@ -124,10 +132,7 @@ class Chart extends dn.Process {
 			g.lineTo(getX(curHistIdx), getY(v));
 		}
 
-		// Last value print
-		last.text = Std.string( M.unit(v) );
-		last.y = hei-last.textHeight;
-
+		printLast(v);
 		curHistIdx++;
 
 		// Scroll back
