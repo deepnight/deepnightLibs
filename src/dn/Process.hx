@@ -3,6 +3,8 @@ package dn;
 import dn.Lib;
 
 class Process {
+	public static var MAX_PROCESSES = 1024;
+
 	/** FPS frequency of the `fixedUpdate` calls **/
 	public static var FIXED_UPDATE_FPS = 30;
 
@@ -10,7 +12,7 @@ class Process {
 	public static var CUSTOM_STAGE_HEIGHT = -1;
 
 	static var UNIQ_ID = 0;
-	static var ROOTS : Array<Process> = [];
+	static var ROOTS : FixedArray<Process> = new FixedArray("RootProcesses", MAX_PROCESSES);
 
 	/** If TRUE, each Process.onResize() will be called *once* at the end of the frame **/
 	static var RESIZE_REQUESTED = true;
@@ -64,7 +66,7 @@ class Process {
 	/** Process display name **/
 	public var name : Null<String>;
 
-	var children : Array<Process>;
+	var children : FixedArray<Process>;
 
 	/** Delayer allows for callbacks to be called in a future frame **/
 	public var delayer : dn.Delayer;
@@ -110,7 +112,7 @@ class Process {
 
 	public function init(){
 		uniqId = UNIQ_ID++;
-		children = [];
+		children = new FixedArray(MAX_PROCESSES);
 		_manuallyPaused = false;
 		destroyed = false;
 		ftime = 0;
@@ -558,11 +560,11 @@ class Process {
 				_doPostUpdate(c);
 	}
 
-	static function _garbageCollector(plist:Array<Process>) {
+	static function _garbageCollector(plist:FixedArray<Process>) {
 		var i = 0;
 		var p : Process;
-		while (i < plist.length) {
-			p = plist[i];
+		while (i < plist.allocated) {
+			p = plist.get(i);
 			if( p.destroyed )
 				_disposeProcess(p);
 			else {
@@ -584,9 +586,8 @@ class Process {
 		p.tw.destroy();
 
 		// Unregister from lists
-		if (p.parent != null) {
+		if (p.parent != null)
 			p.parent.children.remove(p);
-		}
 		else
 			ROOTS.remove(p);
 
@@ -716,6 +717,7 @@ class Process {
 		CiAssert.isNotNull(root.udelayer);
 		CiAssert.isNotNull(root.tw);
 		CiAssert.equals( root.tmod, 1 );
+		CiAssert.equals( ROOTS.allocated, 1);
 
 		// Pause management
 		CiAssert.equals( root.togglePause(), true );
@@ -723,7 +725,7 @@ class Process {
 
 		var c1 = new Process(root);
 		CiAssert.isNotNull(c1);
-		CiAssert.equals(root.children.length, 1);
+		CiAssert.equals(root.children.allocated, 1);
 		CiAssert.isFalse( c1.isPaused() );
 		root.pause();
 		CiAssert.isTrue( c1.isPaused() );
@@ -731,7 +733,7 @@ class Process {
 
 		var c2 = new Process(root);
 		CiAssert.isNotNull(c2);
-		CiAssert.equals(root.children.length, 2);
+		CiAssert.equals(root.children.allocated, 2);
 		CiAssert.equals(c2.parent, root);
 		CiAssert.isFalse( c2.isPaused() );
 		root.pause();
@@ -743,11 +745,12 @@ class Process {
 		CiAssert.isFalse( c1.destroyed );
 		CiAssert.isTrue( c2.destroyed );
 		CiAssert.isFalse( root.destroyed );
-		CiAssert.equals(root.children.length, 1);
+		CiAssert.equals(root.children.allocated, 1);
 		root.destroy();
 		updateAll(1); // force GC
 		CiAssert.isTrue( c1.destroyed );
 		CiAssert.isTrue( c2.destroyed );
 		CiAssert.isTrue( root.destroyed );
+		CiAssert.equals( ROOTS.allocated, 0);
 	}
 }
