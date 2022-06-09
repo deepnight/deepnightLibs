@@ -831,10 +831,10 @@ class M {
 		}
 	}
 
-	public static inline function unit(v:Float) : String {
-		return v<=1000 ? Std.string( pretty(v,1) )
-			: v<=1000000 ? round(v/100)/10+"k"
-			: round(v/100000)/10+"M";
+	public static inline function unit(v:Float, precision=1) : String {
+		return v<=1000 ? Std.string( pretty(v, precision) )
+			: v<=1000000 ? M.pretty(v/1000, precision)+"k"
+			: M.pretty(v/1000000, precision)+"M";
 	}
 
 
