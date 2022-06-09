@@ -832,8 +832,8 @@ class M {
 	}
 
 	public static inline function unit(v:Float, precision=1) : String {
-		return v<=1000 ? Std.string( pretty(v, precision) )
-			: v<=1000000 ? M.pretty(v/1000, precision)+"k"
+		return v<1000 ? Std.string( pretty(v, precision) )
+			: v<1000000 ? M.pretty(v/1000, precision)+"K"
 			: M.pretty(v/1000000, precision)+"M";
 	}
 
@@ -1069,5 +1069,18 @@ class M {
 		CiAssert.equals( bezier4(0,  0, 0.4, 0.9, 1 ), 0 );
 		CiAssert.equals( bezier4(0.5,  0, 0.4, 0.9, 1 ), 0.6125 );
 		CiAssert.equals( bezier4(1,  0, 0.4, 0.9, 1 ), 1 );
+
+		// Prettifiers
+		CiAssert.equals( M.pretty(1.123,1), 1.1 );
+		CiAssert.equals( M.pretty(1.123,2), 1.12 );
+		CiAssert.equals( M.groupNumbers(123), "123" );
+		CiAssert.equals( M.groupNumbers(1234), "1 234" );
+		CiAssert.equals( M.groupNumbers(12345), "12 345" );
+		CiAssert.equals( M.groupNumbers(1234567), "1 234 567" );
+		CiAssert.equals( M.unit(1000), "1K" );
+		CiAssert.equals( M.unit(1234), "1.2K" );
+		CiAssert.equals( M.unit(1234,2), "1.23K" );
+		CiAssert.equals( M.unit(1000000), "1M" );
+		CiAssert.equals( M.unit(1500000), "1.5M" );
 	}
 }
