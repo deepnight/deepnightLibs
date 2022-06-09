@@ -5,10 +5,14 @@ import dn.Col;
 class Chart extends dn.Process {
 	public var wid(default,set) : Int;
 	public var hei(default,set) : Int;
-	public var refValue(default,set) : Float = 0;
 	public var color(default,set) : Col;
 	var max = 0.;
 
+	/** Shows an horizontal line at this value **/
+	public var refValue(default,set) : Float = 0;
+
+	/** Precision of the displayed number **/
+	public var precision = 1;
 
 	var g : h2d.Graphics;
 	var invalidated = true;
@@ -103,7 +107,7 @@ class Chart extends dn.Process {
 	}
 
 	inline function printLast(v:Float) {
-		last.text = Std.string( M.unit(v) );
+		last.text = Std.string( M.unit(v,precision) );
 		last.y = hei-last.textHeight-1;
 	}
 
