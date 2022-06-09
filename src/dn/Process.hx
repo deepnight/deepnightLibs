@@ -560,8 +560,9 @@ class Process {
 
 	static function _garbageCollector(plist:Array<Process>) {
 		var i = 0;
+		var p : Process;
 		while (i < plist.length) {
-			var p = plist[i];
+			p = plist[i];
 			if( p.destroyed )
 				_disposeProcess(p);
 			else {
