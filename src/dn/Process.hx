@@ -628,11 +628,21 @@ class Process {
 		}
 	}
 
+
+
 	// -----------------------------------------------------------------------
 	// Public static API
 	// -----------------------------------------------------------------------
 
 	public static function updateAll(utmod:Float) {
+		// Beginning of frame callbacks
+		if( BEGINNING_OF_FRAME_CALLBACKS.length>0 ) {
+			var cbs = BEGINNING_OF_FRAME_CALLBACKS.copy();
+			BEGINNING_OF_FRAME_CALLBACKS = [];
+			for(cb in cbs)
+				cb();
+		}
+
 		for (p in ROOTS)
 			_doPreUpdate(p, utmod);
 
@@ -652,6 +662,14 @@ class Process {
 		}
 
 		_garbageCollector(ROOTS);
+
+		// End of frame callbacks
+		if( END_OF_FRAME_CALLBACKS.length>0 ) {
+			var cbs = END_OF_FRAME_CALLBACKS.copy();
+			END_OF_FRAME_CALLBACKS = [];
+			for(cb in cbs)
+				cb();
+		}
 	}
 
 	/** Request a onResize() call for all processes. If `immediately` is false (default), the call will only happen **once** and **at the end** of current frame. **/
@@ -672,6 +690,19 @@ class Process {
 	/** Request a onResize() call for ALL processes immediately. **/
 	inline function emitResizeNow() {
 		resizeAll(true);
+	}
+
+	static var BEGINNING_OF_FRAME_CALLBACKS : Array< Void->Void > = [];
+	static var END_OF_FRAME_CALLBACKS : Array< Void->Void > = [];
+
+	/** Run a callback at the very beginning of the next frame, before any process. **/
+	public static function callAtTheBeginningOfNextFrame( cb:Void->Void ) {
+		BEGINNING_OF_FRAME_CALLBACKS.push(cb);
+	}
+
+	/** Run a callback at the absolute end of frame, after all processes and after dead processes garbage collection. **/
+	public static function callAtTheEndOfCurrentFrame( cb:Void->Void ) {
+		END_OF_FRAME_CALLBACKS.push(cb);
 	}
 
 
