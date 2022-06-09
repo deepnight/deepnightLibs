@@ -170,7 +170,7 @@ class Chart extends dn.Process {
 
 		if( autoPlotter!=null ) {
 			if( !cd.hasSetS("autoPlot",freqS) )
-				plot( autoPlotter() );
+				plot( try autoPlotter() catch(_) 0 );
 		}
 	}
 
