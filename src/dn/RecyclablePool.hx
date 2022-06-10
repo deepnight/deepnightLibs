@@ -25,6 +25,9 @@ class RecyclablePool<T:Recyclable> {
 	var size : Int;
 	var pool : haxe.ds.Vector<T>;
 
+	/**
+		Create a RecyclePool.
+	**/
 	public inline function new(size:Int, valueConstructor:Void->T) {
 		this.size = size;
 		pool = new haxe.ds.Vector(size);
