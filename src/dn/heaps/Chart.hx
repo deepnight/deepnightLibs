@@ -3,6 +3,8 @@ package dn.heaps;
 import dn.Col;
 
 class Chart extends dn.Process {
+	public static var DEFAULT_SAMPLE_COUNT = 100;
+
 	public var wid(default,set) : Int;
 	public var hei(default,set) : Int;
 	public var color(default,set) : Col;
@@ -33,9 +35,14 @@ class Chart extends dn.Process {
 		this.font = font!=null ? font : hxd.res.DefaultFont.get();
 		this.label = label;
 		createRootInLayers(p.root, 99999);
-		history = new haxe.ds.Vector(100);
-		wid = Std.int(history.length*1.5);
+		wid = 150;
 		hei = 32;
+		setMaxSamples(DEFAULT_SAMPLE_COUNT);
+	}
+
+	/** Define the max number of values that will be displayed horizontally on the chart **/
+	public function setMaxSamples(n:Int) {
+		history = new haxe.ds.Vector(n);
 		initBase();
 	}
 
