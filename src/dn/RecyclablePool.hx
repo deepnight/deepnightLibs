@@ -32,6 +32,11 @@ class RecyclablePool<T:Recyclable> {
 			pool[i] = valueConstructor();
 	}
 
+	@:keep
+	public function toString() {
+		return 'RecyclablePool($allocated/$maxSize)';
+	}
+
 	/**
 		Return the expected object at given index.
 		"Expected" means that this method will return `null` if the index is out of the *currently allocated* bounds.
