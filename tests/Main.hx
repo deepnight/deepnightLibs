@@ -37,6 +37,7 @@ class Main {
 		dn.Process.__test();
 		dn.RandomTools.__test();
 		dn.FixedArray.__test();
+		dn.RecyclablePool.__test();
 
 		// Done!
 		Lib.println("");
