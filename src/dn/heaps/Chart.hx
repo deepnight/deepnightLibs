@@ -18,6 +18,7 @@ class Chart extends dn.Process {
 
 	var g : h2d.Graphics;
 	var invalidated = true;
+	var showTexts = true;
 
 	var freqS = 0.5;
 	var autoPlotter : Null<Void->Float>;
@@ -38,6 +39,11 @@ class Chart extends dn.Process {
 		wid = 150;
 		hei = 32;
 		setMaxSamples(DEFAULT_SAMPLE_COUNT);
+	}
+
+	public function disableTexts() {
+		showTexts = false;
+		initBase();
 	}
 
 	/** Define the max number of values that will be displayed horizontally on the chart **/
@@ -98,24 +104,28 @@ class Chart extends dn.Process {
 			line.y = getY(refValue);
 		}
 
-		var labelTf = new h2d.Text(font, root);
-		labelTf.text = label;
-		labelTf.textColor = color.toBlack(0.3);
-		labelTf.x = 4;
-		labelTf.y = hei-labelTf.textHeight-1;
+		if( showTexts ) {
+			var labelTf = new h2d.Text(font, root);
+			labelTf.text = label;
+			labelTf.textColor = color.toBlack(0.3);
+			labelTf.x = 4;
+			labelTf.y = hei-labelTf.textHeight-1;
 
-		last = new h2d.Text(font, root);
-		last.x = labelTf.x + labelTf.textWidth + 4;
-		last.textColor = color.toBlack(0.2);
-		if( curHistIdx>0 )
-			printLast(history[curHistIdx-1]);
+			last = new h2d.Text(font, root);
+			last.x = labelTf.x + labelTf.textWidth + 4;
+			last.textColor = color.toBlack(0.2);
+			if( curHistIdx>0 )
+				printLast(history[curHistIdx-1]);
+		}
 
 		g = new h2d.Graphics(root);
 	}
 
 	inline function printLast(v:Float) {
-		last.text = Std.string( M.unit(v,precision) );
-		last.y = hei-last.textHeight-1;
+		if( showTexts ) {
+			last.text = Std.string( M.unit(v,precision) );
+			last.y = hei-last.textHeight-1;
+		}
 	}
 
 	function renderFullChart() {
