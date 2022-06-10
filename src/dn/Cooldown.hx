@@ -414,7 +414,6 @@ class Cooldown {
 			}
 			else
 				cdList.push( new CdInst(k,frames) );
-				//cdList.push({k:k, v:v, initial:v, cb:null});
 		}
 
 		if( onComplete!=null )
