@@ -17,7 +17,7 @@ import haxe.macro.Type;
  * but are different.
  *
  * *Examples*:
- * `cd.setMs("punch", 400);`
+ * `cd.setS("punch", 0.4);`
  * `cd.setF("jump" + 1, 320);`
  *
  */
@@ -28,27 +28,14 @@ class Cooldown {
 	**/
 	public static var DEFAULT_COUNT_LIMIT = 512;
 
-	/** The current list of active cooldowns **/
+	/** Pool of cooldowns (actives or freed) **/
 	var cds : RecyclablePool<CdInst>;
 
-	/** The base FPS value from which time conversion is based off **/
+	@:noCompletion
 	public var baseFps(default,null) : Float;
 
-	/**
-	 * Convert milliseconds to frames
-	 * @param ms Amount of milliseconds
-	 * @return Float Equivalent amount in frames
-	 */
-	@:noCompletion
-	public inline function msToFrames(ms:Float) return ms * baseFps / 1000.;
-
-	/**
-	 * Convert seconds to frames
-	 * @param ms Amount of seconds
-	 * @return Float Equivalent amount in frames
-	 */
-	@:noCompletion
-	public inline function secToFrames(s:Float) return s * baseFps;
+	@:noCompletion public inline function msToFrames(ms:Float) return ms * baseFps / 1000.;
+	@:noCompletion public inline function secToFrames(s:Float) return s * baseFps;
 
 	/** The available indices this cooldown class has available. **/
 	@:allow(dn.CdInst)
@@ -57,15 +44,23 @@ class Cooldown {
 	var fastCheck: haxe.ds.IntMap<Bool>;
 
 	/**
-	 * Create a new `Cooldown` tracker
-	 * @param fps The base FPS value at which you want to track cooldowns
-	 */
+		Create a new `Cooldown` manager
+		@param fps The base FPS value at which you want to track cooldowns
+	**/
 	public function new(fps:Float, ?maxSize:Int) {
 		if( INDEXES == null )
 			if( haxe.rtti.Meta.getType(dn.Cooldown).indexes!=null )
 				INDEXES = [for (str in haxe.rtti.Meta.getType(dn.Cooldown).indexes) Std.string(str)];
 		baseFps = fps;
-		cds = new RecyclablePool(maxSize==null ? DEFAULT_COUNT_LIMIT : maxSize, ()->new CdInst());
+		changeMaxSizeAndReset(maxSize==null ? DEFAULT_COUNT_LIMIT : maxSize);
+	}
+
+	/**
+		Resize the internal pool of cooldowns.
+		**WARNING**: this will reset every existing cooldowns!
+	**/
+	public function changeMaxSizeAndReset(newMaxSize:Int) {
+		cds = new RecyclablePool(newMaxSize, ()->new CdInst());
 		reset();
 	}
 
@@ -88,11 +83,7 @@ class Cooldown {
 		return cds.allocated;
 	}
 
-	/**
-	 * Reset the cooldowns that exist.
-	 *
-	 * This simply deletes the tracked cooldowns, and does not fire any events on them.
-	 */
+	/** Reset all active cooldowns. WARNING: this won't trigger their onComplete callback. **/
 	public inline function reset() {
 		cds.freeAll();
 		fastCheck = new haxe.ds.IntMap();
