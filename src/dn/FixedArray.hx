@@ -96,7 +96,7 @@ class FixedArray<T> {
 	/** Push a value at the end of the array **/
 	public inline function push(e:T) {
 		if( nalloc>=values.length )
-			throw "FixedArray overflow";
+			throw 'FixedArray limit reached ($maxSize)';
 
 		values[nalloc] = e;
 		nalloc++;
