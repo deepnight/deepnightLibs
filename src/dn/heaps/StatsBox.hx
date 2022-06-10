@@ -100,17 +100,17 @@ class StatsBox extends dn.Process {
 
 	/** Add a chart tracking **FPS** **/
 	public function addFpsChart(refFps=60) {
-		addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps);
+		return addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps);
 	}
 
 	#if heaps
 	/** Add a chart tracking **Draw Calls** **/
 	public function addDrawCallsChart() {
-		addCustomChart("DrawC", Col.fromColorEnum(Red).toWhite(0.4), ()->engine.drawCalls);
+		return addCustomChart("DrawC", Col.fromColorEnum(Red).toWhite(0.4), ()->engine.drawCalls);
 	}
 	/** Add a chart tracking **Triangles Count** **/
 	public function addTrianglesChart() {
-		addCustomChart("Trg", Red, ()->engine.drawTriangles);
+		return addCustomChart("Trg", Red, ()->engine.drawTriangles);
 	}
 	#end
 
@@ -119,10 +119,11 @@ class StatsBox extends dn.Process {
 	public function addMemoryChart() {
 		var c = addCustomChart("MEM", Col.fromColorEnum(Blue).toWhite(0.4), ()->hl.Gc.stats().currentMemory);
 		c.precision = 2;
+		return c;
 	}
 	/** Add a chart tracking **GC Allocation Count** **/
 	public function addGcAllocChart() {
-		addCustomChart("GCa", Col.fromColorEnum(Blue).toWhite(0.4), ()->hl.Gc.stats().allocationCount);
+		return addCustomChart("GCa", Col.fromColorEnum(Blue).toWhite(0.4), ()->hl.Gc.stats().allocationCount);
 	}
 	#end
 
