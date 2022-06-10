@@ -39,8 +39,11 @@ private class CdInst {
  *
  */
 class Cooldown {
+	/** Changing this value will NOT affect existing Cooldown class instances! **/
+	public static var DEFAULT_COUNT_LIMIT = 1024;
+
 	/** The current list of active cooldowns **/
-	public var cdList : Array<CdInst>;
+	public var cdList : FixedArray<CdInst>;
 
 	/** The base FPS value from which time conversion is based off **/
 	public var baseFps(default,null) : Float;
@@ -93,7 +96,7 @@ class Cooldown {
 	 * This simply deletes the tracked cooldowns, and does not fire any events on them.
 	 */
 	public inline function reset() {
-		cdList = new Array();
+		cdList = new FixedArray(DEFAULT_COUNT_LIMIT);
 		fastCheck = new haxe.ds.IntMap();
 	}
 
@@ -469,8 +472,8 @@ class Cooldown {
 	 */
 	public function update(dt:Float) {
 		var i = 0;
-		while( i<cdList.length ) {
-			var cd = cdList[i];
+		while( i<cdList.allocated ) {
+			var cd = cdList.get(i);
 			cd.frames = Math.ffloor( (cd.frames-dt)*1000 )/1000; // Neko vs Flash precision bug
 			if ( cd.frames<=0 ) {
 				var cb = cd.cb;
