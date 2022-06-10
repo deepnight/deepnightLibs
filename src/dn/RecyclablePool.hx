@@ -149,8 +149,6 @@ class RecyclablePool<T:Recyclable> {
 		for(i in 0...p.maxSize)
 		for(j in i+1...p.maxSize)
 			CiAssert.isTrue( p.getUnsafe(i)!=p.getUnsafe(j) );
-		for(i in 0...p.maxSize)
-			trace(p.getUnsafe(i));
 	}
 }
 
