@@ -582,7 +582,9 @@ class Process {
 
 		// Tools
 		p.delayer.destroy();
+		p.udelayer.destroy();
 		p.cd.dispose();
+		p.ucd.dispose();
 		p.tw.destroy();
 
 		// Unregister from lists
@@ -610,8 +612,10 @@ class Process {
 		// Clean up
 		p.parent = null;
 		p.children = null;
-		p.delayer = null;
 		p.cd = null;
+		p.ucd = null;
+		p.delayer = null;
+		p.udelayer = null;
 		p.tw = null;
 		#if( heaps || h3d )
 		p.root = null;
