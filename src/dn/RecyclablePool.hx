@@ -106,7 +106,8 @@ class RecyclablePool<T:Recyclable> {
 	@:noCompletion
 	public static function __test() {
 		// Init
-		var p : RecyclablePool<TestObject> = new RecyclablePool(3, ()->new TestObject());
+		var i = 0;
+		var p : RecyclablePool<TestObject> = new RecyclablePool(3, ()->new TestObject(i++));
 		CiAssert.equals( p.allocated, 0 );
 		CiAssert.equals( p.maxSize, 3 );
 		CiAssert.equals( p.get(0), null );
@@ -132,18 +133,34 @@ class RecyclablePool<T:Recyclable> {
 		CiAssert.equals( { p.freeIndex(0); p.allocated; }, 0 );
 
 		// Check pointers
-		CiAssert.isTrue( p.getUnsafe(0)!=p.getUnsafe(1) );
-		CiAssert.isTrue( p.getUnsafe(0)!=p.getUnsafe(2) );
-		CiAssert.isTrue( p.getUnsafe(1)!=p.getUnsafe(2) );
+		var i = 0;
+		var p = new RecyclablePool(10, ()->new TestObject(i++));
+		for(i in 0...1000) {
+			if( p.allocated<p.maxSize )
+				p.alloc();
+			if( Std.random(2)==0 )
+				p.freeIndex(0);
+		}
+		for(i in 0...p.maxSize)
+		for(j in i+1...p.maxSize)
+			CiAssert.isTrue( p.getUnsafe(i)!=p.getUnsafe(j) );
+		for(i in 0...p.maxSize)
+			trace(p.getUnsafe(i));
 	}
 }
 
 private class TestObject {
+	var id : Int;
 	public var value : Int;
-	public function new() {
+
+	public function new(id) {
+		this.id = id;
 	}
+
+	@:keep
+	public function toString() return '#$id=${Std.string(value)}';
 	public function recycle() {
-		value = 0;
+		value = Std.random(999999);
 	}
 }
 
