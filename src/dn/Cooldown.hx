@@ -39,14 +39,10 @@ private class CdInst {
  *
  */
 class Cooldown {
-	/**
-	 * The current list of active cooldowns
-	 */
-	public var cdList                : Array<CdInst>;
+	/** The current list of active cooldowns **/
+	public var cdList : Array<CdInst>;
 
-	/**
-	 * The base FPS value from which time conversion is based off
-	 */
+	/** The base FPS value from which time conversion is based off **/
 	public var baseFps(default,null) : Float;
 
 	/**
@@ -54,6 +50,7 @@ class Cooldown {
 	 * @param ms Amount of milliseconds
 	 * @return Float Equivalent amount in frames
 	 */
+	@:noCompletion
 	public inline function msToFrames(ms:Float) return ms * baseFps / 1000.;
 
 	/**
@@ -61,11 +58,10 @@ class Cooldown {
 	 * @param ms Amount of seconds
 	 * @return Float Equivalent amount in frames
 	 */
+	@:noCompletion
 	public inline function secToFrames(s:Float) return s * baseFps;
 
-	/**
-	 * The available indices this cooldown class has available.
-	 */
+	/** The available indices this cooldown class has available. **/
 	@:allow(dn.CdInst)
 	public static var INDEXES : Array<String>;
 
@@ -79,8 +75,8 @@ class Cooldown {
 		if( INDEXES == null )
 			if( haxe.rtti.Meta.getType(dn.Cooldown).indexes!=null )
 				INDEXES = [for (str in haxe.rtti.Meta.getType(dn.Cooldown).indexes) Std.string(str)];
-		reset();
 		baseFps = fps;
+		reset();
 	}
 
 	/**
@@ -211,8 +207,10 @@ class Cooldown {
 	public function onComplete( k : String, onceCB : Void->Void ){}
 	#else
 
+
+
 	#if macro
-	static function getMeta() : MetaAccess {
+	static function m_getMeta() : MetaAccess {
 		for( m in Context.getModule("dn.Cooldown") )
 			switch( m ){
 			case TInst(ct,_):
@@ -226,8 +224,8 @@ class Cooldown {
 		return null;
 	}
 
-	static function getIndex( key : String, p : Position ) : Int {
-		var meta = getMeta();
+	static function m_getIndex( key : String, p : Position ) : Int {
+		var meta = m_getMeta();
 		var em = meta.extract("indexes")[0];
 		var a = em==null ? [] : em.params;
 		for( i in 0...a.length ){
@@ -246,7 +244,7 @@ class Cooldown {
 		return a.length - 1;
 	}
 
-	static function key( k : ExprOf<String> ) : ExprOf<Int> {
+	static function m_key( k : ExprOf<String> ) : ExprOf<Int> {
 		var key : String = null;
 		var subIdx : Expr = null;
 		switch( k.expr ){
@@ -268,7 +266,7 @@ class Cooldown {
 			Context.error("Invalid cooldown expression", k.pos);
 		}
 
-		var index = getIndex(key, k.pos) << 22;
+		var index = m_getIndex(key, k.pos) << 22;
 		if( subIdx == null )
 			subIdx = macro 0;
 		var eIndex = {expr: EConst(CInt(Std.string(index))), pos: k.pos};
@@ -288,25 +286,25 @@ class Cooldown {
 	#end
 
 	public macro function has( ethis : Expr, k : ExprOf<String> ){
-		return macro $ethis._has(${key(k)});
+		return macro $ethis._has(${m_key(k)});
 	}
 
-	public macro function hasSetS(ethis:Expr, k:ExprOf<String>, seconds:ExprOf<Float>)   return macro $ethis._hasSetF(${key(k)}, $ethis.secToFrames($seconds));
-	public macro function hasSetMs(ethis:Expr, k:ExprOf<String>, ms:ExprOf<Float>)       return macro $ethis._hasSetF(${key(k)}, $ethis.msToFrames($ms));
+	public macro function hasSetS(ethis:Expr, k:ExprOf<String>, seconds:ExprOf<Float>)   return macro $ethis._hasSetF(${m_key(k)}, $ethis.secToFrames($seconds));
+	public macro function hasSetMs(ethis:Expr, k:ExprOf<String>, ms:ExprOf<Float>)       return macro $ethis._hasSetF(${m_key(k)}, $ethis.msToFrames($ms));
 
 	public macro function hasSetF( ethis : Expr, k : ExprOf<String>, frames : ExprOf<Float> ) {
-		return macro $ethis._hasSetF(${key(k)},$frames);
+		return macro $ethis._hasSetF(${m_key(k)},$frames);
 	}
 
 	public macro function unset( ethis : Expr, k : ExprOf<String> ){
-		return macro $ethis._unset(${key(k)});
+		return macro $ethis._unset(${m_key(k)});
 	}
 
-	public macro function getS(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>   return macro $ethis._getF(${key(k)}) / $ethis.baseFps;
-	public macro function getMs(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>  return macro $ethis._getF(${key(k)}) * 1000. / $ethis.baseFps;
+	public macro function getS(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>   return macro $ethis._getF(${m_key(k)}) / $ethis.baseFps;
+	public macro function getMs(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>  return macro $ethis._getF(${m_key(k)}) * 1000. / $ethis.baseFps;
 
 	public macro function getF( ethis : Expr, k : ExprOf<String> ){
-		return macro $ethis._getF(${key(k)});
+		return macro $ethis._getF(${m_key(k)});
 	}
 
 	public macro function setMs(ethis:Expr, k:ExprOf<String>, milliSeconds:ExprOf<Float>, extra:Array<Expr>){
@@ -319,7 +317,7 @@ class Cooldown {
 				onComplete = e;
 			}
 		if( allowLower == null ) allowLower = macro true;
-		return macro $ethis._setF(${key(k)}, $ethis.msToFrames($milliSeconds), $allowLower, $onComplete);
+		return macro $ethis._setF(${m_key(k)}, $ethis.msToFrames($milliSeconds), $allowLower, $onComplete);
 	}
 	public macro function setS(ethis:Expr, k:ExprOf<String>, seconds:ExprOf<Float>, extra:Array<Expr>){
 		var allowLower : Expr = null, onComplete : Expr = macro null;
@@ -331,7 +329,7 @@ class Cooldown {
 				onComplete = e;
 			}
 		if( allowLower == null ) allowLower = macro true;
-		return macro $ethis._setF(${key(k)}, $ethis.secToFrames($seconds), $allowLower, $onComplete);
+		return macro $ethis._setF(${m_key(k)}, $ethis.secToFrames($seconds), $allowLower, $onComplete);
 	}
 
 	public macro function setF( ethis : Expr, k : ExprOf<String>, frames : ExprOf<Float>, extra:Array<Expr> ){
@@ -344,26 +342,26 @@ class Cooldown {
 				onComplete = e;
 			}
 		if( allowLower == null ) allowLower = macro true;
-		return macro $ethis._setF(${key(k)}, $frames, $allowLower, $onComplete);
+		return macro $ethis._setF(${m_key(k)}, $frames, $allowLower, $onComplete);
 	}
 
 	public macro function getInitialValueF( ethis : Expr, k : ExprOf<String> ){
-		return macro $ethis._getInitialValueF(${key(k)});
+		return macro $ethis._getInitialValueF(${m_key(k)});
 	}
 
 	/** Returns cooldown progression from 1 (start) to 0 (end) **/
 	public macro function getRatio( ethis : Expr, k : ExprOf<String> ){
-		return macro $ethis._getRatio(${key(k)});
+		return macro $ethis._getRatio(${m_key(k)});
 	}
 
 	public macro function onComplete( ethis : Expr, k : ExprOf<String>, onceCB : ExprOf<Void->Void> ){
-		return macro $ethis._onComplete(${key(k)}, $onceCB);
+		return macro $ethis._onComplete(${m_key(k)}, $onceCB);
 	}
 
 	#end
 
 	public static macro function getKey( k : ExprOf<String> ){
-		return key(k);
+		return m_key(k);
 	}
 
 	//
