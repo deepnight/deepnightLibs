@@ -33,6 +33,7 @@ class Chart extends dn.Process {
 	var autoPlotter : Null<Void->Float>;
 	var lastPlotTimeS = -1.;
 	var avgValuePerSec = 0.;
+	var autoMoreInfos : Null<Void->String>;
 
 	var history : haxe.ds.Vector<Float>;
 	var curHistIdx = 0;
@@ -165,6 +166,9 @@ class Chart extends dn.Process {
 		if( showTexts ) {
 			valueTf.text = valuePrinter( showValuePerSec ? avgValuePerSec : history[curHistIdx-1], precision );
 			valueTf.y = labelTf.y;
+			lastTf.text = Std.string( M.unit(v,precision) );
+			if(autoMoreInfos != null) lastTf.text += (try " "+autoMoreInfos() catch(_) "");
+			lastTf.y = labelTf.y;
 		}
 	}
 
@@ -256,6 +260,10 @@ class Chart extends dn.Process {
 	public function autoPlot( valueGetter:Void->Float, freqS:Float ) {
 		this.freqS = freqS;
 		autoPlotter = valueGetter;
+	}
+
+	public function autoMoreInf( valueGetter:Void->String) {
+		autoMoreInfos = valueGetter;
 	}
 
 	inline function getX(idx:Int) return M.round( idx/history.length * wid );

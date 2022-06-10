@@ -102,7 +102,8 @@ class Process {
 		var pt0 : flash.geom.Point; // to reduce allocations
 	#end
 
-
+	// Garbage collection part
+	public static var GcEnabled : Bool = true;
 
 	public function new(?parent : Process) {
 		init();
