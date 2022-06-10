@@ -299,6 +299,14 @@ class Controller<T:Int> {
 		return bt!=null && enumMapping.exists(bt) ? enumMapping.get(bt) : -1;
 	}
 
+	public var disableRumble : Bool = false;
+	public var rumbleMultiplicator : Float = 1;
+	
+	/** Rumbles physical controller, if supported **/
+	public inline function rumble(strength:Float, seconds:Float) {
+		if( pad.index>=0 && !disableRumble)
+			pad.rumble(strength*rumbleMultiplicator, seconds);
+	}
 
 	inline function set_onConnect(cb) {
 		onConnect = cb;
