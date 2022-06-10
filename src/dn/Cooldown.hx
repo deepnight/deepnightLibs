@@ -8,23 +8,6 @@ import haxe.macro.TypeTools;
 import haxe.macro.Type;
 #end
 
-private class CdInst {
-	public var k : Int;
-	public var frames : Float;
-	public var initial : Float;
-	public var cb : Null<Void -> Void>;
-
-	public function new(k,f) {
-		this.k = k;
-		this.frames = f;
-		initial = f;
-	}
-
-	public function toString(){
-		return Cooldown.INDEXES[ (k>>>22) ] + "|" + (k&0x3FFFFF)+": "+frames+"/"+initial;
-	}
-}
-
 /**
  * The `Cooldown` class allows you to manage various state effects that expire after a set amount of time.
  *
@@ -39,11 +22,14 @@ private class CdInst {
  *
  */
 class Cooldown {
-	/** Changing this value will NOT affect existing Cooldown class instances! **/
-	public static var DEFAULT_COUNT_LIMIT = 1024;
+	/**
+		Default size of the CdInst pool.
+		Changing this value will NOT affect existing Cooldown class instances!
+	**/
+	public static var DEFAULT_COUNT_LIMIT = 512;
 
 	/** The current list of active cooldowns **/
-	public var cdList : FixedArray<CdInst>;
+	var cds : RecyclablePool<CdInst>;
 
 	/** The base FPS value from which time conversion is based off **/
 	public var baseFps(default,null) : Float;
@@ -66,7 +52,7 @@ class Cooldown {
 
 	/** The available indices this cooldown class has available. **/
 	@:allow(dn.CdInst)
-	public static var INDEXES : Array<String>;
+	static var INDEXES : Array<String>;
 
 	var fastCheck: haxe.ds.IntMap<Bool>;
 
@@ -74,20 +60,32 @@ class Cooldown {
 	 * Create a new `Cooldown` tracker
 	 * @param fps The base FPS value at which you want to track cooldowns
 	 */
-	public function new(fps:Float) {
+	public function new(fps:Float, ?maxSize:Int) {
 		if( INDEXES == null )
 			if( haxe.rtti.Meta.getType(dn.Cooldown).indexes!=null )
 				INDEXES = [for (str in haxe.rtti.Meta.getType(dn.Cooldown).indexes) Std.string(str)];
 		baseFps = fps;
+		cds = new RecyclablePool(maxSize==null ? DEFAULT_COUNT_LIMIT : maxSize, ()->new CdInst());
 		reset();
 	}
 
-	/**
-	 * Invalidate this instance. Use `reset` to put it into working order again.
-	 */
-	public function destroy() {
-		cdList = null;
+	/** Destroy the Cooldown manager **/
+	public function dispose() {
+		cds.dispose(null);
+		cds = null;
 		fastCheck = null;
+	}
+	@:noCompletion @:deprecated("Use cd.dispose()")
+	public inline function destroy() dispose();
+
+	@:keep
+	public function toString() {
+		return 'Cooldowns(${cds.allocated}/${cds.maxSize})';
+	}
+
+	/** Return the number of active cooldowns **/
+	public inline function count() {
+		return cds.allocated;
 	}
 
 	/**
@@ -96,7 +94,7 @@ class Cooldown {
 	 * This simply deletes the tracked cooldowns, and does not fire any events on them.
 	 */
 	public inline function reset() {
-		cdList = new FixedArray(DEFAULT_COUNT_LIMIT);
+		cds.freeAll();
 		fastCheck = new haxe.ds.IntMap();
 	}
 
@@ -398,14 +396,14 @@ class Cooldown {
 
 	@:noCompletion
 	public inline function _setF(k:Int, frames:Float, allowLower=true, ?onComplete:Void->Void) : Void {
-		frames = Math.ffloor(frames*1000)/1000; // neko bug: fix precision variations between platforms
+		// frames = Math.ffloor(frames*1000)/1000; // neko bug: fix precision variations between platforms
 		var cur = _getCdObject(k);
 		if( cur!=null && frames<cur.frames && !allowLower )
 			return;
 
 		if ( frames <= 0 ) {
 			if( cur != null )
-				unsetObject(cur);
+				unsetCdInst(cur); // TODO optim
 		}
 		else {
 			fastCheck.set(k, true);
@@ -413,8 +411,10 @@ class Cooldown {
 				cur.frames = frames;
 				cur.initial = frames;
 			}
-			else
-				cdList.push( new CdInst(k,frames) );
+			else {
+				var cd = cds.alloc();
+				cd.set(k, frames);
+			}
 		}
 
 		if( onComplete!=null )
@@ -426,9 +426,9 @@ class Cooldown {
 
 	@:noCompletion
 	public inline function _unset(k:Int) : Void {
-		for (cd in cdList)
-			if ( cd.k == k ) {
-				unsetObject(cd);
+		for(i in 0...cds.allocated)
+			if ( cds.get(i).k == k ) {
+				unsetIndex(i);
 				break;
 			}
 	}
@@ -449,36 +449,40 @@ class Cooldown {
 	}
 
 	function _getCdObject(k:Int) : Null<CdInst> {
-		for (cd in cdList)
+		for (cd in cds)
 			if( cd.k == k )
 				return cd;
 		return null;
 	}
 
-	inline function unsetObject(cd:CdInst) {
-		cdList.remove(cd);
-		cd.frames = 0;
-		cd.cb = null;
+	inline function unsetCdInst(cd:CdInst) {
 		fastCheck.remove(cd.k);
+		cds.freeElement(cd);
+	}
+
+	inline function unsetIndex(idx:Int) {
+		fastCheck.remove( cds.get(idx).k );
+		cds.freeIndex(idx);
 	}
 
 	public function debug(){
-		return [ for( cd in cdList ) cd.toString() ].join("\n");
+		return [ for( cd in cds ) cd.toString() ].join("\n");
 	}
 
-	/**
-	 * Update all cooldowns, and trigger callbacks if they expire
-	 * @param dt Delta time since last update in seconds
-	 */
-	public function update(dt:Float) {
+	/** Update all cooldowns, and trigger callbacks if they expire **/
+	public function update(tmod:Float) {
 		var i = 0;
-		while( i<cdList.allocated ) {
-			var cd = cdList.get(i);
-			cd.frames = Math.ffloor( (cd.frames-dt)*1000 )/1000; // Neko vs Flash precision bug
+		var cd : CdInst;
+		var cb = null;
+		while( i<cds.allocated ) {
+			cd = cds.get(i);
+			cd.frames -= tmod;
+			// cd.frames = M.floor( (cd.frames-dt)*1000 )/1000; // Neko vs Flash precision bug
 			if ( cd.frames<=0 ) {
-				var cb = cd.cb;
-				unsetObject(cd);
-				if( cb != null ) cb();
+				cb = cd.cb;
+				unsetIndex(i);
+				if( cb != null )
+					cb();
 			}
 			else
 				i++;
@@ -489,21 +493,95 @@ class Cooldown {
 	@:noCompletion
 	public static function __test() {
 		#if !macro
-		var fps = 30;
-		var coolDown = new Cooldown(fps);
-		coolDown.setS("test",1);
-		CiAssert.isTrue( coolDown.has("test") );
-		CiAssert.isTrue( coolDown.getRatio("test") == 1 );
+		var fps = 10;
+		var cd = new Cooldown(fps);
 
-		for(i in 0...fps) coolDown.update(1);
-		CiAssert.isFalse( coolDown.has("test") );
-		CiAssert.isTrue( coolDown.getRatio("test") == 0 );
+		function _advanceTimeS(sec:Float) {
+			for( i in 0...M.ceil(sec*fps) )
+				cd.update(1);
+		}
 
-		coolDown.setF("jump" + 2, 20);
-		CiAssert.isFalse(coolDown.has("jump"));
-		CiAssert.isTrue(coolDown.has("jump" + 2));
+		// Basic case
+		cd.setS("test",1);
+		CiAssert.isTrue( cd.has("test") );
+		CiAssert.isTrue( cd.getRatio("test") == 1 );
+		_advanceTimeS(1);
+		CiAssert.isFalse( cd.has("test") );
+		CiAssert.isTrue( cd.getRatio("test") == 0 );
+
+		// Name + Int
+		cd.setF("jump"+2, 5);
+		CiAssert.isFalse( cd.has("jump") );
+		CiAssert.isTrue( cd.has("jump"+2) );
 		var id = 2;
-		CiAssert.isTrue(coolDown.has("jump" + id));
+		CiAssert.isTrue(cd.has("jump" + id));
+
+		// Reset
+		cd.setS("a", 1);
+		cd.setS("b", 10);
+		cd.reset();
+		CiAssert.equals(cd.cds.allocated, 0);
+
+		// Multiple CDs
+		cd.setS("a", 0.5);
+		cd.setS("b", 0.75);
+		cd.setS("c", 1);
+		CiAssert.equals( cd.has("a"), true );
+		CiAssert.equals( cd.has("b"), true );
+		CiAssert.equals( cd.has("c"), true );
+
+		_advanceTimeS(0.25);
+		CiAssert.equals( cd.has("a"), true );
+		CiAssert.equals( cd.has("b"), true );
+		CiAssert.equals( cd.has("c"), true );
+
+		_advanceTimeS(0.25);
+		CiAssert.equals( cd.has("a"), false );
+		CiAssert.equals( cd.has("b"), true );
+		CiAssert.equals( cd.has("c"), true );
+
+		_advanceTimeS(0.25);
+		CiAssert.equals( cd.has("b"), false );
+		CiAssert.equals( cd.has("c"), true );
+
+		_advanceTimeS(0.25);
+		CiAssert.equals( cd.has("c"), false );
+		CiAssert.equals( cd.cds.allocated, 0 );
 		#end
+	}
+}
+
+
+
+private class CdInst {
+	public var k : Int;
+	public var frames : Float;
+	public var initial : Float;
+	public var cb : Null< Void->Void >;
+
+	public inline function new() {}
+
+	public inline function set(key:Int, frames:Float) {
+		this.k = key;
+		this.frames = frames;
+		initial = frames;
+	}
+
+	public function recycle() {
+		cb = null;
+	}
+
+	public inline function getRemainingRatio() {
+		return initial==0 ? 0 : frames/initial;
+	}
+	public inline function getProgressRatio() {
+		return initial==0 ? 0 : 1-getRemainingRatio();
+	}
+
+	@:keep
+	public function toString(){
+		return
+			Cooldown.INDEXES[ (k>>>22) ] + "|" + (k&0x3FFFFF)
+			+ ': $frames/$initial (${M.round(getProgressRatio()*100)}%)';
 	}
 }
