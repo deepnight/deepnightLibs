@@ -582,7 +582,7 @@ class Process {
 
 		// Tools
 		p.delayer.destroy();
-		p.cd.destroy();
+		p.cd.dispose();
 		p.tw.destroy();
 
 		// Unregister from lists
