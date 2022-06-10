@@ -129,7 +129,7 @@ class FixedArray<T> {
 		}
 	}
 
-	/** Destroy fixed array **/
+	/** Destroy the fixed array **/
 	public function dispose() {
 		values = null;
 		nalloc = 0;
