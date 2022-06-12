@@ -34,7 +34,7 @@ class Gc {
 	public static inline function disable() setState(false);
 
 	/** Try to force a GC sweeping immediately **/
-	public static function forceRun() {
+	public static function runNow() {
 		#if hl
 		hl.Gc.enable(true);
 		hl.Gc.major();
