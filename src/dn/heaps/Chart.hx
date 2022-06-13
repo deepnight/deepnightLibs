@@ -8,11 +8,13 @@ class Chart extends dn.Process {
 	public var wid(default,set) : Int;
 	public var hei(default,set) : Int;
 	public var color(default,set) : Col;
-	var max = 0.;
+	var dynMax = 0.;
 	var avg = -1.;
 
 	/** Shows an horizontal line at this value **/
 	public var refValue(default,set) : Float = 0;
+
+	public var maxValue(default,set) : Float = 0;
 
 	/** Precision of the displayed number **/
 	public var precision = 1;
@@ -31,6 +33,7 @@ class Chart extends dn.Process {
 	var label : String;
 	var lastTf : h2d.Text;
 	var font : h2d.Font;
+	var refLine : h2d.Bitmap;
 
 	public function new(label="", color:Col=ColdLightGray, ?font:h2d.Font, p:Process) {
 		super(p);
@@ -76,6 +79,12 @@ class Chart extends dn.Process {
 		return v;
 	}
 
+	inline function set_maxValue(v) {
+		maxValue = v;
+		chartInvalidated = true;
+		return v;
+	}
+
 	inline function set_wid(v) {
 		wid = v;
 		baseInvalidated = true;
@@ -103,12 +112,6 @@ class Chart extends dn.Process {
 		bg.lineStyle(1,color.toWhite(0.5));
 		bg.drawRect(0,0,wid,hei);
 
-		if( refValue!=0 ) {
-			var line = new h2d.Bitmap(h2d.Tile.fromColor(color.toBlack(0.6)), root);
-			line.scaleX = wid;
-			line.y = getY(refValue);
-		}
-
 		// Init pixels
 		var t = h2d.Tile.fromColor(color);
 		pixels = new h2d.SpriteBatch(t, root);
@@ -120,6 +123,8 @@ class Chart extends dn.Process {
 			be.visible = false;
 			pixelPool[i] = be;
 		}
+
+		refLine = new h2d.Bitmap(root);
 
 		if( showTexts ) {
 			var labelTf = new h2d.Text(font, root);
@@ -145,6 +150,8 @@ class Chart extends dn.Process {
 
 	function renderFullChart() {
 		pixels.tile = h2d.Tile.fromColor(color);
+
+		// Render chart
 		var prev = null;
 		var cur = null;
 		var zero = getY(0);
@@ -155,8 +162,18 @@ class Chart extends dn.Process {
 			cur.scaleY = zero-cur.y;
 			cur.visible = true;
 		}
+
+		// Clear remaining
 		for(i in curHistIdx...pixelPool.length)
 			pixelPool[i].visible = false;
+
+		// Reference value line
+		refLine.visible = refValue!=0;
+		if( refLine.visible ) {
+			refLine.tile = h2d.Tile.fromColor( color.toWhite(0.7), 1,1, 0.5 );
+			refLine.scaleX = wid;
+			refLine.y = getY(refValue);
+		}
 	}
 
 	public function plot(v:Float) {
@@ -176,7 +193,7 @@ class Chart extends dn.Process {
 
 		// Scroll back
 		if( curHistIdx>=history.length ) {
-			max = 0;
+			dynMax = 0;
 			avg = -1;
 			var chunk = Std.int( history.length*0.33 );
 			for(i in chunk...history.length) {
@@ -191,14 +208,21 @@ class Chart extends dn.Process {
 	}
 
 	inline function updateMax(v:Float) {
-		if( avg==-1 )
-			avg = v;
-		else
-			avg = (avg+v)*0.5;
+		if( maxValue!=0 ) {
+			// Fixed custom max
+			dynMax = maxValue;
+		}
+		else {
+			// Dynamic max
+			if( avg==-1 )
+				avg = v;
+			else
+				avg = avg*0.7 + v*0.3;
 
-		if( avg*1.5>max || max>avg*3 ) {
-			max = avg*1.5;
-			chartInvalidated = true;
+			if( avg>dynMax || dynMax>avg*5 ) {
+				dynMax = avg*3;
+				chartInvalidated = true;
+			}
 		}
 	}
 
@@ -208,7 +232,7 @@ class Chart extends dn.Process {
 	}
 
 	inline function getX(idx:Int) return M.round( idx/history.length * wid );
-	inline function getY(v:Float) return M.imax(0, M.round( hei - v/max*hei ));
+	inline function getY(v:Float) return M.imax(0, M.round( hei - v/dynMax*hei ));
 
 	override function update() {
 		super.update();
