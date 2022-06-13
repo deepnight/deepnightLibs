@@ -86,13 +86,18 @@ class StatsBox extends dn.Process {
 		}});
 	}
 
-	/** Add a chart tracking an arbitrary value **/
-	public function addCustomChart( label="", ?color:Col, valueGetter:Void->Float, refValue=0.) : Chart {
+	/**
+		Add a chart tracking an arbitrary value
+		@param refValue If not zero, this will display a reference horizontal line at given value
+		@param maxValue If not zero, defines the max value of the chart
+	 **/
+	public function addCustomChart( label="", ?color:Col, valueGetter:Void->Float, refValue=0., maxValue=0.) : Chart {
 		var c = new Chart(label, color, getFont(), this);
 		flow.addChild(c.root);
 		c.wid = wid;
 		c.hei = 24;
 		c.refValue = refValue;
+		c.maxValue = maxValue;
 		c.autoPlot( valueGetter, updateFreqS);
 		charts.push(c);
 		return c;
@@ -100,7 +105,7 @@ class StatsBox extends dn.Process {
 
 	/** Add a chart tracking **FPS** **/
 	public function addFpsChart(refFps=60) {
-		return addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps);
+		return addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps, refFps*2.5);
 	}
 
 	#if heaps
