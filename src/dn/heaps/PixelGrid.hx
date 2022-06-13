@@ -18,11 +18,12 @@ class PixelGrid extends h2d.Object {
 
 	var tg : h2d.TileGroup;
 	var pixelTile : h2d.Tile;
-	var pixels : Map<Int,Int> = new Map();
+	var pixels : Map<Int,Col> = new Map();
 	var invalidated = true;
 
 	/** If TRUE, contiguous pixels sharing the same color+alpha will be rendered as single rectangles to reduce the amount of display objects. **/
 	public var optimize = true;
+
 
 	public function new(gridSize:Int, wid:Int, hei:Int, ?parent:h2d.Object) {
 		super(parent);
@@ -34,6 +35,13 @@ class PixelGrid extends h2d.Object {
 		tg = new h2d.TileGroup(pixelTile, this);
 
 		this.gridSize = gridSize;
+	}
+
+	public inline function dispose() {
+		pixels = null;
+		tg = null;
+		pixelTile = null;
+		remove();
 	}
 
 	inline function isValid(x,y) return x>=0 && x<wid && y>=0 && y<hei;
