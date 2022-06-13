@@ -11,8 +11,11 @@ class Process {
 	public static var CUSTOM_STAGE_WIDTH  = -1;
 	public static var CUSTOM_STAGE_HEIGHT = -1;
 
+
 	static var UNIQ_ID = 0;
 	static var ROOTS : FixedArray<Process> = new FixedArray("RootProcesses", MAX_PROCESSES);
+	static var BEGINNING_OF_FRAME_CALLBACKS : FixedArray< Void->Void > = new FixedArray(256);
+	static var END_OF_FRAME_CALLBACKS : FixedArray< Void->Void > = new FixedArray(256);
 
 	/** If TRUE, each Process.onResize() will be called *once* at the end of the frame **/
 	static var RESIZE_REQUESTED = true;
@@ -641,11 +644,10 @@ class Process {
 
 	public static function updateAll(utmod:Float) {
 		// Beginning of frame callbacks
-		if( BEGINNING_OF_FRAME_CALLBACKS.length>0 ) {
-			var cbs = BEGINNING_OF_FRAME_CALLBACKS.copy();
-			BEGINNING_OF_FRAME_CALLBACKS = [];
-			for(cb in cbs)
+		if( BEGINNING_OF_FRAME_CALLBACKS.allocated>0 ) {
+			for( cb in BEGINNING_OF_FRAME_CALLBACKS )
 				cb();
+			BEGINNING_OF_FRAME_CALLBACKS.empty();
 		}
 
 		for (p in ROOTS)
@@ -669,11 +671,10 @@ class Process {
 		_garbageCollector(ROOTS);
 
 		// End of frame callbacks
-		if( END_OF_FRAME_CALLBACKS.length>0 ) {
-			var cbs = END_OF_FRAME_CALLBACKS.copy();
-			END_OF_FRAME_CALLBACKS = [];
-			for(cb in cbs)
+		if( END_OF_FRAME_CALLBACKS.allocated>0 ) {
+			for(cb in END_OF_FRAME_CALLBACKS)
 				cb();
+			END_OF_FRAME_CALLBACKS.empty();
 		}
 	}
 
@@ -696,9 +697,6 @@ class Process {
 	inline function emitResizeNow() {
 		resizeAll(true);
 	}
-
-	static var BEGINNING_OF_FRAME_CALLBACKS : Array< Void->Void > = [];
-	static var END_OF_FRAME_CALLBACKS : Array< Void->Void > = [];
 
 	/** Run a callback at the very beginning of the next frame, before any process. **/
 	public static function callAtTheBeginningOfNextFrame( cb:Void->Void ) {
