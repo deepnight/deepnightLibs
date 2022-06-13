@@ -105,7 +105,9 @@ class StatsBox extends dn.Process {
 
 	/** Add a chart tracking **FPS** **/
 	public function addFpsChart(refFps=60) {
-		return addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps, refFps*2.5);
+		var c = addCustomChart("FPS", Yellow, ()->hxd.Timer.fps(), refFps, refFps*2.5);
+		c.precision = 0;
+		return c;
 	}
 
 	#if heaps

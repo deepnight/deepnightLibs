@@ -183,9 +183,9 @@ class Chart extends dn.Process {
 
 		// Render
 		var be = pixelPool[curHistIdx];
+		be.visible = true;
 		be.x = getX(curHistIdx);
 		be.y = getY(v);
-		be.visible = true;
 		be.scaleY = getY(0)-be.y;
 
 		printLast(v);
