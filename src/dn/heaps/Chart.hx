@@ -196,7 +196,7 @@ class Chart extends dn.Process {
 		if( showValuePerSec && curHistIdx>1 ) {
 			var dt = haxe.Timer.stamp() - lastPlotTimeS;
 			var cur = ( history[curHistIdx] - history[curHistIdx-1] ) / dt;
-			avgValuePerSec = ( avgValuePerSec*0.85  +  0.15*cur ); // smoothing
+			avgValuePerSec = ( avgValuePerSec*0.35  +  0.65*cur ); // smoothing
 		}
 		lastPlotTimeS = haxe.Timer.stamp();
 
