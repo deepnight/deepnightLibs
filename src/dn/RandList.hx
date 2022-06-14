@@ -36,7 +36,7 @@ class RandList<T> {
 
 	// Crée une nouvelle RandList en ne conservant que certains éléments
 	public function filter(keep:T->Bool) : RandList<T> {
-		var out = new dn.RandList(defaultRandom);
+		var out = new RandList(defaultRandom);
 		for(e in drawList)
 			if( keep(e.value) )
 				out.add(e.value, e.proba);
@@ -46,7 +46,7 @@ class RandList<T> {
 	// Crée une RandList en utilisant les metadata d'un enum comme proba
 	public static function fromEnum<T>( e : Enum<T>, ?metaFieldName = "proba" ) : RandList<T> {
 		var n = Type.getEnumName(e);
-		var r = new dn.RandList<T>();
+		var r = new RandList<T>();
 		var meta = haxe.rtti.Meta.getFields(e);
 
 		for ( k in Type.getEnumConstructs(e) ) {
