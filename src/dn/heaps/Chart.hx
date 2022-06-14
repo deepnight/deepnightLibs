@@ -24,11 +24,12 @@ class Chart extends dn.Process {
 	var chartInvalidated = true;
 	var baseInvalidated = true;
 	var showTexts = true;
+	public var showValuePerSec = false;
 
 	var freqS = 0.5;
 	var autoPlotter : Null<Void->Float>;
 	var lastPlotTimeS = -1.;
-	var avgValuePerSec = -1.;
+	var avgValuePerSec = 0.;
 
 	var history : haxe.ds.Vector<Float>;
 	var curHistIdx = 0;
@@ -152,7 +153,10 @@ class Chart extends dn.Process {
 
 	inline function printValue() {
 		if( showTexts ) {
-			valueTf.text = Std.string( M.unit(history[curHistIdx-1],precision) );
+			if( showValuePerSec )
+				valueTf.text = M.unit(avgValuePerSec,precision) + "/s";
+			else
+				valueTf.text = Std.string( M.unit(history[curHistIdx-1],precision) );
 			valueTf.y = labelTf.y;
 		}
 	}
@@ -189,9 +193,10 @@ class Chart extends dn.Process {
 		updateMax(v);
 
 		history[curHistIdx] = v;
-		if( curHistIdx>1 ) {
-			var t = haxe.Timer.stamp() - lastPlotTimeS;
-			// avgValuePerSec = history[curHistIdx] -
+		if( showValuePerSec && curHistIdx>1 ) {
+			var dt = haxe.Timer.stamp() - lastPlotTimeS;
+			var cur = ( history[curHistIdx] - history[curHistIdx-1] ) / dt;
+			avgValuePerSec = ( avgValuePerSec*0.85  +  0.15*cur ); // smoothing
 		}
 		lastPlotTimeS = haxe.Timer.stamp();
 
