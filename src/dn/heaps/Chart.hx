@@ -24,15 +24,18 @@ class Chart extends dn.Process {
 	var chartInvalidated = true;
 	var baseInvalidated = true;
 	var showTexts = true;
+	public var showValuePerSec = false;
 
 	var freqS = 0.5;
 	var autoPlotter : Null<Void->Float>;
+	var lastPlotTimeS = -1.;
+	var avgValuePerSec = 0.;
 
 	var history : haxe.ds.Vector<Float>;
 	var curHistIdx = 0;
 	var label : String;
 	var labelTf : Null<h2d.Text>;
-	var lastTf : Null<h2d.Text>;
+	var valueTf : Null<h2d.Text>;
 	var font : h2d.Font;
 	var refLine : h2d.Bitmap;
 
@@ -135,23 +138,26 @@ class Chart extends dn.Process {
 			labelTf.x = 0;
 			labelTf.y = hei - labelTf.textHeight + 1;
 
-			lastTf = new h2d.Text(font, root);
-			lastTf.x = labelTf.x + labelTf.textWidth + 4;
-			lastTf.textColor = White;
-			lastTf.alpha = 0.55;
+			valueTf = new h2d.Text(font, root);
+			valueTf.x = labelTf.x + labelTf.textWidth + 4;
+			valueTf.textColor = White;
+			valueTf.alpha = 0.55;
 			if( curHistIdx>0 )
-				printLast(history[curHistIdx-1]);
+				printValue();
 		}
 		else if( labelTf!=null ) {
 			labelTf.remove();
-			lastTf.remove();
+			valueTf.remove();
 		}
 	}
 
-	inline function printLast(v:Float) {
+	inline function printValue() {
 		if( showTexts ) {
-			lastTf.text = Std.string( M.unit(v,precision) );
-			lastTf.y = labelTf.y;
+			if( showValuePerSec )
+				valueTf.text = M.unit(avgValuePerSec,precision) + "/s";
+			else
+				valueTf.text = Std.string( M.unit(history[curHistIdx-1],precision) );
+			valueTf.y = labelTf.y;
 		}
 	}
 
@@ -187,6 +193,12 @@ class Chart extends dn.Process {
 		updateMax(v);
 
 		history[curHistIdx] = v;
+		if( showValuePerSec && curHistIdx>1 ) {
+			var dt = haxe.Timer.stamp() - lastPlotTimeS;
+			var cur = ( history[curHistIdx] - history[curHistIdx-1] ) / dt;
+			avgValuePerSec = ( avgValuePerSec*0.85  +  0.15*cur ); // smoothing
+		}
+		lastPlotTimeS = haxe.Timer.stamp();
 
 		// Render
 		var be = pixelPool[curHistIdx];
@@ -195,8 +207,8 @@ class Chart extends dn.Process {
 		be.y = getY(v);
 		be.scaleY = getY(0)-be.y;
 
-		printLast(v);
 		curHistIdx++;
+		printValue();
 
 		// Scroll back
 		if( curHistIdx>=history.length ) {

@@ -123,9 +123,10 @@ class StatsBox extends dn.Process {
 
 	#if hl
 	/** Add a chart tracking **Memory Usage** **/
-	public function addMemoryChart() {
+	public function addMemoryChart(showValuePerSec=false) {
 		var c = addCustomChart("MEM", Col.fromColorEnum(Blue).toWhite(0.4), ()->hl.Gc.stats().currentMemory);
-		c.precision = 2;
+		c.precision = showValuePerSec ? 1 : 2;
+		c.showValuePerSec = showValuePerSec;
 		return c;
 	}
 	/** Add a chart tracking **GC Allocation Count** **/
