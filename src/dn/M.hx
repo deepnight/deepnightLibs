@@ -832,8 +832,8 @@ class M {
 	}
 
 	public static inline function unit(v:Float, precision=1) : String {
-		return v<1000 ? Std.string( pretty(v, precision) )
-			: v<1000000 ? M.pretty(v/1000, precision)+"K"
+		return M.fabs(v)<1000 ? Std.string( pretty(v, precision) )
+			: M.fabs(v)<1000000 ? M.pretty(v/1000, precision)+"K"
 			: M.pretty(v/1000000, precision)+"M";
 	}
 
