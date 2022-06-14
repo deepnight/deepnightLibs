@@ -27,12 +27,14 @@ class Chart extends dn.Process {
 
 	var freqS = 0.5;
 	var autoPlotter : Null<Void->Float>;
+	var lastPlotTimeS = -1.;
+	var avgValuePerSec = -1.;
 
 	var history : haxe.ds.Vector<Float>;
 	var curHistIdx = 0;
 	var label : String;
 	var labelTf : Null<h2d.Text>;
-	var lastTf : Null<h2d.Text>;
+	var valueTf : Null<h2d.Text>;
 	var font : h2d.Font;
 	var refLine : h2d.Bitmap;
 
@@ -135,23 +137,23 @@ class Chart extends dn.Process {
 			labelTf.x = 0;
 			labelTf.y = hei - labelTf.textHeight + 1;
 
-			lastTf = new h2d.Text(font, root);
-			lastTf.x = labelTf.x + labelTf.textWidth + 4;
-			lastTf.textColor = White;
-			lastTf.alpha = 0.55;
+			valueTf = new h2d.Text(font, root);
+			valueTf.x = labelTf.x + labelTf.textWidth + 4;
+			valueTf.textColor = White;
+			valueTf.alpha = 0.55;
 			if( curHistIdx>0 )
-				printLast(history[curHistIdx-1]);
+				printValue();
 		}
 		else if( labelTf!=null ) {
 			labelTf.remove();
-			lastTf.remove();
+			valueTf.remove();
 		}
 	}
 
-	inline function printLast(v:Float) {
+	inline function printValue() {
 		if( showTexts ) {
-			lastTf.text = Std.string( M.unit(v,precision) );
-			lastTf.y = labelTf.y;
+			valueTf.text = Std.string( M.unit(history[curHistIdx-1],precision) );
+			valueTf.y = labelTf.y;
 		}
 	}
 
@@ -187,6 +189,11 @@ class Chart extends dn.Process {
 		updateMax(v);
 
 		history[curHistIdx] = v;
+		if( curHistIdx>1 ) {
+			var t = haxe.Timer.stamp() - lastPlotTimeS;
+			// avgValuePerSec = history[curHistIdx] -
+		}
+		lastPlotTimeS = haxe.Timer.stamp();
 
 		// Render
 		var be = pixelPool[curHistIdx];
@@ -195,8 +202,8 @@ class Chart extends dn.Process {
 		be.y = getY(v);
 		be.scaleY = getY(0)-be.y;
 
-		printLast(v);
 		curHistIdx++;
+		printValue();
 
 		// Scroll back
 		if( curHistIdx>=history.length ) {
