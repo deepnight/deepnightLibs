@@ -31,7 +31,8 @@ class Chart extends dn.Process {
 	var history : haxe.ds.Vector<Float>;
 	var curHistIdx = 0;
 	var label : String;
-	var lastTf : h2d.Text;
+	var labelTf : Null<h2d.Text>;
+	var lastTf : Null<h2d.Text>;
 	var font : h2d.Font;
 	var refLine : h2d.Bitmap;
 
@@ -127,24 +128,30 @@ class Chart extends dn.Process {
 		refLine = new h2d.Bitmap(root);
 
 		if( showTexts ) {
-			var labelTf = new h2d.Text(font, root);
+			labelTf = new h2d.Text(font, root);
 			labelTf.text = label;
 			labelTf.textColor = White;
-			labelTf.x = 4;
-			labelTf.y = hei-labelTf.textHeight-1;
+			labelTf.alpha = 0.75;
+			labelTf.x = 0;
+			labelTf.y = hei - labelTf.textHeight + 1;
 
 			lastTf = new h2d.Text(font, root);
 			lastTf.x = labelTf.x + labelTf.textWidth + 4;
-			lastTf.textColor = color.toWhite(0.85);
+			lastTf.textColor = White;
+			lastTf.alpha = 0.55;
 			if( curHistIdx>0 )
 				printLast(history[curHistIdx-1]);
+		}
+		else if( labelTf!=null ) {
+			labelTf.remove();
+			lastTf.remove();
 		}
 	}
 
 	inline function printLast(v:Float) {
 		if( showTexts ) {
 			lastTf.text = Std.string( M.unit(v,precision) );
-			lastTf.y = hei-lastTf.textHeight-1;
+			lastTf.y = labelTf.y;
 		}
 	}
 
