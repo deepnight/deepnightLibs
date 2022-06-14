@@ -165,10 +165,8 @@ class Chart extends dn.Process {
 	inline function printValue() {
 		if( showTexts ) {
 			valueTf.text = valuePrinter( showValuePerSec ? avgValuePerSec : history[curHistIdx-1], precision );
+			if(autoMoreInfos != null) valueTf.text += (try " "+autoMoreInfos() catch(_) "");
 			valueTf.y = labelTf.y;
-			lastTf.text = Std.string( M.unit(v,precision) );
-			if(autoMoreInfos != null) lastTf.text += (try " "+autoMoreInfos() catch(_) "");
-			lastTf.y = labelTf.y;
 		}
 	}
 
