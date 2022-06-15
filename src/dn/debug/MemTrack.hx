@@ -69,7 +69,7 @@ class MemTrack {
 		Print report to standard output.
 		If `reset` arg is TRUE, then current tracking is also reset.
 	**/
-	public static function report(?printer:String->Void, reset=true) {
+	public static function report(?printer:String->Void, alsoReset=true) {
 		var t = haxe.Timer.stamp() - firstMeasure;
 
 		if( printer==null )
@@ -88,12 +88,15 @@ class MemTrack {
 		printer("MEMTRACK REPORT");
 		printer('Elapsed time: ${M.pretty(t,1)}s');
 		var table = [["", "MEM/S", "TOTAL"]];
-		for(a in all)
+		var total = 0.;
+		for(a in all) {
+			total+=a.mem.total;
 			table.push([
 				a.id,
 				dn.M.unit(a.mem.total/t)+"/s",
 				dn.M.unit(a.mem.total),
 			]);
+		}
 
 		// Build visual table
 		var colWidths : Array<Int> = [];
@@ -105,10 +108,15 @@ class MemTrack {
 					colWidths[i] = M.imax(colWidths[i], line[i].length);
 		}
 		// Create header line
-		var line = [];
-		for(i in 0...colWidths.length)
-			line.push( padRight("", colWidths[i],"-") );
-		table.insert(1, line);
+		inline function _separator() {
+			var line = [];
+			for(i in 0...colWidths.length)
+				line.push( padRight("", colWidths[i],"-") );
+			return line;
+		}
+		table.insert( 1, _separator() );
+		table.push(_separator());
+		table.push(["", dn.M.unit(total/t)+"/s", dn.M.unit(total)]);
 
 		// Print table
 		for(line in table) {
@@ -117,7 +125,7 @@ class MemTrack {
 			printer("| " + line.join("  |  ") + " |");
 		}
 
-		if( reset )
-			this.reset();
+		if( alsoReset )
+			reset();
 	}
 }
