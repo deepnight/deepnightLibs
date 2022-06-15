@@ -34,11 +34,11 @@ class MemTrack {
 			return macro {
 				if( dn.debug.MemTrack.firstMeasure<0 )
 					dn.debug.MemTrack.firstMeasure = haxe.Timer.stamp();
-				var old = hl.Gc.stats().currentMemory;
+				var old = dn.Gc.getCurrentMem();
 
 				$e;
 
-				var m = dn.M.fmax( 0, hl.Gc.stats().currentMemory - old );
+				var m = dn.M.fmax( 0, dn.Gc.getCurrentMem() - old );
 
 				if( !dn.debug.MemTrack.allocs.exists($v{id}) )
 					dn.debug.MemTrack.allocs.set($v{id}, { total:0, calls:0 });

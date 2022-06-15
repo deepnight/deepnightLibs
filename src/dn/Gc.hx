@@ -41,4 +41,20 @@ class Gc {
 		hl.Gc.enable(_active);
 		#end
 	}
+
+
+	/** Return currently allocated memory **/
+	public static inline function getCurrentMem() {
+		var _ = 0., v = 0.;
+		@:privateAccess hl.Gc._stats(_, _, v);
+		return v;
+	}
+
+	/** Return current allocation count **/
+	public static inline function getAllocationCount() {
+		var _ = 0., v = 0.;
+		@:privateAccess hl.Gc._stats(_, v, _);
+		return v;
+	}
+
 }
