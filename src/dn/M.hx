@@ -837,6 +837,10 @@ class M {
 			: M.pretty(v/1000000, precision)+"M";
 	}
 
+	public static inline function unitMega(v:Float, precision=1) : String {
+		return M.pretty(v/1000000, precision) + "M";
+	}
+
 
 	/**
 		Print a signed Integer as binary
@@ -1073,14 +1077,22 @@ class M {
 		// Prettifiers
 		CiAssert.equals( M.pretty(1.123,1), 1.1 );
 		CiAssert.equals( M.pretty(1.123,2), 1.12 );
+
 		CiAssert.equals( M.groupNumbers(123), "123" );
 		CiAssert.equals( M.groupNumbers(1234), "1 234" );
 		CiAssert.equals( M.groupNumbers(12345), "12 345" );
 		CiAssert.equals( M.groupNumbers(1234567), "1 234 567" );
+
 		CiAssert.equals( M.unit(1000), "1K" );
 		CiAssert.equals( M.unit(1234), "1.2K" );
 		CiAssert.equals( M.unit(1234,2), "1.23K" );
 		CiAssert.equals( M.unit(1000000), "1M" );
 		CiAssert.equals( M.unit(1500000), "1.5M" );
+
+		CiAssert.equals( M.unitMega(1234), "0M" );
+		CiAssert.equals( M.unitMega(123456), "0.1M" );
+		CiAssert.equals( M.unitMega(1234567), "1.2M" );
+		CiAssert.equals( M.unitMega(1234567,2), "1.23M" );
+		CiAssert.equals( M.unitMega(1500000), "1.5M" );
 	}
 }
