@@ -193,7 +193,7 @@ class Aseprite {
 			var dictClass : TypeDefinition = {
 				pos : pos,
 				name : "AsepriteDict_"+FilePath.extractFileName(path),
-				doc: "TODO",
+				doc: "Dictionnary of "+FilePath.extractFileWithExt(path),
 				pack : modPack,
 				kind : TDClass(),
 				fields : (macro class {
@@ -262,8 +262,7 @@ class Aseprite {
 
 
 #if !macro
-class AsepriteDict {
-}
+class AsepriteDict {}
 
 class AsepriteDictEntry {
 	var lib : dn.heaps.slib.SpriteLib;
