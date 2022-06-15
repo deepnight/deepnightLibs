@@ -13,33 +13,41 @@ class MemTrack {
 
 	/** Measure a block or a function call memory usage **/
 	public static macro function measure( e:Expr ) {
-		var id = Context.getLocalModule()+"."+Context.getLocalMethod()+": ";
-		id += switch e.expr {
-			case ECall(e, params):
-				haxe.macro.ExprTools.toString(e)+"()";
+		#if !debug
 
-			case EBlock(_):
-				"{block}";
+			return e;
 
-			case _:
-				"<unknown>";
-		}
+		#else
 
-		return macro {
-			if( dn.debug.MemTrack.firstMeasure<0 )
-				dn.debug.MemTrack.firstMeasure = haxe.Timer.stamp();
-			var old = hl.Gc.stats().currentMemory;
+			var id = Context.getLocalModule()+"."+Context.getLocalMethod()+": ";
+			id += switch e.expr {
+				case ECall(e, params):
+					haxe.macro.ExprTools.toString(e)+"()";
 
-			$e;
+				case EBlock(_):
+					"{block}";
 
-			var m = dn.M.fmax( 0, hl.Gc.stats().currentMemory - old );
+				case _:
+					"<unknown>";
+			}
 
-			if( !dn.debug.MemTrack.allocs.exists($v{id}) )
-				dn.debug.MemTrack.allocs.set($v{id}, { total:0, calls:0 });
-			var alloc = dn.debug.MemTrack.allocs.get( $v{id} );
-			alloc.total += m;
-			alloc.calls++;
-		}
+			return macro {
+				if( dn.debug.MemTrack.firstMeasure<0 )
+					dn.debug.MemTrack.firstMeasure = haxe.Timer.stamp();
+				var old = hl.Gc.stats().currentMemory;
+
+				$e;
+
+				var m = dn.M.fmax( 0, hl.Gc.stats().currentMemory - old );
+
+				if( !dn.debug.MemTrack.allocs.exists($v{id}) )
+					dn.debug.MemTrack.allocs.set($v{id}, { total:0, calls:0 });
+				var alloc = dn.debug.MemTrack.allocs.get( $v{id} );
+				alloc.total += m;
+				alloc.calls++;
+			}
+
+		#end
 	}
 
 	/** Reset current allocs tracking **/
@@ -58,13 +66,15 @@ class MemTrack {
 
 	/** Print report to standard output **/
 	public static function report(?printer:String->Void) {
+		var t = haxe.Timer.stamp() - firstMeasure;
+
 		if( printer==null )
 			printer = (v)->trace(v);
 
 		var all = [];
 		for(a in allocs.keyValueIterator())
 			all.push({id: a.key, mem:a.value });
-		all.sort( (a,b) -> -Reflect.compare(a.mem.total, b.mem.total) );
+		all.sort( (a,b) -> -Reflect.compare(a.mem.total/t, b.mem.total/t) );
 
 		if( all.length==0 ) {
 			printer("MemTrack has nothing to report.");
@@ -72,16 +82,13 @@ class MemTrack {
 		}
 
 		printer("MEMTRACK REPORT");
-		var t = haxe.Timer.stamp() - firstMeasure;
 		printer('Elapsed time: ${M.pretty(t,1)}s');
-		var table = [];
+		var table = [["", "MEM/S", "TOTAL"]];
 		for(a in all)
 			table.push([
 				a.id,
-				dn.M.unit(a.mem.total),
 				dn.M.unit(a.mem.total/t)+"/s",
-				// dn.M.unit(a.mem.total/a.mem.calls)+"/call",
-				// a.mem.calls+" calls",
+				dn.M.unit(a.mem.total),
 			]);
 
 		// Build visual table
@@ -93,7 +100,13 @@ class MemTrack {
 				else
 					colWidths[i] = M.imax(colWidths[i], line[i].length);
 		}
-		printer(colWidths.join(","));
+		// Create header line
+		var line = [];
+		for(i in 0...colWidths.length)
+			line.push( padRight("", colWidths[i],"-") );
+		table.insert(1, line);
+
+		// Print table
 		for(line in table) {
 			for(i in 0...line.length)
 				line[i] = padRight(line[i], colWidths[i]);
