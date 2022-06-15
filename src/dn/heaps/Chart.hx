@@ -24,7 +24,10 @@ class Chart extends dn.Process {
 	var chartInvalidated = true;
 	var baseInvalidated = true;
 	var showTexts = true;
+	/** If TRUE, and texts are enabled, the displayed value will show changes per seconds. **/
 	public var showValuePerSec = false;
+	/** If `showValuePerSec` is TRUE, this will "smooth" displayed value per sec, reducing chaotic changes. 0=no smoothing, 1=full smoothing. **/
+	public var valuePerSecSmoothing = 0.35;
 
 	var freqS = 0.5;
 	var autoPlotter : Null<Void->Float>;
@@ -151,12 +154,16 @@ class Chart extends dn.Process {
 		}
 	}
 
+	public dynamic function valuePrinter(v:Float, precision:Int) : String {
+		return showValuePerSec
+			? M.unit(v,precision) + "/s"
+			: M.unit(v,precision);
+
+	}
+
 	inline function printValue() {
 		if( showTexts ) {
-			if( showValuePerSec )
-				valueTf.text = M.unit(avgValuePerSec,precision) + "/s";
-			else
-				valueTf.text = Std.string( M.unit(history[curHistIdx-1],precision) );
+			valueTf.text = valuePrinter( showValuePerSec ? avgValuePerSec : history[curHistIdx-1], precision );
 			valueTf.y = labelTf.y;
 		}
 	}
@@ -194,9 +201,10 @@ class Chart extends dn.Process {
 
 		history[curHistIdx] = v;
 		if( showValuePerSec && curHistIdx>1 ) {
+			var smoothing = M.fclamp(valuePerSecSmoothing, 0, 0.9);
 			var dt = haxe.Timer.stamp() - lastPlotTimeS;
 			var cur = ( history[curHistIdx] - history[curHistIdx-1] ) / dt;
-			avgValuePerSec = ( avgValuePerSec*0.35  +  0.65*cur ); // smoothing
+			avgValuePerSec = ( avgValuePerSec*smoothing  +  (1-smoothing)*cur ); // smoothing
 		}
 		lastPlotTimeS = haxe.Timer.stamp();
 
