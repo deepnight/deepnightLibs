@@ -75,21 +75,26 @@ class Aseprite {
 
 
 	/**
-		Build an anonymous object containing all "slices" names found in given Aseprite file.
-		Example: `{  mySlice:"mySlice",  grass1:"grass1",  stoneBlock:"stoneBlock"  }`
+		Generate a typed dictionnary containing all slice names found in given Aseprite file.
+
+		The style of the generated dictionnary depends on `advancedDict` argument:
+
+		- **FALSE** => generates an anonymous object like: `{  mySlice:"mySlice",  grass1:"grass1",  stoneBlock:"stoneBlock"  }`
+		- **TRUE** => generates an `AsepriteDict` instance with various helper methods. In this case, you **must** initialize the dictionnary instance with a valid SpriteLib before using it: `myDict.initWithLib( mySpriteLib )`
 	**/
-	macro public static function getDict(asepriteRes:ExprOf<hxd.res.Resource>) {
+	macro public static function getDict(asepriteRes:ExprOf<hxd.res.Resource>, advancedDict:Bool=false) {
 		var path = dn.MacroTools.resolveResToPath(asepriteRes);
-		return macro dn.heaps.assets.Aseprite.getDictFromFile($v{path});
+		return macro dn.heaps.assets.Aseprite.getDictFromFile($v{path}, $v{advancedDict});
 	}
 
 
 
 	/**
-		Build an anonymous object containing all "slices" names found in given Aseprite file.
-		Example: `{  mySlice:"mySlice",  grass1:"grass1",  stoneBlock:"stoneBlock"  }`
+		Generate a typed dictionnary containing all slice names found in given Aseprite file.
+
+		The style of the generated dictionnary depends on `advancedDict` argument. See `getDict()` for more info.
 	**/
-	macro public static function getDictFromFile(pathToAsepriteFile:ExprOf<String>) {
+	macro public static function getDictFromFile(pathToAsepriteFile:ExprOf<String>, advancedDict:Bool=false) {
 		var pos = Context.currentPos();
 		var path = switch pathToAsepriteFile.expr {
 			case EConst( CString(v) ): v;
@@ -162,11 +167,60 @@ class Aseprite {
 		sys.io.File.saveContent(cacheFp.full, mtime+"\n" + keys.join("\n"));
 
 
-		// Create anonymous structure fields
-		var fields:Array<ObjectField> = [];
-		for( k in keys )
-			fields.push({  field:k,  expr:macro $v{k}  });
-		return { expr: EObjectDecl(fields), pos: pos }
+		if( !advancedDict ) {
+			// Create anonymous structure fields
+			var fields:Array<ObjectField> = [];
+			for( k in keys )
+				fields.push({  field:k,  expr:macro $v{k}  });
+			return { expr: EObjectDecl(fields), pos: pos }
+		}
+		else {
+			// Create an instance of AsepriteDict
+			var rawMod = Context.getLocalModule();
+			var modPack = rawMod.split(".");
+			var modName = modPack.pop();
+
+			// Class field initializers for the `initWithLib` method
+			var initExprs : Array<Expr> = [];
+			for(k in keys) {
+				initExprs.push({
+					pos: pos,
+					expr: EBinop(OpAssign, {pos:pos, expr:EField(macro this, k)}, macro new dn.heaps.assets.Aseprite.AsepriteDictEntry(slib, $v{k})),
+				});
+			}
+
+			// Create class definition
+			var dictClass : TypeDefinition = {
+				pos : pos,
+				name : "AsepriteDict_"+FilePath.extractFileName(path),
+				doc: "TODO",
+				pack : modPack,
+				kind : TDClass(),
+				fields : (macro class {
+					public function new() {}
+
+					public function initWithLib(slib:dn.heaps.slib.SpriteLib) {
+						$a{initExprs}
+					}
+				}).fields,
+			}
+
+			// Populate class with entry fields
+			for( k in keys )
+				dictClass.fields.push({
+					name: k,
+					pos: pos,
+					access: [APublic],
+					kind: FVar(  macro : dn.heaps.assets.Aseprite.AsepriteDictEntry  ),
+				});
+
+			// Register class
+			Context.defineModule(Context.getLocalModule(), [dictClass]);
+
+			// Create constructor
+			var typePath : TypePath = { pack:modPack, name:dictClass.name}
+			return macro new $typePath();
+		}
 	}
 
 
@@ -204,3 +258,43 @@ class Aseprite {
 	#end
 
 }
+
+
+
+#if !macro
+class AsepriteDict {
+}
+
+class AsepriteDictEntry {
+	var lib : dn.heaps.slib.SpriteLib;
+	public var id(default,null) : String;
+	public var frames(default,null) : Int;
+
+	public var tile(get,never) : h2d.Tile;
+	inline function get_tile() return lib.getTile(id);
+
+	public var hsprite(get,never) : dn.heaps.slib.HSprite;
+	inline function get_hsprite() return lib.h_get(id);
+
+
+	public function new(lib:dn.heaps.slib.SpriteLib, id:String) {
+		this.lib = lib;
+		this.id = id;
+		frames = lib.countFrames(id);
+	}
+
+	@:keep public inline function toString() return id;
+
+	public inline function getTile(frame=0, xr=0., yr=0.) : h2d.Tile {
+		return lib.getTile(id, frame, xr,yr);
+	}
+
+	public inline function getTileRandom(xr=0., yr=0.) : h2d.Tile {
+		return lib.getTileRandom(id, xr,yr);
+	}
+
+	public inline function getHsprite(frame=0, xr=0., yr=0.) : dn.heaps.slib.HSprite {
+		return lib.h_get(id, frame, xr,yr);
+	}
+}
+#end
