@@ -65,8 +65,11 @@ class MemTrack {
 		return str;
 	}
 
-	/** Print report to standard output **/
-	public static function report(?printer:String->Void) {
+	/**
+		Print report to standard output.
+		If `reset` arg is TRUE, then current tracking is also reset.
+	**/
+	public static function report(?printer:String->Void, reset=true) {
 		var t = haxe.Timer.stamp() - firstMeasure;
 
 		if( printer==null )
@@ -114,6 +117,7 @@ class MemTrack {
 			printer("| " + line.join("  |  ") + " |");
 		}
 
-		reset();
+		if( reset )
+			this.reset();
 	}
 }
