@@ -243,15 +243,33 @@ class Cooldown {
 		case EConst(CString(s)):
 			key = s;
 		case EBinop(OpAdd, {expr: EConst(CString(s)), pos: _}, e):
-			var t = TypeTools.toString( Context.typeof(e) );
-			switch( t ){
-			case "Int", "TAbstract(Int,[])":
-				subIdx = e;
-			case "Float", "TAbstract(Float,[])":
-				Context.warning("Float should be Int", e.pos);
-				subIdx = macro Std.int( $e );
-			case _:
-				Context.error(t+" should be Int", e.pos);
+			var t = Context.typeof(e);
+			switch(e.expr) {
+				case EConst(CInt(_)):
+					subIdx = e;
+
+				case EConst(CFloat(_)):
+					Context.warning("Float converted to Int", e.pos);
+					subIdx = macro Std.int($e);
+
+				case EConst(CIdent(k)):
+					var ut = Context.followWithAbstracts(t);
+					var uts = TypeTools.toString(ut);
+					switch uts {
+						case "Int":
+							subIdx = e;
+
+						case "Float":
+							Context.warning("Abstract Float converted to Int", e.pos);
+							subIdx = macro Std.int($e);
+
+						case _:
+							Context.fatalError("Unsupported type "+uts, e.pos);
+					}
+
+				case _:
+					var ts = TypeTools.toString(t);
+					Context.error(t+" should be Int", e.pos);
 			}
 			key = s;
 		case _:
