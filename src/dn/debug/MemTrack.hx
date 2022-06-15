@@ -9,6 +9,7 @@ class MemTrack {
 	@:noCompletion
 	public static var allocs : Map<String, { total:Float, calls:Int }> = new Map();
 
+	@:noCompletion
 	public static var firstMeasure = -1.;
 
 	/** Measure a block or a function call memory usage **/
