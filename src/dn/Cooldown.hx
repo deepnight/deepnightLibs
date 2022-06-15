@@ -400,7 +400,7 @@ class Cooldown {
 		var cd = _getCdObject(k);
 		if( cd == null )
 			throw "cannot bind onComplete("+k+"): cooldown "+k+" isn't running";
-		cd.cb = onceCB;
+		cd.onCompleteOnce = onceCB;
 	}
 
 	@:noCompletion
@@ -486,9 +486,8 @@ class Cooldown {
 		while( i<cds.allocated ) {
 			cd = cds.get(i);
 			cd.frames -= tmod;
-			// cd.frames = M.floor( (cd.frames-dt)*1000 )/1000; // Neko vs Flash precision bug
 			if ( cd.frames<=0 ) {
-				cb = cd.cb;
+				cb = cd.onCompleteOnce;
 				unsetIndex(i);
 				if( cb != null )
 					cb();
@@ -566,7 +565,7 @@ private class CdInst {
 	public var k : Int;
 	public var frames : Float;
 	public var initial : Float;
-	public var cb : Null< Void->Void >;
+	public var onCompleteOnce : Null< Void->Void >;
 
 	public inline function new() {}
 
@@ -577,7 +576,7 @@ private class CdInst {
 	}
 
 	public function recycle() {
-		cb = null;
+		onCompleteOnce = null;
 	}
 
 	public inline function getRemainingRatio() {
