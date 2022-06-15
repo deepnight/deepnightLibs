@@ -269,11 +269,9 @@ class AsepriteDictEntry {
 	public var id(default,null) : String;
 	public var frames(default,null) : Int;
 
+	/** Allocate a new `h2d.Tile` **/
 	public var tile(get,never) : h2d.Tile;
-	inline function get_tile() return lib.getTile(id);
-
-	public var hsprite(get,never) : dn.heaps.slib.HSprite;
-	inline function get_hsprite() return lib.h_get(id);
+		inline function get_tile() return getTile();
 
 
 	public function new(lib:dn.heaps.slib.SpriteLib, id:String) {
@@ -284,16 +282,29 @@ class AsepriteDictEntry {
 
 	@:keep public inline function toString() return id;
 
+	/** Allocate a Tile **/
 	public inline function getTile(frame=0, xr=0., yr=0.) : h2d.Tile {
 		return lib.getTile(id, frame, xr,yr);
 	}
 
+	/** Allocate a random Tile **/
 	public inline function getTileRandom(xr=0., yr=0.) : h2d.Tile {
 		return lib.getTileRandom(id, xr,yr);
 	}
 
+	/** Allocate a HSprite **/
 	public inline function getHsprite(frame=0, xr=0., yr=0.) : dn.heaps.slib.HSprite {
 		return lib.h_get(id, frame, xr,yr);
+	}
+
+	/** Allocate a HSpriteBE **/
+	public inline function getHspriteBE(sb:dn.heaps.slib.HSpriteBatch, frame=0, xr=0., yr=0.) : dn.heaps.slib.HSpriteBE {
+		return lib.hbe_get(sb, id, frame, xr,yr);
+	}
+
+	/** Allocate a Bitmap **/
+	public inline function getBitmap(frame=0, xr=0., yr=0., ?p:h2d.Object) : h2d.Bitmap {
+		return new h2d.Bitmap( getTile(frame,xr,yr), p );
 	}
 }
 #end
