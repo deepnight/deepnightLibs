@@ -232,16 +232,16 @@ class Tween {
 class Tweenie {
 	static var DEFAULT_DURATION = DateTools.seconds(1);
 
-	var tlist						: Array<Tween>;
+	var allTweens : dn.FixedArray<Tween>;
 	public var baseFps(default,null): Float;
 
 	public function new(fps:Float) {
 		baseFps = fps;
-		tlist = new Array();
+		allTweens = new dn.FixedArray(512);
 	}
 
 	public inline function count() {
-		return tlist.length;
+		return allTweens.allocated;
 	}
 
 
@@ -285,11 +285,11 @@ class Tweenie {
 
 
 	function terminate_(getter:Void->Float, setter:Float->Void, withCallbacks:Bool) {
-		if( tlist==null )
+		if( allTweens==null )
 			return;
 
 		var v = getter();
-		for(t in tlist) {
+		for(t in allTweens) {
 			if( t.done )
 				continue;
 			var old = t.getter();
@@ -419,27 +419,27 @@ class Tweenie {
 
 		if( from!=null )
 			setter(from);
-		tlist.push(t);
+		allTweens.push(t);
 
 		return t;
 	}
 
 
 	public function destroy() {
-		tlist = null;
+		allTweens = null;
 	}
 
 
 	public function completeAll() {
-		for(t in tlist)
+		for(t in allTweens)
 			t.ln = 1;
 		update();
 	}
 
 
 	public function update(dt=1.0) {
-		for (t in tlist)
+		for (t in allTweens)
 			if( t.internalUpdate(dt) )
-				tlist.remove(t);
+				allTweens.remove(t);
 	}
 }
