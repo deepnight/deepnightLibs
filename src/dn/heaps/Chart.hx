@@ -26,7 +26,7 @@ class Chart extends dn.Process {
 	var showTexts = true;
 	/** If TRUE, and texts are enabled, the displayed value will show changes per seconds. **/
 	public var showValuePerSec = false;
-	/** If `showValuePerSec` is TRUE, this will "smooth" displayed value per sec, reducing chaotic changes. 0=no smoothing, 1=full smoothing. **/
+	/** If `showValuePerSec` is TRUE, this will "smooth" displayed value per sec, reducing chaotic changes. 0=no smoothing, 0.35=default, 1=full smoothing. **/
 	public var valuePerSecSmoothing = 0.35;
 
 	var freqS = 0.5;
