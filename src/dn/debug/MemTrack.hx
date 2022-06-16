@@ -20,7 +20,7 @@ class MemTrack {
 	public static var firstMeasure = -1.;
 
 	/** Measure a block or a function call memory usage **/
-	public static macro function measure( ?name:String, e:Expr ) {
+	public static macro function measure( e:Expr, ?ename:ExprOf<String> ) {
 		#if !debug
 
 			return e;
@@ -29,7 +29,7 @@ class MemTrack {
 
 			var p = Context.getPosInfos( Context.currentPos() );
 			var id = Context.getLocalModule()+"."+Context.getLocalMethod()+"@"+p.min+": ";
-			id += name!=null ? '"$name"' : switch e.expr {
+			id += switch e.expr {
 				case ECall(e, params):
 					haxe.macro.ExprTools.toString(e)+"()";
 
@@ -38,6 +38,11 @@ class MemTrack {
 
 				case _:
 					'<${e.expr.getName()}>';
+			}
+
+			switch ename.expr {
+				case EConst(CIdent("null")):
+				case _: id+=".";
 			}
 
 			return macro {
@@ -49,9 +54,12 @@ class MemTrack {
 
 				var m = dn.M.fmax( 0, dn.Gc.getCurrentMem() - old );
 
-				if( !dn.debug.MemTrack.allocs.exists($v{id}) )
-					@:privateAccess dn.debug.MemTrack.allocs.set($v{id}, new dn.debug.MemTrack.MemAlloc());
-				var alloc = dn.debug.MemTrack.allocs.get( $v{id} );
+				var id = $v{id};
+				if( $ename!=null )
+					id+=$ename;
+				if( !dn.debug.MemTrack.allocs.exists(id) )
+					@:privateAccess dn.debug.MemTrack.allocs.set(id, new dn.debug.MemTrack.MemAlloc());
+				var alloc = dn.debug.MemTrack.allocs.get(id);
 				alloc.total += m;
 				alloc.calls++;
 			}
