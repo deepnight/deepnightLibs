@@ -1,6 +1,7 @@
 package dn;
 
 import dn.Lib;
+import dn.debug.MemTrack.measure as MM;
 
 class Process {
 	public static var MAX_PROCESSES = 1024;
@@ -324,8 +325,15 @@ class Process {
 	}
 
 	/** Some human readable name for this Process instance **/
+	var _cachedClassName : String;
 	public inline function getDisplayName() {
-		return name!=null ? name : Type.getClassName( Type.getClass(this) );
+		return name!=null
+			? name
+			: {
+				if( _cachedClassName==null )
+					_cachedClassName = Type.getClassName( Type.getClass(this) );
+				return _cachedClassName;
+			}
 	}
 
 
