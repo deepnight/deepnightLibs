@@ -10,7 +10,7 @@ import dn.heaps.input.Controller;
 **/
 class ControllerAccess<T:Int> {
 	public var input(default,null) : Controller<T>;
-	
+
 	public var disableRumble(get,set) : Bool;
 	public var rumbleMultiplicator(get,set) : Float;
 
@@ -110,15 +110,18 @@ class ControllerAccess<T:Int> {
 	/**
 		Return analog float value (-1.0 to 1.0) associated with given action Enum.
 	**/
-	public function getAnalogValue(action:T) : Float {
-		var out = 0.;
-		if( isActive() && input.bindings.exists(action) )
+	public inline function getAnalogValue(action:T) : Float {
+		if( isActive() && input.bindings.exists(action) ) {
+			var out = 0.;
 			for(b in input.bindings.get(action) ) {
 				out = b.getValue(input.pad);
 				if( out!=0 )
-					return out;
+					break;
 			}
-		return 0;
+			return out;
+		}
+		else
+			return 0;
 	}
 
 
@@ -126,7 +129,7 @@ class ControllerAccess<T:Int> {
 	/**
 		Return analog float value (-1.0 to 1.0) associated with given the 2 action Enum (this implies that these 2 actions refer to the negative/positive directions of the analog).
 	**/
-	public function getAnalogValue2(negativeAction:T, positiveAction:T) : Float {
+	public inline function getAnalogValue2(negativeAction:T, positiveAction:T) : Float {
 		return -M.fabs(getAnalogValue(negativeAction)) + M.fabs(getAnalogValue(positiveAction));
 	}
 
