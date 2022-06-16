@@ -510,6 +510,16 @@ abstract Col(Int) from Int to Int {
 	public inline function getColorizeFilterH2d(?ratioNewColor=1.0, ?ratioOldColor:Float) : h2d.filter.ColorMatrix {
 		return new h2d.filter.ColorMatrix( getColorizeMatrixH2d(ratioNewColor, ratioOldColor) );
 	}
+
+	/** Create a `h2d.Bitmap` of the given color **/
+	public static inline function makeBitmap(col:Col, wid:Int, hei:Int, xr=0., yr=0., ?p:h2d.Object) : h2d.Bitmap {
+		var t = h2d.Tile.fromColor(col);
+		t.setCenterRatio(xr,yr);
+		var b = new h2d.Bitmap(t, p);
+		b.scaleX = wid;
+		b.scaleY = hei;
+		return b;
+	}
 	#end
 }
 
