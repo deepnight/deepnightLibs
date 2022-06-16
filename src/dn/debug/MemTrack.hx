@@ -13,23 +13,24 @@ class MemTrack {
 	public static var firstMeasure = -1.;
 
 	/** Measure a block or a function call memory usage **/
-	public static macro function measure( e:Expr ) {
+	public static macro function measure( ?name:String, e:Expr ) {
 		#if !debug
 
 			return e;
 
 		#else
 
-			var id = Context.getLocalModule()+"."+Context.getLocalMethod()+": ";
-			id += switch e.expr {
+			var p = Context.getPosInfos( Context.currentPos() );
+			var id = Context.getLocalModule()+"."+Context.getLocalMethod()+"@"+p.min+": ";
+			id += name!=null ? '"$name"' : switch e.expr {
 				case ECall(e, params):
 					haxe.macro.ExprTools.toString(e)+"()";
 
 				case EBlock(_):
-					"{block}";
+					"<block>";
 
 				case _:
-					"<unknown>";
+					'<${e.expr.getName()}>';
 			}
 
 			return macro {
