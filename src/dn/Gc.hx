@@ -34,7 +34,7 @@ class Gc {
 	public static inline function disable() setState(false);
 
 	/** Try to force a GC sweeping immediately **/
-	public static function runNow() {
+	public static inline function runNow() {
 		#if hl
 		hl.Gc.enable(true);
 		hl.Gc.major();
@@ -44,24 +44,36 @@ class Gc {
 
 
 	/** Return currently "currently allocated memory" **/
-	public static inline function getCurrentMem() {
-		var _ = 0., v = 0.;
-		@:privateAccess hl.Gc._stats(_, _, v);
-		return v;
+	public static inline function getCurrentMem() : Float {
+		#if hl
+			var _ = 0., v = 0.;
+			@:privateAccess hl.Gc._stats(_, _, v);
+			return v;
+		#else
+			return 0;
+		#end
 	}
 
 	/** Return current "allocation count" **/
-	public static inline function getAllocationCount() {
-		var _ = 0., v = 0.;
-		@:privateAccess hl.Gc._stats(_, v, _);
-		return v;
+	public static inline function getAllocationCount() : Float {
+		#if hl
+			var _ = 0., v = 0.;
+			@:privateAccess hl.Gc._stats(_, v, _);
+			return v;
+		#else
+			return 0;
+		#end
 	}
 
 	/** Return current "total allocated" **/
-	public static inline function getTotalAllocated() {
-		var _ = 0., v = 0.;
-		@:privateAccess hl.Gc._stats(v, _, _);
-		return v;
+	public static inline function getTotalAllocated() : Float {
+		#if hl
+			var _ = 0., v = 0.;
+			@:privateAccess hl.Gc._stats(v, _, _);
+			return v;
+		#else
+			return 0;
+		#end
 	}
 
 }
