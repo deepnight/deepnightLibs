@@ -5,9 +5,16 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 #end
 
+
+class MemAlloc {
+	public var total = 0.;
+	public var calls = 0;
+	public inline function new() {}
+}
+
 class MemTrack {
 	@:noCompletion
-	public static var allocs : Map<String, { total:Float, calls:Int }> = new Map();
+	public static var allocs : Map<String, MemAlloc> = new Map();
 
 	@:noCompletion
 	public static var firstMeasure = -1.;
@@ -43,7 +50,7 @@ class MemTrack {
 				var m = dn.M.fmax( 0, dn.Gc.getCurrentMem() - old );
 
 				if( !dn.debug.MemTrack.allocs.exists($v{id}) )
-					dn.debug.MemTrack.allocs.set($v{id}, { total:0, calls:0 });
+					@:privateAccess dn.debug.MemTrack.allocs.set($v{id}, new dn.debug.MemTrack.MemAlloc());
 				var alloc = dn.debug.MemTrack.allocs.get( $v{id} );
 				alloc.total += m;
 				alloc.calls++;
