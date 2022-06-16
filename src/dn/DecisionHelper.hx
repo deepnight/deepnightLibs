@@ -31,11 +31,15 @@ class DecisionHelper<T> {
 
 
 	/**
-		Pick a single value from an Iterable without allocating an actual DecisionHelper
+		Pick a single value from an Iterable without allocating an actual DecisionHelper.
+
+		**IMPORTANT**: to avoid memory allocations, **make sure the provided `score` method is a class method instead of a callback defined on-the-fly.
+
+		If the score of the best element is <= to `minScoreDiscard`, then the pick returns `null`.
 	**/
-	public static inline function optimizedPick<T>(all:Iterable<T>, score:T->Float) : Null<T> {
+	public static inline function optimizedPick<T>(all:Iterable<T>, score:T->Float, minScoreDiscard=-999999) : Null<T> {
 		var best : T = null;
-		var bestScore = -9999999.;
+		var bestScore = -999999.;
 		var s = 0.;
 		for(e in all) {
 			s = score(e);
@@ -44,7 +48,7 @@ class DecisionHelper<T> {
 				bestScore = s;
 			}
 		}
-		return best;
+		return bestScore<=minScoreDiscard ? null : best;
 	}
 
 	/** Reset scores and removals **/
