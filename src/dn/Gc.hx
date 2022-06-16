@@ -43,17 +43,24 @@ class Gc {
 	}
 
 
-	/** Return currently allocated memory **/
+	/** Return currently "currently allocated memory" **/
 	public static inline function getCurrentMem() {
 		var _ = 0., v = 0.;
 		@:privateAccess hl.Gc._stats(_, _, v);
 		return v;
 	}
 
-	/** Return current allocation count **/
+	/** Return current "allocation count" **/
 	public static inline function getAllocationCount() {
 		var _ = 0., v = 0.;
 		@:privateAccess hl.Gc._stats(_, v, _);
+		return v;
+	}
+
+	/** Return current "total allocated" **/
+	public static inline function getTotalAllocated() {
+		var _ = 0., v = 0.;
+		@:privateAccess hl.Gc._stats(v, _, _);
 		return v;
 	}
 

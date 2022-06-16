@@ -121,6 +121,10 @@ class StatsBox extends dn.Process {
 	}
 	#end
 
+	public inline function addArrayChart<T>(label:String, ?col:Col, arr:Array<T>) {
+		return addCustomChart(label, col, ()->arr.length);
+	}
+
 	#if hl
 	/** Add a chart tracking **Memory Usage** (per seconds or total) **/
 	public function addMemoryChart(showValuePerSec=true) {
@@ -137,8 +141,12 @@ class StatsBox extends dn.Process {
 		return addCustomChart("GCa", Col.fromColorEnum(Blue).toWhite(0.4), ()->dn.Gc.getAllocationCount());
 	}
 
-	public inline function addArrayChart<T>(label:String, ?col:Col, arr:Array<T>) {
-		return addCustomChart(label, col, ()->arr.length);
+	/** Add a chart tracking **GC Total Allocated** **/
+	public function addGcTotalAlloc(showValuePerSec=true) {
+		var c = addCustomChart("GCt", Col.fromColorEnum(Blue).toWhite(0.4), ()->dn.Gc.getTotalAllocated());
+		c.showValuePerSec = showValuePerSec;
+		c.precision = 2;
+		return c;
 	}
 	#end
 
