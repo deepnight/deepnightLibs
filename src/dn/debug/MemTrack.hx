@@ -130,7 +130,7 @@ class MemTrack {
 		for(line in table) {
 			for(i in 0...line.length)
 				line[i] = padRight(line[i], colWidths[i]);
-			printer("| " + line.join("  |  ") + " |");
+			printer("| " + line.join(" | ") + " |");
 		}
 
 		if( alsoReset )
