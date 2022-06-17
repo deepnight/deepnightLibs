@@ -49,7 +49,7 @@ class RecyclablePool<T:Recyclable> {
 	}
 
 	/**
-		Return the object at given inde, without checking the currently allocated bounds.
+		Return the object at given index, without checking the currently allocated bounds.
 	**/
 	public inline function getUnsafe(index:Int) : Null<T> {
 		return pool[index];
@@ -59,9 +59,8 @@ class RecyclablePool<T:Recyclable> {
 		Destroy the pool.
 
 		**WARNING**: to dispose the pool objects, you need to provide a custom dispose method that will be executed on all pool objects (including unused ones).
-		This argument is not optional, and `null` should be given explicitely, to make sure you know what you're doing ;)
 	**/
-	public function dispose(elementDisposer:Null<T->Void>) {
+	public function dispose(?elementDisposer:T->Void) {
 		if( elementDisposer!=null )
 			for(e in pool)
 				elementDisposer(e);
@@ -69,6 +68,11 @@ class RecyclablePool<T:Recyclable> {
 		pool = null;
 	}
 
+	/**
+		Pick and return an available element from the pool.
+
+		Its `recycle()` method is automatically called.
+	**/
 	public inline function alloc() : T {
 		if( nalloc>=size )
 			throw 'RecyclablePool limit reached ($maxSize)';
@@ -84,7 +88,7 @@ class RecyclablePool<T:Recyclable> {
 
 	/** Free value at given array index **/
 	public inline function freeIndex(i:Int) {
-		if( i<nalloc ) {
+		if( i>=0 && i<nalloc ) {
 			if( nalloc>1 ) {
 				var tmp = pool[i];
 				pool[i] = pool[nalloc-1];
@@ -97,9 +101,9 @@ class RecyclablePool<T:Recyclable> {
 	}
 
 	/** Search a specific value and free it **/
-	public inline function freeElement(e:T) {
+	public inline function freeElement(search:T) {
 		for(i in 0...nalloc)
-			if( pool[i]==e ) {
+			if( pool[i]==search ) {
 				freeIndex(i);
 				break;
 			}
