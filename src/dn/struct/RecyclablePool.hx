@@ -1,4 +1,4 @@
-package dn;
+package dn.struct;
 
 private typedef Recyclable = {
 	function recycle() : Void;
@@ -11,7 +11,7 @@ private typedef Recyclable = {
 		- "Allocating" an object from the pool actually restore an existing unused one and calls its `object.recycle()` method,
 		- Objects should be freed by calling `pool.freeElement(obj)` or `pool.freeIndex(idx)`.
 **/
-@:allow(dn.RecyclablePoolIterator)
+@:allow(dn.struct.RecyclablePoolIterator)
 class RecyclablePool<T:Recyclable> {
 	/** Currently allocated count **/
 	public var allocated(get,never) : Int;

@@ -1,6 +1,7 @@
 package dn;
 
 import dn.Lib;
+import dn.struct.FixedArray;
 import dn.debug.MemTrack.measure as MM;
 
 class Process {

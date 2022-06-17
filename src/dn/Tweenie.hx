@@ -1,6 +1,7 @@
 package dn;
 
 import dn.M;
+import dn.struct.FixedArray;
 
 #if macro
 import haxe.macro.Expr;
@@ -232,12 +233,12 @@ class Tween {
 class Tweenie {
 	static var DEFAULT_DURATION = DateTools.seconds(1);
 
-	var allTweens : dn.FixedArray<Tween>;
+	var allTweens : FixedArray<Tween>;
 	public var baseFps(default,null): Float;
 
 	public function new(fps:Float) {
 		baseFps = fps;
-		allTweens = new dn.FixedArray(512);
+		allTweens = new FixedArray(512);
 	}
 
 	public inline function count() {

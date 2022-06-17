@@ -1,5 +1,7 @@
 package dn;
 
+import dn.struct.RecyclablePool;
+
 #if macro
 import haxe.macro.Expr;
 import haxe.macro.Context;

@@ -1,4 +1,4 @@
-package dn;
+package dn.struct;
 
 class RandList<T> {
 	public var totalProba(default, null)	: Int;

@@ -1,4 +1,4 @@
-package dn;
+package dn.struct;
 
 /**
 	"Fixed-size Array" but with standard-Array comfort. It is optimized to have no memory allocations while supporting common Array operations.
@@ -7,7 +7,7 @@ package dn;
 		- Allocated values can be iterated over.
 		- Supports basic Array operations (get/set, push, pop/shift, etc.)
 **/
-@:allow(dn.FixedArrayIterator)
+@:allow(dn.struct.FixedArrayIterator)
 class FixedArray<T> {
 	var values : haxe.ds.Vector<T>;
 	var nalloc : Int;

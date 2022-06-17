@@ -1,4 +1,4 @@
-package dn;
+package dn.struct;
 import haxe.ds.Vector;
 
 class RandDeck<T> {

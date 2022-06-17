@@ -200,7 +200,7 @@ class DecisionHelper<T> {
 		CiAssert.equals( dh.isEmpty(), true );
 
 		// FixedArray
-		var fa = new FixedArray(5);
+		var fa = new dn.struct.FixedArray(5);
 		fa.push("foo");
 		fa.push("bar");
 		fa.push("hello");
