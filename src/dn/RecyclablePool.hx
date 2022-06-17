@@ -8,7 +8,7 @@ private typedef Recyclable = {
 	Recyclable pool of objects.
 		- A pool has a limited number of slots,
 		- Each pool object is initialized before-hand at pool creation,
-		- "Allocating" an object from the pool actually restore an existing unused one and calls its `object.recycble()` method,
+		- "Allocating" an object from the pool actually restore an existing unused one and calls its `object.recycle()` method,
 		- Objects should be freed by calling `pool.freeElement(obj)` or `pool.freeIndex(idx)`.
 **/
 @:allow(dn.RecyclablePoolIterator)
@@ -26,7 +26,7 @@ class RecyclablePool<T:Recyclable> {
 	var pool : haxe.ds.Vector<T>;
 
 	/**
-		Create a RecyclePool.
+		Create a RecyclablePool.
 	**/
 	public inline function new(size:Int, valueConstructor:Void->T) {
 		this.size = size;
