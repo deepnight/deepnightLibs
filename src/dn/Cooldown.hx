@@ -271,7 +271,10 @@ class Cooldown {
 
 				case _:
 					var ts = TypeTools.toString(t);
-					Context.error(t+" should be Int", e.pos);
+					if( ts=="Int" )
+						subIdx = e;
+					else
+						Context.error(t+" should be Int", e.pos);
 			}
 			key = s;
 		case _:
