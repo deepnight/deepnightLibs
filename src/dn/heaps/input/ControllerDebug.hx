@@ -326,7 +326,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 			else
 				tf.textColor = RED;
 
-			// tf.text = base + ": " + M.round( ca.getHoldRatio(a,durationS)*100 ) + "%";
+			tf.text = base + ": " + M.round( ca.getHoldRatio(a,durationS)*100 ) + "%";
 			if( ca.isHeld(a,durationS) )
 				tf.text +=" <OK>";
 			else
