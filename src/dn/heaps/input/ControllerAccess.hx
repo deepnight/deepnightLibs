@@ -235,21 +235,35 @@ class ControllerAccess<T:Int> {
 	}
 
 
-	public inline function initHeldStatus(action:T) {
-		updateHeldStatus(action, false);
+	public inline function initHeldState(action:T) {
+		if( holdTimeS.exists(action) )
+			holdTimeS.remove( action );
+	}
+
+	/**
+		Update the "held" state of an action.
+
+		NOTE: most of the time, this method shouldn't be required, as the "held" state is automatically updated through calls to `isHeld` and `getHoldRatio`. But in some situations, you might need to manually call this update at the *beginning* of your frames, to ensure the held state is properly updated.
+
+		If in doubt, just call it. You will not break anything doing so.
+	**/
+	public inline function updateHeldState(action:T) {
+		if( !isDown(action) && holdTimeS.exists(action) )
+			holdTimeS.remove( action );
+		else if( isDown(action) && !holdTimeS.exists(action) )
+			holdTimeS.set( action, haxe.Timer.stamp() );
 	}
 
 	/**
 		Return TRUE if given action Enum is "held down" for more than `seconds` seconds.
+
 		WARNING: the method will actually start its internal "held timer" when it will see the action as being down. This means the method should be called continuously for this to happen correctly.
 	**/
 	public inline function isHeld(action:T, seconds:Float) : Bool {
-		if( !isDown(action) ) {
-			updateHeldStatus(action, false);
+		updateHeldState(action);
+		if( !isDown(action) )
 			return false;
-		}
 		else {
-			updateHeldStatus(action, true);
 			if( holdTimeS.get(action)>0 && getHoldTimeS(action) >= seconds ) {
 				holdTimeS.set(action, -1);
 				return true;
@@ -257,13 +271,6 @@ class ControllerAccess<T:Int> {
 			else
 				return false;
 		}
-	}
-
-	inline function updateHeldStatus(action:T, held:Bool) {
-		if( !held && holdTimeS.exists(action) )
-			holdTimeS.remove( action );
-		else if( held && !holdTimeS.exists(action) )
-			holdTimeS.set( action, haxe.Timer.stamp() );
 	}
 
 	inline function getHoldTimeS(action:T) : Float {
@@ -274,7 +281,7 @@ class ControllerAccess<T:Int> {
 		Return a ratio (float between 0 and 1) representing how long given `action` was held down.
 	**/
 	public inline function getHoldRatio(action:T, seconds:Float) : Float {
-		isDown(action); // will update the held status
+		updateHeldState(action);
 		return !holdTimeS.exists(action)
 			? 0
 			: holdTimeS.get(action)<0
