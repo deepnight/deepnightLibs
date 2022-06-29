@@ -211,14 +211,12 @@ class ControllerAccess<T:Int> {
 		Return TRUE if given action Enum is "down". For a digital binding, this means the button/key is pushed. For an analog binding, this means it is pushed beyond a specific threshold.
 	**/
 	public function isDown(v:T) : Bool {
-		if( isActive() && bindings.exists(v) )
+		if( isActive() && bindings.exists(v) ) {
 			for(b in bindings.get(v))
-				if( b.isDown(pad) ) {
-					updateHoldStatus(v,true);
+				if( b.isDown(pad) )
 					return true;
-				}
+		}
 
-		updateHoldStatus(v,false);
 		return false;
 	}
 
@@ -227,39 +225,41 @@ class ControllerAccess<T:Int> {
 		Return TRUE if given action Enum is "pressed" (ie. pushed while it was previously released). By definition, this only happens during 1 frame, when control is pushed.
 	**/
 	public function isPressed(v:T) : Bool {
-		if( isActive() && bindings.exists(v) )
+		if( isActive() && bindings.exists(v) ) {
 			for(b in bindings.get(v))
-				if( b.isPressed(pad) ) {
-					updateHoldStatus(v,true);
+				if( b.isPressed(pad) )
 					return true;
-				}
+		}
 
-		updateHoldStatus(v,false);
 		return false;
 	}
 
 
 	public inline function initHeldStatus(action:T) {
-		updateHoldStatus(action, false);
+		updateHeldStatus(action, false);
 	}
 
 	/**
 		Return TRUE if given action Enum is "held down" for more than `seconds` seconds.
-		Note: "down" for a digital binding means the button/key is pushed. For an analog binding, this means it is pushed *beyond* a specific threshold.
+		WARNING: the method will actually start its internal "held timer" when it will see the action as being down. This means the method should be called continuously for this to happen correctly.
 	**/
 	public inline function isHeld(action:T, seconds:Float) : Bool {
-		if( !isDown(action) )
+		if( !isDown(action) ) {
+			updateHeldStatus(action, false);
 			return false;
-
-		if( holdTimeS.get(action)>0 && getHoldTimeS(action) >= seconds ) {
-			holdTimeS.set(action, -1);
-			return true;
 		}
-		else
-			return false;
+		else {
+			updateHeldStatus(action, true);
+			if( holdTimeS.get(action)>0 && getHoldTimeS(action) >= seconds ) {
+				holdTimeS.set(action, -1);
+				return true;
+			}
+			else
+				return false;
+		}
 	}
 
-	inline function updateHoldStatus(action:T, held:Bool) {
+	inline function updateHeldStatus(action:T, held:Bool) {
 		if( !held && holdTimeS.exists(action) )
 			holdTimeS.remove( action );
 		else if( held && !holdTimeS.exists(action) )
