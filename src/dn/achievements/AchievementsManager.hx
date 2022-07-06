@@ -14,6 +14,7 @@ class AchievementsManager {
 		this.platform = platform;
 		
 		AchievementDb.load(hxd.Res.load(dbName).toText());
+		this.platform.init();
 		dones = this.platform.getUnlocked(AchievementDb.achievements.all);
 	}
 
