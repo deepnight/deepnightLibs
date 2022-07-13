@@ -65,6 +65,11 @@ class FixedArray<T> {
 		return values[0];
 	}
 
+	/** Get first value (without modifying the array) **/
+	public inline function oneRandomly() : Null<T> {
+		return allocated==0 ? null : values[ Std.random(allocated) ];
+	}
+
 	/** Get last value (without modifying the array) **/
 	public inline function last() : Null<T> {
 		return values[nalloc-1];
