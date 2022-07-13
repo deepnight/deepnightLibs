@@ -131,20 +131,26 @@ class M {
 	 */
 	inline public static var LN2 = 0.6931471805599453;
 
-	/**
-	 * Math.PI / 2.
-	 */
+	/* Math.PI/2 */
 	inline public static var PIHALF = 1.5707963267948966;
 
-	/**
-	 * Math.PI.
-	 */
-	inline public static var PI = 3.141592653589793;
+	/* Math.PI */
+	inline public static var PI   = 3.141592653589793;
 
-	/**
-	 * 2 * Math.PI.
-	 */
-	inline public static var PI2 = 6.283185307179586;
+	/* Math.PI*2 */
+	inline public static var PI2  = 6.283185307179586;
+
+	/* Math.PI*2 */
+	inline public static var A360 = PI2;
+
+	/* Math.PI */
+	inline public static var A180 = PI;
+
+	/* Math.PI/2 */
+	inline public static var A90  = PIHALF;
+
+	/* Math.PI/4 */
+	inline public static var A45  = 0.785398163397448;
 
 	/**
 	 * Default system epsilon.
