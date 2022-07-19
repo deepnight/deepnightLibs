@@ -326,11 +326,13 @@ abstract Col(Int) from Int to Int {
 	}
 
 
+	/** Return a variation of this color using HSL **/
 	public inline function adjustHsl(deltaH:Float, deltaS:Float, deltaL:Float) : Col {
-		hue+=deltaH;
-		saturation+=deltaS;
-		lightness+=deltaL;
-		return this;
+		var c = clone();
+		c.hue += deltaH;
+		c.saturation += deltaS;
+		c.lightness += deltaL;
+		return c;
 	}
 
 
