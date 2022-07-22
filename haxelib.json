@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.70",
+	"version": "1.0.71",
 	"classPath": "src/",
-	"releasenote": "Controller rework. Added embed Controller icons (require -lib heaps-aseprite)",
+	"releasenote": "Way too many things",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
