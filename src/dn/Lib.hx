@@ -12,6 +12,20 @@ enum WeekDay {
 	Saturday;
 }
 
+#if sys
+// List of codes: https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences?redirectedfrom=MSDN
+enum abstract SystemColor(Int) to Int {
+	var Sys_Black = 90;
+	var Sys_Red = 91;
+	var Sys_Green = 92;
+	var Sys_Yellow = 93;
+	var Sys_Blue = 94;
+	var Sys_Magenta = 95;
+	var Sys_Cyan = 96;
+	var Sys_White = 97;
+}
+#end
+
 class Lib {
 
 	/**  Print a line to standard output, if any (shortcut for println) **/
@@ -46,6 +60,19 @@ class Lib {
 			trace( Std.string(v) );
 		#end
 	}
+
+
+	#if sys
+	/**
+		Print to standard DOS output a colored text using Escape sequences.
+
+		Source: https://stackoverflow.com/questions/2048509/how-to-echo-with-different-colors-in-the-windows-command-line
+	**/
+	public static function printColor(str:String, color:SystemColor) {
+		Sys.command("echo ["+color+"m"+str+"[0m");
+	}
+	#end
+
 
 	/** Print an array standard output, if any **/
 	public static inline function printArray(v:Array<Dynamic>) {
