@@ -14,7 +14,7 @@ enum WeekDay {
 
 #if sys
 // List of codes: https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences?redirectedfrom=MSDN
-enum abstract SystemColor(Int) to Int {
+enum abstract DosColor(Int) to Int {
 	var Sys_Black = 90;
 	var Sys_Red = 91;
 	var Sys_Green = 92;
@@ -68,7 +68,7 @@ class Lib {
 
 		Source: https://stackoverflow.com/questions/2048509/how-to-echo-with-different-colors-in-the-windows-command-line
 	**/
-	public static function printColor(str:String, color:SystemColor) {
+	public static function printDosColor(str:String, color:DosColor) {
 		Sys.command("echo ["+color+"m"+str+"[0m");
 	}
 	#end
