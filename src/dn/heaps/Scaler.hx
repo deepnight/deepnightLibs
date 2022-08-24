@@ -24,4 +24,18 @@ class Scaler {
 	public static inline function bestFit_i(widPx:Float, ?heiPx:Float, ?contextWid:Float, ?contextHei:Float) : Int {
 		return Std.int( bestFit_f(widPx, heiPx, contextWid, contextHei, true) );
 	}
+
+
+
+	/** Fit `wid`x`hei` in current viewport, optionally snapping to closest Integer scale value (for pixel perfect rendering) **/
+	public static function fill_f(widPx:Float, ?heiPx:Float, ?contextWid:Float, ?contextHei:Float, integerScale=true) : Float {
+		var sx = ( contextWid==null ? getViewportWidth() : contextWid ) / widPx;
+		var sy = ( contextHei==null ? getViewportHeight() : contextHei ) / ( heiPx==null ? widPx : heiPx );
+		if( integerScale ) {
+			sx = M.floor(sx);
+			sy = M.floor(sy);
+		}
+		return M.fmax(1, M.fmax(sx,sy) );
+	}
+
 }
