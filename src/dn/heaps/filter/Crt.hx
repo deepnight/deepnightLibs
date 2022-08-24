@@ -3,7 +3,7 @@ package dn.heaps.filter;
 // --- Filter -------------------------------------------------------------------------------
 class Crt extends h2d.filter.Shader<InternalShader> {
 	/** Scanline texture color (RGB format, defaults to 0xffffff) **/
-	public var scanlineColor(default,set) : Int;
+	public var scanlineColor(default,set) : Col;
 
 	/** Scanline texture opacity (0-1) (defaults to 1.0) **/
 	public var scanlineAlpha(get,set) : Float;
@@ -29,7 +29,7 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 	/**
 		@param scanlineSize Height of the scanline overlay texture blocks
 	**/
-	public function new(scanlineSize=2, scanlineColor=0xffffff, alpha=1.0) {
+	public function new(scanlineSize=2, scanlineColor:Col=0xffffff, alpha=1.0) {
 		super( new InternalShader() );
 		this.scanlineAlpha = alpha;
 		this.scanlineSize = scanlineSize;
