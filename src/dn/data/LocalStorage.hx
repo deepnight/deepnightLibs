@@ -173,7 +173,7 @@ class LocalStorage {
 
 				var jsStorage = js.Browser.getLocalStorage();
 				if( jsStorage!=null )
-					jsStorage.setItem(storagePath.fileName, raw);
+					jsStorage.setItem(storagePath.full, raw);
 				else
 					null;
 
