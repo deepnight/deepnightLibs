@@ -128,12 +128,16 @@ class FilePath {
 	}
 
 	public function appendDirectory(extraDirs:String) {
+		if( extraDirs==null )
+			return this;
+
 		var fp = fromDir(extraDirs);
 		if( fp.directory!=null )
 			if( directory==null )
 				directory = fp.directory;
 			else
 				directory += slash() + fp.directory;
+
 		return this;
 	}
 
