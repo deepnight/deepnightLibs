@@ -460,6 +460,9 @@ abstract Col(Int) from Int to Int {
 			( M.round(b + (255-b)*ratio) );
 	}
 
+	/** Interpolate to given color, at % ratio (this method is an alias of `Col.interpolate()`) **/
+	public inline function to(to:Col, ratio:Float) return interpolate(to,ratio);
+
 	/** Interpolate to given color, at % ratio **/
 	public inline function interpolate(to:Col, ratio:Float) : Col {
 		return
