@@ -306,12 +306,12 @@ abstract Col(Int) from Int to Int {
 
 
 	/** Return color with given alpha (0-1) **/
-	public inline function withAlpha(a=1.0) {
+	public inline function withAlpha(a=1.0) : Col {
 		return M.round(a*255) << 24 | withoutAlpha();
 	}
 
 	/** Return color without alpha **/
-	public inline function withoutAlpha() {
+	public inline function withoutAlpha() : Col {
 		return this & 0xffffff;
 	}
 
@@ -326,14 +326,58 @@ abstract Col(Int) from Int to Int {
 	}
 
 
+	public inline function multiplyRGB(f:Float) {
+		var c = clone();
+		c.rf*=f;
+		c.gf*=f;
+		c.bf*=f;
+		return c;
+	}
+
+
 	/** Return a variation of this color using HSL **/
 	public inline function adjustHsl(deltaH:Float, deltaS:Float, deltaL:Float) : Col {
 		var c = clone();
+		var a = c.af; // preserve alpha
+
 		c.hue += deltaH;
 		c.saturation += deltaS;
 		c.lightness += deltaL;
+
+		c.af = a;
 		return c;
 	}
+
+
+	public inline function adjustBrightness(delta:Float) : Col {
+		var c = clone();
+		var a = c.af; // preserve alpha
+
+		if( delta<0 ) {
+			// Darken
+			var l = c.lightness;
+			l = M.fmax(l+delta, 0);
+			c.lightness = l;
+		}
+		else {
+			// Brighten
+			var l = c.lightness;
+			var maxDist = 1-l;
+			if( maxDist>delta )
+				l += delta;
+			else {
+				l = 1;
+				var s = c.saturation;
+				s -= delta-maxDist;
+				if( s<0 ) s = 0;
+				c.saturation = s;
+			}
+			c.lightness = l;
+		}
+		c.af = a;
+		return c;
+	}
+
 
 
 
@@ -482,8 +526,8 @@ abstract Col(Int) from Int to Int {
 	/**
 		Return current color teinted to `target`, approximately preserving luminance of original color.
 	**/
-	public inline function teint(target:Col, ratio:Float) : Col {
-		var l = fastLuminance;
+	public inline function teint(target:Col, ratio:Float, customLum=-1.) : Col {
+		var l = customLum<0 ? fastLuminance : customLum;
 		if( l<0.65 )
 			return interpolate( target.toBlack(1-l/0.65), ratio );
 		else
