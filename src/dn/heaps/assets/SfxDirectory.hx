@@ -43,7 +43,7 @@ class SfxDirectory {
 		var randomSerieReg = ~/(.*?)([01])+(\.[a-z]+)$/gi;
 
 		function addFilesFromDir(path:String) : Array<ObjectField> {
-			var randomSeries : Map<String,Int> = new Map();
+			var randomSeries : Map<String, { baseName:String, startIdx:Int, ext:String }> = new Map();
 			var fields : Array<ObjectField> = [];
 			for( fName in sys.FileSystem.readDirectory(path) ) {
 
@@ -68,12 +68,14 @@ class SfxDirectory {
 
 				// Detect possible random series
 				if( randomSerieReg.match(fileFp.fileWithExt) ) {
-					final k = fileFp.fileWithExt;
-					var idx = Std.parseInt( randomSerieReg.matched(2) );
-					if( !randomSeries.exists(k) )
-						randomSeries.set(k, idx);
-					else if( randomSeries.get(k) > idx )
-						randomSeries.set(k, idx);
+					var baseName = randomSerieReg.matched(1);
+					var startIdx = Std.parseInt( randomSerieReg.matched(2) );
+					var ext = randomSerieReg.matched(3);
+
+					if( !randomSeries.exists(baseName) )
+						randomSeries.set(baseName, { startIdx:startIdx, baseName:baseName, ext:ext });
+					else if( randomSeries.get(baseName).startIdx > startIdx )
+						randomSeries.get(baseName).startIdx = startIdx;
 				}
 
 				// Init expressions
@@ -127,18 +129,15 @@ class SfxDirectory {
 			}
 
 			// Create random-series getters if a follow-up in the supposed sequence exists
-			for( r in randomSeries.keyValueIterator() ) {
-				randomSerieReg.match(r.key);
-				var baseName = randomSerieReg.matched(1);
-				var idx = Std.parseInt( randomSerieReg.matched(2) );
-				var ext = randomSerieReg.matched(3);
+			for( r in randomSeries ) {
 				var series = [];
-				var fp = FilePath.fromFile(path+"/"+baseName+idx+ext);
+				var idx = r.startIdx;
+				var fp = FilePath.fromFile(path+"/" + r.baseName + idx + r.ext);
 				while( sys.FileSystem.exists(fp.full) ) {
 					fp.removeFirstDirectory();
 					series.push(fp);
 					idx++;
-					fp = FilePath.fromFile(path+"/"+baseName+idx+ext);
+					fp = FilePath.fromFile(path+"/" + r.baseName + idx + r.ext);
 				}
 
 				// Found an actual series
@@ -151,7 +150,7 @@ class SfxDirectory {
 					#end
 					var arrExpr : Expr = { pos:pos, expr: EArrayDecl(pathExprs) }
 					fields.push({
-						field: baseName,
+						field: r.baseName,
 						expr: macro { new dn.heaps.Sfx.RandomSfxList( ${arrExpr} ); },
 					});
 				}
