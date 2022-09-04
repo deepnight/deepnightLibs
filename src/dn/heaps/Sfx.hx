@@ -14,7 +14,7 @@ class Sfx {
 		Folder importer using macro
 	**/
 	macro public static function importDirectory(dir:String) {
-		haxe.macro.Context.error("ERROR: use dn.heaps.assets.SfxDirectory.load()", haxe.macro.Context.currentPos());
+		haxe.macro.Context.fatalError("ERROR: use dn.heaps.assets.SfxDirectory.load()", haxe.macro.Context.currentPos());
 		return macro null;
 	}
 
