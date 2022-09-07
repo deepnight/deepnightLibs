@@ -76,13 +76,15 @@ class StatsBox extends dn.Process {
 	}
 
 	/** Add a dynamic text field **/
-	public function addText( update:Void->String ) {
+	public function addText( update:Void->String, ?colorUpdate:Void->Col ) {
 		var f = new h2d.Flow();
 		flow.addChildAt(f,0);
 		f.layout = Horizontal;
 		var tf = new h2d.Text(getFont(), f);
 		components.push({ f:f, update:(_)->{
 			tf.text = update();
+			if( colorUpdate!=null )
+				tf.textColor = colorUpdate();
 		}});
 	}
 
