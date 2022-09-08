@@ -14,7 +14,6 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 
 	public var rectangularZoom(default,set) : Float;
 
-
 	public function new() {
 		super( new InternalShader() );
 
@@ -24,8 +23,8 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	public function reset() {
 		setScale(1);
 		setScalePivots(0,0);
-		rectangularZoom = 0;
 		resetSkews();
+		rectangularZoom = 0;
 	}
 
 	public inline function resetSkews() {
@@ -59,11 +58,6 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	override function sync(ctx : h2d.RenderContext, s : h2d.Object) {
 		super.sync(ctx, s);
 	}
-
-	override function draw(ctx : h2d.RenderContext, t : h2d.Tile) {
-		shader.texelSize.set( 1/t.width, 1/t.height );
-		return super.draw(ctx,t);
-	}
 }
 
 
@@ -71,7 +65,6 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 private class InternalShader extends h3d.shader.ScreenShader {
 	static var SRC = {
 		@param var texture : Sampler2D;
-		@param var texelSize : Vec2;
 
 		@param var scaleX : Float;
 		@param var scaleY : Float;
@@ -85,12 +78,6 @@ private class InternalShader extends h3d.shader.ScreenShader {
 
 		@param var rectangularZoom : Float;
 
-		@param var ramps : Float;
-
-
-		inline function getLum(col:Vec3) : Float {
-			return max(col.r, max(col.g, col.b));
-		}
 
 		/** Get source texture color at given UV, clamping out-of-bounds positions **/
 		inline function getSrcColor(uv:Vec2) : Vec4 {
@@ -125,7 +112,6 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			}
 			else
 				output.color = getSrcColor(uv);
-
 		}
 	};
 }
