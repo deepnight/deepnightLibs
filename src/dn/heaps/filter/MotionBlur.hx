@@ -5,22 +5,43 @@ class MotionBlur extends h2d.filter.Shader<InternalShader> {
 	/** If TRUE, the outline may be drawn outside of the bounds of the object texture, increasing its size. **/
 	public var extendBounds = false;
 
-	public var blurX(default,set): Float;
-	public var blurY(default,set): Float;
-	public var isZoomBlur(default,set): Bool;
+	var blurX(default,set): Float;
+	var blurY(default,set): Float;
+	var isZoomBlur(default,set): Bool;
 	public var ramps(default,set): Int;
 	public var zoomBlurOriginU(default,set): Float;
 	public var zoomBlurOriginV(default,set): Float;
 
 	/** Add a pixel-perfect outline around a h2d.Object using a shader filter **/
-	public function new(xBlurPx:Float, yBlurPx:Float, ramps=4) {
+	public function new(ramps=4) {
 		super( new InternalShader() );
-		this.blurX = xBlurPx;
-		this.blurY = yBlurPx;
-		this.isZoomBlur = false;
+		this.ramps = ramps;
+		resetBlur();
+	}
+
+	public inline function resetBlur() {
+		blurX = 0;
+		blurY = 0;
+		isZoomBlur = false;
 		zoomBlurOriginU = 0.5;
 		zoomBlurOriginV = 0.5;
-		this.ramps = ramps;
+	}
+
+	public inline function setHorizontalBlur(distPx:Float) {
+		blurX = distPx;
+		blurY = 0;
+		isZoomBlur = false;
+	}
+
+	public inline function setVerticalBlur(distPx:Float) {
+		blurX = 0;
+		blurY = distPx;
+		isZoomBlur = false;
+	}
+
+	public inline function setZoomBlur(distPx:Float) {
+		blurX = blurY = distPx;
+		isZoomBlur = true;
 	}
 
 	inline function set_ramps(v:Int) {
