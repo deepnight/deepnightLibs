@@ -108,10 +108,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 				var distY = ( uv.y - centerV ) * 0.7;
 				uv.x = uv.x + abs(distX) * distX * -rectangularZoom;
 				uv.y = uv.y + abs(distY) * distY * -rectangularZoom;
-				output.color = texture.get(uv);
 			}
-			else
-				output.color = getSrcColor(uv);
+			output.color = getSrcColor(uv);
 		}
 	};
 }
