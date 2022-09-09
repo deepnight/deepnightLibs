@@ -97,8 +97,12 @@ class RandomTools {
 
 
 	/** Pick a value randomly in an array **/
-	public static inline function pick<T>(a:Array<T>) : Null<T> {
-		return a.length==0 ? null : a[Std.random(a.length)];
+	public static inline function pick<T>(a:Array<T>, removeAfterPick=false) : Null<T> {
+		return a.length==0
+			? null
+			: removeAfterPick
+				? a.splice( Std.random(a.length), 1 )[0]
+				: a[Std.random(a.length)];
 	}
 
 
