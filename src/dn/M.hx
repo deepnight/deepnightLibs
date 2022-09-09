@@ -214,6 +214,13 @@ class M {
 	}
 
 	/**
+		Always return a non-zero value
+	**/
+	public static inline function notZero(v:Float, ifZero=0.000001) {
+		return v==0 ? ifZero : v;
+	}
+
+	/**
 	 * Clamps x to the interval so min <= x <= max.
 	 */
 	inline public static function iclamp(x:Int, min:Int, max:Int):Int
