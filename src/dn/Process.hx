@@ -412,7 +412,7 @@ class Process {
 	inline function anyParentPaused() {
 		return parent!=null ? parent.isPaused() : false;
 	}
-	public inline function isPaused() {
+	public function isPaused() {
 		if( _manuallyPaused )
 			return true;
 		else
