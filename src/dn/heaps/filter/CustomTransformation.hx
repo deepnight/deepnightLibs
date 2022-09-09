@@ -43,17 +43,17 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 		scalePivotY = py;
 	}
 
-	inline function set_scaleX(v:Float) return shader.scaleX = v;
-	inline function set_scaleY(v:Float) return shader.scaleY = v;
-	inline function set_scalePivotX(v:Float) return shader.scalePivotX = v;
-	inline function set_scalePivotY(v:Float) return shader.scalePivotY = v;
+	inline function set_scaleX(v:Float) return scaleX = shader.scaleX = v;
+	inline function set_scaleY(v:Float) return scaleY = shader.scaleY = v;
+	inline function set_scalePivotX(v:Float) return scalePivotX = shader.scalePivotX = v;
+	inline function set_scalePivotY(v:Float) return scalePivotY = shader.scalePivotY = v;
 
-	inline function set_skewScaleLeft(v:Float) return shader.skewScaleLeft = v;
-	inline function set_skewScaleRight(v:Float) return shader.skewScaleRight = v;
-	inline function set_skewScaleTop(v:Float) return shader.skewScaleTop = v;
-	inline function set_skewScaleBottom(v:Float) return shader.skewScaleBottom = v;
+	inline function set_skewScaleLeft(v:Float) return skewScaleLeft = shader.skewScaleLeft = v;
+	inline function set_skewScaleRight(v:Float) return skewScaleRight = shader.skewScaleRight = v;
+	inline function set_skewScaleTop(v:Float) return skewScaleTop = shader.skewScaleTop = v;
+	inline function set_skewScaleBottom(v:Float) return skewScaleBottom = shader.skewScaleBottom = v;
 
-	inline function set_rectangularZoom(v:Float) return shader.rectangularZoom = v;
+	inline function set_rectangularZoom(v:Float) return rectangularZoom = shader.rectangularZoom = v;
 
 	override function sync(ctx : h2d.RenderContext, s : h2d.Object) {
 		super.sync(ctx, s);
