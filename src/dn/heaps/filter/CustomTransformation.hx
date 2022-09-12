@@ -2,17 +2,32 @@ package dn.heaps.filter;
 
 
 class CustomTransformation extends h2d.filter.Shader<InternalShader> {
+	/** Horizontal translation in pixels **/
+	public var offsetX(default,set): Float;
+	/** Vertical translation in pixels **/
+	public var offsetY(default,set): Float;
+
+	/** Global X scale factor (defaults to 1) **/
 	public var scaleX(default,set): Float;
+	/** Global Y scale factor (defaults to 1) **/
 	public var scaleY(default,set): Float;
+	/** Horizontal "coordinate" used for X scaling (defaults to 0) **/
 	public var scalePivotX(default,set): Float;
+	/** Vertical "coordinate" used for Y scaling (defaults to 0) **/
 	public var scalePivotY(default,set): Float;
 
+	/** Left side skew factor (defaults to 1) **/
 	public var skewScaleLeft(default,set) : Float;
+	/** Right side skew factor (defaults to 1) **/
 	public var skewScaleRight(default,set) : Float;
+	/** Upper side skew factor (defaults to 1) **/
 	public var skewScaleTop(default,set) : Float;
+	/** Lower side skew factor (defaults to 1) **/
 	public var skewScaleBottom(default,set) : Float;
 
+	/** Rectangular zoom factor (defaults to 0) **/
 	public var rectangularZoom(default,set) : Float;
+
 
 	public function new() {
 		super( new InternalShader() );
@@ -21,6 +36,7 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	}
 
 	public function reset() {
+		offsetX = offsetY = 0;
 		setScale(1);
 		setScalePivots(0,0);
 		resetSkews();
@@ -43,6 +59,9 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 		scalePivotY = py;
 	}
 
+	inline function set_offsetX(v:Float) return offsetX = shader.offsetX = v;
+	inline function set_offsetY(v:Float) return offsetY = shader.offsetY = v;
+
 	inline function set_scaleX(v:Float) return scaleX = shader.scaleX = v;
 	inline function set_scaleY(v:Float) return scaleY = shader.scaleY = v;
 	inline function set_scalePivotX(v:Float) return scalePivotX = shader.scalePivotX = v;
@@ -58,6 +77,12 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	override function sync(ctx : h2d.RenderContext, s : h2d.Object) {
 		super.sync(ctx, s);
 	}
+
+	override function draw(ctx:h2d.RenderContext, t:h2d.Tile):h2d.Tile {
+		shader.texelSize.set( 1/t.width, 1/t.height );
+
+		return super.draw(ctx, t);
+	}
 }
 
 
@@ -65,6 +90,10 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 private class InternalShader extends h3d.shader.ScreenShader {
 	static var SRC = {
 		@param var texture : Sampler2D;
+		@param var texelSize : Vec2;
+
+		@param var offsetX : Float;
+		@param var offsetY : Float;
 
 		@param var scaleX : Float;
 		@param var scaleY : Float;
@@ -90,6 +119,10 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		function fragment() {
 			var uv = calculatedUV;
 
+			// Offsets
+			uv.x -= offsetX * texelSize.x;
+			uv.y -= offsetY * texelSize.y;
+
 			// Base scaling
 			uv.x = uv.x / scaleX + scalePivotX - scalePivotX/scaleX;
 			uv.y = uv.y / scaleY + scalePivotY - scalePivotY/scaleY;
@@ -109,6 +142,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 				uv.x = uv.x + abs(distX) * distX * -rectangularZoom;
 				uv.y = uv.y + abs(distY) * distY * -rectangularZoom;
 			}
+
 			output.color = getSrcColor(uv);
 		}
 	};
