@@ -28,6 +28,12 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	/** Rectangular zoom factor (defaults to 0) **/
 	public var rectangularZoom(default,set) : Float;
 
+	/** Pivot coordinate (U) for rectangular zoom (defaults to 0.5) **/
+	public var rectangularZoomCenterU(default,set) : Float;
+
+	/** Pivot coordinate (V) for rectangular zoom (defaults to 0.5) **/
+	public var rectangularZoomCenterV(default,set) : Float;
+
 
 	public function new() {
 		super( new InternalShader() );
@@ -41,6 +47,8 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 		setScalePivots(0,0);
 		resetSkews();
 		rectangularZoom = 0;
+		rectangularZoomCenterU = 0.5;
+		rectangularZoomCenterV = 0.5;
 	}
 
 	public inline function resetSkews() {
@@ -73,6 +81,8 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	inline function set_skewScaleBottom(v:Float) return skewScaleBottom = shader.skewScaleBottom = v;
 
 	inline function set_rectangularZoom(v:Float) return rectangularZoom = shader.rectangularZoom = v;
+	inline function set_rectangularZoomCenterU(v:Float) return rectangularZoomCenterU = shader.rectangularZoomCenterU = v;
+	inline function set_rectangularZoomCenterV(v:Float) return rectangularZoomCenterV = shader.rectangularZoomCenterV = v;
 
 	override function sync(ctx : h2d.RenderContext, s : h2d.Object) {
 		super.sync(ctx, s);
@@ -106,6 +116,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var skewScaleBottom : Float;
 
 		@param var rectangularZoom : Float;
+		@param var rectangularZoomCenterU : Float;
+		@param var rectangularZoomCenterV : Float;
 
 
 		/** Get source texture color at given UV, clamping out-of-bounds positions **/
@@ -135,10 +147,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 
 			// Zoom scale
 			if( rectangularZoom!=0 ) {
-				var centerU = 0.5;
-				var centerV = 0.45;
-				var distX = ( uv.x - centerU ) * 0.7;
-				var distY = ( uv.y - centerV ) * 0.7;
+				var distX = ( uv.x - rectangularZoomCenterU ) * 0.7;
+				var distY = ( uv.y - rectangularZoomCenterV ) * 0.7;
 				uv.x = uv.x + abs(distX) * distX * -rectangularZoom;
 				uv.y = uv.y + abs(distY) * distY * -rectangularZoom;
 			}
