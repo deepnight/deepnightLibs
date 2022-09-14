@@ -12,7 +12,6 @@ class MotionBlur extends h2d.filter.Shader<InternalShader> {
 	public var zoomBlurOriginU(default,set): Float;
 	public var zoomBlurOriginV(default,set): Float;
 
-	/** Add a pixel-perfect outline around a h2d.Object using a shader filter **/
 	public function new(ramps=4) {
 		super( new InternalShader() );
 		this.ramps = ramps;
@@ -44,31 +43,15 @@ class MotionBlur extends h2d.filter.Shader<InternalShader> {
 		isZoomBlur = true;
 	}
 
-	inline function set_ramps(v:Int) {
-		shader.ramps = v;
-		return v;
-	}
-	inline function set_blurX(v:Float) {
-		shader.blurX = v;
-		return v;
-	}
+	inline function set_ramps(v:Int) return ramps = shader.ramps = v;
+	inline function set_blurX(v:Float) return blurX = shader.blurX = v;
+	inline function set_blurY(v:Float) return blurY = shader.blurY = v;
 
-	inline function set_blurY(v:Float) {
-		shader.blurY = v;
-		return v;
-	}
-
-	inline function set_zoomBlurOriginU(v:Float) {
-		shader.zoomBlurOriginU = v;
-		return v;
-	}
-
-	inline function set_zoomBlurOriginV(v:Float) {
-		shader.zoomBlurOriginV = v;
-		return v;
-	}
+	inline function set_zoomBlurOriginU(v:Float) return zoomBlurOriginU = shader.zoomBlurOriginU = v;
+	inline function set_zoomBlurOriginV(v:Float) return zoomBlurOriginV = shader.zoomBlurOriginV = v;
 
 	inline function set_isZoomBlur(v:Bool) {
+		isZoomBlur = v;
 		shader.isZoomBlur = v ? 1 : 0;
 		return v;
 	}
