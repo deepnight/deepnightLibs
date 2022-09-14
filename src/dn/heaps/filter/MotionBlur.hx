@@ -81,7 +81,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var zoomBlurOriginU : Float;
 		@param var zoomBlurOriginV : Float;
 
-		@param var ramps : Float;
+		@param var ramps : Int;
 
 
 		inline function getLum(col:Vec3) : Float {
@@ -91,7 +91,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		function fragment() {
 			var curColor : Vec4 = texture.get(input.uv);
 
-			for(i in 0...int(ramps)) {
+			for(i in 0...ramps) {
 				var iLocal = i; // force local copy
 				var r : Float = (iLocal+1) / ramps;
 
