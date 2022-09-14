@@ -182,6 +182,16 @@ abstract Col(Int) from Int to Int {
 	}
 
 
+	/** Explicit Int cast **/
+	public inline function toInt() : Int {
+		return this;
+	}
+
+	/** HXSL Vec4 **/
+	public inline function toShaderVec4() : hxsl.Types.Vec {
+		return hxsl.Types.Vec.fromColor(this);
+	}
+
 
 	// Hex parser cache
 	static var SHARP = "#".charCodeAt(0);
