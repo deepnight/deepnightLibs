@@ -25,8 +25,13 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	/** Lower side skew factor (defaults to 1) **/
 	public var skewScaleBottom(default,set) : Float;
 
-	/** Rectangular zoom factor (defaults to 0) **/
-	public var rectangularZoom(default,set) : Float;
+	/** Rectangular X zoom factor (defaults to 0) **/
+	public var rectangularZoomX(default,set) : Float;
+
+	/** Rectangular Y zoom factor (defaults to 0) **/
+	public var rectangularZoomY(default,set) : Float;
+
+	public var rectangularZoom(never,set) : Float;
 
 	/** Pivot coordinate (U) for rectangular zoom (defaults to 0.5) **/
 	public var rectangularZoomCenterU(default,set) : Float;
@@ -46,7 +51,8 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 		setScale(1);
 		setScalePivots(0,0);
 		resetSkews();
-		rectangularZoom = 0;
+		rectangularZoomX = 0;
+		rectangularZoomY = 0;
 		rectangularZoomCenterU = 0.5;
 		rectangularZoomCenterV = 0.5;
 	}
@@ -80,7 +86,9 @@ class CustomTransformation extends h2d.filter.Shader<InternalShader> {
 	inline function set_skewScaleTop(v:Float) return skewScaleTop = shader.skewScaleTop = v;
 	inline function set_skewScaleBottom(v:Float) return skewScaleBottom = shader.skewScaleBottom = v;
 
-	inline function set_rectangularZoom(v:Float) return rectangularZoom = shader.rectangularZoom = v;
+	inline function set_rectangularZoom(v:Float) return rectangularZoomX = rectangularZoomY = v;
+	inline function set_rectangularZoomX(v:Float) return rectangularZoomX = shader.rectangularZoomX = v;
+	inline function set_rectangularZoomY(v:Float) return rectangularZoomY = shader.rectangularZoomY = v;
 	inline function set_rectangularZoomCenterU(v:Float) return rectangularZoomCenterU = shader.rectangularZoomCenterU = v;
 	inline function set_rectangularZoomCenterV(v:Float) return rectangularZoomCenterV = shader.rectangularZoomCenterV = v;
 
@@ -115,7 +123,8 @@ private class InternalShader extends h3d.shader.ScreenShader {
 		@param var skewScaleTop : Float;
 		@param var skewScaleBottom : Float;
 
-		@param var rectangularZoom : Float;
+		@param var rectangularZoomX : Float;
+		@param var rectangularZoomY : Float;
 		@param var rectangularZoomCenterU : Float;
 		@param var rectangularZoomCenterV : Float;
 
@@ -146,11 +155,11 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			uv.x = uv.x / skewScale  +  0.5  -  0.5/skewScale;
 
 			// Zoom scale
-			if( rectangularZoom!=0 ) {
+			if( rectangularZoomX*rectangularZoomY!=0 ) {
 				var distX = ( uv.x - rectangularZoomCenterU ) * 0.7;
 				var distY = ( uv.y - rectangularZoomCenterV ) * 0.7;
-				uv.x = uv.x + abs(distX) * distX * -rectangularZoom;
-				uv.y = uv.y + abs(distY) * distY * -rectangularZoom;
+				uv.x = uv.x + abs(distX) * distX * -rectangularZoomX;
+				uv.y = uv.y + abs(distY) * distY * -rectangularZoomY;
 			}
 
 			output.color = getSrcColor(uv);
