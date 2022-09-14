@@ -2,19 +2,25 @@ package dn.heaps.filter;
 
 
 class RadialColor extends h2d.filter.Shader<InternalShader> {
+	/** Color replacement intensity for pixels closer to the center of the texture (0-1) **/
 	public var innerIntensity(default,set): Float;
+
+	/** Color replacement intensity for pixels further from the center of the texture (0-1) **/
 	public var outerIntensity(default,set): Float;
+
+	/** Threshold when switching from inner to outer intensities (defaults to 0.5) **/
 	public var threshold(default,set): Float;
 
-	public function new() {
+
+	public function new(color:Col=0x0, alpha=0., inner=0., outer=0.) {
 		super( new InternalShader() );
-		innerIntensity = 0;
-		outerIntensity = 0;
 		threshold = 0.5;
-		setColor(0x0, 0);
-		// setColor(0x00ff00, 0);
+		innerIntensity = inner;
+		outerIntensity = outer;
+		setColor(color, alpha);
 	}
 
+	/** Change color **/
 	public inline function setColor(c:Col, a=1.0) {
 		shader.color = c.withAlpha(a).toShaderVec4();
 	}
@@ -33,7 +39,6 @@ class RadialColor extends h2d.filter.Shader<InternalShader> {
 private class InternalShader extends h3d.shader.ScreenShader {
 	static var SRC = {
 		@param var texture : Sampler2D;
-		@param var texelSize : Vec2;
 
 		@param var color : Vec4;
 		@param var innerIntensity : Float;
@@ -48,8 +53,6 @@ private class InternalShader extends h3d.shader.ScreenShader {
 				mix( src, color, innerIntensity ),
 				mix( src, color, outerIntensity ),
 				clamp( distance(vec2(0.5),uv) / threshold, 0, 1 )
-				// clamp( pow( distance(vec2(0.5), uv) / 0.5, 0.4 ), 0, 1 )
-				// clamp( threshold * distance( vec2(0.5), uv ) / 0.5, 0, 1 )
 			);
 		}
 	};
