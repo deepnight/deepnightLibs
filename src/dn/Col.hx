@@ -732,6 +732,10 @@ class UnitTest {
 		CiAssert.equals( M.pretty( Col.fromInt(0x00ff00).fastLuminance, 2 ), 0.59 );
 		CiAssert.equals( M.pretty( Col.fromInt(0x0000ff).fastLuminance, 2 ), 0.11 );
 
+		CiAssert.equals( Col.fromInt(0x0).invert(), 0xffffff );
+		CiAssert.equals( Col.fromInt(0xffffff).invert(), 0x0 );
+		CiAssert.equals( Col.fromInt(0x00ff00).invert(), 0xff00ff );
+
 		// Alpha
 		CiAssert.equals( Col.fromInt(0x112233).withAlpha(), 0xff112233);
 		CiAssert.equals( Col.fromInt(0x112233).withAlpha(0.5), 0x80112233);
