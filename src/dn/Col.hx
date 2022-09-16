@@ -495,6 +495,12 @@ abstract Col(Int) from Int to Int {
 	}
 
 
+	/** Return an inverted version of current color **/
+	public inline function invert() : Col {
+		return fromRGBf(1-rf, 1-gf, 1-bf, af);
+	}
+
+
 	/** Return an interpolation to Black, at % ratio **/
 	public inline function toBlack(ratio:Float) : Col {
 		return
