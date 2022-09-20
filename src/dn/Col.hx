@@ -31,6 +31,29 @@ abstract Col(Int) from Int to Int {
 		this = rgb;
 	}
 
+
+	public static inline function white(withAlpha:Bool) return _colorEnumWithAlpha(White, withAlpha);
+	public static inline function black(withAlpha:Bool) return _colorEnumWithAlpha(Black, withAlpha);
+
+	public static inline function midGray(withAlpha:Bool) return _colorEnumWithAlpha(MidGray, withAlpha);
+	public static inline function coldLightGray(withAlpha:Bool) return _colorEnumWithAlpha(ColdLightGray, withAlpha);
+	public static inline function coldMidGray(withAlpha:Bool) return _colorEnumWithAlpha(ColdMidGray, withAlpha);
+	public static inline function warmLightGray(withAlpha:Bool) return _colorEnumWithAlpha(WarmLightGray, withAlpha);
+	public static inline function warmMidGray(withAlpha:Bool) return _colorEnumWithAlpha(WarmMidGray, withAlpha);
+
+	public static inline function red(withAlpha:Bool) return _colorEnumWithAlpha(Red, withAlpha);
+	public static inline function green(withAlpha:Bool) return _colorEnumWithAlpha(Green, withAlpha);
+	public static inline function blue(withAlpha:Bool) return _colorEnumWithAlpha(Blue, withAlpha);
+
+	public static inline function pink(withAlpha:Bool) return _colorEnumWithAlpha(Pink, withAlpha);
+	public static inline function yellow(withAlpha:Bool) return _colorEnumWithAlpha(Yellow, withAlpha);
+	public static inline function lime(withAlpha:Bool) return _colorEnumWithAlpha(Lime, withAlpha);
+
+	static inline function _colorEnumWithAlpha(c:ColorEnum, withAlpha:Bool) : Col {
+		return withAlpha ? cast(c, Col).withAlpha() : c;
+	}
+
+	/** Return a new instance of the same color **/
 	public inline function clone() return new Col(this);
 
 	/** Create a random color using HSL **/
@@ -598,6 +621,7 @@ abstract Col(Int) from Int to Int {
 		return b;
 	}
 	#end
+
 }
 
 
