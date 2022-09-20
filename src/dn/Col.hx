@@ -32,26 +32,47 @@ abstract Col(Int) from Int to Int {
 	}
 
 
-	public static inline function white(withAlpha:Bool) return _colorEnumWithAlpha(White, withAlpha);
-	public static inline function black(withAlpha:Bool) return _colorEnumWithAlpha(Black, withAlpha);
+	public static inline function white(withAlpha=false) return _colorEnumWithAlpha(White, withAlpha);
+	public static inline function black(withAlpha=false) return _colorEnumWithAlpha(Black, withAlpha);
 
-	public static inline function midGray(withAlpha:Bool) return _colorEnumWithAlpha(MidGray, withAlpha);
-	public static inline function coldLightGray(withAlpha:Bool) return _colorEnumWithAlpha(ColdLightGray, withAlpha);
-	public static inline function coldMidGray(withAlpha:Bool) return _colorEnumWithAlpha(ColdMidGray, withAlpha);
-	public static inline function warmLightGray(withAlpha:Bool) return _colorEnumWithAlpha(WarmLightGray, withAlpha);
-	public static inline function warmMidGray(withAlpha:Bool) return _colorEnumWithAlpha(WarmMidGray, withAlpha);
+	public static inline function midGray(withAlpha=false) return _colorEnumWithAlpha(MidGray, withAlpha);
+	public static inline function coldLightGray(withAlpha=false) return _colorEnumWithAlpha(ColdLightGray, withAlpha);
+	public static inline function coldMidGray(withAlpha=false) return _colorEnumWithAlpha(ColdMidGray, withAlpha);
+	public static inline function warmLightGray(withAlpha=false) return _colorEnumWithAlpha(WarmLightGray, withAlpha);
+	public static inline function warmMidGray(withAlpha=false) return _colorEnumWithAlpha(WarmMidGray, withAlpha);
 
-	public static inline function red(withAlpha:Bool) return _colorEnumWithAlpha(Red, withAlpha);
-	public static inline function green(withAlpha:Bool) return _colorEnumWithAlpha(Green, withAlpha);
-	public static inline function blue(withAlpha:Bool) return _colorEnumWithAlpha(Blue, withAlpha);
+	public static inline function red(withAlpha=false) return _colorEnumWithAlpha(Red, withAlpha);
+	public static inline function green(withAlpha=false) return _colorEnumWithAlpha(Green, withAlpha);
+	public static inline function blue(withAlpha=false) return _colorEnumWithAlpha(Blue, withAlpha);
 
-	public static inline function pink(withAlpha:Bool) return _colorEnumWithAlpha(Pink, withAlpha);
-	public static inline function yellow(withAlpha:Bool) return _colorEnumWithAlpha(Yellow, withAlpha);
-	public static inline function lime(withAlpha:Bool) return _colorEnumWithAlpha(Lime, withAlpha);
+	public static inline function pink(withAlpha=false) return _colorEnumWithAlpha(Pink, withAlpha);
+	public static inline function yellow(withAlpha=false) return _colorEnumWithAlpha(Yellow, withAlpha);
+	public static inline function lime(withAlpha=false) return _colorEnumWithAlpha(Lime, withAlpha);
 
 	static inline function _colorEnumWithAlpha(c:ColorEnum, withAlpha:Bool) : Col {
 		return withAlpha ? cast(c, Col).withAlpha() : c;
 	}
+
+
+	/** Create a gray Col from a single float value (0.0 = black  =>  0.5 = mid gray =>  1.0 = white)  **/
+	@:from public static inline function gray(v:Float) : Col {
+		return fromRGBf(v,v,v);
+	}
+
+	/** Create a "warm" gray Col from a single float value (0.0 = black  =>  0.5 = mid warm gray =>  1.0 = white)  **/
+	public static inline function warmGray(lightness:Float) {
+		return lightness>=0.5
+			? warmMidGray(false).toWhite( (lightness-0.5)/0.5 )
+			: warmMidGray(false).toBlack( 1-lightness/0.5 );
+	}
+
+	/** Create a "cold" gray Col from a single float value (0.0 = black  =>  0.5 = mid cold gray =>  1.0 = white)  **/
+	public static inline function coldGray(lightness:Float) {
+		return lightness>=0.5
+			? coldMidGray(false).toWhite( (lightness-0.5)/0.5 )
+			: coldMidGray(false).toBlack( 1-lightness/0.5 );
+	}
+
 
 	/** Return a new instance of the same color **/
 	public inline function clone() return new Col(this);
@@ -289,12 +310,6 @@ abstract Col(Int) from Int to Int {
 	}
 
 
-	/** Create a gray Col from a single float value (0.0 = black  =>  0.5 = mid gray =>  1.0 = white)  **/
-	@:from public static inline function gray(v:Float) : Col {
-		return fromRGBf(v,v,v);
-	}
-
-
 
 
 	/** Red channel as Int (0-255) **/
@@ -366,6 +381,14 @@ abstract Col(Int) from Int to Int {
 		c.rf*=f;
 		c.gf*=f;
 		c.bf*=f;
+		return c;
+	}
+
+	public inline function incRGB(v:Float) {
+		var c = clone();
+		c.rf = M.fclamp( c.rf + v, 0, 1 );
+		c.gf = M.fclamp( c.gf + v, 0, 1 );
+		c.bf = M.fclamp( c.bf + v, 0, 1 );
 		return c;
 	}
 
