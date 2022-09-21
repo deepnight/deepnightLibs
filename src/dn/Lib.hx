@@ -142,10 +142,27 @@ class Lib {
 		return out;
 	}
 
+	/** Add `padChar` at the beginning of given String to ensure its length is at least `minLen` **/
+	public static inline function padLeft(str:String, minLen:Int, padChar=" ") {
+		while( str.length<minLen )
+			str=padChar+str;
+		return str;
+	}
+
 	/** Add `padChar` at the end of given String to ensure its length is at least `minLen` **/
 	public static inline function padRight(str:String, minLen:Int, padChar=" ") {
 		while( str.length<minLen )
 			str+=padChar;
+		return str;
+	}
+
+	/** Add `padChar` at the end of given String to ensure its length is at least `minLen` **/
+	public static inline function padCenter(str:String, minLen:Int, padChar=" ") {
+		var side = true;
+		while( str.length<minLen ) {
+			str = side ? str+padChar : padChar+str;
+			side = !side;
+		}
 		return str;
 	}
 
