@@ -6,7 +6,7 @@ class Monochrome extends h2d.filter.Shader<InternalShader> {
 	public var light(default,set) : Col;
 	public var threshold(default,set) : Float;
 
-	public function new(dark:Col=0x0, light:Col=0xffffff, threshold=0.4) {
+	public function new(dark:Col=0x0, light:Col=0xffffff, threshold=0.28) {
 		super( new InternalShader() );
 		this.dark = dark;
 		this.light = light;
