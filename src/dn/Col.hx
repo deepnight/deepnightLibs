@@ -50,7 +50,7 @@ abstract Col(Int) from Int to Int {
 	public static inline function lime(withAlpha=false) return _colorEnumWithAlpha(Lime, withAlpha);
 
 	static inline function _colorEnumWithAlpha(c:ColorEnum, withAlpha:Bool) : Col {
-		return withAlpha ? cast(c, Col).withAlpha() : c;
+		return withAlpha ? cast(c, Col).withAlpha(1) : c;
 	}
 
 
@@ -234,7 +234,13 @@ abstract Col(Int) from Int to Int {
 	/** HXSL Vec4 **/
 	#if heaps
 	public inline function toShaderVec4() : hxsl.Types.Vec {
-		return hxsl.Types.Vec.fromColor(this);
+		return hxsl.Types.Vec.fromColor( withAlphaIfMissing() );
+	}
+	#end
+	/** HXSL Vec4 **/
+	#if heaps
+	public inline function toShaderVec3() : hxsl.Types.Vec {
+		return hxsl.Types.Vec.fromColor( withoutAlpha() );
 	}
 	#end
 
@@ -356,8 +362,13 @@ abstract Col(Int) from Int to Int {
 
 
 	/** Return color with given alpha (0-1) **/
-	public inline function withAlpha(a=1.0) : Col {
+	public inline function withAlpha(a:Float) : Col {
 		return M.round(a*255) << 24 | withoutAlpha();
+	}
+
+	/** Return color with either the given alpha value (0-1), or the current color alpha, if it is not zero. **/
+	public inline function withAlphaIfMissing(a=1.0) : Col {
+		return af!=0 ? clone() : withAlpha(a);
 	}
 
 	/** Return color without alpha **/
@@ -784,7 +795,7 @@ class UnitTest {
 		CiAssert.equals( Col.fromInt(0x00ff00).invert(), 0xff00ff );
 
 		// Alpha
-		CiAssert.equals( Col.fromInt(0x112233).withAlpha(), 0xff112233);
+		CiAssert.equals( Col.fromInt(0x112233).withAlpha(1), 0xff112233);
 		CiAssert.equals( Col.fromInt(0x112233).withAlpha(0.5), 0x80112233);
 		CiAssert.equals( Col.fromInt(0xff112233).withoutAlpha(), 0x112233);
 		CiAssert.equals( Col.fromInt(0x112233).withoutAlpha(), 0x112233);
