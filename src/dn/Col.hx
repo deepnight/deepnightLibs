@@ -234,7 +234,7 @@ abstract Col(Int) from Int to Int {
 	/** HXSL Vec4 **/
 	#if heaps
 	public inline function toShaderVec4() : hxsl.Types.Vec {
-		return hxsl.Types.Vec.fromColor( withAlphaIfMissing() );
+		return hxsl.Types.Vec.fromColor(this);
 	}
 	#end
 	/** HXSL Vec4 **/
