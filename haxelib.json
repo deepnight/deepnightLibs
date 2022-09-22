@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.71",
+	"version": "1.0.72",
 	"classPath": "src/",
-	"releasenote": "Way too many things",
+	"releasenote": "Added various shader filters. Fixes.",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
