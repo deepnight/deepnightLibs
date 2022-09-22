@@ -18,6 +18,7 @@ private class InternalShader extends h3d.shader.ScreenShader {
 			col.r = 1-col.r;
 			col.g = 1-col.g;
 			col.b = 1-col.b;
+			col.rgb *= col.a;
 			output.color = col;
 		}
 	};
