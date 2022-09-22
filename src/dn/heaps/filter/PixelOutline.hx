@@ -6,7 +6,7 @@ package dn.heaps.filter;
 **/
 class PixelOutline extends h2d.filter.Shader<InternalShader> {
 	/** Outline color (0xRRGGBB) **/
-	public var color(default, set) : Int;
+	public var color(default, set) : Col;
 	public var alpha(default, set) : Float;
 
 	/** If TRUE, the original object pixels are discarded, and only the outline remains **/
@@ -25,7 +25,7 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 	public var bottom(default,set) : Bool;
 
 	/** Add a pixel-perfect outline around a h2d.Object using a shader filter **/
-	public function new(color=0x0, a=1.0, knockOut=false) {
+	public function new(color:Col=0x0, a=1.0, knockOut=false) {
 		super( new InternalShader() );
 		this.color = color;
 		alpha = a;
@@ -37,7 +37,7 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 		this.knockOut = knockOut;
 	}
 
-	inline function set_color(v:Int) {
+	inline function set_color(v:Col) {
 		color = v;
 		shader.outlineColor = hxsl.Types.Vec.fromColor(color);
 		shader.outlineColor.a = alpha;
