@@ -1019,6 +1019,16 @@ class M {
 	}
 
 
+	/**
+		Return a 0-1 ratio by "clamping" `r` to [min,max].
+		 - If r<=min, this returns 0,
+		 - If r>=min and r<=max, this returns 0 to 1,
+		 - If r>=max, this returns 1,
+	**/
+	public static inline function subRatio(r:Float, min:Float, max:Float) : Float {
+		return M.fclamp( (r-min) / (max-min), 0, 1 );
+	}
+
 	@:noCompletion
 	public static function __test() {
 		// TODO more tests
@@ -1107,5 +1117,11 @@ class M {
 		CiAssert.equals( M.unitMega(1234567), "1.2M" );
 		CiAssert.equals( M.unitMega(1234567,2), "1.23M" );
 		CiAssert.equals( M.unitMega(1500000), "1.5M" );
+
+		CiAssert.equals( M.subRatio(0.1,  0.5, 0.7), 0 );
+		CiAssert.equals( M.subRatio(0.5,  0.5, 0.7), 0 );
+		CiAssert.equals( M.subRatio(0.6,  0.5, 0.7), 0.5 );
+		CiAssert.equals( M.subRatio(0.7,  0.5, 0.7), 1 );
+		CiAssert.equals( M.subRatio(0.9,  0.5, 0.7), 1 );
 	}
 }
