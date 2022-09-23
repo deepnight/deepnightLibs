@@ -1087,6 +1087,29 @@ class InputBinding<T:Int> {
 			return pad.isPressed( input.getPadButtonId(padButton) ) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
 		}
 	}
+
+	/**
+		Return TRUE if this binding is considered as "released". NOTE: this will only work for buttons and keys, NOT axis movements.
+	**/
+	public inline function isReleased(pad:hxd.Pad) {
+		_comboBreak = false;
+		for(cb in comboBindings)
+			if( !cb.isReleased(pad) ) {
+				_comboBreak = true;
+				break;
+			}
+
+		if( _comboBreak )
+			return false;
+		else
+			return
+				!isLStick && !isRStick && pad.isReleased( input.getPadButtonId(padButton) )
+				|| Key.isReleased(kbPos) || Key.isReleased(kbNeg)
+				|| pad.isReleased( input.getPadButtonId(padPos) ) || pad.isReleased( input.getPadButtonId(padNeg) )
+				|| ( isLStick || isRStick ) && signLimit==0 && dn.M.fabs( getValue(pad) ) < analogDownDeadZone
+				|| ( isLStick || isRStick ) && signLimit==1 && getValue(pad) < analogDownDeadZone
+				|| ( isLStick || isRStick ) && signLimit==-1 && getValue(pad) > -analogDownDeadZone;
+	}
 }
 
 #end
