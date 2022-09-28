@@ -301,7 +301,7 @@ class Controller<T:Int> {
 
 	public var disableRumble : Bool = false;
 	public var rumbleMultiplicator : Float = 1;
-	
+
 	/** Rumbles physical controller, if supported **/
 	public inline function rumble(strength:Float, seconds:Float) {
 		if( pad.index>=0 && !disableRumble)
@@ -723,7 +723,7 @@ class Controller<T:Int> {
 			f.paddingHorizontal = 2;
 			f.paddingBottom = 2;
 			var tf = new h2d.Text(ICON_FONT, f);
-			tf.text = resolvePadButtonName(b);
+			tf.text = getPadButtonName(b);
 			tf.textColor = 0x0;
 			tf.alpha = 0.5;
 		#end
