@@ -818,6 +818,7 @@ class M {
 		return Math.atan2(ty-fy, tx-fx);
 	}
 
+	/** Round a float to given precision **/
 	public static inline function pretty(v:Float, precision=2) : Float {
 		if( precision<=0 )
 			return round(v);
@@ -825,6 +826,19 @@ class M {
 			var d = Math.pow(10,precision);
 			return round(v*d)/d;
 		}
+	}
+
+	/**
+		Round a float to given precision, adding leading zeros if needed.
+		Examplex:
+			0.1234, precision 2, returns 0.12
+			0.1, precision 2, returns 0.10
+	**/
+	public static inline function prettyPad(v:Float, precision=2) : String {
+		var str = Std.string( pretty(v,precision) );
+		while( str.length-(str.lastIndexOf(".")+1) < precision )
+			str+="0";
+		return str;
 	}
 
 	public static inline function groupNumbers(v:Int, sep=" ") : String {
