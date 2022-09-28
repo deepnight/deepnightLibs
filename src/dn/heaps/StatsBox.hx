@@ -45,7 +45,7 @@ class StatsBox extends dn.Process {
 		flow.horizontalAlign = Right;
 		flow.verticalSpacing = 2;
 
-		wid = 100;
+		wid = 150;
 		Process.resizeAll();
 	}
 
@@ -93,7 +93,7 @@ class StatsBox extends dn.Process {
 		@param refValue If not zero, this will display a reference horizontal line at given value
 		@param maxValue If not zero, defines the max value of the chart
 	 **/
-	public function addCustomChart( label="", ?color:Col, valueGetter:Void->Float, refValue=0., maxValue=0.) : Chart {
+	public function addCustomChart( label="", ?color:Col, valueGetter:Void->Float,?additionalInfoGetter:Void->String, refValue=0., maxValue=0.) : Chart {
 		var c = new Chart(label, color, getFont(), this);
 		flow.addChild(c.root);
 		c.wid = wid;
@@ -101,6 +101,7 @@ class StatsBox extends dn.Process {
 		c.refValue = refValue;
 		c.maxValue = maxValue;
 		c.autoPlot( valueGetter, updateFreqS);
+		c.autoMoreInf(additionalInfoGetter);
 		charts.push(c);
 		return c;
 	}
@@ -130,7 +131,7 @@ class StatsBox extends dn.Process {
 	#if hl
 	/** Add a chart tracking **Memory Usage** (per seconds or total) **/
 	public function addMemoryChart(showValuePerSec=true) {
-		var c = addCustomChart("MEM", Col.fromColorEnum(Blue).toWhite(0.4), ()->dn.Gc.getCurrentMem());
+		var c = addCustomChart("MEM", Col.fromColorEnum(Blue).toWhite(0.4), ()->dn.Gc.getCurrentMem(), ()->"GC "+dn.Gc.isActive());
 		c.precision = 2;
 		c.showValuePerSec = showValuePerSec;
 		if( showValuePerSec )
