@@ -97,11 +97,12 @@ class ElectronTools {
 
 	/** Return fullscreen mode **/
 	public static function isFullScreen() : Bool
-		return isRenderer() ? IpcRenderer.sendSync("isFullScreen") : mainWindow.isFullScreen();
+		return try isRenderer() ? IpcRenderer.sendSync("isFullScreen") : mainWindow.isFullScreen() catch(_) false;
 
 	/** Return status of the dev tools panel **/
-	public static function isDevToolsOpened() : Bool
-		return isRenderer() ? IpcRenderer.sendSync("isDevToolsOpened") : mainWindow.webContents.isDevToolsOpened();
+	public static function isDevToolsOpened() : Bool 
+		return try isRenderer() ? IpcRenderer.sendSync("isDevToolsOpened") : mainWindow.webContents.isDevToolsOpened() catch(_) false;
+
 
 	/** Get primary display width in pixels **/
 	public static function getScreenWidth() : Float
