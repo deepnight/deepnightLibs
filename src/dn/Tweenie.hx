@@ -439,8 +439,13 @@ class Tweenie {
 
 
 	public function update(dt=1.0) {
-		for (t in allTweens)
+		var i = 0;
+		while (i < allTweens.allocated) {
+			var t = allTweens.get(i);
 			if( t.internalUpdate(dt) )
 				allTweens.remove(t);
+			else 
+				i++;
+		}
 	}
 }
