@@ -235,6 +235,20 @@ class ControllerAccess<T:Int> {
 	}
 
 
+	/**
+		Return TRUE if given action Enum is "released" (ie. released while it was previously pushed). By definition, this only happens during 1 frame, when control is released.
+	**/
+	public function isReleased(v:T) : Bool {
+		if( isActive() && bindings.exists(v) ) {
+			for(b in bindings.get(v))
+				if( b.isReleased(pad) )
+					return true;
+		}
+
+		return false;
+	}
+
+
 	public inline function initHeldState(action:T) {
 		if( holdTimeS.exists(action) )
 			holdTimeS.remove( action );
