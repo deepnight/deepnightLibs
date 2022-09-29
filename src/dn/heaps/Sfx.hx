@@ -10,6 +10,9 @@ import hxd.res.Sound;
 // --- SFX ------------------------------------------------------
 
 class Sfx {
+	static var FILEPATH_TO_UID : Map<String,Int> = new Map();
+	static var UNIQ = 0;
+
 	/**
 		Folder importer using macro
 	**/
@@ -34,9 +37,9 @@ class Sfx {
 	static var SPATIAL_LISTENER_X = 0.;
 	static var SPATIAL_LISTENER_Y = 0.;
 	static var SPATIAL_LISTENER_RANGE = 1.;
-	static var ON_PLAY_CB : Map<String, Sfx->Void> = new Map();
-	static var SOUND_VOLUMES_OVERRIDE : Map<String,Float> = new Map(); // TODO bad for allocs
-	static var SOUND_DEFAULT_GROUPS : Map<String,Int> = new Map(); // TODO bad for allocs
+	static var ON_PLAY_CB : Map<Int, Sfx->Void> = new Map();
+	static var SOUND_VOLUMES_OVERRIDE : Map<Int,Float> = new Map();
+	static var SOUND_DEFAULT_GROUPS : Map<Int,Int> = new Map();
 
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
 	public static var DEFAULT_GROUP_ID = 0;
@@ -49,17 +52,21 @@ class Sfx {
 	public var filePath(get,never) : Null<String>;
 		inline function get_filePath() return sound==null || sound.entry==null ? null : sound.entry.path;
 
-	public var identifier(get,never) : String;
-		inline function get_identifier() return filePath; // TODO mem allocs
+	public var soundUid : Int;
 
 
 	/**
 		Target sound volume. Please note that the actual "final" volume will be a mix of this value, the Group volume and optional spatialization.
 	**/
 	public var volume(default,set) : Float;
+
 	/** Sound duration in seconds **/
-	public var baseDurationS(get,never) : Float; inline function get_baseDurationS() return sound.getData().duration;
-	public var curPlayDurationS(get,never) : Float; inline function get_curPlayDurationS() return lastChannel!=null ? lastChannel.duration : 0.;
+	public var baseDurationS(get,never) : Float;
+		inline function get_baseDurationS() return sound.getData().duration;
+
+	public var curPlayDurationS(get,never) : Float;
+		inline function get_curPlayDurationS() return lastChannel!=null ? lastChannel.duration : 0.;
+
 	var spatialX : Null<Float>;
 	var spatialY : Null<Float>;
 
@@ -78,6 +85,13 @@ class Sfx {
 		volume = 1;
 		spatialRangeMul = 1.0;
 		groupId = DEFAULT_GROUP_ID;
+		soundUid = resolveUid(filePath);
+	}
+
+	inline function resolveUid(path:String) : Int {
+		if( !FILEPATH_TO_UID.exists(path) )
+			FILEPATH_TO_UID.set(path, UNIQ++);
+		return FILEPATH_TO_UID.get(path);
 	}
 
 	public function dispose() {
@@ -131,27 +145,27 @@ class Sfx {
 	}
 
 	public static function overrideSoundVolume(s:Sfx, newDefaultVolumeMul:Float) {
-		SOUND_VOLUMES_OVERRIDE.set(s.identifier, newDefaultVolumeMul);
+		SOUND_VOLUMES_OVERRIDE.set(s.soundUid, newDefaultVolumeMul);
 	}
 
 	public static function setOnPlayCb(s:Sfx, cb:Sfx->Void) {
-		ON_PLAY_CB.set(s.identifier, cb);
+		ON_PLAY_CB.set(s.soundUid, cb);
 	}
 
 	public static function removeOnPlayCb(s:Sfx, cb:Sfx->Void) {
-		ON_PLAY_CB.remove(s.identifier);
+		ON_PLAY_CB.remove(s.soundUid);
 	}
 
 	public static function resetOverridenSoundVolume(s:Sfx) {
-		SOUND_VOLUMES_OVERRIDE.remove(s.identifier);
+		SOUND_VOLUMES_OVERRIDE.remove(s.soundUid);
 	}
 
 	public static function setSoundDefaultGroup(s:Sfx, groupId:Int) {
-		SOUND_DEFAULT_GROUPS.set(s.identifier, groupId);
+		SOUND_DEFAULT_GROUPS.set(s.soundUid, groupId);
 	}
 
 	public static function unsetSoundDefaultGroup(s:Sfx) {
-		SOUND_DEFAULT_GROUPS.remove(s.identifier);
+		SOUND_DEFAULT_GROUPS.remove(s.soundUid);
 	}
 
 
@@ -212,8 +226,8 @@ class Sfx {
 		applyVolume();
 
 		// On play global callbacks
-		if( ON_PLAY_CB.exists(identifier) )
-			ON_PLAY_CB.get(identifier)(this);
+		if( ON_PLAY_CB.exists(soundUid) )
+			ON_PLAY_CB.get(soundUid)(this);
 	}
 
 	/**
@@ -232,8 +246,8 @@ class Sfx {
 		if( isPlaying() )
 			stop();
 
-		if( SOUND_DEFAULT_GROUPS.exists(identifier) )
-			groupId = SOUND_DEFAULT_GROUPS.get(identifier);
+		if( SOUND_DEFAULT_GROUPS.exists(soundUid) )
+			groupId = SOUND_DEFAULT_GROUPS.get(soundUid);
 		onStartPlaying( sound.play(loop, volume, getGlobalGroup(groupId).soundGroup) );
 		return this;
 	}
@@ -318,7 +332,7 @@ class Sfx {
 			spatial = f*f*f;
 		}
 
-		final overrideVol : Float = SOUND_VOLUMES_OVERRIDE.exists(identifier) ? SOUND_VOLUMES_OVERRIDE.get(identifier) : 1;
+		final overrideVol : Float = SOUND_VOLUMES_OVERRIDE.exists(soundUid) ? SOUND_VOLUMES_OVERRIDE.get(soundUid) : 1;
 
 		return getGlobalGroup(groupId).getVolume() * spatial * overrideVol;
 	}
@@ -561,23 +575,18 @@ class RandomSfxList {
 		}
 	}
 
-	/**
-		Return a random Sfx
-	**/
+	/** Return a random Sfx **/
 	public inline function draw() {
 		return getters[ randomFunc(getters.length) ]() ;
 	}
 
 
-	/**
-		Return a random Sfx and play it
-	**/
+	/** Return a random Sfx and play it **/
 	public inline function drawAndPlay(vol=1.0) {
 		var s = draw();
 		s.play(vol);
 		return s;
 	}
-
 
 	public function getAllSfx() : Array<Sfx> {
 		return getters.map( g->g() );
