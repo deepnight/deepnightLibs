@@ -13,6 +13,7 @@ class Sfx {
 	/**
 		Folder importer using macro
 	**/
+	@:noCompletion
 	macro public static function importDirectory(dir:String) {
 		haxe.macro.Context.fatalError("ERROR: use dn.heaps.assets.SfxDirectory.load()", haxe.macro.Context.currentPos());
 		return macro null;
@@ -20,7 +21,7 @@ class Sfx {
 
 	#if placeholderSfx
 	/**
-		Return a hxd.res.Sound object from the provided placeholder path in `-D path/to/placeholder.wav`
+		Return a hxd.res.Sound object from the provided placeholder path in `-D placeholderSfx=path/to/placeholder.wav`
 	**/
 	macro public static function getPlaceholderSfx() {
 		var path = haxe.macro.Context.getDefines().get("placeholderSfx");
@@ -34,8 +35,8 @@ class Sfx {
 	static var SPATIAL_LISTENER_Y = 0.;
 	static var SPATIAL_LISTENER_RANGE = 1.;
 	static var ON_PLAY_CB : Map<String, Sfx->Void> = new Map();
-	static var SOUND_VOLUMES_OVERRIDE : Map<String,Float> = new Map();
-	static var SOUND_DEFAULT_GROUPS : Map<String,Int> = new Map();
+	static var SOUND_VOLUMES_OVERRIDE : Map<String,Float> = new Map(); // TODO bad for allocs
+	static var SOUND_DEFAULT_GROUPS : Map<String,Int> = new Map(); // TODO bad for allocs
 
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
 	public static var DEFAULT_GROUP_ID = 0;
@@ -45,8 +46,11 @@ class Sfx {
 	public var groupId(default,set) : Int;
 	public var soundGroup(get,never) : Null<SoundGroup>;
 
+	public var filePath(get,never) : Null<String>;
+		inline function get_filePath() return sound==null || sound.entry==null ? null : sound.entry.path;
+
 	public var identifier(get,never) : String;
-		inline function get_identifier() return sound==null || sound.entry==null ? "?" : sound.entry.path;
+		inline function get_identifier() return filePath; // TODO mem allocs
 
 
 	/**
@@ -84,7 +88,7 @@ class Sfx {
 	}
 
 	public function toString() {
-		return "Sfx." + ( customIdentifier!=null ? customIdentifier : Std.string(sound) );
+		return "Sfx"+( filePath==null?"":'[$filePath]' ) + ( customIdentifier!=null ? customIdentifier : Std.string(sound) );
 	}
 
 
@@ -572,5 +576,10 @@ class RandomSfxList {
 		var s = draw();
 		s.play(vol);
 		return s;
+	}
+
+
+	public function getAllSfx() : Array<Sfx> {
+		return getters.map( g->g() );
 	}
 }
