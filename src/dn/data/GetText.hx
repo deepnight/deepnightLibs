@@ -355,7 +355,7 @@ class GetText {
 
 
 	@:noCompletion
-	@:deprecated("Use appropriate separate parseXXX methods. This one isn't supported anymore.")
+	@:deprecated("doParseGlobal() isn't supported anymore. Please use appropriate separate parseXXX() methods, followed by writePOT(). ")
 	public static function doParseGlobal(o:Dynamic) {
 		throw "Not supported anymore";
 		return null;
