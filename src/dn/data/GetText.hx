@@ -353,6 +353,14 @@ class GetText {
 	#if( sys && !macro )
 	static var SRC_REG = ~/\._\(\s*"((\\"|[^"])+)"/i;
 
+
+	@:noCompletion
+	@:deprecated("Use appropriate separate parseXXX methods. This one isn't supported anymore.")
+	public static function doParseGlobal(o:Dynamic) {
+		throw "Not supported anymore";
+		return null;
+	};
+
 	/**
 		Parse HX files
 	**/
