@@ -54,6 +54,9 @@ class GameFocusHelper extends dn.Process {
     }
 
     public static function isUseful() {
+        #if js
+        return !isMobile();
+        #else
         return switch hxd.System.platform {
             case WebGL: !isMobile();
             case IOS, Android: false;
@@ -61,6 +64,7 @@ class GameFocusHelper extends dn.Process {
             case Console: false;
             case FlashPlayer: true;
         }
+        #end
     }
 
     function suspendGame() {
