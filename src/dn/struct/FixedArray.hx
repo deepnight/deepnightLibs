@@ -143,6 +143,18 @@ class FixedArray<T> {
 		nalloc = 0;
 	}
 
+	public function bubbleSort(weight:T->Float) {
+		var tmp : T = null;
+		for(i in 0...allocated-1)
+		for(j in i+1...allocated) {
+			if( weight(get(i)) > weight(get(j)) ) {
+				tmp = get(i);
+				set(i, get(j));
+				set(j, tmp);
+			}
+		}
+	}
+
 
 	/** Unit tests **/
 	@:noCompletion
