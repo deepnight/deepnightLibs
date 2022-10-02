@@ -377,6 +377,11 @@ class HParticle extends BatchElement {
 		applyAnimFrame();
 	}
 
+	public inline function randomizeAnimCursor() {
+		animCursor = irnd(0, animLib.getAnim(animId).length-1);
+		applyAnimFrame();
+	}
+
 
 	public inline function setScale(v:Float) scale = v;
 	public inline function setPosition(x:Float, y:Float) {
