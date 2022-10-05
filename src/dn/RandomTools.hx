@@ -96,6 +96,22 @@ class RandomTools {
 	}
 
 
+	public static inline function either<T>(a:T, b:T, aChance=0.5) : T {
+		return rnd(0,1)<aChance ? a : b;
+	}
+
+	public static inline function oneOf2<T>(main:T, mainWeight:Float, alt:T, altWeight:Float) : T {
+		return rnd(0,mainWeight+altWeight)<=mainWeight ? main : alt;
+	}
+
+	public static inline function oneOf3<T>(main:T, mainWeight:Float, alt1:T, alt1Weight:Float, alt2:T, alt2Weight) : T {
+		var r = rnd(0, mainWeight + alt1Weight + alt2Weight);
+		return r<=mainWeight ? main
+			: r<=mainWeight+alt1Weight ? alt1
+			: alt2;
+	}
+
+
 	/** Pick a value randomly in an array **/
 	public static inline function pick<T>(a:Array<T>, removeAfterPick=false) : Null<T> {
 		return a.length==0
