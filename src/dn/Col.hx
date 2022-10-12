@@ -360,8 +360,8 @@ abstract Col(Int) from Int to Int {
 		inline function get_af() return ai/255;
 		inline function set_af(af:Float) { this = fromRGBf(rf, gf, bf, af); return af; }
 
-	/** Return some approximate distance (0-1) between current color and another one **/
-	public inline function getDistance(target:Col) : Float {
+	/** Return some approximate RGB distance (0-1) between current color and another one **/
+	public inline function getDistanceRgb(target:Col) : Float {
 		return ( M.fabs(target.rf-rf) + M.fabs(target.gf-gf) + M.fabs(target.bf-bf) ) / 3;
 	}
 
@@ -454,7 +454,7 @@ abstract Col(Int) from Int to Int {
 
 
 
-	/** Hue value (from HSL format) **/
+	/** Hue value (0-1, from HSL format) **/
 	public var hue(get,set) : Float;
 	inline function get_hue() {
 		var max = rf>=gf && rf>=bf ? rf : gf>=bf ? gf : bf;
@@ -480,7 +480,7 @@ abstract Col(Int) from Int to Int {
 	}
 
 
-	/** Saturation value (from HSL format) **/
+	/** Saturation value (0-1, from HSL format) **/
 	public var saturation(get,set) : Float;
 	inline function get_saturation() {
 		var r = rf;
@@ -498,7 +498,7 @@ abstract Col(Int) from Int to Int {
 	}
 
 
-	/** Lightness value (from HSL format) **/
+	/** Lightness value (0-1, from HSL format) **/
 	public var lightness(get,set) : Float;
 	inline function get_lightness() {
 		var r = rf;
