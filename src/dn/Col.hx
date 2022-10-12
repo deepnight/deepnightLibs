@@ -142,7 +142,7 @@ abstract Col(Int) from Int to Int {
 	}
 
 	static function _parseAndInlineHex(hex:String, pos:haxe.macro.Expr.Position) : Int {
-		var colInt = parseHex(hex);
+		var colInt = try parseHex(hex) catch(_) haxe.macro.Context.fatalError("Malformed hex color", pos);
 		if( colInt==-1 )
 			haxe.macro.Context.fatalError("Malformed color code (expected: #rrggbb, #rgb or #v)", pos);
 		return colInt;
