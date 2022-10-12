@@ -39,7 +39,17 @@ class FixedArray<T> {
 
 	@:keep
 	public function toString() {
-		return (name==null?"FixedArray":name) + ' $allocated / $maxSize';
+		var a = [];
+		for(e in this)
+			a.push(e);
+		return a.toString() + '<$allocated/$maxSize>';
+	}
+
+	public function mapToArray<X>(cb:T->X) : Array<X> {
+		var out = [];
+		for(e in this)
+			out.push( cb(e) );
+		return out;
 	}
 
 	/** Print FixedArray content as a String. WARNING: this operation is slow & generates lots of allocations! Only use for debug purpose. **/
