@@ -2,8 +2,9 @@ package dn.heaps;
 
 class Palette {
 	var colors : Array<Col> = [];
-
 	var _cachedClosests : Map<Int,Col> = new Map();
+
+	public var length(get,never) : Int; inline function get_length() return colors.length;
 
 	public var black(get,never): Col;		inline function get_black() return getClosest("#0");
 	public var darkGray(get,never): Col;	inline function get_darkGray() return getClosest("#5");
@@ -70,12 +71,26 @@ class Palette {
 	}
 	#end
 
+	var cacheIsEmpty = true;
 	inline function clearCache() {
-		_cachedClosests = new Map();
+		if( !cacheIsEmpty ) {
+			cacheIsEmpty = true;
+			_cachedClosests = new Map();
+		}
 	}
 
 	public inline function addColor(c:Col) {
 		colors.push(c);
+		clearCache();
+	}
+
+	public inline function removeColor(c:Col) {
+		colors.remove(c);
+		clearCache();
+	}
+
+	public inline function empty() {
+		colors = [];
 		clearCache();
 	}
 
@@ -156,6 +171,7 @@ class Palette {
 						break;
 				}
 			}
+			cacheIsEmpty = false;
 			_cachedClosests.set(target, best);
 			return best;
 		}
