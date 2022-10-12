@@ -360,6 +360,10 @@ abstract Col(Int) from Int to Int {
 		inline function get_af() return ai/255;
 		inline function set_af(af:Float) { this = fromRGBf(rf, gf, bf, af); return af; }
 
+	/** Return some approximate distance (0-1) between current color and another one **/
+	public inline function getDistance(target:Col) : Float {
+		return ( M.fabs(target.rf-rf) + M.fabs(target.gf-gf) + M.fabs(target.bf-bf) ) / 3;
+	}
 
 	/** Return color with given alpha (0-1) **/
 	public inline function withAlpha(a:Float) : Col {
