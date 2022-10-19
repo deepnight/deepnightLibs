@@ -66,6 +66,21 @@ class FixedArray<T> {
 		return idx<0 || idx>=nalloc ? null : values[idx];
 	}
 
+	public inline function pickRandom(?rndFunc:Int->Int, removeAfterPick=false) : Null<T> {
+		if( allocated==0 )
+			return null;
+		else {
+			var idx = (rndFunc==null?Std.random:rndFunc)(allocated);
+			if( removeAfterPick ) {
+				var e = get(idx);
+				removeIndex(idx);
+				return e;
+			}
+			else
+				return get(idx);
+		}
+	}
+
 	/** Set value at given index. This throws an error if the index is above allocated count. **/
 	public inline function set(idx:Int, v:T) : T {
 		if( idx<0 || idx>=nalloc )
