@@ -399,6 +399,15 @@ class HParticle extends BatchElement {
 		this.t.switchTexture(tile);
 	}
 
+	public inline function isSet0() return Math.isNaN(data0);
+	public inline function isSet1() return Math.isNaN(data1);
+	public inline function isSet2() return Math.isNaN(data2);
+	public inline function isSet3() return Math.isNaN(data3);
+	public inline function isSet4() return Math.isNaN(data4);
+	public inline function isSet5() return Math.isNaN(data5);
+	public inline function isSet6() return Math.isNaN(data6);
+	public inline function isSet7() return Math.isNaN(data7);
+
 	public inline function initIfNull0(v:Float) if( Math.isNaN(data0) ) data0 = v;
 	public inline function initIfNull1(v:Float) if( Math.isNaN(data1) ) data1 = v;
 	public inline function initIfNull2(v:Float) if( Math.isNaN(data2) ) data2 = v;
