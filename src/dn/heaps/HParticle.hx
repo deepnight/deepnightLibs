@@ -804,6 +804,8 @@ class HParticle extends BatchElement {
 
 				// Ground
 				if( groundY!=null && dy>0 && y>=groundY ) {
+					if( bounceMul==0 )
+						gy = 0;
 					dy = -dy*bounceMul;
 					y = groundY-1;
 					if( onBounce!=null )
