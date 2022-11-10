@@ -6,6 +6,10 @@ class DecisionHelper<T> {
 	var values : Iterable<T>;
 	var scores : Map<Int, Float>;
 
+	var asyncKeepers : Array< T->Bool >;
+	var asyncRemovers : Array< T->Bool >;
+	var asyncScorers : Array< T->Float >;
+
 	public inline function new(a:Iterable<T>) {
 		values = a;
 		scores = new Map();
@@ -171,6 +175,43 @@ class DecisionHelper<T> {
 			}
 			return null;
 		}
+	}
+
+
+
+	public inline function addAsyncKeepMethod(cb:T->Bool) {
+		if( asyncKeepers==null )
+			asyncKeepers = [];
+		asyncKeepers.push(cb);
+	}
+
+	public inline function addAsyncRemoveMethod(cb:T->Bool) {
+		if( asyncRemovers==null )
+			asyncRemovers = [];
+		asyncRemovers.push(cb);
+	}
+
+	public inline function addAsyncScoreMethod(cb:T->Float) {
+		if( asyncScorers==null )
+			asyncScorers = [];
+		asyncScorers.push(cb);
+	}
+
+	public inline function applyAsyncMethods(resetBefore=true) {
+		if( resetBefore )
+			reset();
+
+		if( asyncKeepers!=null )
+			for(cb in asyncKeepers)
+				keepOnly(cb);
+
+		if( asyncRemovers!=null )
+			for(cb in asyncRemovers)
+				remove(cb);
+
+		if( asyncScorers!=null )
+			for(cb in asyncScorers)
+				score(cb);
 	}
 
 
