@@ -830,15 +830,25 @@ class M {
 
 	/**
 		Round a float to given precision, adding leading zeros if needed.
-		Examplex:
+		**WARNING**: this method generates LOTS of memory allocations due to String usage!
+
+		Example:
 			0.1234, precision 2, returns 0.12
 			0.1, precision 2, returns 0.10
 	**/
 	public static inline function prettyPad(v:Float, precision=2) : String {
 		var str = Std.string( pretty(v,precision) );
-		while( str.length-(str.lastIndexOf(".")+1) < precision )
-			str+="0";
-		return str;
+		if( precision==0 )
+			return str;
+		else {
+			var idx = str.lastIndexOf(".");
+			var n = idx<0 ? precision : precision - ( str.length-idx-1 );
+			if( idx<0 )
+				str+=".";
+			for(i in 0...n)
+				str+="0";
+			return str;
+		}
 	}
 
 	public static inline function groupNumbers(v:Int, sep=" ") : String {
@@ -1114,6 +1124,14 @@ class M {
 		// Prettifiers
 		CiAssert.equals( M.pretty(1.123,1), 1.1 );
 		CiAssert.equals( M.pretty(1.123,2), 1.12 );
+
+		CiAssert.equals( M.prettyPad(1.123, 0), "1" );
+		CiAssert.equals( M.prettyPad(1.123, 2), "1.12" );
+		CiAssert.equals( M.prettyPad(1.1, 2), "1.10" );
+		CiAssert.equals( M.prettyPad(1, 2), "1.00" );
+		CiAssert.equals( M.prettyPad(123, 2), "123.00" );
+		CiAssert.equals( M.prettyPad(1.999, 1), "2.0" );
+		CiAssert.equals( M.prettyPad(1.999, 4), "1.9990" );
 
 		CiAssert.equals( M.groupNumbers(123), "123" );
 		CiAssert.equals( M.groupNumbers(1234), "1 234" );
