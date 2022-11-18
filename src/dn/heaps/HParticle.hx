@@ -110,8 +110,10 @@ class ParticlePool {
 	public inline function killAll() clear();
 
 	public inline function killAllWithFade() {
-		for( i in 0...nalloc)
+		for( i in 0...nalloc) {
 			all[i].lifeS = 0;
+			all[i].fadeOutSpeed = M.fmax(all[i].fadeOutSpeed, 0.03);
+		}
 	}
 
 	public function dispose() {
