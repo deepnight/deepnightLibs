@@ -340,7 +340,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 	override function onResize() {
 		super.onResize();
-		root.setScale( dn.heaps.Scaler.bestFit_f( width, height, w(), h() ) );
+		root.setScale( dn.heaps.Scaler.bestFit_f( width, height, true ) );
 	}
 
 	override function update() {

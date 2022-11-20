@@ -9,10 +9,10 @@ class Scaler {
 
 
 	/** Fit `wid`x`hei` in current viewport, optionally snapping to closest Integer scale value (for pixel perfect rendering) **/
-	public static function bestFit_f(widPx:Float, ?heiPx:Float, ?contextWid:Float, ?contextHei:Float) : Float {
+	public static function bestFit_f(widPx:Float, ?heiPx:Float, ?contextWid:Float, ?contextHei:Float, allowBelowOne=false) : Float {
 		var sx = ( contextWid==null ? getViewportWidth() : contextWid ) / widPx;
 		var sy = ( contextHei==null ? getViewportHeight() : contextHei ) / ( heiPx==null ? widPx : heiPx );
-		return M.fmax(1, M.fmin(sx,sy) );
+		return allowBelowOne ? M.fmin(sx,sy) : M.fmax(1, M.fmin(sx,sy) );
 	}
 
 
