@@ -69,8 +69,6 @@ class ControllerDebug<T:Int> extends dn.Process {
 		flow.reflow();
 		if( afterRender!=null )
 			afterRender(this);
-
-		onResize();
 	}
 
 	function onDisconnect() {
@@ -153,31 +151,31 @@ class ControllerDebug<T:Int> extends dn.Process {
 			return tf;
 		}
 
+		bFlow.removeChildren();
+
+		// Gamepad icons
+		var gpFlow = new h2d.Flow(bFlow);
+		gpFlow.verticalAlign = Middle;
+		gpFlow.minWidth = 150;
+		var first = true;
+		for(f in ca.input.getAllBindindIconsFor(a,Gamepad)) {
+			if( !first )
+				_addText(", ", gpFlow);
+			gpFlow.addChild(f);
+			first = false;
+		}
+		// Keyboard icons
+		var kbFlow = new h2d.Flow(bFlow);
+		kbFlow.verticalAlign = Middle;
+		var first = true;
+		for(f in ca.input.getAllBindindIconsFor(a,Keyboard)) {
+			if( !first )
+				_addText(", ", kbFlow);
+			kbFlow.addChild(f);
+			first = false;
+		}
+
 		p.onUpdateCb = ()->{
-			bFlow.removeChildren();
-
-			// Gamepad icons
-			var gpFlow = new h2d.Flow(bFlow);
-			gpFlow.verticalAlign = Middle;
-			gpFlow.minWidth = 150;
-			var first = true;
-			for(f in ca.input.getAllBindindIconsFor(a,Gamepad)) {
-				if( !first )
-					_addText(", ", gpFlow);
-				gpFlow.addChild(f);
-				first = false;
-			}
-			// Keyboard icons
-			var kbFlow = new h2d.Flow(bFlow);
-			kbFlow.verticalAlign = Middle;
-			var first = true;
-			for(f in ca.input.getAllBindindIconsFor(a,Keyboard)) {
-				if( !first )
-					_addText(", ", kbFlow);
-				kbFlow.addChild(f);
-				first = false;
-			}
-
 			var alpha = isAnalog ? 0.4 : 1;
 			if( ca.isDown(a) ) {
 				tf.textColor = GREEN;
@@ -338,8 +336,9 @@ class ControllerDebug<T:Int> extends dn.Process {
 		}
 	}
 
-	override function onResize() {
-		super.onResize();
+
+	override function postUpdate() {
+		super.postUpdate();
 		root.setScale( dn.heaps.Scaler.bestFit_f( width, height, true ) );
 	}
 
