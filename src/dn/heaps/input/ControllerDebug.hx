@@ -69,6 +69,8 @@ class ControllerDebug<T:Int> extends dn.Process {
 		flow.reflow();
 		if( afterRender!=null )
 			afterRender(this);
+
+		onResize();
 	}
 
 	function onDisconnect() {
@@ -336,8 +338,8 @@ class ControllerDebug<T:Int> extends dn.Process {
 		}
 	}
 
-	override function postUpdate() {
-		super.postUpdate();
+	override function onResize() {
+		super.onResize();
 		root.setScale( dn.heaps.Scaler.bestFit_f( width, height, w(), h() ) );
 	}
 
