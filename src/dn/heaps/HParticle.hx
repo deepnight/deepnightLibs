@@ -680,6 +680,15 @@ class HParticle extends BatchElement {
 		}
 	}
 
+	public inline function fadeOutAndKill(fadeOutDurationS:Float) {
+		if( fadeOutDurationS<=0 )
+			kill();
+		else {
+			lifeS = 0;
+			fadeOutSpeed = alpha / (fadeOutDurationS*fps);
+		}
+	}
+
 	/** Lower life to 0 and start fading out **/
 	public inline function timeoutNow() {
 		rLifeF = 0;
