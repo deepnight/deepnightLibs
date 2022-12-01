@@ -1050,7 +1050,7 @@ class M {
 		 - If r>=max, this returns 1,
 	**/
 	public static inline function subRatio(r:Float, min:Float, max:Float) : Float {
-		return M.fclamp( (r-min) / (max-min), 0, 1 );
+		return fclamp( (r-min) / (max-min), 0, 1 );
 	}
 
 	@:noCompletion
