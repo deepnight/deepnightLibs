@@ -454,7 +454,7 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function pitchRandomly(range=0.12) {
-		if( _requiresChannel() )
+		if( _requiresChannel() && range>0 )
 			addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
 		return this;
 	}
