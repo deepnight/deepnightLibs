@@ -214,7 +214,7 @@ abstract Col(Int) from Int to Int {
 	**/
 	@:from public static macro function inlineHex(e:haxe.macro.Expr.ExprOf<String>) : ExprOf<Col> {
 		_inlineBlockExpr(e);
-		return macro cast($e, Col);
+		return macro cast($e, dn.Col);
 	}
 
 
