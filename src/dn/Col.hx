@@ -226,6 +226,10 @@ abstract Col(Int) from Int to Int {
 		return c.toHex(true);
 	}
 
+	/** Return a "rgb(r,g,b,a)" string suitable for CSS **/
+	public inline function toCssRgba(alphaOverride=-1.) : String {
+		return 'rgba($ri, $gi, $bi, ${alphaOverride<0 ? ai : alphaOverride})';
+	}
 
 	/** Explicit Int cast **/
 	public inline function toInt() : Int {
