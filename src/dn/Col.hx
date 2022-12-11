@@ -113,7 +113,7 @@ abstract Col(Int) from Int to Int {
 	/** Create a color from HSL (0-1.0) values **/
 	public static inline function fromHsl(h:Float, s:Float, l:Float) : Col {
 		if( s==0 )
-			return Col.gray(h);
+			return Col.gray(l);
 		else {
 			h*=6;
 			var i = M.floor(h);
