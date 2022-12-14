@@ -236,6 +236,7 @@ class Log {
 		"render" => "#54db8a",
 		"debug" => "#ff00ff",
 		"network" => "#9664ff",
+		"userAction" => "#ffcc00",
 	];
 
 	public dynamic function def(str:String) {
@@ -246,14 +247,15 @@ class Log {
 		return tagColors.exists(tag) ? dn.legacy.Color.hexToInt(tagColors.get(tag)) : 0xffffff;
 	}
 
-	public inline function emptyEntry()			add("","");
-	public inline function general(str:Dynamic)	add( "general", Std.string(str) );
-	public inline function warning(str:Dynamic)	add( "warning", Std.string(str) );
-	public inline function error(str:Dynamic)	add( "error", Std.string(str) , true);
-	public inline function fileOp(str:Dynamic)	add( "file", Std.string(str) );
-	public inline function render(str:Dynamic)	add( "render", Std.string(str) );
-	public inline function debug(str:Dynamic)	add("debug", Std.string(str));
-	public inline function network(str:Dynamic)	add( "network", Std.string(str) );
+	public inline function emptyEntry()				add("","");
+	public inline function general(str:Dynamic)		add( "general", Std.string(str) );
+	public inline function warning(str:Dynamic)		add( "warning", Std.string(str) );
+	public inline function error(str:Dynamic)		add( "error", Std.string(str) , true);
+	public inline function fileOp(str:Dynamic)		add( "file", Std.string(str) );
+	public inline function render(str:Dynamic)		add( "render", Std.string(str) );
+	public inline function debug(str:Dynamic)		add("debug", Std.string(str));
+	public inline function network(str:Dynamic)		add( "network", Std.string(str) );
+	public inline function userAction(str:Dynamic)	add( "userAction", Std.string(str) );
 
 	/** Increase indentation for all following entries **/
 	public inline function indentMore() currentIndent++;
