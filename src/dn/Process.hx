@@ -592,13 +592,6 @@ class Process {
 			p.destroy();
 		_garbageCollector(p.children);
 
-		// Tools
-		p.delayer.destroy();
-		p.udelayer.destroy();
-		p.cd.dispose();
-		p.ucd.dispose();
-		p.tw.destroy();
-
 		// Unregister from lists
 		if (p.parent != null)
 			p.parent.children.remove(p);
@@ -620,6 +613,13 @@ class Process {
 		p.onDispose();
 		if( p.onDisposeCb != null )
 			p.onDisposeCb();
+
+		// Tools
+		p.delayer.destroy();
+		p.udelayer.destroy();
+		p.cd.dispose();
+		p.ucd.dispose();
+		p.tw.destroy();
 
 		// Clean up
 		p.parent = null;
