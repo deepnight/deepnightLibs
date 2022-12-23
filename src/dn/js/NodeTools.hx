@@ -161,6 +161,35 @@ class NodeTools {
 		return try js.node.Fs.readdirSync(path) catch(_) [];
 	}
 
+
+	static function _checkPermission(path:String, mode:Int) {
+		try {
+			js.node.Fs.accessSync(path, mode);
+			return true;
+		}
+		catch(_) {
+			return false;
+		}
+	}
+
+	/**
+		Check RWX permissions of a directory or a file. For some obscure reasons, this won't work well with Windows custom rights.
+	**/
+	public static function checkPermissions(dirOrFilePath:String, read:Bool, write:Bool, execute:Bool) {
+		trace(dirOrFilePath);
+		if( read && !_checkPermission(dirOrFilePath, Fs.R_OK) )
+			return false;
+
+		if( write && !_checkPermission(dirOrFilePath, Fs.W_OK) )
+			return false;
+
+		if( execute && !_checkPermission(dirOrFilePath, Fs.X_OK) )
+			return false;
+
+		trace("OK");
+		return true;
+	}
+
 	/** Find all files in given directory and its subdirs **/
 	public static function findFilesRecInDir(dirPath:String, ?ext:String) : Array<dn.FilePath> {
 		if( !isDirectory(dirPath) )
