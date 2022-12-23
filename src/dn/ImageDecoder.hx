@@ -86,7 +86,7 @@ class ImageDecoder {
 			}
 		}
 		catch(e:Dynamic) {
-			throw "Failed to read PNG";
+			throw "Failed to read PNG, err="+e;
 		}
 
 		return null;
