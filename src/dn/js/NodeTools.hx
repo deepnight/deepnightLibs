@@ -176,7 +176,6 @@ class NodeTools {
 		Check RWX permissions of a directory or a file. For some obscure reasons, this won't work well with Windows custom rights.
 	**/
 	public static function checkPermissions(dirOrFilePath:String, read:Bool, write:Bool, execute:Bool) {
-		trace(dirOrFilePath);
 		if( read && !_checkPermission(dirOrFilePath, Fs.R_OK) )
 			return false;
 
@@ -186,7 +185,6 @@ class NodeTools {
 		if( execute && !_checkPermission(dirOrFilePath, Fs.X_OK) )
 			return false;
 
-		trace("OK");
 		return true;
 	}
 
