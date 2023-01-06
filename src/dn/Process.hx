@@ -5,7 +5,9 @@ import dn.struct.FixedArray;
 import dn.debug.MemTrack.measure as MM;
 
 class Process {
+	#if !unlimitedProcesses
 	public static var MAX_PROCESSES = 1024;
+	#end
 
 	/** FPS frequency of the `fixedUpdate` calls **/
 	public static var FIXED_UPDATE_FPS = 30;
@@ -15,7 +17,11 @@ class Process {
 
 
 	static var UNIQ_ID = 0;
+	#if unlimitedProcesses
+	static var ROOTS : Array<Process> = [];
+	#else
 	static var ROOTS : FixedArray<Process> = new FixedArray("RootProcesses", MAX_PROCESSES);
+	#end
 	static var BEGINNING_OF_FRAME_CALLBACKS : FixedArray< Void->Void > = new FixedArray(256);
 	static var END_OF_FRAME_CALLBACKS : FixedArray< Void->Void > = new FixedArray(256);
 
@@ -71,7 +77,11 @@ class Process {
 	/** Process display name **/
 	public var name : Null<String>;
 
+	#if unlimitedProcesses
+	var children : Array<Process>;
+	#else
 	var children : FixedArray<Process>;
+	#end
 
 	/** Delayer allows for callbacks to be called in a future frame **/
 	public var delayer : dn.Delayer;
@@ -117,7 +127,11 @@ class Process {
 
 	public function init(){
 		uniqId = UNIQ_ID++;
+		#if unlimitedProcesses
+		children = [];
+		#else
 		children = new FixedArray(MAX_PROCESSES);
+		#end
 		_manuallyPaused = false;
 		destroyed = false;
 		ftime = 0;
@@ -280,6 +294,15 @@ class Process {
 		return all;
 	}
 
+
+
+	inline function countChildren() {
+		#if unlimitedProcesses
+		return children.length;
+		#else
+		return children.allocated;
+		#end
+	}
 
 
 
@@ -572,9 +595,21 @@ class Process {
 				_doPostUpdate(c);
 	}
 
-	static function _garbageCollector(plist:FixedArray<Process>) {
+	static function _garbageCollector(plist:#if unlimitedProcesses Array #else FixedArray #end<Process>) {
 		var i = 0;
 		var p : Process;
+
+		#if unlimitedProcesses
+		while (i < plist.length) {
+			p = plist[i];
+			if( p.destroyed )
+				_disposeProcess(p);
+			else {
+				_garbageCollector(p.children);
+				i++;
+			}
+		}
+		#else
 		while (i < plist.allocated) {
 			p = plist.get(i);
 			if( p.destroyed )
@@ -584,6 +619,7 @@ class Process {
 				i++;
 			}
 		}
+		#end
 	}
 
 	static function _disposeProcess(p : Process) {
@@ -728,7 +764,11 @@ class Process {
 		CiAssert.isNotNull(root.udelayer);
 		CiAssert.isNotNull(root.tw);
 		CiAssert.equals( root.tmod, 1 );
+		#if unlimitedProcesses
+		CiAssert.equals( ROOTS.length, 1);
+		#else
 		CiAssert.equals( ROOTS.allocated, 1);
+		#end
 
 		// Pause management
 		CiAssert.equals( root.togglePause(), true );
@@ -736,7 +776,7 @@ class Process {
 
 		var c1 = new Process(root);
 		CiAssert.isNotNull(c1);
-		CiAssert.equals(root.children.allocated, 1);
+		CiAssert.equals(root.countChildren(), 1);
 		CiAssert.isFalse( c1.isPaused() );
 		root.pause();
 		CiAssert.isTrue( c1.isPaused() );
@@ -744,7 +784,7 @@ class Process {
 
 		var c2 = new Process(root);
 		CiAssert.isNotNull(c2);
-		CiAssert.equals(root.children.allocated, 2);
+		CiAssert.equals(root.countChildren(), 2);
 		CiAssert.equals(c2.parent, root);
 		CiAssert.isFalse( c2.isPaused() );
 		root.pause();
@@ -756,12 +796,16 @@ class Process {
 		CiAssert.isFalse( c1.destroyed );
 		CiAssert.isTrue( c2.destroyed );
 		CiAssert.isFalse( root.destroyed );
-		CiAssert.equals(root.children.allocated, 1);
+		CiAssert.equals(root.countChildren(), 1);
 		root.destroy();
 		updateAll(1); // force GC
 		CiAssert.isTrue( c1.destroyed );
 		CiAssert.isTrue( c2.destroyed );
 		CiAssert.isTrue( root.destroyed );
+		#if unlimitedProcesses
+		CiAssert.equals( ROOTS.length, 0);
+		#else
 		CiAssert.equals( ROOTS.allocated, 0);
+		#end
 	}
 }
