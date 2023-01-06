@@ -23,6 +23,13 @@ class FixedArray<T> {
 	public var maxSize(get,never) : Int;
 		inline function get_maxSize() return values.length;
 
+	/**
+		NOT RECOMMENDED: allow the fixed array to automatically resize itself when its limit is reached.
+		Obviously, you will lose all the benefits. However, in some cases,it could useful to "disable" a FixedArray behaviour.
+	**/
+	@:noCompletion
+	public var autoResize = false;
+
 
 	@:deprecated("Use 'allocated' here (to avoid allocated/maxSize ambiguity)") @:noCompletion
 	public var length(get,never) : Int; inline function get_length() return allocated;
@@ -128,8 +135,17 @@ class FixedArray<T> {
 
 	/** Push a value at the end of the array **/
 	public inline function push(e:T) {
-		if( nalloc>=values.length )
-			throw 'FixedArray limit reached ($maxSize)';
+		if( nalloc>=values.length ) {
+			if( !autoResize )
+				throw 'FixedArray limit reached ($maxSize)';
+			else {
+				// Increase size
+				var newValues = new haxe.ds.Vector(values.length*2);
+				for(i in 0...values.length)
+					newValues[i] = values[i];
+				values = newValues;
+			}
+		}
 
 		values[nalloc] = e;
 		nalloc++;
@@ -223,6 +239,29 @@ class FixedArray<T> {
 		CiAssert.equals({ a.removeIndex(10); a.allocated; }, 2);
 		CiAssert.equals({ a.removeIndex(0); a.allocated; }, 1);
 		CiAssert.equals(a.get(0), 64);
+
+		// Resizable fixed arrays
+		var dyn = new FixedArray(2);
+		dyn.autoResize = true;
+		CiAssert.equals(dyn.maxSize, 2);
+		CiAssert.equals(dyn.allocated, 0);
+
+		dyn.push(true);
+		CiAssert.equals(dyn.allocated, 1);
+
+		dyn.push(true);
+		CiAssert.equals(dyn.allocated, 2);
+
+		dyn.push(true);
+		CiAssert.equals(dyn.allocated, 3);
+		CiAssert.equals(dyn.maxSize, 4);
+
+		dyn.push(true);
+		CiAssert.equals(dyn.allocated, 4);
+
+		dyn.push(true);
+		CiAssert.equals(dyn.allocated, 5);
+		CiAssert.equals(dyn.maxSize, 8);
 	}
 }
 
