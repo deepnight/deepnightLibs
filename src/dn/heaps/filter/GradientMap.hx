@@ -46,9 +46,9 @@ class GradientMap extends h2d.filter.Shader<InternalShader> {
 	static inline function paletteInterpolation(ratio:Float, darkest:Col, brightest:Col, white:Col=0xffffff) : Int {
 		final lightLimit = 0.78;
 		if( ratio<=lightLimit )
-			return darkest.interpolate(brightest, ratio/lightLimit).withAlpha();
+			return darkest.interpolate(brightest, ratio/lightLimit).withAlpha(1);
 		else
-			return brightest.interpolate(white, (ratio-lightLimit)/(1-lightLimit)).withAlpha();
+			return brightest.interpolate(white, (ratio-lightLimit)/(1-lightLimit)).withAlpha(1);
 	}
 
 }

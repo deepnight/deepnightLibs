@@ -68,7 +68,7 @@ class ScreenWash extends dn.Process {
 
 		tile = t;
 		sb = new h2d.SpriteBatch(tile, maskWrapper);
-		sb.color.setColor( color.withAlpha() );
+		sb.color.setColor( color.withAlpha(1) );
 	}
 
 
@@ -77,7 +77,7 @@ class ScreenWash extends dn.Process {
 		NOTE: the provided Tile should be white for this to work!
 	**/
 	public inline function setColor(c:Col) {
-		sb.color.setColor( c.withAlpha() );
+		sb.color.setColor( c.withAlpha(1) );
 	}
 
 	/**
