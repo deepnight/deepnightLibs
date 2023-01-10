@@ -207,7 +207,7 @@ class LocalStorage {
 	/**
 		Read an anonymous object right from storage.
 	**/
-	public function readObject<T>(?defValue:T) : T {
+	public function readObject<T>(?defValue:T, ?patchObject:Dynamic->Void) : T {
 		var raw = fromStorage();
 		if( raw==null )
 			return defValue;
@@ -219,6 +219,10 @@ class LocalStorage {
 
 			if( obj==null )
 				return defValue;
+
+			// Do some custom patching on the raw untyped object
+			if( patchObject!=null )
+				patchObject(obj);
 
 			if( defValue!=null ) {
 				// Remove old fields
