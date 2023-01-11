@@ -128,7 +128,7 @@ class FilePath {
 	}
 
 	public function appendDirectory(extraDirs:String) {
-		if( extraDirs==null )
+		if( extraDirs==null || extraDirs.length==0 )
 			return this;
 
 		var fp = fromDir(extraDirs);
@@ -137,6 +137,20 @@ class FilePath {
 				directory = fp.directory;
 			else
 				directory += slash() + fp.directory;
+
+		return this;
+	}
+
+	public function prependDirectory(extraDirs:String) {
+		if( extraDirs==null || extraDirs.length==0 )
+			return this;
+
+		var fp = fromDir(extraDirs);
+		if( fp.directory!=null )
+			if( directory==null )
+				directory = fp.directory;
+			else
+				directory = fp.directory + slash() + directory;
 
 		return this;
 	}
@@ -790,9 +804,17 @@ class FilePath {
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("..", false) == "../" );
 		CiAssert.isTrue( FilePath.extractDirectoryWithSlash("user", false) == "user/" );
 
-		// Append/set dirs
-		CiAssert.equals( FilePath.fromFile("test.txt").appendDirectory("foo").directory, "foo" );
-		CiAssert.equals( FilePath.fromFile("bar/test.txt").appendDirectory("foo").directory, "bar/foo" );
+		// Append dirs
+		CiAssert.equals( FilePath.fromFile("test.txt").appendDirectory("foo").full, "foo/test.txt" );
+		CiAssert.equals( FilePath.fromFile("hello/test.txt").appendDirectory("foo").full, "hello/foo/test.txt" );
+		CiAssert.equals( FilePath.fromFile("hello/world/test.txt").appendDirectory("foo").full, "hello/world/foo/test.txt" );
+		CiAssert.equals( FilePath.fromDir("hello/world").appendDirectory("foo").full, "hello/world/foo" );
+		// Prepend dirs
+		CiAssert.equals( FilePath.fromFile("test.txt").prependDirectory("foo").full, "foo/test.txt" );
+		CiAssert.equals( FilePath.fromFile("hello/test.txt").prependDirectory("foo").full, "foo/hello/test.txt" );
+		CiAssert.equals( FilePath.fromFile("hello/world/test.txt").prependDirectory("foo").full, "foo/hello/world/test.txt" );
+		CiAssert.equals( FilePath.fromDir("hello/world").prependDirectory("foo").full, "foo/hello/world" );
+		// Set dirs
 		CiAssert.equals( FilePath.fromFile("test.txt").setDirectory("foo").directory, "foo" );
 		CiAssert.equals( FilePath.fromFile("bar/test.txt").setDirectory("foo").directory, "foo" );
 
