@@ -809,11 +809,15 @@ class FilePath {
 		CiAssert.equals( FilePath.fromFile("hello/test.txt").appendDirectory("foo").full, "hello/foo/test.txt" );
 		CiAssert.equals( FilePath.fromFile("hello/world/test.txt").appendDirectory("foo").full, "hello/world/foo/test.txt" );
 		CiAssert.equals( FilePath.fromDir("hello/world").appendDirectory("foo").full, "hello/world/foo" );
+		CiAssert.equals( FilePath.fromDir("").appendDirectory("foo").full, "foo" );
+		CiAssert.equals( FilePath.fromDir("hello/world").appendDirectory(null).full, "hello/world" );
 		// Prepend dirs
 		CiAssert.equals( FilePath.fromFile("test.txt").prependDirectory("foo").full, "foo/test.txt" );
 		CiAssert.equals( FilePath.fromFile("hello/test.txt").prependDirectory("foo").full, "foo/hello/test.txt" );
 		CiAssert.equals( FilePath.fromFile("hello/world/test.txt").prependDirectory("foo").full, "foo/hello/world/test.txt" );
 		CiAssert.equals( FilePath.fromDir("hello/world").prependDirectory("foo").full, "foo/hello/world" );
+		CiAssert.equals( FilePath.fromDir("").prependDirectory("foo").full, "foo" );
+		CiAssert.equals( FilePath.fromDir("hello/world").prependDirectory(null).full, "hello/world" );
 		// Set dirs
 		CiAssert.equals( FilePath.fromFile("test.txt").setDirectory("foo").directory, "foo" );
 		CiAssert.equals( FilePath.fromFile("bar/test.txt").setDirectory("foo").directory, "foo" );
