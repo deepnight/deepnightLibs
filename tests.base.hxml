@@ -6,4 +6,4 @@
 --resource res/lang/new_fr.po@new_fr
 -D deepnightLibsTests
 
--main Main
+-main Tests

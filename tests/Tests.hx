@@ -1,7 +1,7 @@
 import dn.CiAssert;
 import dn.Lib;
 
-class Main {
+class Tests {
 	#if !macro
 	public static function main() {
 		#if verbose
