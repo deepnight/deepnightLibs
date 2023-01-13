@@ -81,12 +81,21 @@ class RecyclablePool<T:Recyclable> {
 		Its `recycle()` method is automatically called.
 	**/
 	public inline function alloc() : T {
-		if( nalloc>=size )
-			throw 'RecyclablePool limit reached ($maxSize)';
+		if( nalloc>=size ) {
+			garbageCollector();
+			if( nalloc>=size )
+				throw 'RecyclablePool limit reached ($maxSize)';
+		}
 		var e = pool[nalloc++];
 		e.recycle();
 		return e;
 	}
+
+
+	/**
+		This optional custom method will be called to try to free elements in the pool, when `alloc()` and there's no available element.
+	**/
+	public dynamic function garbageCollector() {}
 
 	/** Free all pool **/
 	public inline function freeAll() {
