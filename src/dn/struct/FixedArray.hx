@@ -133,6 +133,14 @@ class FixedArray<T> {
 		nalloc = 0;
 	}
 
+	/** Return TRUE if the array contains given value. **/
+	public function contains(search:T) {
+		for(v in this)
+			if( v==search )
+				return true;
+		return false;
+	}
+
 	/** Push a value at the end of the array **/
 	public inline function push(e:T) {
 		if( nalloc>=values.length ) {
