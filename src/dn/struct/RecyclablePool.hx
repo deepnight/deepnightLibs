@@ -40,6 +40,13 @@ class RecyclablePool<T:Recyclable> {
 		return 'RecyclablePool($allocated/$maxSize)';
 	}
 
+	function debugContent() {
+		var idx = 0;
+		return toString() + " => " + pool.map((v:T)->{
+			return (idx++)<nalloc ? Std.string(v) : '{deleted:$v}';
+		});
+	}
+
 	/**
 		Return the expected object at given index.
 		"Expected" means that this method will return `null` if the index is out of the *currently allocated* bounds.
@@ -89,14 +96,17 @@ class RecyclablePool<T:Recyclable> {
 	/** Free value at given array index **/
 	public inline function freeIndex(i:Int) {
 		if( i>=0 && i<nalloc ) {
-			if( nalloc>1 ) {
+			if( i==nalloc-1 ) {
+				// Free last one => just reduce length
+				nalloc--;
+			}
+			else {
+				// Swap removed value
 				var tmp = pool[i];
 				pool[i] = pool[nalloc-1];
 				pool[nalloc-1] = tmp;
 				nalloc--;
 			}
-			else
-				nalloc = 0;
 		}
 	}
 
@@ -119,7 +129,7 @@ class RecyclablePool<T:Recyclable> {
 	public static function __test() {
 		// Init
 		var i = 0;
-		var p : RecyclablePool<TestObject> = new RecyclablePool(3, ()->new TestObject(i++));
+		var p : RecyclablePool<UnitTestObject> = new RecyclablePool(3, ()->new UnitTestObject(i++));
 		CiAssert.equals( p.allocated, 0 );
 		CiAssert.equals( p.maxSize, 3 );
 		CiAssert.equals( p.get(0), null );
@@ -141,12 +151,16 @@ class RecyclablePool<T:Recyclable> {
 		CiAssert.equals( { p.freeElement(e); p.allocated; }, 0 );
 		CiAssert.equals( p.get(0), null );
 		CiAssert.equals( { p.alloc(); p.allocated; }, 1 );
-		CiAssert.equals( { p.freeIndex(1); p.allocated; }, 1 );
+		CiAssert.equals( { p.alloc(); p.allocated; }, 2 );
+		CiAssert.equals( { p.alloc(); p.allocated; }, 3 );
+		CiAssert.equals( { p.freeIndex(1); p.allocated; }, 2 );
+		CiAssert.equals( { p.freeIndex(0); p.allocated; }, 1 );
+		CiAssert.equals( { p.freeIndex(3); p.allocated; }, 1 ); // out of bounds
 		CiAssert.equals( { p.freeIndex(0); p.allocated; }, 0 );
 
 		// Check pointers
 		var i = 0;
-		var p = new RecyclablePool(10, ()->new TestObject(i++));
+		var p = new RecyclablePool(10, ()->new UnitTestObject(i++));
 		for(i in 0...1000) {
 			if( p.allocated<p.maxSize )
 				p.alloc();
@@ -159,12 +173,13 @@ class RecyclablePool<T:Recyclable> {
 	}
 }
 
-private class TestObject {
+private class UnitTestObject {
 	var id : Int;
 	public var value : Int;
 
 	public function new(id) {
 		this.id = id;
+		value = -1;
 	}
 
 	@:keep
