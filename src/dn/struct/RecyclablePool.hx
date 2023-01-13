@@ -93,7 +93,7 @@ class RecyclablePool<T:Recyclable> {
 
 
 	/**
-		If `alloc()` is called and no value is left, as a last chance, this custom method is ran on the whole pool to try to free some elements.
+		If `alloc()` is called and no value is left, as a last chance, this custom method is ran on all allocated values to try to free some of them.
 		This function should return TRUE if the given element can be freed safely.
 	**/
 	public dynamic function canBeGarbageCollected(v:T) : Bool {
