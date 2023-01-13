@@ -82,7 +82,7 @@ class RecyclablePool<T:Recyclable> {
 	**/
 	public inline function alloc() : T {
 		if( nalloc>=size ) {
-			garbageCollector();
+			garbageCollectNow();
 			if( nalloc>=size )
 				throw 'RecyclablePool limit reached ($maxSize)';
 		}
@@ -93,9 +93,27 @@ class RecyclablePool<T:Recyclable> {
 
 
 	/**
-		This optional custom method will be called to try to free elements in the pool, when `alloc()` and there's no available element.
+		If `alloc()` is called and no value is left, as a last chance, this custom method is ran on the whole pool to try to free some elements.
+		This function should return TRUE if the given element can be freed safely.
 	**/
-	public dynamic function garbageCollector() {}
+	public dynamic function canBeGarbageCollected(v:T) : Bool {
+		return false;
+	}
+
+
+	/**
+		Force the custom garbage collector to run, and free all values where `canBeGarbageCollected(v)` returns TRUE.
+		This is automatically called by `alloc()` when there is no free element left.
+	 **/
+	public function garbageCollectNow() {
+		var i = 0;
+		while( i<nalloc ) {
+			if( canBeGarbageCollected( get(i) ) )
+				freeIndex(i);
+			else
+				i++;
+		}
+	}
 
 	/** Free all pool **/
 	public inline function freeAll() {
@@ -179,8 +197,31 @@ class RecyclablePool<T:Recyclable> {
 		for(i in 0...p.maxSize)
 		for(j in i+1...p.maxSize)
 			CiAssert.isTrue( p.getUnsafe(i)!=p.getUnsafe(j) );
+
+
+		// Garbage collector
+		var i = 0;
+		var p : RecyclablePool<UnitTestObject> = new RecyclablePool(3, ()->new UnitTestObject(i++));
+		p.canBeGarbageCollected = (e)->return e.value<100;
+		CiAssert.equals( p.allocated, 0 );
+		p.alloc().value=10;
+		p.alloc().value=500;
+		p.alloc().value=20;
+		CiAssert.equals( p.allocated, 3 );
+		// Manual GC
+		p.garbageCollectNow();
+		CiAssert.equals( p.allocated, 1 );
+		// Auto GC
+		p.alloc().value=10;
+		p.alloc().value=20;
+		CiAssert.equals( p.allocated, 3 );
+		p.alloc().value=30;
+		CiAssert.equals( p.allocated, 2 );
+
 	}
 }
+
+
 
 private class UnitTestObject {
 	var id : Int;
