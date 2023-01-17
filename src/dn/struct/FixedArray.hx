@@ -192,15 +192,31 @@ class FixedArray<T> {
 		nalloc = 0;
 	}
 
-	public function bubbleSort(weight:T->Float) {
+	/** Sort elements in place **/
+	public function bubbleSort( getSortWeight:T->Float ) {
 		var tmp : T = null;
 		for(i in 0...allocated-1)
 		for(j in i+1...allocated) {
-			if( weight(get(i)) > weight(get(j)) ) {
+			if( getSortWeight( get(i)) > getSortWeight(get(j) ) ) {
 				tmp = get(i);
 				set(i, get(j));
 				set(j, tmp);
 			}
+		}
+	}
+
+	/** Shuffle the fixed array in place **/
+	public function shuffle(?randFunc:Int->Int) {
+		if( randFunc==null )
+			randFunc = Std.random;
+		var m = allocated;
+		var i = 0;
+		var tmp : T = null;
+		while( m>0 ) {
+			i = randFunc(m--);
+			tmp = values[m];
+			values[m] = values[i];
+			values[i] = tmp;
 		}
 	}
 
@@ -270,6 +286,18 @@ class FixedArray<T> {
 		dyn.push(true);
 		CiAssert.equals(dyn.allocated, 5);
 		CiAssert.equals(dyn.maxSize, 8);
+
+		// Sorting
+		var a = new FixedArray(4);
+		a.push(30);
+		a.push(10);
+		a.push(40);
+		a.push(20);
+		a.bubbleSort( v->v );
+		CiAssert.equals(a.get(0), 10);
+		CiAssert.equals(a.get(1), 20);
+		CiAssert.equals(a.get(2), 30);
+		CiAssert.equals(a.get(3), 40);
 	}
 }
 
