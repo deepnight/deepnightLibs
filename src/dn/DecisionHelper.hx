@@ -179,24 +179,47 @@ class DecisionHelper<T> {
 
 
 
-	public inline function addAsyncKeepMethod(cb:T->Bool) {
+	@:deprecated("Use addAsyncKeep(...)") @:noCompletion public inline function addAsyncKeepMethod(cb:T->Bool) addAsyncKeep(cb);
+	/**
+		Register an asynchronous "keep" callback that will be ran with `applyAsyncMethods()`.
+		The callback should return TRUE if the given element should be kept during the scoring phase.
+		See `applyAsyncMethods()` for more info.
+	**/
+	public inline function addAsyncKeep(cb:T->Bool) {
 		if( asyncKeepers==null )
 			asyncKeepers = [];
 		asyncKeepers.push(cb);
 	}
 
-	public inline function addAsyncRemoveMethod(cb:T->Bool) {
+	@:deprecated("Use addAsyncDiscard(...)") @:noCompletion public inline function addAsyncRemoveMethod(cb:T->Bool) addAsyncDiscard(cb);
+	/**
+		Register an asynchronous "discard" callback that will be ran with `applyAsyncMethods()`.
+		The callback should return TRUE if the given element should be discarded during the scoring phase.
+		See `applyAsyncMethods()` for more info.
+	**/
+	public inline function addAsyncDiscard(cb:T->Bool) {
 		if( asyncRemovers==null )
 			asyncRemovers = [];
 		asyncRemovers.push(cb);
 	}
 
-	public inline function addAsyncScoreMethod(cb:T->Float) {
+
+	@:deprecated("Use addAsyncScore(...)") @:noCompletion public inline function addAsyncScoreMethod(cb:T->Float) addAsyncScore(cb);
+	/**
+		Register an asynchronous "scoring" callback that will be ran with `applyAsyncMethods()`.
+		The callback should return a Float "score" value for given element.
+		See `applyAsyncMethods()` for more info.
+	**/
+	public inline function addAsyncScore(cb:T->Float) {
 		if( asyncScorers==null )
 			asyncScorers = [];
 		asyncScorers.push(cb);
 	}
 
+	/**
+		Run all registered asynchronous methods (see `addAsyncScore`, `addAsyncKeep` and `addAsyncDiscard`)
+		This approach allows you to prepare a DecisionHelper instance, add scoring/keep/discard methods, and run them later on the set of values.
+	**/
 	public inline function applyAsyncMethods(resetBefore=true) {
 		if( resetBefore )
 			reset();
