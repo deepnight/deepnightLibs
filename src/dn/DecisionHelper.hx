@@ -7,7 +7,7 @@ class DecisionHelper<T> {
 	var scores : Map<Int, Float>;
 
 	var asyncKeepers : Array< T->Bool >;
-	var asyncRemovers : Array< T->Bool >;
+	var asyncDiscarders : Array< T->Bool >;
 	var asyncScorers : Array< T->Float >;
 
 	public inline function new(a:Iterable<T>) {
@@ -25,7 +25,7 @@ class DecisionHelper<T> {
 		scores.set(idx, s);
 	}
 
-	inline function discard(idx:Int) {
+	inline function discardIndex(idx:Int) {
 		scores.set(idx, DISCARDED);
 	}
 
@@ -60,22 +60,24 @@ class DecisionHelper<T> {
 		scores = new Map();
 	}
 
+	@:deprecated("Use discard()") @:noCompletion public inline function remove( cb:T->Bool ) discard(cb);
 	/** Discard any values where `cb(value)` returns TRUE. **/
-	public inline function remove( cb:T->Bool ) {
+	public inline function discard( cb:T->Bool ) {
 		var idx = 0;
 		for(v in values) {
 			if( !isDiscarded(idx) && cb(v) )
-				discard(idx);
+				discardIndex(idx);
 			idx++;
 		}
 	}
 
+	@:deprecated("Use discardValue()") @:noCompletion public inline function removeValue(search:T) discardValue(search);
 	/** Discard specified value **/
-	public inline function removeValue(search:T) {
+	public inline function discardValue(search:T) {
 		var idx = 0;
 		for(v in values) {
 			if( !isDiscarded(idx) && v==search )
-				discard(idx);
+				discardIndex(idx);
 			idx++;
 		}
 	}
@@ -85,7 +87,7 @@ class DecisionHelper<T> {
 		var idx = 0;
 		for(v in values) {
 			if( !isDiscarded(idx) && !cb(v) )
-				discard(idx);
+				discardIndex(idx);
 			idx++;
 		}
 	}
@@ -198,9 +200,9 @@ class DecisionHelper<T> {
 		See `applyAsyncMethods()` for more info.
 	**/
 	public inline function addAsyncDiscard(cb:T->Bool) {
-		if( asyncRemovers==null )
-			asyncRemovers = [];
-		asyncRemovers.push(cb);
+		if( asyncDiscarders==null )
+			asyncDiscarders = [];
+		asyncDiscarders.push(cb);
 	}
 
 
@@ -228,9 +230,9 @@ class DecisionHelper<T> {
 			for(cb in asyncKeepers)
 				keepOnly(cb);
 
-		if( asyncRemovers!=null )
-			for(cb in asyncRemovers)
-				remove(cb);
+		if( asyncDiscarders!=null )
+			for(cb in asyncDiscarders)
+				discard(cb);
 
 		if( asyncScorers!=null )
 			for(cb in asyncScorers)
@@ -245,7 +247,7 @@ class DecisionHelper<T> {
 		// Filtering
 		var dh = new dn.DecisionHelper(arr);
 		dh.keepOnly( v->StringTools.contains(v,"o") ); // with letter "o"
-		dh.remove( v->StringTools.contains(v,"l") ); // no letter "l"
+		dh.discard( v->StringTools.contains(v,"l") ); // no letter "l"
 		dh.score( v -> v.length*0.1 ); // longer is better
 		CiAssert.equals( dh.countRemaining(), 2 );
 		CiAssert.equals( dh.getBest(), "food" );
@@ -257,7 +259,7 @@ class DecisionHelper<T> {
 		var dh = new dn.DecisionHelper(arr);
 		dh.score( v -> v.length*0.1 ); // longer is better
 		CiAssert.equals( dh.getBest(), "longworld" );
-		dh.remove( v -> StringTools.contains(v,"w") ); // no letter "w"
+		dh.discard( v -> StringTools.contains(v,"w") ); // no letter "w"
 		CiAssert.equals( dh.getBest(), "hello" );
 
 		dh.keepOnly( v -> StringTools.contains(v,"z") ); // with letter "z"
@@ -274,5 +276,15 @@ class DecisionHelper<T> {
 		dh.keepOnly( v -> StringTools.contains(v,"o") ); // with letter "o"
 		dh.score( v -> -v.length ); // shorter is better
 		CiAssert.equals(dh.getBest(), "foo");
+
+		// Async methods
+		var arr = [ "a", "foo", "bar", "food", "hello", "longworld" ];
+		var dh = new DecisionHelper(arr);
+		dh.addAsyncKeep( v -> StringTools.contains(v,"o") ); // contains "O"
+		dh.addAsyncDiscard( v -> StringTools.contains(v,"l") ); // should not contain any "L"
+		dh.addAsyncScore( v -> v.length*0.1 ); // longer is better
+		dh.applyAsyncMethods();
+		CiAssert.equals( dh.countRemaining(), 2 );
+		CiAssert.equals( dh.getBest(), "food" );
 	}
 }
