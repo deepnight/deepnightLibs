@@ -582,18 +582,25 @@ class Controller<T:Int> {
 	/**
 		Bind an action to a combination of multiple keybaord keys (all of them are REQUIRED)
 	**/
-	public function bindKeyboardCombo(action:T, combo:Array<Int>) {
-		if( combo.length==0 )
-			return;
-		else if( combo.length==1 )
-			bindKeyboard(action, combo[0]);
-		else {
-			var b = InputBinding.createKeyboard(this, action, combo[0]);
-			for(i in 1...combo.length)
-				b.comboBindings.push( InputBinding.createKeyboard(this, action, combo[i]) );
-			storeBinding(action, b);
-		}
+	public function bindKeyboardCombo(action:T, ?combo:Array<Int>, ?combos:Array<Array<Int>>) {
+		if( combo==null && combos==null || combo!=null && combos!=null )
+			throw "Need exactly 1 key argument";
 
+		if( combos==null )
+			combos = [combo];
+
+		for(c in combos) {
+			if( c.length==0 )
+				continue;
+			else if( c.length==1 )
+				bindKeyboard(action, c[0]);
+			else {
+				var b = InputBinding.createKeyboard(this, action, c[0]);
+				for(i in 1...c.length)
+					b.comboBindings.push( InputBinding.createKeyboard(this, action, c[i]) );
+				storeBinding(action, b);
+			}
+		}
 	}
 
 
