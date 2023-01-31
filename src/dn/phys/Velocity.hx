@@ -223,6 +223,10 @@ class VelocityArray {
 		all = new dn.struct.FixedArray(maxLength);
 	}
 
+	@:keep public function toString() {
+		return all.toString();
+	}
+
 	public inline function push(v:Velocity) {
 		all.push(v);
 	}
