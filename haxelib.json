@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.73",
+	"version": "1.0.74",
 	"classPath": "src/",
-	"releasenote": "Added Palette, various fixes",
+	"releasenote": "Added Velocity, reworked DecisionHelper, various extra tests",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
