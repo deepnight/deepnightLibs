@@ -9,6 +9,11 @@ class Velocity {
 	public var frictX : Float;
 	public var frictY : Float;
 
+	/** `v` is a convenience alias for `dx` when you just need a 1D velocity **/
+	public var v(get,set) : Float;
+		inline function get_v() return dx;
+		inline function set_v(v:Float) return setBoth(v);
+
 	/** If absolute dx or dy goes below this value, instead, it is set to zero during next update. **/
 	public var clearThreshold = 0.0005;
 
@@ -72,6 +77,10 @@ class Velocity {
 		dy = y;
 	}
 
+	public inline function setBoth(v:Float) {
+		return dx = dy = v;
+	}
+
 	public inline function addAng(ang:Float, v:Float) {
 		dx += Math.cos(ang)*v;
 		dy += Math.sin(ang)*v;
@@ -99,6 +108,7 @@ class Velocity {
 
 	@:noCompletion
 	public static function __test() {
+		// Init
 		var v = new Velocity(1);
 		CiAssert.equals( v.dx, 0 );
 		CiAssert.equals( v.dy, 0 );
@@ -111,7 +121,7 @@ class Velocity {
 		CiAssert.equals( v.shortString(), "8,2" );
 		CiAssert.equals( v.isZero(), false );
 
-
+		// Frictions
 		v.fixedUpdate();
 		CiAssert.equals( v.shortString(), "8,2" );
 
@@ -121,27 +131,48 @@ class Velocity {
 		v.fixedUpdate();
 		CiAssert.equals( v.shortString(), "2,0.5" );
 
+		// Threshold
 		v.clearThreshold = 1;
 		v.fixedUpdate();
 		CiAssert.equals( v.shortString(), "1,0" );
 
+		// Different frictions
+		var v = new Velocity();
 		v.set(8,2);
-		CiAssert.equals( v.shortString(), "8,2" );
+		v.setFricts(0.25, 0.5);
+		v.fixedUpdate();
+		CiAssert.equals( v.shortString(), "2,1" );
+		v.fixedUpdate();
+		CiAssert.equals( v.shortString(), "0.5,0.5" );
 
+
+		// Multiply
+		v.set(8,2);
 		v.mulBoth(2);
 		CiAssert.equals( v.shortString(), "16,4" );
 
 		v.mul(2,3);
 		CiAssert.equals( v.shortString(), "32,12" );
 
-		v.addBoth(1);
-		CiAssert.equals( v.shortString(), "33,13" );
-
-		v.add(1,2);
-		CiAssert.equals( v.shortString(), "34,15" );
-
 		v.mulBoth(0);
 		CiAssert.equals( v.shortString(), "0,0" );
 		CiAssert.equals( v.isZero(), true );
+
+		// Addition
+		v.set(1,1);
+		v.addBoth(1);
+		CiAssert.equals( v.shortString(), "2,2" );
+
+		v.add(1,2);
+		CiAssert.equals( v.shortString(), "3,4" );
+
+		// Single value velocity
+		var v = new Velocity(0.5);
+		v.v = 4;
+		CiAssert.equals( v.v, 4 );
+		v.fixedUpdate();
+		CiAssert.equals( v.v, 2 );
+		v.fixedUpdate();
+		CiAssert.equals( v.v, 1 );
 	}
 }
