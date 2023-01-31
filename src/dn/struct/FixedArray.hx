@@ -30,6 +30,11 @@ class FixedArray<T> {
 	@:noCompletion
 	public var autoResize = false;
 
+	/**
+		If FALSE (default value), then the order of the array won't be guaranted after various operations like `removeIndex` or `shift`. If set to TRUE, then **these operations will be slower**, but the array order will always be preserved.
+	**/
+	public var preserveOrder = false;
+
 
 	@:deprecated("Use 'allocated' here (to avoid allocated/maxSize ambiguity)") @:noCompletion
 	public var length(get,never) : Int; inline function get_length() return allocated;
@@ -52,20 +57,24 @@ class FixedArray<T> {
 		return a.toString() + '<$allocated/$maxSize>';
 	}
 
+
+	/**
+		Print FixedArray content as a String.
+		**WARNING**: this operation is slow and generates allocations! **Only use for debug purpose.**
+	**/
+	public inline function shortString() {
+		var a = [];
+		for(e in this)
+			a.push(e);
+		return a.join(",");
+	}
+
+	/** Return a standard Array using a mapping function on all elements **/
 	public function mapToArray<X>(cb:T->X) : Array<X> {
 		var out = [];
 		for(e in this)
 			out.push( cb(e) );
 		return out;
-	}
-
-	/** Print FixedArray content as a String. WARNING: this operation is slow & generates lots of allocations! Only use for debug purpose. **/
-	@:keep
-	public function dumpContent() : String {
-		var sub = [];
-		for(i in 0...nalloc)
-			sub[i] = values[i];
-		return '[ ${sub.join(", ")} ]';
 	}
 
 	/** Get value at given index, or null if out of bounds **/
@@ -100,7 +109,7 @@ class FixedArray<T> {
 		return values[0];
 	}
 
-	/** Get first value (without modifying the array) **/
+	/** Get a random element from the fixed array **/
 	public inline function oneRandomly() : Null<T> {
 		return allocated==0 ? null : values[ Std.random(allocated) ];
 	}
@@ -115,15 +124,16 @@ class FixedArray<T> {
 		return nalloc==0 ? null : values[(nalloc--)-1];
 	}
 
-	/** Remove the first value and returns it **/
+	/**
+		Remove the first value and returns it.
+		**Warning**: this will affect the array order if `preserveOrder` is FALSE (default).
+	**/
 	public inline function shift() : Null<T> {
 		if( nalloc==0 )
 			return null;
 		else {
 			var v = values[0];
-			for(i in 1...nalloc)
-				values[i-1] = values[i];
-			nalloc--;
+			removeIndex(0);
 			return v;
 		}
 	}
@@ -172,17 +182,26 @@ class FixedArray<T> {
 		return found;
 	}
 
-	/** Remove value at given array index **/
+	/**
+		Remove value at given array index
+		**Warning**: this will affect the array order if `preserveOrder` is FALSE (default).
+	**/
 	public function removeIndex(i:Int) {
 		if( i<nalloc ) {
-			values[i] = null;
-			if( nalloc>1 ) {
+			if( nalloc==1 )
+				nalloc = 0;
+			else if( !preserveOrder ) {
+				// Fast method (no order preservation)
 				values[i] = values[nalloc-1];
 				values[nalloc-1] = null;
 				nalloc--;
 			}
-			else
-				nalloc = 0;
+			else {
+				// Slower method
+				for(j in i+1...nalloc)
+					values[j-1] = values[j];
+				nalloc--;
+			}
 		}
 	}
 
@@ -298,6 +317,31 @@ class FixedArray<T> {
 		CiAssert.equals(a.get(1), 20);
 		CiAssert.equals(a.get(2), 30);
 		CiAssert.equals(a.get(3), 40);
+
+		// Without array order preservation (default)
+		var a = new FixedArray(5);
+		a.push("a");
+		a.push("b");
+		a.push("c");
+		a.push("d");
+		a.push("e");
+		CiAssert.equals(a.shortString(), "a,b,c,d,e");
+		a.shift(); CiAssert.equals(a.shortString(), "e,b,c,d");
+		a.removeIndex(1); CiAssert.equals(a.shortString(), "e,d,c");
+		a.remove("e"); CiAssert.equals(a.shortString(), "c,d");
+
+		// With array order preservation
+		var a = new FixedArray(5);
+		a.preserveOrder = true;
+		a.push("a");
+		a.push("b");
+		a.push("c");
+		a.push("d");
+		a.push("e");
+		CiAssert.equals(a.shortString(), "a,b,c,d,e");
+		a.shift(); CiAssert.equals(a.shortString(), "b,c,d,e");
+		a.removeIndex(1); CiAssert.equals(a.shortString(), "b,d,e");
+		a.remove("b"); CiAssert.equals(a.shortString(), "d,e");
 	}
 }
 
