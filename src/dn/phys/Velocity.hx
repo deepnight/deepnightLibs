@@ -4,6 +4,9 @@ package dn.phys;
 	A generic X/Y velocity utility class
 **/
 class Velocity {
+	/** Custom identifier **/
+	public var id = -1;
+
 	public var x : Float;
 	public var y : Float;
 	public var frictX : Float;
@@ -259,6 +262,17 @@ class VelocityArray {
 	public inline function clearAll() {
 		for(v in all)
 			v.clear();
+	}
+
+	/** Remove "zero" velocities from array **/
+	public function removeZeros() {
+		var i = 0;
+		while( i<all.allocated ) {
+			if( all.get(i).isZero() )
+				all.removeIndex(i);
+			else
+				i++;
+		}
 	}
 
 	public inline function iterator() {
