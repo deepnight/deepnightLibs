@@ -62,7 +62,7 @@ class Velocity {
 
 	@:keep
 	public function toString() {
-		return 'Velocity(${ shortString() })';
+		return 'Velocity${ id<0?"":"#"+id }(${ shortString() })';
 	}
 
 	public inline function shortString() {
