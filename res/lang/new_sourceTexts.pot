@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-""MIME-Version: 1.0\n"
+"MIME-Version: 1.0\n"
 
 
 #: "src/dn/data/GetText.hx"
@@ -25,34 +25,34 @@ msgctxt "Context 2"
 msgid "Ambiguous"
 msgstr ""
 
-#: "src/dn/legacy/GetText.hx"
 #. I'm the commentary
+#: "src/dn/legacy/GetText.hx"
 msgid "Text with commentary"
 msgstr ""
 
-#: "src/dn/legacy/GetText.hx"
 #. Commentary
+#: "src/dn/legacy/GetText.hx"
 msgid "Text with parameters: ::param:: and commentary"
 msgstr ""
 
-#: "res/cdbTest.cdb:texts/#0.text"
 # CastleDB
+#: "res/cdbTest.cdb:texts/#0.text"
 msgid "I'm a CDB text"
 msgstr ""
 
-#: "res/cdbTest.cdb:texts/#1.text"
-#. Commentary
 # CastleDB
+#. Commentary
+#: "res/cdbTest.cdb:texts/#1.text"
 msgid "I'm a CDB text with commentary"
 msgstr ""
 
-#: "res/cdbTest.cdb:texts/#2.text"
 # CastleDB
+#: "res/cdbTest.cdb:texts/#2.text"
 msgid "I'm a CDB text with param: ::param::"
 msgstr ""
 
-#: "res/cdbTest.cdb:texts/#3.text"
-#. Commentary
 # CastleDB
+#. Commentary
+#: "res/cdbTest.cdb:texts/#3.text"
 msgid "I'm a CDB text with param: ::param:: and commentary"
 msgstr ""

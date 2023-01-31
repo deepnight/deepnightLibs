@@ -4,21 +4,21 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "MIME-Version: 1.0\n"
 
-#: src/dn/data/GetText.hx:697 src/dn/legacy/GetText.hx:660
+#: src/dn/data/GetText.hx:927 src/dn/legacy/GetText.hx:660
 msgid "Normal text"
 msgstr ""
 
-#: src/dn/data/GetText.hx:698 src/dn/legacy/GetText.hx:662
+#: src/dn/data/GetText.hx:928 src/dn/legacy/GetText.hx:662
 msgid "Text with parameters: ::param::"
 msgstr ""
 
 #. @Context 1
-#: src/dn/data/GetText.hx:706
+#: src/dn/data/GetText.hx:937
 msgid "Ambiguous"
 msgstr ""
 
 #. @Context 2
-#: src/dn/data/GetText.hx:707
+#: src/dn/data/GetText.hx:938
 msgid "Ambiguous"
 msgstr ""
 
