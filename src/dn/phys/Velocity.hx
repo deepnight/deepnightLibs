@@ -222,8 +222,8 @@ class VelocityArray {
 		all.push(v);
 	}
 
-	public inline function remove(v:Velocity) {
-		all.remove(v);
+	public inline function remove(v:Velocity) : Bool {
+		return all.remove(v);
 	}
 
 	public inline function empty() {
@@ -261,5 +261,4 @@ class VelocityArray {
 	public inline function iterator() : haxe.iterators.ArrayIterator<Velocity> {
 		return new haxe.iterators.ArrayIterator(all);
 	}
-
 }
