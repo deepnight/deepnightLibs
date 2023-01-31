@@ -111,9 +111,15 @@ class Velocity {
 
 	public inline function isZero() return M.fabs(x)<=clearThreshold  &&  M.fabs(y)<=clearThreshold;
 
-	public inline function fixedUpdate() {
-		x*=frictX;
-		y*=frictY;
+	public inline function fixedUpdate(frictOverride=-1.) {
+		if( frictOverride>=0 ) {
+			x *= frictOverride;
+			y *= frictOverride;
+		}
+		else {
+			x*=frictX;
+			y*=frictY;
+		}
 
 		if( M.fabs(x)<clearThreshold )
 			x = 0;
