@@ -213,10 +213,12 @@ class Velocity {
 	Array of Velocity instances, with extra helper methods.
 **/
 class VelocityArray {
-	var all : Array<Velocity> = [];
+	var all : dn.struct.FixedArray<Velocity>;
 	var _sum = 0.;
 
-	public inline function new() {}
+	public inline function new(maxLength:Int) {
+		all = new dn.struct.FixedArray(maxLength);
+	}
 
 	public inline function push(v:Velocity) {
 		all.push(v);
@@ -227,10 +229,11 @@ class VelocityArray {
 	}
 
 	public inline function empty() {
-		all = [];
+		all.empty();
 	}
 
 	public function dispose() {
+		all.dispose();
 		all = null;
 	}
 
@@ -258,7 +261,7 @@ class VelocityArray {
 			v.clear();
 	}
 
-	public inline function iterator() : haxe.iterators.ArrayIterator<Velocity> {
-		return new haxe.iterators.ArrayIterator(all);
+	public inline function iterator() {
+		return all.iterator();
 	}
 }
