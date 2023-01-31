@@ -44,9 +44,15 @@ class Velocity {
 		frict = 1;
 	}
 
-	public static inline function create(x:Float, y:Float, frict=1.) {
+	public static inline function createInit(x:Float, y:Float, frict=1.) {
 		var v = new Velocity();
 		v.set(x,y);
+		v.frict = frict;
+		return v;
+	}
+
+	public static inline function createFrict(frict:Float) {
+		var v = new Velocity();
 		v.frict = frict;
 		return v;
 	}
@@ -199,4 +205,61 @@ class Velocity {
 		v.fixedUpdate();
 		CiAssert.equals( v.v, 1 );
 	}
+}
+
+
+
+/**
+	Array of Velocity instances, with extra helper methods.
+**/
+class VelocityArray {
+	var all : Array<Velocity> = [];
+	var _sum = 0.;
+
+	public inline function new() {}
+
+	public inline function push(v:Velocity) {
+		all.push(v);
+	}
+
+	public inline function remove(v:Velocity) {
+		all.remove(v);
+	}
+
+	public inline function empty() {
+		all = [];
+	}
+
+	public function dispose() {
+		all = null;
+	}
+
+	public inline function getSumX() {
+		_sum = 0.;
+		for(v in all)
+			_sum+=v.x;
+		return _sum;
+	}
+
+	public inline function getSumY() {
+		_sum = 0.;
+		for(v in all)
+			_sum+=v.y;
+		return _sum;
+	}
+
+	public inline function mulAll(f:Float) {
+		for(v in all)
+			v.mulBoth(f);
+	}
+
+	public inline function clearAll() {
+		for(v in all)
+			v.clear();
+	}
+
+	public inline function iterator() : haxe.iterators.ArrayIterator<Velocity> {
+		return new haxe.iterators.ArrayIterator(all);
+	}
+
 }
