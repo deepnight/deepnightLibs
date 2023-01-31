@@ -4,34 +4,51 @@ package dn.phys;
 	A generic X/Y velocity utility class
 **/
 class Velocity {
-	public var dx : Float;
-	public var dy : Float;
+	public var x : Float;
+	public var y : Float;
 	public var frictX : Float;
 	public var frictY : Float;
 
-	/** `v` is a convenience alias for `dx` when you just need a 1D velocity **/
+	/** `v` is a convenience alias for `x` when you just need a 1D velocity **/
 	public var v(get,set) : Float;
-		inline function get_v() return dx;
+		inline function get_v() return x;
 		inline function set_v(v:Float) return setBoth(v);
 
-	/** If absolute dx or dy goes below this value, instead, it is set to zero during next update. **/
+	/** `x` alias **/
+	public var dx(get,set) : Float;
+		inline function set_dx(v) return x = v;
+		inline function get_dx() return x;
+
+	/** `y` alias **/
+	public var dy(get,set) : Float;
+		inline function set_dy(v) return y = v;
+		inline function get_dy() return y;
+
+	/** If absolute `x` or `y` goes below this value, instead, it is set to zero during next update. **/
 	public var clearThreshold = 0.0005;
 
 	public var frict(never,set) : Float;
 		inline function set_frict(v) return frictX = frictY = v;
 
-	/** Angle in radians of the vector represented by dx/dy **/
-	public var ang(get,never) : Float; inline function get_ang() return Math.atan2(dy,dx);
-	/** Length of the vector represented by dx/dy **/
-	public var len(get,never) : Float; inline function get_len() return Math.sqrt(dx*dx + dy*dy);
+	/** Angle in radians of the vector represented by x/y **/
+	public var ang(get,never) : Float; inline function get_ang() return Math.atan2(y,x);
+	/** Length of the vector represented by x/y **/
+	public var len(get,never) : Float; inline function get_len() return Math.sqrt(x*x + y*y);
 
-	public var dirX(get,never) : Int; inline function get_dirX() return M.sign(dx);
-	public var dirY(get,never) : Int; inline function get_dirY() return M.sign(dy);
+	public var dirX(get,never) : Int; inline function get_dirX() return M.sign(x);
+	public var dirY(get,never) : Int; inline function get_dirY() return M.sign(y);
 
 
-	public inline function new(frict=0.9) {
-		dx = dy = 0;
-		this.frict = frict;
+	public inline function new() {
+		x = y = 0;
+		frict = 1;
+	}
+
+	public static inline function create(x:Float, y:Float, frict=1.) {
+		var v = new Velocity();
+		v.set(x,y);
+		v.frict = frict;
+		return v;
 	}
 
 	@:keep
@@ -40,84 +57,84 @@ class Velocity {
 	}
 
 	public inline function shortString() {
-		return '${ M.pretty(dx,2) },${ M.pretty(dy,2) }';
+		return '${ M.pretty(x,2) },${ M.pretty(y,2) }';
 	}
 
-	public inline function setFricts(x:Float, y:Float) {
-		frictX = x;
-		frictY = y;
+	public inline function setFricts(fx:Float, fy:Float) {
+		frictX = fx;
+		frictY = fy;
 	}
 
 	public inline function mul(fx:Float, fy:Float) {
-		dx*=fx;
-		dy*=fy;
+		x*=fx;
+		y*=fy;
 	}
 
 	public inline function mulBoth(f:Float) {
-		dx*=f;
-		dy*=f;
+		x*=f;
+		y*=f;
 	}
 
 	public inline function clear() {
-		dx = dy = 0;
+		x = y = 0;
 	}
 
 	public inline function add(vx:Float, vy:Float) {
-		dx += vx;
-		dy += vy;
+		x += vx;
+		y += vy;
 	}
 
 	public inline function addBoth(v:Float) {
-		dx += v;
-		dy += v;
+		x += v;
+		y += v;
 	}
 
 	public inline function set(x:Float, y:Float) {
-		dx = x;
-		dy = y;
+		this.x = x;
+		this.y = y;
 	}
 
 	public inline function setBoth(v:Float) {
-		return dx = dy = v;
+		return x = y = v;
 	}
 
 	public inline function addAng(ang:Float, v:Float) {
-		dx += Math.cos(ang)*v;
-		dy += Math.sin(ang)*v;
+		x += Math.cos(ang)*v;
+		y += Math.sin(ang)*v;
 	}
 
 	public inline function setAng(ang:Float, v:Float) {
-		dx = Math.cos(ang)*v;
-		dy = Math.sin(ang)*v;
+		x = Math.cos(ang)*v;
+		y = Math.sin(ang)*v;
 	}
 
 
-	public inline function isZero() return M.fabs(dx)<=clearThreshold  &&  M.fabs(dy)<=clearThreshold;
+	public inline function isZero() return M.fabs(x)<=clearThreshold  &&  M.fabs(y)<=clearThreshold;
 
 	public inline function fixedUpdate() {
-		dx*=frictX;
-		dy*=frictY;
+		x*=frictX;
+		y*=frictY;
 
-		if( M.fabs(dx)<clearThreshold )
-			dx = 0;
+		if( M.fabs(x)<clearThreshold )
+			x = 0;
 
-		if( M.fabs(dy)<clearThreshold )
-			dy = 0;
+		if( M.fabs(y)<clearThreshold )
+			y = 0;
 	}
 
 
 	@:noCompletion
 	public static function __test() {
 		// Init
-		var v = new Velocity(1);
-		CiAssert.equals( v.dx, 0 );
-		CiAssert.equals( v.dy, 0 );
+		var v = new Velocity();
+		CiAssert.equals( v.x, 0 );
+		CiAssert.equals( v.y, 0 );
 		CiAssert.equals( v.isZero(), true );
 		CiAssert.equals( v.shortString(), "0,0" );
 
 		v.set(8,2);
-		CiAssert.equals( v.dx, 8 );
-		CiAssert.equals( v.dy, 2 );
+		CiAssert.equals( v.x, 8 );
+		CiAssert.equals( v.y, 2 );
 		CiAssert.equals( v.shortString(), "8,2" );
 		CiAssert.equals( v.isZero(), false );
 
@@ -167,7 +184,8 @@ class Velocity {
 		CiAssert.equals( v.shortString(), "3,4" );
 
 		// Single value velocity
-		var v = new Velocity(0.5);
+		var v = new Velocity();
+		v.frict = 0.5;
 		v.v = 4;
 		CiAssert.equals( v.v, 4 );
 		v.fixedUpdate();
