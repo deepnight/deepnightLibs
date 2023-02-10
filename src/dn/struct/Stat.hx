@@ -20,6 +20,9 @@ class Stat<T:Float> {
 
 	var zero : T = cast 0;
 
+	/** Callback when `v` changes **/
+	public var onChange : Null< Void->Void >;
+
 	public function new(v:T, max:T) {
 		this.v = v;
 		this.min = zero;
@@ -58,7 +61,14 @@ class Stat<T:Float> {
 	}
 
 	inline function set_v(value:T) : T{
-		v = clamp(value);
+		if( onChange==null )
+			v = clamp(value);
+		else {
+			var old = v;
+			v = clamp(value);
+			if( old!=v )
+				onChange();
+		}
 		return v;
 	}
 
