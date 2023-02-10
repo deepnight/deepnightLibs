@@ -37,6 +37,7 @@ class Tests {
 		dn.struct.RandList.__test();
 		dn.RandomTools.__test();
 		dn.struct.RecyclablePool.__test();
+		dn.struct.Stat.StatTest.__test();
 		dn.phys.Velocity.__test();
 		dn.Version.__test();
 
