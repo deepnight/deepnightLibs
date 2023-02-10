@@ -80,6 +80,7 @@ class PixelOutline extends h2d.filter.Shader<InternalShader> {
 		return v;
 	}
 
+	/** Decrease alpha of non-outline pixels **/
 	public function setPartialKnockout(alphaMul:Float) {
 		alphaMul = M.fclamp(alphaMul, 0, 1);
 		knockOut = alphaMul<1;
