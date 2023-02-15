@@ -263,6 +263,16 @@ class VelocityArray {
 			v.mulBoth(f);
 	}
 
+	public inline function mulAllX(f:Float) {
+		for(v in all)
+			v.mul(f,1);
+	}
+
+	public inline function mulAllY(f:Float) {
+		for(v in all)
+			v.mul(1,f);
+	}
+
 	public inline function clearAll() {
 		for(v in all)
 			v.clear();
