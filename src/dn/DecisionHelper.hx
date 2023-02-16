@@ -218,12 +218,23 @@ class DecisionHelper<T> {
 		asyncScorers.push(cb);
 	}
 
+
+	/**
+		Substitute array of values (this will reset the DecisionHelper scoring state)
+	**/
+	public function replaceValues(values:Iterable<T>) {
+		this.values = values;
+		reset();
+	}
+
 	/**
 		Run all registered asynchronous methods (see `addAsyncScore`, `addAsyncKeep` and `addAsyncDiscard`)
 		This approach allows you to prepare a DecisionHelper instance, add scoring/keep/discard methods, and run them later on the set of values.
 	**/
-	public inline function applyAsyncMethods(resetBefore=true) {
-		if( resetBefore )
+	public inline function applyAsyncMethods(?customValues:Iterable<T>, resetBefore=true) {
+		if( customValues!=null )
+			replaceValues(customValues); // includes a reset
+		else if( resetBefore )
 			reset();
 
 		if( asyncKeepers!=null )
