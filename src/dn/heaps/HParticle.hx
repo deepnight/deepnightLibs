@@ -292,7 +292,8 @@ class HParticle extends BatchElement {
 	var maxLifeF				: Float;
 	public var elapsedLifeS(get,never) : Float;
 	public var remainingLifeS(get,never) : Float;
-	public var curLifeRatio(get,never) : Float; // 0(start) -> 1(end)
+	/** From 0 (start) to 1 (death) **/
+	public var curLifeRatio(get,never) : Float;
 
 	public var delayS(get, set)		: Float;
 	public var delayF(default, set)	: Float;
