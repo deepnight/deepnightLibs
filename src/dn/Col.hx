@@ -25,6 +25,7 @@ enum abstract ColorEnum(Int) to Int to Col {
 	var Yellow = 0xffcc00;
 	var Pink = 0xff00ff;
 	var Lime = 0xCAFF00;
+	var Cyan = 0x00d2ff;
 }
 
 abstract Col(Int) from Int to Int {
