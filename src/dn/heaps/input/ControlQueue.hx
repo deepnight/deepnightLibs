@@ -2,62 +2,77 @@ package dn.heaps.input;
 
 class ControlQueue<T:Int> {
 	var ca : ControllerAccess<T>;
-	var curTimeS : Float;
+	var curTimeS : Float = 0;
 
+	var queueDurationS : Float;
 	var allWatches : Array<T> = [];
-	var initialDownS : Map<Int,Float> = new Map();
+
+	var lastFrameDown : Map<Int,Bool> = new Map();
+	var holdDurationS : Map<Int,Float> = new Map();
 	var lastDownS : Map<Int,Float> = new Map();
 	var lastReleaseS : Map<Int,Float> = new Map();
-	var maxQueueTimeS : Float;
 	var upRequired : Map<Int,Bool> = new Map();
 
-	public function new(ca:ControllerAccess<T>, watcheds:Array<T>, maxQueueTimeS=0.3) {
+	public function new(ca:ControllerAccess<T>, watcheds:Array<T>, queueDurationS=0.3) {
 		this.ca = ca;
-		this.maxQueueTimeS = maxQueueTimeS;
+		this.queueDurationS = queueDurationS;
 		this.allWatches = watcheds.copy();
 	}
 
 	@:keep public function toString() {
 		return allWatches.map( (c:T)->{
 			return c+"=>"
-				+ M.pretty(getHoldTimeS(c),1)+"s"
 				+ (downNowOrRecently(c)?"D":"_")
-				+ (releasedNowOrRecently(c)?"R":"_");
-				// + (heldDownNowOrRecentlyFor(c,0.3)?"H":"_");
+				+ (releasedNowOrRecently(c)?"R":"_")
+				+ "("+M.pretty(getHoldTimeS(c),1)+"s)";
 		} ).join(", ");
 	}
 
 	public function earlyFrameUpdate(curTimeS:Float) {
+		var deltaS = this.curTimeS<=0 ? 0 : curTimeS - this.curTimeS;
 		this.curTimeS = curTimeS;
 
 		for(c in allWatches) {
+			// Hold duration
+			if( ca.isDown(c) ) {
+				if( !wasDownInLastFrame(c) )
+					holdDurationS.set(c, 0);
+
+				if( !holdDurationS.exists(c) )
+					holdDurationS.set(c, deltaS);
+				else
+					holdDurationS.set(c, holdDurationS.get(c)+deltaS);
+			}
+
+			// Down/up/release
 			if( upRequired.exists(c) && ca.isDown(c) )
 				continue;
 
 			if( upRequired.exists(c) )
 				upRequired.remove(c);
 
-			if( !ca.isDown(c) && initialDownS.exists(c) )
-				initialDownS.remove(c);
-
-			if( ca.isDown(c) && !initialDownS.exists(c) )
-				initialDownS.set(c, curTimeS);
-
 			if( ca.isDown(c) )
 				lastDownS.set(c, curTimeS);
-			else if( !ca.isDown(c) && downNowOrRecently(c) && !releasedNowOrRecently(c) )
+			else if( !ca.isDown(c) && wasDownInLastFrame(c) )
 				lastReleaseS.set(c, curTimeS);
+
+			lastFrameDown.set(c, ca.isDown(c));
 		}
 	}
 
-	public inline function unqueue(c:T) {
-		lastDownS.remove(c);
-		lastReleaseS.remove(c);
+	inline function wasDownInLastFrame(c:T) {
+		return lastFrameDown.get(c)==true;
 	}
 
-	public function requireKeyUp(c:T) {
+	public inline function clear(c:T) {
+		lastDownS.remove(c);
+		lastReleaseS.remove(c);
+		holdDurationS.remove(c);
+	}
+
+	public function clearAndRequireKeyUp(c:T) {
 		upRequired.set(c,true);
-		unqueue(c);
+		clear(c);
 	}
 
 	public function downNowOrRecently(c:T) {
@@ -65,22 +80,15 @@ class ControlQueue<T:Int> {
 	}
 
 	function downRecently(c:T) {
-		return !upRequired.exists(c)  &&  lastDownS.exists(c)  &&  curTimeS - lastDownS.get(c) <= maxQueueTimeS;
+		return !upRequired.exists(c)  &&  lastDownS.exists(c)  &&  curTimeS - lastDownS.get(c) <= queueDurationS;
 	}
 
 	public function releasedNowOrRecently(c:T) {
-		return !upRequired.exists(c)  &&  lastReleaseS.exists(c)  &&  curTimeS - lastReleaseS.get(c) <= maxQueueTimeS;
+		return !upRequired.exists(c)  &&  lastReleaseS.exists(c)  &&  curTimeS - lastReleaseS.get(c) <= queueDurationS;
 	}
 
 	public function getHoldTimeS(c:T) : Float {
-		return initialDownS.exists(c) ? curTimeS-initialDownS.get(c) : 0;
+		return !holdDurationS.exists(c) || !ca.isDown(c) && !releasedNowOrRecently(c) ? 0 : holdDurationS.get(c);
+		// return initialDownS.exists(c) ? curTimeS-initialDownS.get(c) : 0;
 	}
-
-	// public function heldDownNowOrRecentlyFor(c:T, seconds:Float) {
-		// return getHoldTimeS(c)==0
-		// if( !downNowOrRecently(c) )
-		// 	return false;
-		// else
-		// 	return lastDownS.get(c) - initialDownS.get(c);
-	// }
 }
