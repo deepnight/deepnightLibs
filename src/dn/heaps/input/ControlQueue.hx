@@ -84,7 +84,7 @@ class ControlQueue<T:Int> {
 	}
 
 	public function releasedNowOrRecently(c:T) {
-		return !upRequired.exists(c)  &&  lastReleaseS.exists(c)  &&  curTimeS - lastReleaseS.get(c) <= queueDurationS;
+		return !upRequired.exists(c)  &&  downRecently(c)  &&  lastReleaseS.exists(c)  &&  curTimeS - lastReleaseS.get(c) <= queueDurationS;
 	}
 
 	public function getHoldTimeS(c:T) : Float {
