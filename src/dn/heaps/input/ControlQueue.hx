@@ -75,19 +75,19 @@ class ControlQueue<T:Int> {
 		clear(c);
 	}
 
-	public function downNowOrRecently(c:T) {
+	public inline function downNowOrRecently(c:T) {
 		return ca.isDown(c)  ||  downRecently(c);
 	}
 
-	function downRecently(c:T) {
+	inline function downRecently(c:T) {
 		return !upRequired.exists(c)  &&  lastDownS.exists(c)  &&  curTimeS - lastDownS.get(c) <= queueDurationS;
 	}
 
-	public function releasedNowOrRecently(c:T) {
+	public inline function releasedNowOrRecently(c:T) {
 		return !upRequired.exists(c)  &&  downRecently(c)  &&  lastReleaseS.exists(c)  &&  curTimeS - lastReleaseS.get(c) <= queueDurationS;
 	}
 
-	public function getHoldTimeS(c:T) : Float {
+	public inline function getHoldTimeS(c:T) : Float {
 		return !holdDurationS.exists(c) || !ca.isDown(c) && !releasedNowOrRecently(c) ? 0 : holdDurationS.get(c);
 	}
 }
