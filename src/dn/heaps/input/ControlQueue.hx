@@ -89,6 +89,5 @@ class ControlQueue<T:Int> {
 
 	public function getHoldTimeS(c:T) : Float {
 		return !holdDurationS.exists(c) || !ca.isDown(c) && !releasedNowOrRecently(c) ? 0 : holdDurationS.get(c);
-		// return initialDownS.exists(c) ? curTimeS-initialDownS.get(c) : 0;
 	}
 }
