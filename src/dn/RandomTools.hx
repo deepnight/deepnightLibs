@@ -114,7 +114,7 @@ class RandomTools {
 
 	/** Pick a value randomly in an array **/
 	public static inline function pick<T>(a:Array<T>, removeAfterPick=false) : Null<T> {
-		return a.length==0
+		return a==null || a.length==0
 			? null
 			: removeAfterPick
 				? a.splice( Std.random(a.length), 1 )[0]
