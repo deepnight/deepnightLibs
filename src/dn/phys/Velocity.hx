@@ -117,6 +117,13 @@ class Velocity {
 		y = Math.sin(ang)*v;
 	}
 
+	public inline function rotate(angInc:Float) {
+		var oldAng = ang;
+		var d = len;
+		dx = Math.cos(oldAng+angInc) * d;
+		dy = Math.sin(oldAng+angInc) * d;
+	}
+
 
 	public inline function isZero() return M.fabs(x)<=clearThreshold  &&  M.fabs(y)<=clearThreshold;
 
