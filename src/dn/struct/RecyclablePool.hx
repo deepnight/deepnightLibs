@@ -1,6 +1,6 @@
 package dn.struct;
 
-private typedef Recyclable = {
+interface Recyclable {
 	function recycle() : Void;
 }
 
@@ -223,7 +223,7 @@ class RecyclablePool<T:Recyclable> {
 
 
 
-private class UnitTestObject {
+private class UnitTestObject implements Recyclable {
 	var id : Int;
 	public var value : Int;
 

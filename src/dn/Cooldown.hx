@@ -566,7 +566,7 @@ class Cooldown {
 
 
 
-private class CdInst {
+private class CdInst implements Recyclable {
 	public var k : Int;
 	public var frames : Float;
 	public var initial : Float;
