@@ -74,12 +74,13 @@ class Velocity {
 		frictY = fy;
 	}
 
-	public inline function mul(fx:Float, fy:Float) {
+	public inline function mulXY(fx:Float, fy:Float) {
 		x*=fx;
 		y*=fy;
 	}
 
-	public inline function mulBoth(f:Float) {
+	@:deprecated("Use mul(f)") @:noCompletion public inline function mulBoth(f:Float) mul(f);
+	public inline function mul(f:Float) {
 		x*=f;
 		y*=f;
 	}
@@ -88,14 +89,18 @@ class Velocity {
 		x = y = 0;
 	}
 
-	public inline function add(vx:Float, vy:Float) {
+	public inline function addXY(vx:Float, vy:Float) {
 		x += vx;
 		y += vy;
 	}
 
-	public inline function addBoth(v:Float) {
-		x += v;
-		y += v;
+	@:deprecated("This method is no longer implemented.") @:noCompletion public inline function addBoth(v:Float) {}
+
+	public inline function addLen(v:Float) {
+		var l = len;
+		var a = ang;
+		x = Math.cos(a)*(l+v);
+		y = Math.sin(a)*(l+v);
 	}
 
 	public inline function set(x:Float, y:Float) {
@@ -187,22 +192,22 @@ class Velocity {
 
 		// Multiply
 		v.set(8,2);
-		v.mulBoth(2);
+		v.mul(2);
 		CiAssert.equals( v.shortString(), "16,4" );
 
-		v.mul(2,3);
+		v.mulXY(2,3);
 		CiAssert.equals( v.shortString(), "32,12" );
 
-		v.mulBoth(0);
+		v.mul(0);
 		CiAssert.equals( v.shortString(), "0,0" );
 		CiAssert.equals( v.isZero(), true );
 
 		// Addition
 		v.set(1,1);
-		v.addBoth(1);
+		v.addXY(1,1);
 		CiAssert.equals( v.shortString(), "2,2" );
 
-		v.add(1,2);
+		v.addXY(1,2);
 		CiAssert.equals( v.shortString(), "3,4" );
 
 		// Single value velocity
@@ -267,17 +272,17 @@ class VelocityArray {
 
 	public inline function mulAll(f:Float) {
 		for(v in all)
-			v.mulBoth(f);
+			v.mul(f);
 	}
 
 	public inline function mulAllX(f:Float) {
 		for(v in all)
-			v.mul(f,1);
+			v.mulXY(f,1);
 	}
 
 	public inline function mulAllY(f:Float) {
 		for(v in all)
-			v.mul(1,f);
+			v.mulXY(1,f);
 	}
 
 	public inline function clearAll() {
