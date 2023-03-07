@@ -8,7 +8,9 @@ class TiledTexture extends h2d.TileGroup {
 	public var pivotX(default,set) = 0.;
 	public var pivotY(default,set) = 0.;
 
-	public function new(texTile:h2d.Tile, wid:Int, hei:Int, ?p:h2d.Object) {
+	public
+
+	public function new(wid:Int, hei:Int, ?texTile:h2d.Tile, ?p:h2d.Object) {
 		super(texTile, p);
 		width = wid;
 		height = hei;
@@ -26,6 +28,7 @@ class TiledTexture extends h2d.TileGroup {
 
 	function build() {
 		clear();
+		if (tile == null) return;
 		var x = 0;
 		var y = 0;
 		var ox = M.round( -pivotX*width );
