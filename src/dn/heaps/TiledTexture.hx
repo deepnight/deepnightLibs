@@ -64,7 +64,7 @@ class TiledTexture extends h2d.TileGroup {
 			bmp.x = x+ox;
 			bmp.y = y+oy;
 			bmp.drawTo(t);
-			x += w
+			x += w;
 			if( x>=width ) {
 				x = 0;
 				y += h;
