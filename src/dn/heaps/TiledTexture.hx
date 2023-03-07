@@ -48,4 +48,26 @@ class TiledTexture extends h2d.TileGroup {
 		}
 		super.sync(ctx);
 	}
+
+	override function drawTo(t:texture) {
+		if ( invalidated ) {
+			invalidated = false;
+			build();
+		}
+
+		if (tile == null) return;
+
+		var x = 0;
+		var y = 0;
+		var ox = M.round( -pivotX*width );
+		var oy = M.round( -pivotY*height );
+		while( y<height) {
+			tile.sub(x+ox, y+oy, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height)).drawTo(t);
+			x += Std.int(tile.width);
+			if( x>=width ) {
+				x = 0;
+				y += Std.int(tile.height);
+			}
+		}
+	}
 }
