@@ -49,7 +49,7 @@ class TiledTexture extends h2d.TileGroup {
 		super.sync(ctx);
 	}
 
-	override function drawTo(t:texture) {
+	override function drawTo(t:Texture) {
 		if ( invalidated ) {
 			invalidated = false;
 			build();
