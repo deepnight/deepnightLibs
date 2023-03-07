@@ -63,7 +63,7 @@ class TiledTexture extends h2d.TileGroup {
 		var oy = M.round( -pivotY*height );
 		while( y<height) {
 			//add( x+ox, y+oy, tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height) ) );
-			var bmp = new h2d.Bitmap(tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height));
+			var bmp = new h2d.Bitmap(tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height)));
 			bmp.drawTo(t);
 			x += Std.int(tile.width);
 			if( x>=width ) {
