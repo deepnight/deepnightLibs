@@ -69,6 +69,14 @@ class FixedArray<T> {
 		return a.join(",");
 	}
 
+	/** Create a FixedArray from an existing Array **/
+	public static inline function fromArray<T>(arr:Array<T>) : FixedArray<T> {
+		var out = new FixedArray(arr.length);
+		for(e in arr)
+			out.push(e);
+		return out;
+	}
+
 	/** Return a standard Array using a mapping function on all elements **/
 	public function mapToArray<X>(cb:T->X) : Array<X> {
 		var out = [];
@@ -317,6 +325,13 @@ class FixedArray<T> {
 		CiAssert.equals(a.get(1), 20);
 		CiAssert.equals(a.get(2), 30);
 		CiAssert.equals(a.get(3), 40);
+
+		// From array init
+		var a = FixedArray.fromArray([0,1,2]);
+		CiAssert.equals(a.allocated, 3);
+		CiAssert.equals(a.first(), 0);
+		CiAssert.equals(a.get(1), 1);
+		CiAssert.equals(a.last(), 2);
 
 		// Without array order preservation (default)
 		var a = new FixedArray(5);
