@@ -31,12 +31,14 @@ class TiledTexture extends h2d.TileGroup {
 		var y = 0;
 		var ox = M.round( -pivotX*width );
 		var oy = M.round( -pivotY*height );
+		var w = Std.int( tile.width );
+		var h = Std.int( tile.height );
 		while( y<height) {
 			add( x+ox, y+oy, tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height) ) );
-			x += Std.int(tile.width);
+			x += w;
 			if( x>=width ) {
 				x = 0;
-				y += Std.int(tile.height);
+				y += h;
 			}
 		}
 	}
@@ -51,26 +53,21 @@ class TiledTexture extends h2d.TileGroup {
 
 	override function drawTo(t:h3d.mat.Texture) {
 		if (tile == null) return;
-
-		if( invalidated ) {
-			invalidated = false;
-			build();
-		}
-
 		var x = 0;
 		var y = 0;
 		var ox = M.round( -pivotX*width );
 		var oy = M.round( -pivotY*height );
+		var w = Std.int( tile.width );
+		var h = Std.int( tile.height );
 		while( y<height) {
-			//add( x+ox, y+oy, tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height) ) );
-			var bmp = new h2d.Bitmap(tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height)));
+			var bmp = new h2d.Bitmap( tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height) ) );
 			bmp.x = x+ox;
 			bmp.y = y+oy;
 			bmp.drawTo(t);
-			x += Std.int(tile.width);
+			x += w
 			if( x>=width ) {
 				x = 0;
-				y += Std.int(tile.height);
+				y += h
 			}
 		}
 	}
