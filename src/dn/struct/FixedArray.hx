@@ -329,9 +329,9 @@ class FixedArray<T> {
 		// From array init
 		var a = FixedArray.fromArray([0,1,2]);
 		CiAssert.equals(a.allocated, 3);
-		CiAssert.equals(a.first(), 0);
+		CiAssert.equals(a.get(0), 0);
 		CiAssert.equals(a.get(1), 1);
-		CiAssert.equals(a.last(), 2);
+		CiAssert.equals(a.get(2), 2);
 
 		// Without array order preservation (default)
 		var a = new FixedArray(5);
