@@ -59,7 +59,7 @@ class FixedArray<T> {
 
 
 	/**
-		Print FixedArray content as a String.
+		Print FixedArray content as a String (example: "valueA,valueB,valueC").
 		**WARNING**: this operation is slow and generates allocations! **Only use for debug purpose.**
 	**/
 	public inline function shortString() {
