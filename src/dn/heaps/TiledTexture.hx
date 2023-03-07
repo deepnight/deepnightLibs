@@ -67,7 +67,7 @@ class TiledTexture extends h2d.TileGroup {
 			x += w
 			if( x>=width ) {
 				x = 0;
-				y += h
+				y += h;
 			}
 		}
 	}
