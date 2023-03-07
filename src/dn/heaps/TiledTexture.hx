@@ -8,8 +8,6 @@ class TiledTexture extends h2d.TileGroup {
 	public var pivotX(default,set) = 0.;
 	public var pivotY(default,set) = 0.;
 
-	public
-
 	public function new(wid:Int, hei:Int, ?texTile:h2d.Tile, ?p:h2d.Object) {
 		super(texTile, p);
 		width = wid;
