@@ -443,26 +443,18 @@ class M {
 		return round(x / y) * y;
 	}
 
-	/**
-	 * Fast replacement for Math.round(x).
-	 */
-	inline public static function round(x:Float):Int
-	{
-		return Std.int(x > 0 ? x + .5 : x < 0 ? x - .5 : 0);
+	/** Fast replacement for Math.round(x). **/
+	public static inline function round(x:Float):Int {
+		return Std.int( x>0 ? x+.5 : x<0 ? x-.5 : 0 );
 	}
 
-	/**
-	 * Fast replacement for Math.ceil(x).
-	 */
-	inline public static function ceil(x:Float):Int
-	{
-		if( x > .0)
-		{
+	/** Fast replacement for Math.ceil(x). **/
+	public static inline function ceil(x:Float):Int {
+		if( x > .0) {
 			var t = Std.int(x + .5);
 			return (t < x) ? t + 1 : t;
 		}
-		else if( x < .0)
-		{
+		else if( x < .0) {
 			var t = Std.int(x - .5);
 			return (t < x) ? t + 1 : t;
 		}
@@ -470,20 +462,9 @@ class M {
 			return 0;
 	}
 
-	/**
-	 * Fast replacement for Math.floor(x).
-	 */
-	inline public static function floor(x:Float) : Int {
-		return
-			if( x>=0 )
-				Std.int(x);
-			else {
-				var i = Std.int(x);
-				if( x==i )
-					i;
-				else
-					i - 1;
-			}
+	/** Fast replacement for Math.floor(x). **/
+	public static inline function floor(x:Float) : Int {
+		return Std.int(x) + ( x>=0 || x==Std.int(x) ? 0 : -1 );
 	}
 
 	/**
@@ -1060,10 +1041,22 @@ class M {
 		CiAssert.isTrue( M.round(1.5)==2 );
 		CiAssert.isTrue( M.round(-1.5)==-2 );
 		CiAssert.isTrue( M.ceil(-1.5)==-1 );
-		CiAssert.isTrue( M.floor(-1.5)==-2 );
 		CiAssert.isTrue( M.isValidNumber(1.5) );
 		CiAssert.isTrue( !M.isValidNumber(null) );
 		CiAssert.isTrue( !M.isValidNumber(1/0) );
+
+		// Floor
+		CiAssert.equals( M.floor(0), 0 );
+		CiAssert.equals( M.floor(0.1), 0 );
+		CiAssert.equals( M.floor(0.9), 0 );
+		CiAssert.equals( M.floor(1), 1 );
+		CiAssert.equals( M.floor(50), 50 );
+		CiAssert.equals( M.floor(-0.1), -1 );
+		CiAssert.equals( M.floor(-1), -1 );
+		CiAssert.equals( M.floor(-1.1), -2 );
+		CiAssert.equals( M.floor(-1.000000001), -2 );
+		CiAssert.equals( M.floor(-1.5), -2 );
+		CiAssert.equals( M.floor(-1.9), -2 );
 
 		// Bit set
 		CiAssert.equals( M.setBit(0,0), 1 );
