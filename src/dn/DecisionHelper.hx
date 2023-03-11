@@ -219,6 +219,13 @@ class DecisionHelper<T> {
 	}
 
 
+	public inline function removeAllAsyncMethods() {
+		asyncDiscarders = null;
+		asyncKeepers = null;
+		asyncScorers = null;
+	}
+
+
 	/**
 		Substitute array of values (this will reset the DecisionHelper scoring state)
 	**/
