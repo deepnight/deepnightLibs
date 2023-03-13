@@ -331,7 +331,9 @@ class Process {
 	function postUpdate() { }
 
 	/** Called when client window is resized. **/
-	function onResize() { }
+	function onResize() {
+		onResizeCb();
+	}
 
 	/** Called when Process is garbaged, that's where all the cleanup should happen **/
 	function onDispose() { }
@@ -340,6 +342,7 @@ class Process {
 	public dynamic function onUpdateCb() {}
 	public dynamic function onFixedUpdateCb() {}
 	public dynamic function onDisposeCb() {}
+	public dynamic function onResizeCb() {}
 
 
 	/** Get printable process instance name **/
