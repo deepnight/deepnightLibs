@@ -261,14 +261,13 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
 
-		var stick = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,2,2), c.flow);
-		c.flow.getProperties(stick).isAbsolute = true;
-		stick.rotation = dn.M.PIHALF*0.5;
+		var stick = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,2,2), bg);
 		stick.tile.setCenterRatio(0.5);
+		stick.setPosition(BT_SIZE*0.5, BT_SIZE*0.5);
 
 		var tf = new h2d.Text(font, c.flow);
+		c.flow.getProperties(tf).isAbsolute = true; // Avoid text shaking
 		tf.x = BT_SIZE+4;
-		tf.y = -2;
 
 		c.process.onUpdateCb = ()->{
 			var a = angGetter();
@@ -276,8 +275,8 @@ class ControllerDebug<T:Int> extends dn.Process {
 			tf.textColor = d<=0 ? RED : GREEN;
 			tf.text = label+" ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
 
-			stick.x = bg.x + BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.2*d;
-			stick.y = bg.y + BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.2*d;
+			stick.x = BT_SIZE*0.5 + Math.cos(a) * (BT_SIZE*0.5-2)*d;
+			stick.y = BT_SIZE*0.5 + Math.sin(a) * (BT_SIZE*0.5-2)*d;
 
 			bg.color.setColor( dn.legacy.Color.addAlphaF(tf.textColor,0.4) );
 		}
