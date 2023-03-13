@@ -98,7 +98,7 @@ class ControllerAccess<T:Int> {
 		@param parent The target dn.Process to host the debugger
 		@param afterRender This optional callback is called after the Debugger was created, if you need to adjust it.
 	**/
-	public inline function toggleDebugger(parent:dn.Process, ?afterRender:ControllerDebug<T>->Void) {
+	public function toggleDebugger(parent:dn.Process, ?afterRender:ControllerDebug<T>->Void) {
 		if( hasDebugger() )
 			removeDebugger();
 		else

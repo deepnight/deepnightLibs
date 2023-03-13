@@ -739,6 +739,10 @@ class Controller<T:Int> {
 	}
 
 
+	public static inline function getKeyName(code:Int) : String {
+		var name = Key.getKeyName(code);
+		return name!=null ? name : '#$code?';
+	}
 
 	/**
 		Return a visual representation (as h2d.Flow) of given keyboard key.
@@ -801,7 +805,8 @@ class Controller<T:Int> {
 						f.paddingRight+=8;
 
 					case _:
-						tf.text = Key.getKeyName(keyId).toUpperCase();
+
+						tf.text = getKeyName(keyId).toUpperCase();
 				}
 				tf.textColor = 0x242234;
 		}
@@ -861,8 +866,8 @@ class InputBinding<T:Int> {
 		if( padNeg!=null ) all.push( getPadButtonAsString(padNeg) );
 		if( padPos!=null ) all.push( getPadButtonAsString(padPos) );
 		if( padButton!=null ) all.push( getPadButtonAsString(padButton) );
-		if( kbNeg>=0 ) all.push( Key.getKeyName(kbNeg) );
-		if( kbPos>=0 && kbNeg!=kbPos ) all.push( Key.getKeyName(kbPos) );
+		if( kbNeg>=0 ) all.push( Controller.getKeyName(kbNeg) );
+		if( kbPos>=0 && kbNeg!=kbPos ) all.push( Controller.getKeyName(kbPos) );
 		return all.join("/");
 	}
 
