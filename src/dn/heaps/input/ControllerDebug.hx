@@ -1,5 +1,9 @@
 package dn.heaps.input;
 
+private typedef DebugComponent = {
+	var process : dn.Process;
+	var flow : h2d.Flow;
+}
 
 /**
 	This class should only be instanciated by a ControllerAccess.
@@ -10,20 +14,30 @@ class ControllerDebug<T:Int> extends dn.Process {
 	static var GREEN = 0x66ff00;
 
 	var ca : ControllerAccess<T>;
-	var flow : h2d.Flow;
+	var columnsFlow : h2d.Flow;
+	var columns : Array<h2d.Flow> = [];
 	var font : h2d.Font;
 	var status : Null<h2d.Text>;
-	var connected = false;
-	var buttons : Map<T,Process> = new Map();
+	var padConnected = false;
+	var buttons : Map<T,DebugComponent> = new Map();
 	var odd = false;
+	var needResize = true;
 
 	var afterRender : Null< ControllerDebug<T>->Void >;
 
+	var curColumn(get,never) : h2d.Flow;
+		inline function get_curColumn() {
+			if( columns.length==0 )
+				return createColumn();
+			else
+				return columns[columns.length-1];
+		}
+
 	public var width(get,never) : Int;
-		inline function get_width() return flow.outerWidth;
+		inline function get_width() return columnsFlow.outerWidth;
 
 	public var height(get,never) : Int;
-		inline function get_height() return flow.outerHeight;
+		inline function get_height() return columnsFlow.outerHeight;
 
 
 	@:allow(dn.heaps.input.ControllerAccess)
@@ -39,22 +53,33 @@ class ControllerDebug<T:Int> extends dn.Process {
 		this.afterRender = afterRender;
 		font = f!=null ? f : hxd.res.DefaultFont.get();
 
-		flow = new h2d.Flow(root);
-		flow.layout = Vertical;
-		flow.padding = 4;
-		flow.verticalSpacing = 2;
+		columnsFlow = new h2d.Flow(root);
+		columnsFlow.layout = Horizontal;
+		columnsFlow.horizontalSpacing = 16;
+		columnsFlow.verticalAlign = Top;
 
 		render();
 	}
 
-	function render() {
-		connected = true;
-		killAllChildrenProcesses();
-		flow.removeChildren();
-		flow.backgroundTile = h2d.Tile.fromColor(0x0, 1,1, 0.4);
+	function createColumn() {
+		var f = new h2d.Flow(columnsFlow);
+		columns.push(f);
+		f.layout = Vertical;
+		f.padding = 4;
+		f.verticalSpacing = 2;
+		return f;
+	}
 
-		status = new h2d.Text(font, flow);
-		flow.addSpacing(4);
+	function render() {
+		killAllChildrenProcesses();
+
+		columns = [];
+		columnsFlow.removeChildren();
+
+		columnsFlow.backgroundTile = h2d.Tile.fromColor(0x0, 1,1, 0.4);
+
+		status = new h2d.Text(font, curColumn);
+		curColumn.addSpacing(4);
 
 		var allActions : Array<T> = [];
 		@:privateAccess
@@ -66,16 +91,18 @@ class ControllerDebug<T:Int> extends dn.Process {
 		for(act in allActions)
 			buttons.set(act, createButton(act));
 
-		flow.reflow();
+		columnsFlow.reflow();
 		if( afterRender!=null )
 			afterRender(this);
 	}
 
-	function onDisconnect() {
+	function onPadDisconnected() {
+		padConnected = false;
 		render();
 	}
 
-	function onConnect() {
+	function onPadConnected() {
+		padConnected = true;
 		render();
 	}
 
@@ -114,31 +141,46 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 	function removeButton(a:T) {
 		if( buttons.exists(a) )
-			buttons.get(a).destroy();
+			buttons.get(a).process.destroy();
 		buttons.remove(a);
 	}
 
 
-	function createButton(a:T) {
+	function createComponent() : DebugComponent {
+		if( curColumn.numChildren>=10 )
+			createColumn();
+
 		var p = createChildProcess();
-		p.createRoot(flow);
+		p.createRoot(curColumn);
+		p.onResizeCb = ()->{
+			needResize = true;
+		}
+		var flow = new h2d.Flow(p.root);
+		flow.verticalAlign = Middle;
+		flow.minHeight = 32;
+		return { process:p, flow:flow }
+	}
+
+
+	function createButton(a:T) {
+		var c = createComponent();
 
 		var isAnalog = ca.input.isBoundToAnalog(a,true);
 
-		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
 
-		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,isAnalog?2:BT_SIZE, BT_SIZE), p.root);
+		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,isAnalog?2:BT_SIZE, BT_SIZE), c.flow);
 		bt.y = 8;
 
 		bg.y = bt.y;
 		bg.color = bt.color;
 
-		var tf = new h2d.Text(font, p.root);
+		var tf = new h2d.Text(font, c.flow);
 		tf.text = getActionName(a);
 		tf.x = BT_SIZE+4;
 		tf.y = 4;
 
-		var bFlow = new h2d.Flow(p.root);
+		var bFlow = new h2d.Flow(c.flow);
 		bFlow.x = 120;
 		bFlow.minWidth = 300;
 		bFlow.paddingHorizontal = 4;
@@ -175,7 +217,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 			first = false;
 		}
 
-		p.onUpdateCb = ()->{
+		c.process.onUpdateCb = ()->{
 			var alpha = isAnalog ? 0.4 : 1;
 			if( ca.isDown(a) ) {
 				tf.textColor = GREEN;
@@ -192,22 +234,21 @@ class ControllerDebug<T:Int> extends dn.Process {
 		}
 
 		odd = !odd;
-		return p;
+		return c;
 	}
 
 
 	function createAnalog(a:T) {
-		var p = createChildProcess();
-		p.createRoot(flow);
+		var c = createComponent();
 
-		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
-		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,2,BT_SIZE), p.root);
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
+		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,2,BT_SIZE), c.flow);
 		bmp.tile.setCenterRatio(0.5,0);
-		var tf = new h2d.Text(font, p.root);
+		var tf = new h2d.Text(font, c.flow);
 		tf.x = BT_SIZE+4;
 		tf.y = -4;
 
-		p.onUpdateCb = ()->{
+		c.process.onUpdateCb = ()->{
 			var v = ca.getAnalogValue(a);
 			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
 			bmp.color.setColor( dn.legacy.Color.addAlphaF(v!=0 ? GREEN : RED) );
@@ -222,20 +263,19 @@ class ControllerDebug<T:Int> extends dn.Process {
 		Create a combined X/Y (ie. stick) display
 	**/
 	public function createStickXY(xAxis:T, yAxis:T) {
-		var p = createChildProcess();
-		p.createRoot(flow);
+		var c = createComponent();
 
 		var s = dn.M.round(BT_SIZE*0.3);
-		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
-		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), p.root);
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
+		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), c.flow);
 		bt.rotation = dn.M.PIHALF*0.5;
 		bt.tile.setCenterRatio(0.5);
 
-		var tf = new h2d.Text(font, p.root);
+		var tf = new h2d.Text(font, c.flow);
 		tf.x = BT_SIZE+4;
 		tf.y = -2;
 
-		p.onUpdateCb = ()->{
+		c.process.onUpdateCb = ()->{
 			var a = ca.getAnalogAngleXY(xAxis, yAxis);
 			var d = ca.getAnalogDistXY(xAxis, yAxis);
 			tf.textColor = d<=0 ? RED : GREEN;
@@ -252,20 +292,19 @@ class ControllerDebug<T:Int> extends dn.Process {
 		Create a combined Left/Right/Up/Down (ie. stick) display
 	**/
 	public function createStick4(?name:String, left:T, right:T, up:T, down:T) {
-		var p = createChildProcess();
-		p.createRoot(flow);
+		var c = createComponent();
 
 		var s = dn.M.round(BT_SIZE*0.3);
-		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
-		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), p.root);
+		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
+		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), c.flow);
 		bt.rotation = dn.M.PIHALF*0.5;
 		bt.tile.setCenterRatio(0.5);
 
-		var tf = new h2d.Text(font, p.root);
+		var tf = new h2d.Text(font, c.flow);
 		tf.x = BT_SIZE+4;
 		tf.y = -2;
 
-		p.onUpdateCb = ()->{
+		c.process.onUpdateCb = ()->{
 			var a = ca.getAnalogAngle4(left,right,up,down);
 			var d = ca.getAnalogDist4(left,right,up,down);
 			tf.textColor = d<=0 ? RED : GREEN;
@@ -282,16 +321,15 @@ class ControllerDebug<T:Int> extends dn.Process {
 		Create an "auto-fire" button display
 	**/
 	public function createAutoFire(a:T) {
-		var p = createChildProcess();
-		p.createRoot(flow);
+		var c = createComponent();
 
-		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
-		var tf = new h2d.Text(font, p.root);
+		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
+		var tf = new h2d.Text(font, c.flow);
 		tf.text = getActionName(a)+"(AF)";
 		tf.x = BT_SIZE+4;
 		tf.y = -4;
 
-		p.onUpdateCb = ()->{
+		c.process.onUpdateCb = ()->{
 			if( ca.isPressedAutoFire(a) ) {
 				tf.textColor = GREEN;
 				bmp.color.setColor( dn.legacy.Color.addAlphaF(GREEN) );
@@ -307,16 +345,15 @@ class ControllerDebug<T:Int> extends dn.Process {
 		Create an "held" button display
 	**/
 	public function createHeld(a:T, durationS:Float) {
-		var p = createChildProcess();
-		p.createRoot(flow);
+		var c = createComponent();
 
-		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), p.root);
-		var tf = new h2d.Text(font, p.root);
+		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
+		var tf = new h2d.Text(font, c.flow);
 		var base = getActionName(a)+"(H)";
 		tf.x = BT_SIZE+4;
 		tf.y = -4;
 
-		p.onUpdateCb = ()->{
+		c.process.onUpdateCb = ()->{
 			if( ca.isHeld(a,durationS) ) {
 				tf.scaleX = 1.4;
 				tf.textColor = 0x55ff00;
@@ -339,17 +376,20 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 	override function postUpdate() {
 		super.postUpdate();
-		root.setScale( dn.heaps.Scaler.bestFit_f( width, height, true ) );
+		if( needResize ) {
+			root.setScale( dn.heaps.Scaler.bestFit_f( width, height, true ) );
+			needResize = false;
+		}
 	}
 
 	override function update() {
 		super.update();
 
-		if( !connected && ca.input.isPadConnected() )
-			onConnect();
+		if( !padConnected && ca.input.isPadConnected() )
+			onPadConnected();
 
-		if( connected && !ca.input.isPadConnected() )
-			onDisconnect();
+		if( padConnected && !ca.input.isPadConnected() )
+			onPadDisconnected();
 
 		status.text = getControllerName()+"\n"+ (ca.input.isPadConnected() ? "Pad connected" : "Pad disconnected");
 		status.textColor = ca.input.isPadConnected() ? GREEN : RED;
