@@ -147,7 +147,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 
 	function createComponent() : DebugComponent {
-		if( curColumn.numChildren>=10 )
+		if( curColumn.numChildren>=13 )
 			createColumn();
 
 		var p = createChildProcess();
@@ -157,35 +157,34 @@ class ControllerDebug<T:Int> extends dn.Process {
 		}
 		var flow = new h2d.Flow(p.root);
 		flow.verticalAlign = Middle;
-		flow.minHeight = 32;
+		flow.horizontalSpacing = 4;
+		flow.paddingVertical = 4;
+		flow.paddingLeft = 2;
 		return { process:p, flow:flow }
 	}
 
 
 	function createButton(a:T) {
-		var c = createComponent();
-
 		var isAnalog = ca.input.isBoundToAnalog(a,true);
 
-		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
+		var c = createComponent();
 
-		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,isAnalog?2:BT_SIZE, BT_SIZE), c.flow);
-		bt.y = 8;
+		var buttonFlow = new h2d.Flow(c.flow);
+		buttonFlow.minWidth = 120;
+		buttonFlow.verticalAlign = Middle;
+		buttonFlow.horizontalSpacing = c.flow.horizontalSpacing;
 
-		bg.y = bt.y;
-		bg.color = bt.color;
+		var analogBg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), buttonFlow);
+		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,isAnalog?2:BT_SIZE, BT_SIZE), buttonFlow);
+		if( isAnalog ) {
+			buttonFlow.getProperties(bt).isAbsolute = true;
+			analogBg.color = bt.color;
+		}
+		else
+			analogBg.visible = false;
 
-		var tf = new h2d.Text(font, c.flow);
+		var tf = new h2d.Text(font, buttonFlow);
 		tf.text = getActionName(a);
-		tf.x = BT_SIZE+4;
-		tf.y = 4;
-
-		var bFlow = new h2d.Flow(c.flow);
-		bFlow.x = 120;
-		bFlow.minWidth = 300;
-		bFlow.paddingHorizontal = 4;
-		bFlow.paddingVertical = 1;
-		bFlow.verticalAlign = Middle;
 
 		inline function _addText(t:String, f:h2d.Flow) {
 			var tf = new h2d.Text(font, f);
@@ -193,10 +192,8 @@ class ControllerDebug<T:Int> extends dn.Process {
 			return tf;
 		}
 
-		bFlow.removeChildren();
-
 		// Gamepad icons
-		var gpFlow = new h2d.Flow(bFlow);
+		var gpFlow = new h2d.Flow(c.flow);
 		gpFlow.verticalAlign = Middle;
 		gpFlow.minWidth = 150;
 		var first = true;
@@ -207,7 +204,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 			first = false;
 		}
 		// Keyboard icons
-		var kbFlow = new h2d.Flow(bFlow);
+		var kbFlow = new h2d.Flow(c.flow);
 		kbFlow.verticalAlign = Middle;
 		var first = true;
 		for(f in ca.input.getAllBindindIconsFor(a,Keyboard)) {
@@ -229,8 +226,10 @@ class ControllerDebug<T:Int> extends dn.Process {
 			}
 
 			// Analog
-			if( isAnalog )
-				bt.x = BT_SIZE*0.5 + BT_SIZE*0.5* ca.getAnalogValue(a) - bt.tile.width*0.5;
+			if( isAnalog ) {
+				bt.x = analogBg.x + BT_SIZE*0.5 + BT_SIZE*0.5* ca.getAnalogValue(a) - bt.tile.width*0.5;
+				bt.y = analogBg.y;
+			}
 		}
 
 		odd = !odd;
@@ -238,80 +237,48 @@ class ControllerDebug<T:Int> extends dn.Process {
 	}
 
 
-	function createAnalog(a:T) {
-		var c = createComponent();
-
-		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
-		var bmp = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,2,BT_SIZE), c.flow);
-		bmp.tile.setCenterRatio(0.5,0);
-		var tf = new h2d.Text(font, c.flow);
-		tf.x = BT_SIZE+4;
-		tf.y = -4;
-
-		c.process.onUpdateCb = ()->{
-			var v = ca.getAnalogValue(a);
-			bmp.x = BT_SIZE*0.5 + BT_SIZE*0.5*v;
-			bmp.color.setColor( dn.legacy.Color.addAlphaF(v!=0 ? GREEN : RED) );
-			bg.color.setColor( dn.legacy.Color.addAlphaF(v!=0 ? GREEN : RED, 0.45) );
-			tf.textColor = v!=0 ? GREEN : RED;
-			tf.text = getActionName(a)+" val="+dn.M.pretty(v,1)+" dist="+dn.M.pretty(ca.getAnalogDistXY(a),1);
-		}
-	}
-
-
-	/**
-		Create a combined X/Y (ie. stick) display
-	**/
+	/** Create a combined X/Y (ie. stick) display **/
 	public function createStickXY(xAxis:T, yAxis:T) {
-		var c = createComponent();
-
-		var s = dn.M.round(BT_SIZE*0.3);
-		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
-		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), c.flow);
-		bt.rotation = dn.M.PIHALF*0.5;
-		bt.tile.setCenterRatio(0.5);
-
-		var tf = new h2d.Text(font, c.flow);
-		tf.x = BT_SIZE+4;
-		tf.y = -2;
-
-		c.process.onUpdateCb = ()->{
-			var a = ca.getAnalogAngleXY(xAxis, yAxis);
-			var d = ca.getAnalogDistXY(xAxis, yAxis);
-			tf.textColor = d<=0 ? RED : GREEN;
-			tf.text = getActionName(xAxis)+"/"+getActionName(yAxis)+" ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
-
-			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
-			bt.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
-			bg.color.setColor( dn.legacy.Color.addAlphaF(tf.textColor,0.4) );
-		}
+		createGenericStick(
+			getActionName(xAxis)+"/"+getActionName(yAxis),
+			ca.getAnalogAngleXY.bind(xAxis,yAxis),
+			ca.getAnalogDistXY.bind(xAxis,yAxis)
+		);
 	}
 
-
-	/**
-		Create a combined Left/Right/Up/Down (ie. stick) display
-	**/
+	/** Create a combined Left/Right/Up/Down (ie. stick) display **/
 	public function createStick4(?name:String, left:T, right:T, up:T, down:T) {
+		createGenericStick(
+			name!=null?name+" ":"",
+			ca.getAnalogAngle4.bind(left,right,up,down),
+			ca.getAnalogDist4.bind(left,right,up,down)
+		);
+	}
+
+	/** Create a stick component **/
+	function createGenericStick( label:String, angGetter:Void->Float, distGetter:Void->Float ) {
 		var c = createComponent();
 
-		var s = dn.M.round(BT_SIZE*0.3);
 		var bg = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,BT_SIZE,BT_SIZE), c.flow);
-		var bt = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,s,s), c.flow);
-		bt.rotation = dn.M.PIHALF*0.5;
-		bt.tile.setCenterRatio(0.5);
+
+		var stick = new h2d.Bitmap(h2d.Tile.fromColor(0xffffff,2,2), c.flow);
+		c.flow.getProperties(stick).isAbsolute = true;
+		stick.rotation = dn.M.PIHALF*0.5;
+		stick.tile.setCenterRatio(0.5);
 
 		var tf = new h2d.Text(font, c.flow);
 		tf.x = BT_SIZE+4;
 		tf.y = -2;
 
 		c.process.onUpdateCb = ()->{
-			var a = ca.getAnalogAngle4(left,right,up,down);
-			var d = ca.getAnalogDist4(left,right,up,down);
+			var a = angGetter();
+			var d = distGetter();
 			tf.textColor = d<=0 ? RED : GREEN;
-			tf.text = (name!=null?name+" ":"") + "ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
+			tf.text = label+" ang="+dn.M.pretty(a)+" dist="+dn.M.pretty(d,1);
 
-			bt.x = BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.3*d;
-			bt.y = BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.3*d;
+			stick.x = bg.x + BT_SIZE*0.5 + Math.cos(a) * BT_SIZE*0.2*d;
+			stick.y = bg.y + BT_SIZE*0.5 + Math.sin(a) * BT_SIZE*0.2*d;
+
 			bg.color.setColor( dn.legacy.Color.addAlphaF(tf.textColor,0.4) );
 		}
 	}
