@@ -10,6 +10,8 @@ class DecisionHelper<T> {
 	var asyncDiscarders : Array< T->Bool >;
 	var asyncScorers : Array< T->Float >;
 
+	public var lastBest(default,null) : Null<T>;
+
 	public inline function new(a:Iterable<T>) {
 		values = a;
 		scores = new Map();
@@ -58,6 +60,7 @@ class DecisionHelper<T> {
 	/** Reset scores and removals **/
 	public function reset() {
 		scores = new Map();
+		lastBest = null;
 	}
 
 	@:deprecated("Use discard()") @:noCompletion public inline function remove( cb:T->Bool ) discard(cb);
@@ -147,6 +150,7 @@ class DecisionHelper<T> {
 			idx++;
 		}
 
+		lastBest = best;
 		return best;
 	}
 
@@ -239,6 +243,7 @@ class DecisionHelper<T> {
 		This approach allows you to prepare a DecisionHelper instance, add scoring/keep/discard methods, and run them later on the set of values.
 	**/
 	public inline function applyAsyncMethods(?customValues:Iterable<T>, resetBefore=true) {
+		lastBest = null;
 		if( customValues!=null )
 			replaceValues(customValues); // includes a reset
 		else if( resetBefore )
