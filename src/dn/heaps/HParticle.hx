@@ -747,6 +747,11 @@ class HParticle extends BatchElement {
 		return Math.atan2(dy,dx);
 	}
 
+	public inline function stretchTo(tx:Float, ty:Float) {
+		scaleX = M.dist(x,y, tx,ty) / t.width;
+		rotation = Math.atan2(ty-y, tx-x);
+	}
+
 
 	inline function applyAnimFrame() {
 		var f = animLib.getAnim(animId)[Std.int(animCursor)];
