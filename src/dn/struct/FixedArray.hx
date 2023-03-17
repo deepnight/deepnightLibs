@@ -54,7 +54,7 @@ class FixedArray<T> {
 		var a = [];
 		for(e in this)
 			a.push(e);
-		return a.toString() + '<$allocated/$maxSize>';
+		return a.map( v->toStringValue(v) ).toString() + '<$allocated/$maxSize>';
 	}
 
 
@@ -66,7 +66,11 @@ class FixedArray<T> {
 		var a = [];
 		for(e in this)
 			a.push(e);
-		return a.join(",");
+		return a.map( v->toStringValue(v) ).join(",");
+	}
+
+	public dynamic function toStringValue(v:T) : String {
+		return Std.string(v);
 	}
 
 	/** Create a FixedArray from an existing Array **/
