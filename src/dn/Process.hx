@@ -353,7 +353,7 @@ class Process {
 
 	/** Some human readable name for this Process instance **/
 	var _cachedClassName : String;
-	public inline function getDisplayName() {
+	public function getDisplayName() {
 		return name!=null
 			? name
 			: {
