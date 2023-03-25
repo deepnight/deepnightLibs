@@ -21,6 +21,7 @@ class ControllerAccess<T:Int> {
 	var holdTimeS : Map<T,Float> = new Map();
 	var autoFireFirstDone : Map<T,Bool> = new Map();
 	var autoFireNextS : Map<T,Float> = new Map();
+	var postLockUntilS = -1.;
 
 	@:allow(dn.heaps.input.Controller)
 	function new(m:Controller<T>) {
@@ -64,7 +65,10 @@ class ControllerAccess<T:Int> {
 		- another Access must not have taken "exclusivity".
 	**/
 	public function isActive() {
+		if( lockCondition() )
+			postLockUntilS = haxe.Timer.stamp()+0.06;
 		return !destroyed
+			&& ( postLockUntilS<0 || haxe.Timer.stamp()>=postLockUntilS )
 			&& ( lockedUntilS<0 || haxe.Timer.stamp()>=lockedUntilS )
 			&& !lockCondition()
 			&& ( input.exclusive==null || input.exclusive==this );
