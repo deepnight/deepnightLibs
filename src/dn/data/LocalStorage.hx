@@ -206,8 +206,9 @@ class LocalStorage {
 
 	/**
 		Read an anonymous object right from storage.
+		`prePatch` is an optional method that is called on the unserialized Dynamic object right before applying diff patch.
 	**/
-	public function readObject<T>(?defValue:T, ?patchObject:Dynamic->Void) : T {
+	public function readObject<T>(?defValue:T, ?prePatch:Dynamic->Void) : T {
 		var raw = fromStorage();
 		if( raw==null )
 			return defValue;
@@ -221,9 +222,10 @@ class LocalStorage {
 				return defValue;
 
 			// Do some custom patching on the raw untyped object
-			if( patchObject!=null )
-				patchObject(obj);
+			if( prePatch!=null )
+				prePatch(obj);
 
+			// Diff patch with default
 			if( defValue!=null ) {
 				// Remove old fields
 				for(k in Reflect.fields(obj))
