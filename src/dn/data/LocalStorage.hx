@@ -27,7 +27,7 @@ class LocalStorage {
 	/**
 		Create a storage where data uses JSON format
 	**/
-	public static function createJsonStorage(name:String, prettyLevel : dn.data.JsonPretty.JsonPrettyLevel = Full) : LocalStorage {
+	public static function getJsonStorage(name:String, prettyLevel : dn.data.JsonPretty.JsonPrettyLevel = Full) : LocalStorage {
 		var ls = new LocalStorage( name, Json(prettyLevel) );
 		return ls;
 	}
@@ -35,7 +35,7 @@ class LocalStorage {
 	/**
 		Create a storage where data uses Haxe Serializer format
 	**/
-	public static function createSerializedStorage(name:String, useCrc=false) : LocalStorage {
+	public static function getSerializedStorage(name:String, useCrc=false) : LocalStorage {
 		var ls = new LocalStorage(name, Serialized);
 		ls.useCRC = useCrc;
 		return ls;
@@ -338,7 +338,7 @@ class LocalStorage {
 		CiAssert.printIfVerbose("LocalStorage for Strings:");
 
 		// String: default value
-		var ls = createJsonStorage(baseName);
+		var ls = getJsonStorage(baseName);
 		ls.delete();
 		var v = ls.readString("foo");
 		CiAssert.isTrue( v!=null );
@@ -359,7 +359,7 @@ class LocalStorage {
 		CiAssert.printIfVerbose("LocalStorage for objects:");
 
 		// Default value test
-		var ls = createJsonStorage(baseName+"_defObject");
+		var ls = getJsonStorage(baseName+"_defObject");
 		var testObj = ls.readObject({ a:0, b:10, str:"foo", enu:ValueA });
 		CiAssert.equals( ls.exists(), false );
 		CiAssert.isTrue( testObj!=null );
@@ -379,7 +379,7 @@ class LocalStorage {
 
 			// Json format
 			CiAssert.printIfVerbose("Json format:");
-			var ls = createJsonStorage(baseName+"_json");
+			var ls = getJsonStorage(baseName+"_json");
 			CiAssert.equals( ls.exists(), false );
 			ls.writeObject(testObj);
 			CiAssert.equals( ls.exists(), true );
@@ -395,7 +395,7 @@ class LocalStorage {
 
 			// Json format with CRC
 			CiAssert.printIfVerbose("Json format with CRC:");
-			var ls = createJsonStorage(baseName+"_jsonCrc");
+			var ls = getJsonStorage(baseName+"_jsonCrc");
 			ls.useCRC = true;
 			ls.writeObject(testObj);
 			CiAssert.equals( ls.exists(), true );
@@ -408,7 +408,7 @@ class LocalStorage {
 
 			// Serialized format
 			CiAssert.printIfVerbose("Serialized format:");
-			var ls = createSerializedStorage(baseName+"_ser");
+			var ls = getSerializedStorage(baseName+"_ser");
 			ls.writeObject(testObj);
 			CiAssert.equals( ls.exists(), true );
 
@@ -422,7 +422,7 @@ class LocalStorage {
 
 			// Serialized format with CRC
 			CiAssert.printIfVerbose("Serialized format:");
-			var ls = createSerializedStorage(baseName+"_serCrc", true);
+			var ls = getSerializedStorage(baseName+"_serCrc", true);
 			ls.writeObject(testObj);
 			CiAssert.equals( ls.exists(), true );
 
