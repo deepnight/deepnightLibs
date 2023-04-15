@@ -548,6 +548,7 @@ private class GlobalGroup {
 
 
 
+#if !macro
 /**
 	A small helper class to pick sounds randomly from a list
 **/
@@ -592,3 +593,4 @@ class RandomSfxList {
 		return getters.map( g->g() );
 	}
 }
+#end
