@@ -15,6 +15,10 @@ class DecisionHelper<T> {
 	public inline function new(a:Iterable<T>) {
 		values = a;
 		scores = new Map();
+
+		asyncKeepers = [];
+		asyncDiscarders = [];
+		asyncScorers = [];
 	}
 
 	inline function getScore(idx:Int) : Float {
@@ -192,8 +196,6 @@ class DecisionHelper<T> {
 		See `applyAsyncMethods()` for more info.
 	**/
 	public inline function addAsyncKeep(cb:T->Bool) {
-		if( asyncKeepers==null )
-			asyncKeepers = [];
 		asyncKeepers.push(cb);
 	}
 
@@ -204,8 +206,6 @@ class DecisionHelper<T> {
 		See `applyAsyncMethods()` for more info.
 	**/
 	public inline function addAsyncDiscard(cb:T->Bool) {
-		if( asyncDiscarders==null )
-			asyncDiscarders = [];
 		asyncDiscarders.push(cb);
 	}
 
@@ -217,16 +217,14 @@ class DecisionHelper<T> {
 		See `applyAsyncMethods()` for more info.
 	**/
 	public inline function addAsyncScore(cb:T->Float) {
-		if( asyncScorers==null )
-			asyncScorers = [];
 		asyncScorers.push(cb);
 	}
 
 
 	public inline function removeAllAsyncMethods() {
-		asyncDiscarders = null;
-		asyncKeepers = null;
-		asyncScorers = null;
+		asyncDiscarders = [];
+		asyncKeepers = [];
+		asyncScorers = [];
 	}
 
 
@@ -249,17 +247,14 @@ class DecisionHelper<T> {
 		else if( resetBefore )
 			reset();
 
-		if( asyncKeepers!=null )
-			for(cb in asyncKeepers)
-				keepOnly(cb);
+		for(cb in asyncKeepers)
+			keepOnly(cb);
 
-		if( asyncDiscarders!=null )
-			for(cb in asyncDiscarders)
-				discard(cb);
+		for(cb in asyncDiscarders)
+			discard(cb);
 
-		if( asyncScorers!=null )
-			for(cb in asyncScorers)
-				score(cb);
+		for(cb in asyncScorers)
+			score(cb);
 	}
 
 
