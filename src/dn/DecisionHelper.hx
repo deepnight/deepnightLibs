@@ -15,6 +15,9 @@ class DecisionHelper<T> {
 	public inline function new(a:Iterable<T>) {
 		values = a;
 		scores = new Map();
+		asyncKeepers = null;
+		asyncDiscarders = null;
+		asyncScorers = null;
 	}
 
 	inline function getScore(idx:Int) : Float {
