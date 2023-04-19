@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.76",
+	"version": "1.0.77",
 	"classPath": "src/",
-	"releasenote": "Added ControlQueue, reworks in Velocity, fixes in Controller",
+	"releasenote": "Updated for Haxe 4.3.0, various PR merges (many thanks to contributors!)",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
