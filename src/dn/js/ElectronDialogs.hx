@@ -28,15 +28,29 @@ class ElectronDialogs {
 		});
 	}
 
-	public static function openFile(?extWithDots:Array<String>, rootDir:String, onLoad:(filePath:String)->Void) {
+	public static function openFile(?extWithDots:Array<String>, startDir:String, onLoad:(filePath:String)->Void) {
 		if( isWindows() )
-			rootDir = FilePath.convertToBackslashes(rootDir);
+			startDir = FilePath.convertToBackslashes(startDir);
 
 		var options = {
 			filters: extWithDots==null
 				? [{ name:"Any file type", extensions:["*"] }]
 				: [{ name:"Supported file types", extensions:extWithDots.map( function(ext) return ext.substr(1) ) }],
-			defaultPath: rootDir,
+			defaultPath: startDir,
+		}
+		IpcRenderer.invoke("openDialog", options).then( function(res) {
+			if( res!=null )
+				onLoad( Std.string(res) );
+		});
+	}
+
+	public static function openDir(startDir:String, onLoad:(filePath:String)->Void) {
+		if( isWindows() )
+			startDir = FilePath.convertToBackslashes(startDir);
+
+		var options = {
+			defaultPath: startDir,
+			properties: ["openDirectory"],
 		}
 		IpcRenderer.invoke("openDialog", options).then( function(res) {
 			if( res!=null )
@@ -45,15 +59,15 @@ class ElectronDialogs {
 	}
 
 
-	public static function saveFileAs(?extWithDots:Array<String>, rootDir:String, onFileSelect:(filePath:String)->Void) {
+	public static function saveFileAs(?extWithDots:Array<String>, startDir:String, onFileSelect:(filePath:String)->Void) {
 		if( isWindows() )
-			rootDir = FilePath.convertToBackslashes(rootDir);
+			startDir = FilePath.convertToBackslashes(startDir);
 
 		var options = {
 			filters: extWithDots==null
 				? [{ name:"Any file type", extensions:["*"] }]
 				: [{ name:"Supported file types", extensions:extWithDots.map( function(ext) return ext.substr(1) ) }],
-			defaultPath: rootDir,
+			defaultPath: startDir,
 		}
 		IpcRenderer.invoke("saveAsDialog", options).then( function(res) {
 			if( res!=null )
