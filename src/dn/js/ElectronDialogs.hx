@@ -18,8 +18,12 @@ class ElectronDialogs {
 			throw "Should only be called in Electron Main";
 
 		IpcMain.handle("openDialog", function(event, options) {
-			var filePaths = electron.main.Dialog.showOpenDialogSync(browserWindow, options);
-			return filePaths==null ? null : filePaths[0];
+			var result = electron.main.Dialog.showOpenDialogSync(browserWindow, options);
+			return switch Type.typeof(result) {
+				case TClass(String): result;
+				case TClass(Array): result[0];
+				case _: result;
+			}
 		});
 
 		IpcMain.handle("saveAsDialog", function(event, options) {
