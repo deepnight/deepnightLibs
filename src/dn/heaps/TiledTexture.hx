@@ -40,7 +40,9 @@ class TiledTexture extends h2d.TileGroup {
 		var w = Std.int( tile.width );
 		var h = Std.int( tile.height );
 		while( y<height) {
-			add( x+ox, y+oy, tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height) ) );
+			final subX = x<0 ? -x : 0;
+			final subY = y<0 ? -y : 0;
+			add( x+ox+subX, y+oy+subY, tile.sub( subX, subY, M.fmin(width-x,tile.width-subX), M.fmin(height-y,tile.height-subY) ) );
 			x += w;
 			if( x>=width ) {
 				x = initialX;
@@ -68,9 +70,11 @@ class TiledTexture extends h2d.TileGroup {
 		var w = Std.int( tile.width );
 		var h = Std.int( tile.height );
 		while( y<height) {
-			var bmp = new h2d.Bitmap( tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height) ) );
-			bmp.x = x+ox;
-			bmp.y = y+oy;
+			final subX = x<0 ? -x : 0;
+			final subY = y<0 ? -y : 0;
+			var bmp = new h2d.Bitmap( tile.sub( subX, subY, M.fmin(width-x,tile.width-subX), M.fmin(height-y,tile.height-subY) ) );
+			bmp.x = x+ox+subX;
+			bmp.y = y+oy+subY;
 			bmp.drawTo(t);
 			x += w;
 			if( x>=width ) {
