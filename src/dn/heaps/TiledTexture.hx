@@ -5,11 +5,11 @@ class TiledTexture extends h2d.TileGroup {
 	public var width(default,set) : Int;
 	public var height(default,set) : Int;
 
-	public var pivotX(default,set) = 0.;
-	public var pivotY(default,set) = 0.;
+	public var alignPivotX(default,set) = 0.;
+	public var alignPivotY(default,set) = 0.;
 
-	public var initialOffsetX(default,set) = 0;
-	public var initialOffsetY(default,set) = 0;
+	public var subTilePivotX(default,set) = 0.;
+	public var subTilePivotY(default,set) = 0.;
 
 	public function new(wid:Int, hei:Int, ?texTile:h2d.Tile, ?p:h2d.Object) {
 		super(texTile, p);
@@ -19,10 +19,10 @@ class TiledTexture extends h2d.TileGroup {
 
 	inline function set_width(v) {  invalidated = true; return width = v;  }
 	inline function set_height(v) {  invalidated = true; return height = v;  }
-	inline function set_pivotX(v) {  invalidated = true; return pivotX = v;  }
-	inline function set_pivotY(v) {  invalidated = true; return pivotY = v;  }
-	inline function set_initialOffsetX(v) {  invalidated = true; return initialOffsetX = v;  }
-	inline function set_initialOffsetY(v) {  invalidated = true; return initialOffsetY = v;  }
+	inline function set_alignPivotX(v) {  invalidated = true; return alignPivotX = M.fclamp(v,0,1);  }
+	inline function set_alignPivotY(v) {  invalidated = true; return alignPivotY = M.fclamp(v,0,1);  }
+	inline function set_subTilePivotX(v) {  invalidated = true; return subTilePivotX = M.fclamp(v,0,1);  }
+	inline function set_subTilePivotY(v) {  invalidated = true; return subTilePivotY = M.fclamp(v,0,1);  }
 
 	public inline function resize(wid:Int,hei:Int) {
 		width = wid;
@@ -32,17 +32,18 @@ class TiledTexture extends h2d.TileGroup {
 	function build() {
 		clear();
 		if (tile == null) return;
-		var x = initialOffsetX;
-		var y = initialOffsetY;
-		var ox = M.round( -pivotX*width );
-		var oy = M.round( -pivotY*height );
+		var initialX = width*alignPivotX - M.ceil(width/tile.width) * tile.width*alignPivotX;
+		var x = initialX;
+		var y = height*alignPivotY - M.ceil(height/tile.height) * tile.height*alignPivotY;
+		var ox = M.round( -subTilePivotX*width );
+		var oy = M.round( -subTilePivotY*height );
 		var w = Std.int( tile.width );
 		var h = Std.int( tile.height );
 		while( y<height) {
 			add( x+ox, y+oy, tile.sub( 0, 0, M.fmin(width-x,tile.width), M.fmin(height-y,tile.height) ) );
 			x += w;
 			if( x>=width ) {
-				x = initialOffsetX;
+				x = initialX;
 				y += h;
 			}
 		}
@@ -58,10 +59,12 @@ class TiledTexture extends h2d.TileGroup {
 
 	override function drawTo(t:h3d.mat.Texture) {
 		if (tile == null) return;
-		var x = initialOffsetX;
-		var y = initialOffsetY;
-		var ox = M.round( -pivotX*width );
-		var oy = M.round( -pivotY*height );
+
+		var initialX = width*alignPivotX - M.ceil(width/tile.width) * tile.width*alignPivotX;
+		var x = initialX;
+		var y = height*alignPivotY - M.ceil(height/tile.height) * tile.height*alignPivotY;
+		var ox = M.round( -subTilePivotX*width );
+		var oy = M.round( -subTilePivotY*height );
 		var w = Std.int( tile.width );
 		var h = Std.int( tile.height );
 		while( y<height) {
@@ -71,7 +74,7 @@ class TiledTexture extends h2d.TileGroup {
 			bmp.drawTo(t);
 			x += w;
 			if( x>=width ) {
-				x = initialOffsetX;
+				x = initialX;
 				y += h;
 			}
 		}
