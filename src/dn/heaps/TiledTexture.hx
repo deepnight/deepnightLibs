@@ -32,9 +32,12 @@ class TiledTexture extends h2d.TileGroup {
 	function build() {
 		clear();
 		if (tile == null) return;
-		var initialX = width*alignPivotX - M.ceil(width/tile.width) * tile.width*alignPivotX;
+		var initialX = width*alignPivotX - tile.width*alignPivotX;
+		initialX -= M.ceil(initialX/tile.width)*tile.width;
+		var initialY = height*alignPivotY - tile.height*alignPivotY;
+		initialY -= M.ceil(initialY/tile.height)*tile.height;
 		var x = initialX;
-		var y = height*alignPivotY - M.ceil(height/tile.height) * tile.height*alignPivotY;
+		var y = initialY;
 		var ox = M.round( -subTilePivotX*width );
 		var oy = M.round( -subTilePivotY*height );
 		var w = Std.int( tile.width );
@@ -62,9 +65,12 @@ class TiledTexture extends h2d.TileGroup {
 	override function drawTo(t:h3d.mat.Texture) {
 		if (tile == null) return;
 
-		var initialX = width*alignPivotX - M.ceil(width/tile.width) * tile.width*alignPivotX;
+		var initialX = width*alignPivotX - tile.width*alignPivotX;
+		initialX -= M.ceil(initialX/tile.width)*tile.width;
+		var initialY = height*alignPivotY - tile.height*alignPivotY;
+		initialY -= M.ceil(initialY/tile.height)*tile.height;
 		var x = initialX;
-		var y = height*alignPivotY - M.ceil(height/tile.height) * tile.height*alignPivotY;
+		var y = initialY;
 		var ox = M.round( -subTilePivotX*width );
 		var oy = M.round( -subTilePivotY*height );
 		var w = Std.int( tile.width );
