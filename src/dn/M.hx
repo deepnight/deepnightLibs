@@ -809,6 +809,16 @@ class M {
 		}
 	}
 
+	/** Truncate a float to given precision **/
+	public static inline function truncateStr(v:Float, maxPrecision=2) : String {
+		if( maxPrecision<=0 )
+			return Std.string( Std.int(v) );
+		else {
+			var d = Math.pow(10,maxPrecision);
+			return Std.string( Std.int(v*d)/d );
+		}
+	}
+
 	/**
 		Round a float to given precision, adding leading zeros if needed.
 		**WARNING**: this method generates LOTS of memory allocations due to String usage!
@@ -831,6 +841,7 @@ class M {
 			return str;
 		}
 	}
+
 
 	public static inline function groupNumbers(v:Int, sep=" ") : String {
 		var str = Std.string(v);
