@@ -579,6 +579,12 @@ abstract Col(Int) from Int to Int {
 	}
 
 
+	/** Return White if current color is below luminance threshold, Black otherwise. **/
+	public inline function getAutoContrastCustom(lumThreshold:Float) : Col {
+		return fastLuminance<lumThreshold ? White : Black;
+	}
+
+
 	/** Get gray value (0-1), if the color was turned to grayscale using luminance. **/
 	public inline function getGrayscaleFactor() : Float {
 		return luminance;
