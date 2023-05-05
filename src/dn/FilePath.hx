@@ -56,7 +56,7 @@ class FilePath {
 	public var fileName(default,set) : Null<String>;
 
 	/**
-		Extension without the preceding "dot". It can be set to another value, any leading dot will be discarded.
+		Last extension without the preceding "dot". It can be set to another value, any leading dot will be discarded.
 	**/
 	public var extension(default,set) : Null<String>;
 
@@ -709,6 +709,22 @@ class FilePath {
 	}
 
 
+	/** Return TRUE if the file name contains multiple dot extensions (eg. "myFile.xml.meta") **/
+	public inline function hasMultipleExtensions() {
+		return fileWithExt!=null && fileWithExt.indexOf(".") != fileWithExt.lastIndexOf(".");
+	}
+
+
+	/** Return all the dot-separated extensions (eg. for "myFile.xml.meta", this returns ["xml","meta"]).  **/
+	public inline function getMultipleExtensions() {
+		if( fileWithExt==null )
+			return [];
+		var parts = fileWithExt.split(".");
+		parts.shift();
+		return parts;
+	}
+
+
 	/**
 		Extract the directory without trailing slash.
 
@@ -866,6 +882,19 @@ class FilePath {
 		CiAssert.isTrue( FilePath.extractFileName("/user/test.png") == "test" );
 		CiAssert.isTrue( FilePath.extractExtension("/user/test.png") == "png" );
 		CiAssert.isTrue( FilePath.extractExtension("/user/test") == null );
+
+		// Multiple extensions
+		CiAssert.equals( FilePath.extractExtension("user/file.xml.meta"), "meta" );
+
+		CiAssert.equals( FilePath.fromFile("noExt").hasMultipleExtensions(), false );
+		CiAssert.equals( FilePath.fromFile(".htaccess").hasMultipleExtensions(), false );
+		CiAssert.equals( FilePath.fromFile("user/file.tar").hasMultipleExtensions(), false );
+		CiAssert.equals( FilePath.fromFile("user/file.tar.gz").hasMultipleExtensions(), true );
+
+		CiAssert.equals( FilePath.fromFile("noExt").getMultipleExtensions().join(","), "" );
+		CiAssert.equals( FilePath.fromFile(".htaccess").getMultipleExtensions().join(","), "htaccess" );
+		CiAssert.equals( FilePath.fromFile("user/file.tar").getMultipleExtensions().join(","), "tar" );
+		CiAssert.equals( FilePath.fromFile("user/file.tar.gz").getMultipleExtensions().join(","), "tar,gz" );
 
 		// Special characters
 		CiAssert.equals( FilePath.fromFile("/some/Dir~#%/foo.txt").full, "/some/Dir~#%/foo.txt" );
