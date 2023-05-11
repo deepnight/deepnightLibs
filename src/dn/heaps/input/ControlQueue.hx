@@ -60,6 +60,10 @@ class ControlQueue<T:Int> {
 		}
 	}
 
+	public function emulateInstantDown(c:T) {
+		lastDownS.set(c, curTimeS);
+	}
+
 	inline function wasDownInLastFrame(c:T) {
 		return lastFrameDown.get(c)==true;
 	}
@@ -75,8 +79,26 @@ class ControlQueue<T:Int> {
 		clear(c);
 	}
 
+
+	public function mostRecentDown() : Null<T> {
+		var best : T = null;
+		for(c in allWatches) {
+			if( downNowOrRecently(c) && ( best==null || getLastDownTime(c)<getLastDownTime(best) ) )
+				best = c;
+		}
+		return best;
+	}
+
 	public inline function downNowOrRecently(c:T) {
 		return ca.isDown(c)  ||  downRecently(c);
+	}
+
+	inline function getLastDownTime(c:T) : Float {
+		if( upRequired.exists(c) || !lastDownS.exists(c) )
+			return 9999;
+
+		var t = curTimeS - lastDownS.get(c);
+		return t<=queueDurationS ? t : 9999;
 	}
 
 	inline function downRecently(c:T) {
