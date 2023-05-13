@@ -90,7 +90,7 @@ class ControlQueue<T:Int> {
 	}
 
 	public inline function downNowOrRecently(c:T) {
-		return ca.isDown(c)  ||  downRecently(c);
+		return !upRequired.exists(c) && ca.isDown(c)  ||  downRecently(c);
 	}
 
 	inline function getLastDownTime(c:T) : Float {
