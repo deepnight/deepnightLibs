@@ -152,8 +152,8 @@ abstract Col(Int) from Int to Int {
 
 	static function _inlineIfExpr(eTern:haxe.macro.Expr) {
 		switch eTern.expr {
-			case ETernary(econd, eif, eelse), EIf(econd, eif, eelse):
-				_inlineBlockExpr(eif);
+			case ETernary(econd, ethen, eelse), EIf(econd, ethen, eelse):
+				_inlineBlockExpr(ethen);
 				_inlineBlockExpr(eelse);
 
 			case _:
