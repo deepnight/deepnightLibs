@@ -47,7 +47,6 @@ enum abstract PadButton(Int) {
 	var RSTICK_RIGHT;
 }
 
-
 enum abstract ControllerType(Int) {
 	var Keyboard;
 	var Gamepad;
@@ -625,20 +624,24 @@ class Controller<T:Int> {
 	/**
 		Return a visual representation (as h2d.Tile) of given gamepad button.
 	**/
-	public function getPadIconTile(b:PadButton) : h2d.Tile {
+	public function getPadIconTile(b:PadButton, ?suffix:String) : h2d.Tile {
 		#if heaps_aseprite
 			var baseId = getPadButtonName(b);
 
 			// Suffix for vendor specific icons
-			var suffix = "";
-			var name = pad.name.toLowerCase();
-			if( name.indexOf("xinput")>=0 || name.indexOf("xbox")>=0 )
-				suffix = "_xbox";
+			if( suffix==null ) {
+				suffix = "";
+				var name = pad.name.toLowerCase();
+				if( name.indexOf("xinput")>=0 || name.indexOf("xbox")>=0 )
+					suffix = "_xbox";
+			}
+			else
+				suffix = "_"+suffix;
 
 			if( ICONS_LIB.exists(baseId+suffix) )
 				return ICONS_LIB.getTile(baseId+suffix);
 			else if( ICONS_LIB.exists(baseId) )
-				return ICONS_LIB.getTile(baseId);
+				return ICONS_LIB.getTile(baseId); // fallback
 			else
 				return _errorTile();
 		#else
@@ -721,12 +724,12 @@ class Controller<T:Int> {
 	/**
 		Return a visual representation (as h2d.Flow) of given gamepad button.
 	**/
-	public function getPadIcon(b:PadButton, ?parent:h2d.Object) : h2d.Flow {
+	public function getPadIcon(b:PadButton, ?suffix:String, ?parent:h2d.Object) : h2d.Flow {
 		var f = new h2d.Flow(parent);
 		#if heaps_aseprite
-			new h2d.Bitmap( getPadIconTile(b), f );
+			new h2d.Bitmap( getPadIconTile(b,suffix), f );
 		#else
-			f.backgroundTile = getPadIconTile(b);
+			f.backgroundTile = getPadIconTile(b,suffix);
 			f.paddingHorizontal = 2;
 			f.paddingBottom = 2;
 			var tf = new h2d.Text(ICON_FONT, f);
