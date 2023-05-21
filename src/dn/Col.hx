@@ -690,6 +690,16 @@ abstract Col(Int) from Int to Int {
 		return new h2d.filter.ColorMatrix( getColorizeMatrixH2d(ratioNewColor, ratioOldColor) );
 	}
 
+	/** Return a ColorMatrix filter based on current color **/
+	public static inline function makeColorizeFilterH2d(c:dn.Col, ?ratioNewColor=1.0, ?ratioOldColor:Float) : h2d.filter.ColorMatrix {
+		return c.getColorizeFilterH2d(ratioNewColor, ratioOldColor);
+	}
+
+	/** Return a h3d.Matrix to colorize an object **/
+	public static inline function makeColorizeMatrixH2d(c:dn.Col, ?ratioNewColor=1.0, ?ratioOldColor:Float) : h3d.Matrix {
+		return c.getColorizeMatrixH2d(ratioNewColor, ratioOldColor);
+	}
+
 	/** Create a `h2d.Bitmap` of the given color **/
 	public static inline function makeBitmap(col:Col, wid:Float, hei:Float, xr=0., yr=0., ?p:h2d.Object) : h2d.Bitmap {
 		var t = h2d.Tile.fromColor(col);
