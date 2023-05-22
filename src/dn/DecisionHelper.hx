@@ -11,6 +11,7 @@ class DecisionHelper<T> {
 	var asyncScorers : Array< T->Float >;
 
 	public var lastBest(default,null) : Null<T>;
+	public var customData : Null<T>;
 
 	public inline function new(a:Iterable<T>) {
 		values = a;
@@ -18,6 +19,16 @@ class DecisionHelper<T> {
 		asyncKeepers = null;
 		asyncDiscarders = null;
 		asyncScorers = null;
+	}
+
+	public inline function dispose() {
+		values = null;
+		scores = null;
+		asyncKeepers = null;
+		asyncDiscarders = null;
+		asyncScorers = null;
+		lastBest = null;
+		customData = null;
 	}
 
 	inline function getScore(idx:Int) : Float {
@@ -245,8 +256,9 @@ class DecisionHelper<T> {
 		Run all registered asynchronous methods (see `addAsyncScore`, `addAsyncKeep` and `addAsyncDiscard`)
 		This approach allows you to prepare a DecisionHelper instance, add scoring/keep/discard methods, and run them later on the set of values.
 	**/
-	public inline function applyAsyncMethods(?customValues:Iterable<T>, resetBefore=true) {
+	public inline function applyAsyncMethods(?customValues:Iterable<T>, ?customData:T, resetBefore=true) {
 		lastBest = null;
+		this.customData = customData;
 		if( customValues!=null )
 			replaceValues(customValues); // includes a reset
 		else if( resetBefore )
