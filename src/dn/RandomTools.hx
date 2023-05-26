@@ -90,6 +90,8 @@ class RandomTools {
 		return ang + rnd(0, maxDist, true);
 	}
 
+	public static inline function flipCoin() return Std.random(2)==0;
+
 	/** Return TRUE if a random percentage (ie. 0-100) is below given threshold **/
 	public static inline function pct(thresholdOrBelow:Int) {
 		return Std.random(100) < thresholdOrBelow;
