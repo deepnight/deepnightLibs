@@ -29,7 +29,7 @@ enum abstract ColorEnum(Int) to Int to Col {
 }
 
 abstract Col(Int) from Int to Int {
-	public inline function new(rgb:Int) {
+	public inline function new(rgb:dn.Col) {
 		this = rgb;
 	}
 
