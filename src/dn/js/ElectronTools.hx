@@ -211,7 +211,7 @@ class ElectronTools {
 		}
 	}
 
-	public static function isThrottlingEnabled() : String {
+	public static function isThrottlingEnabled() : Bool {
 		return isRenderer()
 			? IpcRenderer.sendSync("isThrottlingEnabled")
 			: powerBlockerId==-1 || !electron.main.PowerSaveBlocker.isStarted(powerBlockerId);
