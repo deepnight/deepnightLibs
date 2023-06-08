@@ -47,6 +47,11 @@ class ElectronTools {
 		IpcMain.handle("fatalError", (ev,str)->fatalError(str));
 		IpcMain.handle("showError", (ev,title,str)->showError(title,str));
 
+		// Power saver throttling manament
+		IpcMain.handle("disableThrottling", disableThrottling);
+		IpcMain.handle("enableThrottling", enableThrottling);
+		IpcMain.on("isThrottlingEnabled", ev->ev.returnValue = isThrottlingEnabled());
+
 		// SendSync()/on()
 		IpcMain.on("getScreenWidth", ev->ev.returnValue = getScreenWidth());
 		IpcMain.on("getScreenHeight", ev->ev.returnValue = getScreenHeight());
@@ -100,7 +105,7 @@ class ElectronTools {
 		return try isRenderer() ? IpcRenderer.sendSync("isFullScreen") : mainWindow.isFullScreen() catch(_) false;
 
 	/** Return status of the dev tools panel **/
-	public static function isDevToolsOpened() : Bool 
+	public static function isDevToolsOpened() : Bool
 		return try isRenderer() ? IpcRenderer.sendSync("isDevToolsOpened") : mainWindow.webContents.isDevToolsOpened() catch(_) false;
 
 
@@ -181,6 +186,35 @@ class ElectronTools {
 			IpcRenderer.invoke("showError", err);
 		else
 			electron.main.Dialog.showErrorBox(title, err);
+	}
+
+
+	/** Start power blocker **/
+	static var powerBlockerId = -1;
+	public static function disableThrottling() {
+		if( isRenderer() )
+			IpcRenderer.invoke("disableThrottling");
+		else if( powerBlockerId==-1 ) {
+			mainWindow.webContents.backgroundThrottling = false;
+			powerBlockerId = electron.main.PowerSaveBlocker.start("prevent-app-suspension");
+		}
+	}
+
+	/** Stop power blocker **/
+	public static function enableThrottling() {
+		if( isRenderer() )
+			IpcRenderer.invoke("enableThrottling");
+		else if( powerBlockerId!=-1 ) {
+			mainWindow.webContents.backgroundThrottling = true;
+			electron.main.PowerSaveBlocker.stop(powerBlockerId);
+			powerBlockerId = -1;
+		}
+	}
+
+	public static function isThrottlingEnabled() : String {
+		return isRenderer()
+			? IpcRenderer.sendSync("isThrottlingEnabled")
+			: powerBlockerId==-1 || !electron.main.PowerSaveBlocker.isStarted(powerBlockerId);
 	}
 
 	/** Open system file explorer on target file or dir. Return FALSE if something didn't work. **/
