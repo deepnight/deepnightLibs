@@ -59,7 +59,9 @@ class SpriteLib {
 	@:noCompletion
 	@:deprecated("NOT SUPPORTED ANYMORE, use \"tmod\" class field")
 	public static var TMOD : Float = Math.NaN;
+	static var UID = 0;
 
+	public var uid(default,null) : Int;
 	public static var DISABLE_ANIM_UPDATES = false;
 
 	var groups					: Map<String, LibGroup>;
@@ -79,6 +81,7 @@ class SpriteLib {
 	public var normalPages (default, null) : Array<h2d.Tile>;
 
 	public function new(pages : Array<h2d.Tile>, ?normalPages : Array<h2d.Tile>) {
+		uid = UID++;
 		groups = new Map();
 		defaultCenterX = 0;
 		defaultCenterY = 0;
