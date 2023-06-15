@@ -23,8 +23,11 @@ class FixedArray<T> {
 	public var maxSize(get,never) : Int;
 		inline function get_maxSize() return values.length;
 
-	var autoResize = false;
-	var autoResizeAdd = 0;
+	var autoExpand = false;
+	var autoExpandAdd = 0;
+
+	@:noCompletion @:deprecated("Use enableAutoExpand()")
+	public var autoResize(never,default) : Bool;
 
 	/**
 		If FALSE (default value), then the order of the array won't be guaranted after operations that affect values other the last one (eg. `removeIndex` and `shift`). If set to TRUE, then **these operations will be slower**, but the array order will always be preserved.
@@ -87,12 +90,12 @@ class FixedArray<T> {
 
 
 	/**
-		NOT RECOMMENDED: allow the fixed array to automatically resize itself when its limit is reached.
+		NOT RECOMMENDED: allow the fixed array to automatically expand its length when its limit is reached.
 		Obviously, you will lose most fixed length benefits, if such resizing happens. However, in some cases,it could useful to "disable" a FixedArray behaviour.
 	**/
-	public function enableAutoResize(sizeIncrease:Int) {
-		autoResize = true;
-		autoResizeAdd = sizeIncrease;
+	public function enableAutoExpand(sizeIncrease:Int) {
+		autoExpand = true;
+		autoExpandAdd = sizeIncrease;
 	}
 
 	/** Get value at given index, or null if out of bounds **/
@@ -172,11 +175,11 @@ class FixedArray<T> {
 	/** Push a value at the end of the array **/
 	public inline function push(e:T) {
 		if( nalloc>=values.length ) {
-			if( !autoResize )
+			if( !autoExpand )
 				throw 'FixedArray limit reached ($maxSize)';
 			else {
 				// Increase size
-				var newValues = new haxe.ds.Vector(values.length + autoResizeAdd);
+				var newValues = new haxe.ds.Vector(values.length + autoExpandAdd);
 				for(i in 0...values.length)
 					newValues[i] = values[i];
 				values = newValues;
@@ -303,7 +306,7 @@ class FixedArray<T> {
 
 		// Resizable fixed arrays
 		var dyn = new FixedArray(2);
-		dyn.autoResize = true;
+		dyn.enableAutoExpand(2);
 		CiAssert.equals(dyn.maxSize, 2);
 		CiAssert.equals(dyn.allocated, 0);
 
@@ -314,15 +317,15 @@ class FixedArray<T> {
 		CiAssert.equals(dyn.allocated, 2);
 
 		dyn.push(true);
-		CiAssert.equals(dyn.allocated, 3);
+		CiAssert.equals(dyn.allocated, 3); // expand happens
 		CiAssert.equals(dyn.maxSize, 4);
 
 		dyn.push(true);
 		CiAssert.equals(dyn.allocated, 4);
 
 		dyn.push(true);
-		CiAssert.equals(dyn.allocated, 5);
-		CiAssert.equals(dyn.maxSize, 8);
+		CiAssert.equals(dyn.allocated, 5); // expand happens
+		CiAssert.equals(dyn.maxSize, 6);
 
 		// Sorting
 		var a = new FixedArray(4);
