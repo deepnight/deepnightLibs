@@ -23,15 +23,11 @@ class FixedArray<T> {
 	public var maxSize(get,never) : Int;
 		inline function get_maxSize() return values.length;
 
-	/**
-		NOT RECOMMENDED: allow the fixed array to automatically resize itself when its limit is reached.
-		Obviously, you will lose all the benefits. However, in some cases,it could useful to "disable" a FixedArray behaviour.
-	**/
-	@:noCompletion
-	public var autoResize = false;
+	var autoResize = false;
+	var autoResizeAdd = 0;
 
 	/**
-		If FALSE (default value), then the order of the array won't be guaranted after various operations like `removeIndex` or `shift`. If set to TRUE, then **these operations will be slower**, but the array order will always be preserved.
+		If FALSE (default value), then the order of the array won't be guaranted after operations that affect values other the last one (eg. `removeIndex` and `shift`). If set to TRUE, then **these operations will be slower**, but the array order will always be preserved.
 	**/
 	public var preserveOrder = false;
 
@@ -87,6 +83,16 @@ class FixedArray<T> {
 		for(e in this)
 			out.push( cb(e) );
 		return out;
+	}
+
+
+	/**
+		NOT RECOMMENDED: allow the fixed array to automatically resize itself when its limit is reached.
+		Obviously, you will lose most fixed length benefits, if such resizing happens. However, in some cases,it could useful to "disable" a FixedArray behaviour.
+	**/
+	public function enableAutoResize(sizeIncrease:Int) {
+		autoResize = true;
+		autoResizeAdd = sizeIncrease;
 	}
 
 	/** Get value at given index, or null if out of bounds **/
@@ -170,7 +176,7 @@ class FixedArray<T> {
 				throw 'FixedArray limit reached ($maxSize)';
 			else {
 				// Increase size
-				var newValues = new haxe.ds.Vector(values.length*2);
+				var newValues = new haxe.ds.Vector(values.length + autoResizeAdd);
 				for(i in 0...values.length)
 					newValues[i] = values[i];
 				values = newValues;
