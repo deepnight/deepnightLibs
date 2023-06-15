@@ -412,7 +412,7 @@ class Lib {
 	}
 
 
-	/** Return a pretty time value "HHh MMm SSs" from a timestamp or a duration (trying to guess) **/
+	/** Return a pretty time value "HHh MMm SSs" from a timestamp in milliseconds or a duration (trying to guess) **/
 	public static inline function prettyTime(t:Float) : String {
 		if( t<=DateTools.days(365) ) {
 			// Duration
