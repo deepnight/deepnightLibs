@@ -436,6 +436,11 @@ class M {
 		return r;
 	}
 
+	/* Return decimals of given float */
+	inline public static function decimals(x:Float):Float {
+		return fabs( x - Std.int(x) );
+	}
+
 	/**
 	 * Rounds x to the interval y.
 	 */
@@ -1159,5 +1164,10 @@ class M {
 		CiAssert.equals( M.subRatio(0.6,  0.5, 0.7), 0.5 );
 		CiAssert.equals( M.subRatio(0.7,  0.5, 0.7), 1 );
 		CiAssert.equals( M.subRatio(0.9,  0.5, 0.7), 1 );
+
+		CiAssert.equals( M.pretty(M.decimals(2.6)), M.pretty(0.6) );
+		CiAssert.equals( M.pretty(M.decimals(0.4)), M.pretty(0.4) );
+		CiAssert.equals( M.pretty(M.decimals(-2.9)), M.pretty(0.9) );
+		CiAssert.equals( M.pretty(M.decimals(-0.2)), M.pretty(0.2) );
 	}
 }
