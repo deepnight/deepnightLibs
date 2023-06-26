@@ -1169,5 +1169,8 @@ class M {
 		CiAssert.equals( M.pretty(M.decimals(0.4)), M.pretty(0.4) );
 		CiAssert.equals( M.pretty(M.decimals(-2.9)), M.pretty(0.9) );
 		CiAssert.equals( M.pretty(M.decimals(-0.2)), M.pretty(0.2) );
+		CiAssert.equals( M.pretty(M.decimals(0)), M.pretty(0) );
+		CiAssert.equals( M.pretty(M.decimals(3)), M.pretty(0) );
+		CiAssert.equals( M.pretty(M.decimals(10.62)), M.pretty(0.62) );
 	}
 }
