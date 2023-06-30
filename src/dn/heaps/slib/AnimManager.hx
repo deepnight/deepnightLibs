@@ -97,7 +97,7 @@ class AnimManager {
 	var needUpdates = false;
 	var destroyed = false;
 	var suspended = false;
-	var suspendF = 0.;
+	var disabledF = 0.;
 
 	public var onEnterFrame : Null<Int->Void>;
 
@@ -360,19 +360,31 @@ class AnimManager {
 	}
 
 
-	public function suspend() {
-		suspendF = 9999;
+	@:noCompletion @:deprecated("Use enable()") public inline function unsuspend() enable();
+	@:noCompletion @:deprecated("Use disable()") public inline function suspend() disable();
+
+	/** Disable all animation playbacks **/
+	public function disable() {
+		disabledF = 99999999;
 	}
 
-	public function unsuspend() { // the name sucks, but its easier to understand
-		suspendF = 0;
+	/** Re-enable animations **/
+	public function enable() {
+		disabledF = 0;
 	}
 
-	public function suspendForF(frames:Int) {
-		suspendF = frames + 1;
+	public inline function setEnabled(v:Bool) {
+		if( v )
+			enable();
+		else
+			disable();
 	}
 
-	public inline function isSuspended() return suspendF>0;
+	public function disableForF(frames:Int) {
+		disabledF = frames + 1;
+	}
+
+	public inline function isEnabled() return disabledF<=0;
 
 
 	public inline function getPlaySpeed() return genSpeed * ( hasAnim() ? getLastAnim().speed : 1.0 );
@@ -552,10 +564,10 @@ class AnimManager {
 		if( SpriteLib.DISABLE_ANIM_UPDATES )
 			return;
 
-		if( isSuspended() ) {
-			suspendF-=dt;
-			if( suspendF<=0 )
-				unsuspend();
+		if( !isEnabled() ) {
+			disabledF-=dt;
+			if( disabledF<=0 )
+				enable();
 			return;
 		}
 
