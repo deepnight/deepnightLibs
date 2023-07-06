@@ -493,6 +493,7 @@ class AnimManager {
 		stateAnims.push(s);
 		stateAnims.sort( function(a,b) return -Reflect.compare(a.priority, b.priority) );
 
+		stateAnimsActive = true;
 		applyStateAnims();
 	}
 
@@ -516,6 +517,7 @@ class AnimManager {
 
 	public function removeAllStateAnims() {
 		stateAnims = [];
+		stopWithoutStateAnims();
 	}
 
 	function applyStateAnims() {
