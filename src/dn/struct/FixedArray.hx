@@ -75,7 +75,7 @@ class FixedArray<T> {
 		return Std.string(v);
 	}
 
-	/** Re-initialize this FixedArray using the content of given Array **/
+	/** Initialize this FixedArray using the content of a standard Array **/
 	function loadArray(arr:Array<T>) {
 		values = new haxe.ds.Vector(arr.length);
 		nalloc = 0;
@@ -86,7 +86,7 @@ class FixedArray<T> {
 
 	/** Create a FixedArray using the content of an Array **/
 	public static function fromArray<T>(arr:Array<T>) : FixedArray<T> {
-		var fa = new FixedArray(arr.length);
+		var fa = new FixedArray(0);
 		fa.loadArray(arr);
 		return fa;
 	}
