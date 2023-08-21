@@ -377,9 +377,11 @@ class FixedArrayTests {
 		// Init from an Array
 		var a = FixedArray.fromArray([0,1,2]);
 		CiAssert.equals(a.allocated, 3);
+		CiAssert.equals(a.maxSize, 3);
 		CiAssert.equals(a.get(0), 0);
 		CiAssert.equals(a.get(1), 1);
 		CiAssert.equals(a.get(2), 2);
+		CiAssert.isTrue(!a.exists(3));
 
 		// Without array order preservation (default)
 		var a = new FixedArray<String>(5);
