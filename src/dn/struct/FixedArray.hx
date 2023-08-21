@@ -183,7 +183,7 @@ class FixedArray<T> {
 	}
 
 	/** Push a value at the end of the array **/
-	public inline function push(e:T) {
+	public function push(e:T) {
 		if( nalloc>=values.length ) {
 			if( !autoExpand )
 				throw 'FixedArray limit reached ($maxSize)';
