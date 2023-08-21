@@ -24,8 +24,7 @@ class FixedArray<T> {
 	public var maxSize(get,never) : Int;
 		inline function get_maxSize() return values.length;
 
-	var autoExpand = false;
-	var autoExpandAdd = 0;
+	var autoExpandSize = 0;
 
 	@:noCompletion @:deprecated("Use enableAutoExpand()")
 	public var autoResize(never,default) : Bool;
@@ -103,13 +102,14 @@ class FixedArray<T> {
 
 
 	/**
-		NOT RECOMMENDED: allow the fixed array to automatically expand its length when its limit is reached.
+		NOT RECOMMENDED: allow the fixed array to automatically expand its length when its size limit is reached.
 		Obviously, you will lose most fixed length benefits, if such resizing happens. However, in some cases,it could useful to "disable" a FixedArray behaviour.
 	**/
 	public function enableAutoExpand(sizeIncrease:Int) {
-		autoExpand = true;
-		autoExpandAdd = sizeIncrease;
+		autoExpandSize = sizeIncrease;
 	}
+
+	inline function isAutoExpandable() return autoExpandSize>0;
 
 	/** Check if there's a value at given index **/
 	public inline function exists(idx:Int) {
@@ -193,11 +193,11 @@ class FixedArray<T> {
 	/** Push a value at the end of the array **/
 	public function push(e:T) {
 		if( nalloc>=values.length ) {
-			if( !autoExpand )
+			if( !isAutoExpandable() )
 				throw 'FixedArray limit reached ($maxSize)';
 			else {
 				// Increase size
-				var newValues = new haxe.ds.Vector<T>(values.length + autoExpandAdd);
+				var newValues = new haxe.ds.Vector<T>(values.length + autoExpandSize);
 				for(i in 0...values.length)
 					newValues[i] = values[i];
 				values = newValues;
