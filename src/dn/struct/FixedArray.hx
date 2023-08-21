@@ -65,7 +65,7 @@ class FixedArray<T> {
 		Print FixedArray content as a String (example: "valueA,valueB,valueC").
 		**WARNING**: this operation is slow and generates allocations! **Only use for debug purpose.**
 	**/
-	public inline function shortString() {
+	public function shortString() {
 		var a = [];
 		for(v in this)
 			a.push(v);
@@ -109,11 +109,11 @@ class FixedArray<T> {
 	}
 
 	/** Get value at given index, or null if out of bounds **/
-	public inline function get(idx:Int) : Null<T> {
+	public function get(idx:Int) : Null<T> {
 		return exists(idx) ? values[idx] : null;
 	}
 
-	public inline function pickRandom(?rndFunc:Int->Int, removeAfterPick=false) : Null<T> {
+	public function pickRandom(?rndFunc:Int->Int, removeAfterPick=false) : Null<T> {
 		if( allocated==0 )
 			return null;
 		else {
@@ -142,7 +142,7 @@ class FixedArray<T> {
 
 	/** Get a random element from the fixed array **/
 	public inline function oneRandomly() : Null<T> {
-		return allocated==0 ? null : values[ Std.random(allocated) ];
+		return allocated>0 ? values[ Std.random(allocated) ] : null;
 	}
 
 	/** Get last value (without modifying the array) **/
@@ -152,14 +152,14 @@ class FixedArray<T> {
 
 	/** Remove the last value and returns it **/
 	public inline function pop() : Null<T> {
-		return nalloc==0 ? null : values[(nalloc--)-1];
+		return nalloc>0 ? values[(nalloc--)-1] : null;
 	}
 
 	/**
 		Remove the first value and returns it.
 		**Warning**: this will affect the array order if `preserveOrder` is FALSE (default).
 	**/
-	public inline function shift() : Null<T> {
+	public function shift() : Null<T> {
 		if( nalloc==0 )
 			return null;
 		else {
@@ -170,7 +170,7 @@ class FixedArray<T> {
 	}
 
 	/** Clear array content **/
-	public inline function empty() {
+	public function empty() {
 		nalloc = 0;
 	}
 
