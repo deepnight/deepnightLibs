@@ -103,9 +103,14 @@ class FixedArray<T> {
 		autoExpandAdd = sizeIncrease;
 	}
 
+	/** Check if there's a value at given index **/
+	public inline function exists(idx:Int) {
+		return idx>=0 && idx<nalloc;
+	}
+
 	/** Get value at given index, or null if out of bounds **/
 	public inline function get(idx:Int) : Null<T> {
-		return idx<0 || idx>=nalloc ? null : values[idx];
+		return exists(idx) ? values[idx] : null;
 	}
 
 	public inline function pickRandom(?rndFunc:Int->Int, removeAfterPick=false) : Null<T> {
@@ -273,9 +278,19 @@ class FixedArray<T> {
 @:noCompletion
 class FixedArrayTests {
 	public static function __test() {
-		var a : FixedArray<Int> = new FixedArray(10);
+		var a = new FixedArray<Int>(10);
 		CiAssert.equals(a.allocated, 0);
 		CiAssert.equals(a.maxSize, 10);
+
+		// Filling/emptying
+		for(i in 0...a.maxSize) a.push(i);
+		CiAssert.equals(a.allocated, 10);
+		a.empty();
+		CiAssert.equals(a.allocated, 0);
+		for(i in 0...a.maxSize) a.push(i);
+		CiAssert.equals(a.allocated, 10);
+		a.empty();
+		CiAssert.equals(a.allocated, 0);
 
 		// Push/pops
 		CiAssert.equals({ a.push(16); a.allocated; }, 1);
@@ -297,6 +312,9 @@ class FixedArrayTests {
 		CiAssert.equals(a.get(0), 16);
 		CiAssert.equals(a.get(1), 32);
 		CiAssert.equals(a.get(2), null);
+		CiAssert.equals(a.exists(0), true);
+		CiAssert.equals(a.exists(1), true);
+		CiAssert.equals(a.exists(2), false);
 		CiAssert.equals({ a.push(64); a.get(2); }, 64);
 		CiAssert.equals({ a.pop(); a.get(2); }, null);
 
