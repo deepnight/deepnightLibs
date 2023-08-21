@@ -49,7 +49,7 @@ class FixedArray<T> {
 	}
 
 	/** Fixed Array iterator**/
-	public inline function iterator() return new FixedArrayIterator(this);
+	public inline function iterator() return new FixedArrayIterator<T>(this);
 
 
 	@:keep
