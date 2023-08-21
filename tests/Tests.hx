@@ -25,7 +25,7 @@ class Tests {
 		dn.DecisionHelper.__test();
 		dn.Delayer.__test();
 		dn.FilePath.__test();
-		dn.struct.FixedArray.__test();
+		dn.struct.FixedArray.FixedArrayTests.__test();
 		dn.data.GetText.__test();
 		dn.legacy.GetText.__test();
 		dn.Lib.__test();

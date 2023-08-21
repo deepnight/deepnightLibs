@@ -1,12 +1,14 @@
 package dn.struct;
 
 /**
-	"Fixed-size Array" but with standard-Array comfort. It is optimized to have no memory allocations while supporting common Array operations.
+	"Fixed-size Array" but with most of the standard-Array comfort. It is optimized to have no memory allocations while supporting common Array operations.
 
-		- FixedArray has a limit to the number of values it can hold, as defined at creation.
+		- FixedArray has a limit to the number of values it can hold, which is defined at construction.
+		- WARNING: VALUES ORDER IS NOT PRESERVED, unless you set its `preserveOrder` flag to TRUE (costs some extra execution time, see documentation)
 		- Allocated values can be iterated over.
 		- Supports basic Array operations (get/set, push, pop/shift, etc.)
 **/
+@:generic
 @:allow(dn.struct.FixedArrayIterator)
 class FixedArray<T> {
 	var values : haxe.ds.Vector<T>;
@@ -53,8 +55,8 @@ class FixedArray<T> {
 	@:keep
 	public function toString() {
 		var a = [];
-		for(e in this)
-			a.push(e);
+		for(v in this)
+			a.push(v);
 		return a.map( v->toStringValue(v) ).toString() + '<$allocated/$maxSize>';
 	}
 
@@ -65,8 +67,8 @@ class FixedArray<T> {
 	**/
 	public inline function shortString() {
 		var a = [];
-		for(e in this)
-			a.push(e);
+		for(v in this)
+			a.push(v);
 		return a.map( v->toStringValue(v) ).join(",");
 	}
 
@@ -75,19 +77,19 @@ class FixedArray<T> {
 		return Std.string(v);
 	}
 
-	/** Create a FixedArray from an existing Array **/
-	public static inline function fromArray<T>(arr:Array<T>) : FixedArray<T> {
-		var out = new FixedArray(arr.length);
+	/** Re-initialize this FixedArray using the content of given Array **/
+	public function loadArray(arr:Array<T>) {
+		values = new haxe.ds.Vector(arr.length);
+		nalloc = 0;
 		for(e in arr)
-			out.push(e);
-		return out;
+			push(e);
 	}
 
 	/** Return a standard Array using a mapping function on all elements **/
 	public function mapToArray<X>(mapValue:T->X) : Array<X> {
 		var out = [];
-		for(e in this)
-			out.push( mapValue(e) );
+		for(v in this)
+			out.push( mapValue(v) );
 		return out;
 	}
 
@@ -182,7 +184,7 @@ class FixedArray<T> {
 				throw 'FixedArray limit reached ($maxSize)';
 			else {
 				// Increase size
-				var newValues = new haxe.ds.Vector(values.length + autoExpandAdd);
+				var newValues = new haxe.ds.Vector<T>(values.length + autoExpandAdd);
 				for(i in 0...values.length)
 					newValues[i] = values[i];
 				values = newValues;
@@ -217,7 +219,7 @@ class FixedArray<T> {
 			else if( !preserveOrder ) {
 				// Fast method (no order preservation)
 				values[i] = values[nalloc-1];
-				values[nalloc-1] = null;
+				// values[nalloc-1] = null;
 				nalloc--;
 			}
 			else {
@@ -237,7 +239,7 @@ class FixedArray<T> {
 
 	/** Sort elements in place **/
 	public function bubbleSort( getSortWeight:T->Float ) {
-		var tmp : T = null;
+		var tmp : T;
 		for(i in 0...allocated-1)
 		for(j in i+1...allocated) {
 			if( getSortWeight( get(i)) > getSortWeight(get(j) ) ) {
@@ -254,7 +256,7 @@ class FixedArray<T> {
 			randFunc = Std.random;
 		var m = allocated;
 		var i = 0;
-		var tmp : T = null;
+		var tmp : T;
 		while( m>0 ) {
 			i = randFunc(m--);
 			tmp = values[m];
@@ -263,9 +265,13 @@ class FixedArray<T> {
 		}
 	}
 
+}
 
-	/** Unit tests **/
-	@:noCompletion
+
+
+/** Unit tests **/
+@:noCompletion
+class FixedArrayTests {
 	public static function __test() {
 		var a : FixedArray<Int> = new FixedArray(10);
 		CiAssert.equals(a.allocated, 0);
@@ -308,7 +314,7 @@ class FixedArray<T> {
 		CiAssert.equals(a.get(0), 64);
 
 		// Resizable fixed arrays
-		var dyn = new FixedArray(2);
+		var dyn = new FixedArray<Bool>(2);
 		dyn.enableAutoExpand(2);
 		CiAssert.equals(dyn.maxSize, 2);
 		CiAssert.equals(dyn.allocated, 0);
@@ -331,7 +337,7 @@ class FixedArray<T> {
 		CiAssert.equals(dyn.maxSize, 6);
 
 		// Sorting
-		var a = new FixedArray(4);
+		var a = new FixedArray<Int>(4);
 		a.push(30);
 		a.push(10);
 		a.push(40);
@@ -342,15 +348,16 @@ class FixedArray<T> {
 		CiAssert.equals(a.get(2), 30);
 		CiAssert.equals(a.get(3), 40);
 
-		// From array init
-		var a = FixedArray.fromArray([0,1,2]);
+		// Init from an Array
+		var a = new FixedArray<Int>(0);
+		a.loadArray([0,1,2]);
 		CiAssert.equals(a.allocated, 3);
 		CiAssert.equals(a.get(0), 0);
 		CiAssert.equals(a.get(1), 1);
 		CiAssert.equals(a.get(2), 2);
 
 		// Without array order preservation (default)
-		var a = new FixedArray(5);
+		var a = new FixedArray<String>(5);
 		a.push("a");
 		a.push("b");
 		a.push("c");
@@ -362,7 +369,7 @@ class FixedArray<T> {
 		a.remove("e"); CiAssert.equals(a.shortString(), "c,d");
 
 		// With array order preservation
-		var a = new FixedArray(5);
+		var a = new FixedArray<String>(5);
 		a.preserveOrder = true;
 		a.push("a");
 		a.push("b");
@@ -381,6 +388,7 @@ class FixedArray<T> {
 /**
 	Custom iterator for FixedArrays
 **/
+@:generic
 private class FixedArrayIterator<T> {
 	var arr : FixedArray<T>;
 	var i : Int;

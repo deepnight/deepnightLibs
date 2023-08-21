@@ -388,7 +388,7 @@ abstract Col(Int) from Int to Int {
 		y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
 		z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
 
-		var lab = new dn.struct.FixedArray(3);
+		var lab = new dn.struct.FixedArray<Float>(3);
 		lab.push( (116*y) - 16 );
 		lab.push( 500*(x-y) );
 		lab.push( 200*(y-z) );
