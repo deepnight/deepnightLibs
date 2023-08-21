@@ -8,7 +8,6 @@ package dn.struct;
 		- Allocated values can be iterated over.
 		- Supports basic Array operations (get/set, push, pop/shift, etc.)
 **/
-@:generic
 @:allow(dn.struct.FixedArrayIterator)
 class FixedArray<T> {
 	var values : haxe.ds.Vector<T>;
@@ -78,12 +77,21 @@ class FixedArray<T> {
 	}
 
 	/** Re-initialize this FixedArray using the content of given Array **/
-	public function loadArray(arr:Array<T>) {
+	function loadArray(arr:Array<T>) {
 		values = new haxe.ds.Vector(arr.length);
 		nalloc = 0;
 		for(e in arr)
 			push(e);
 	}
+
+
+	/** Create a FixedArray using the content of an Array **/
+	public static function fromArray<T>(arr:Array<T>) : FixedArray<T> {
+		var fa = new FixedArray(arr.length);
+		fa.loadArray(arr);
+		return fa;
+	}
+
 
 	/** Return a standard Array using a mapping function on all elements **/
 	public function mapToArray<X>(mapValue:T->X) : Array<X> {
@@ -109,7 +117,7 @@ class FixedArray<T> {
 	}
 
 	/** Get value at given index, or null if out of bounds **/
-	public function get(idx:Int) : Null<T> {
+	public inline function get(idx:Int) : Null<T> {
 		return exists(idx) ? values[idx] : null;
 	}
 
@@ -367,8 +375,7 @@ class FixedArrayTests {
 		CiAssert.equals(a.get(3), 40);
 
 		// Init from an Array
-		var a = new FixedArray<Int>(0);
-		a.loadArray([0,1,2]);
+		var a = FixedArray.fromArray([0,1,2]);
 		CiAssert.equals(a.allocated, 3);
 		CiAssert.equals(a.get(0), 0);
 		CiAssert.equals(a.get(1), 1);
@@ -406,7 +413,6 @@ class FixedArrayTests {
 /**
 	Custom iterator for FixedArrays
 **/
-@:generic
 private class FixedArrayIterator<T> {
 	var arr : FixedArray<T>;
 	var i : Int;
