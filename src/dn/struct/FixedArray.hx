@@ -34,9 +34,11 @@ class FixedArray<T> {
 	**/
 	public var preserveOrder = false;
 
-
 	@:deprecated("Use 'allocated' here (to avoid allocated/maxSize ambiguity)") @:noCompletion
-	public var length(get,never) : Int; inline function get_length() return allocated;
+	public var length(get,never) : Int;
+		inline function get_length() return allocated;
+
+
 
 	public function new(?name:String, maxSize:Int) {
 		this.name = name;
@@ -68,6 +70,7 @@ class FixedArray<T> {
 		return a.map( v->toStringValue(v) ).join(",");
 	}
 
+	/** Create a String representation (this method can be replaced) **/
 	public dynamic function toStringValue(v:T) : String {
 		return Std.string(v);
 	}
@@ -81,10 +84,10 @@ class FixedArray<T> {
 	}
 
 	/** Return a standard Array using a mapping function on all elements **/
-	public function mapToArray<X>(cb:T->X) : Array<X> {
+	public function mapToArray<X>(mapValue:T->X) : Array<X> {
 		var out = [];
 		for(e in this)
-			out.push( cb(e) );
+			out.push( mapValue(e) );
 		return out;
 	}
 
