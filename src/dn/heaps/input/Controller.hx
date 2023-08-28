@@ -664,7 +664,7 @@ class Controller<T:Int> {
 		@param ctrlType Optionally, only show the binding associated with the given controller type
 		@param parent  Optional display object to add the icon to.
 	**/
-	public function getFirstBindindIconFor(action:T, ?ctrlType:ControllerType, filterAxisSign=0, ?parent:h2d.Object) : h2d.Flow {
+	public function getFirstBindindIconFor(action:T, ?ctrlType:ControllerType, ?parent:h2d.Object) : h2d.Flow {
 		if( !bindings.exists(action) || bindings.get(action).length==0 )
 			return new h2d.Flow(parent);
 
