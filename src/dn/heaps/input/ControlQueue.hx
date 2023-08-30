@@ -4,7 +4,7 @@ class ControlQueue<T:Int> {
 	var ca : ControllerAccess<T>;
 	var curTimeS : Float = 0;
 
-	var queueDurationS : Float;
+	public var queueDurationS(default,null) : Float;
 	var allWatches : Array<T> = [];
 
 	var lastFrameDown : Map<Int,Bool> = new Map();
