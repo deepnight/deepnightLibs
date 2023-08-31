@@ -80,12 +80,12 @@ class MacroTools {
 	}
 
 	/**
-		Return the compilation timestamp in seconds as standard Date string format
+		Return the compilation timestamp in seconds
 	**/
 	public static macro function getBuildTimeStampSeconds() {
 		return {
 			pos : Context.currentPos(),
-			expr : EConst(CFloat( Std.string(  haxe.Timer.stamp()  ) )),
+			expr : EConst(CFloat( Std.string(  Date.now().getTime()/1000  ) )),
 		}
 	}
 
