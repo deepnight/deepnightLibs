@@ -22,6 +22,12 @@ class Scaler {
 	}
 
 
+	/** Fit `wid`x`hei` in current viewport, while keeping scaling value as Int **/
+	public static inline function bestFitAspectRatio_i(widPx:Float, aspectRatio:Float, ?contextWid:Float, ?contextHei:Float) : Int {
+		return M.floor( bestFit_f(widPx, widPx/aspectRatio, contextWid, contextHei) );
+	}
+
+
 
 	/** Fit `wid`x`hei` in current viewport, optionally snapping to closest Integer scale value (for pixel perfect rendering) **/
 	public static function fill_f(widPx:Float, ?heiPx:Float, ?contextWid:Float, ?contextHei:Float, integerScale=true) : Float {
