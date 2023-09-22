@@ -21,9 +21,17 @@ class Version {
 	public var numbers(get,never) : String;
 		inline function get_numbers() return '$major.$minor.$patch';
 
+	/** Version string in format "x.y[.z]" (without label and the patch number is discarded if zero) **/
+	public var numbersOptionalPatch(get,never) : String;
+		inline function get_numbersOptionalPatch() return patch==0 ? '$major.$minor' : '$major.$minor.$patch';
+
 	/** Version string in format "x.y.z[-label]"" **/
 	public var full(get,never) : String;
 		inline function get_full() return '$numbers${ preReleaseLabel!=null ? "-"+preReleaseLabel : "" }';
+
+	/** Version string in format "x.y[.z][-label]" (the patch number is discarded if zero) **/
+	public var fullOptionalPatch(get,never) : String;
+		inline function get_fullOptionalPatch() return '$numbersOptionalPatch${ preReleaseLabel!=null ? "-"+preReleaseLabel : "" }';
 
 
 	/**
