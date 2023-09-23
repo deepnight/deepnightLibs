@@ -161,7 +161,15 @@ class Log {
 			var lines = raw.split("\n");
 			if( lines.length>maxLines ) {
 				lines = lines.splice(lines.length-maxLines, maxLines);
-				sys.io.File.saveContent( filePath, lines.join("\n") );
+				var output = lines.join("\n");
+				#if sys
+					sys.io.File.saveContent( filePath, output );
+				#elseif hxnodejs
+					js.node.Require.require("fs");
+					js.node.Fs.writeFileSync(filePath, output);
+				#else
+					// You're not supposed to be here
+				#end
 			}
 			return true;
 		}
@@ -330,4 +338,14 @@ class Log {
 
 
 	public dynamic function onAdd(e:LogEntry) {}
+
+
+	@:noCompletion
+	public static function __test() {
+		var l = new Log(5);
+		l.logFilePath = "tests/bin/test.log";
+		l.add("someTag", "text", 0xff00ff);
+		l.flushToFile();
+		l.trimFileLines();
+	}
 }

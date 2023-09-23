@@ -40,6 +40,7 @@ class Tests {
 		dn.struct.Stat.StatTest.__test();
 		dn.phys.Velocity.__test();
 		dn.Version.__test();
+		dn.Log.__test();
 
 
 
