@@ -1,6 +1,10 @@
 package dn.legacy;
 
+#if (haxe_ver >= 4)
+enum
+#else
 @:enum
+#end
 abstract PadKey(Int) {
 	var A               	= 0;
 	var B               	= 1;
