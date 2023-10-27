@@ -47,6 +47,21 @@ class Geom {
 		var dy = closestY - circleY;
 
 		// Check if the closest point is inside the circle
+		return Math.sqrt( dx*dx + dy*dy ) < radius;
+	}
+
+
+	/** Check if a rectangle overlaps or TOUCHES THE EDGES of a circle **/
+	public static inline function rectTouchesCircle(rx:Float, ry:Float, rWid:Float, rHei:Float, circleX:Float, circleY:Float, radius:Float) {
+		// Find the closest point on the rectangle to the center of the circle
+		final closestX = M.fclamp(circleX, rx, rx+rWid);
+		final closestY = M.fclamp(circleY, ry, ry+rHei);
+
+		// Calculate the distance between the closest point and the center of the circle
+		var dx = closestX - circleX;
+		var dy = closestY - circleY;
+
+		// Check if the closest point is inside the circle
 		return Math.sqrt( dx*dx + dy*dy ) <= radius;
 	}
 
