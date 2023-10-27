@@ -114,10 +114,16 @@ class Geom {
 		CiAssert.equals( rectOverlapsRect(0,0,10,5,  1,1,3,3), true );
 		CiAssert.equals( rectOverlapsRect(0,0,10,5,  -1,-1,3,3), true );
 		CiAssert.equals( rectOverlapsRect(0,0,10,5,  9,0,10,5), true );
-		CiAssert.equals( rectTouchesRect(0,0,10,5,  10,0,10,5), true);
-		CiAssert.equals( rectTouchesRect(0,0,10,5,  0,5,10,5), true);
+		CiAssert.equals( rectOverlapsRect(0,0,10,5,  -10,-10,100,100), true);
+		CiAssert.equals( rectTouchesRect(0,0,10,5,  -10,-10,100,100), true);
 
 		CiAssert.equals( rectOverlapsRect(0,0,10,5,  10,0,10,5), false);
+		CiAssert.equals( rectTouchesRect(0,0,10,5,  10,0,10,5), true);
+
 		CiAssert.equals( rectOverlapsRect(0,0,10,5,  0,5,10,5), false);
+		CiAssert.equals( rectTouchesRect(0,0,10,5,  0,5,10,5), true);
+
+		// Rect vs Circle
+		// TODO
 	}
 }
