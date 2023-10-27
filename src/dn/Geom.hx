@@ -90,6 +90,39 @@ class Geom {
 	}
 
 
+	/** Check if segment A intersects segment B **/
+	public static function lineIntersectsLine(ax1:Float,ay1:Float,ax2:Float,ay2:Float, bx1:Float,by1:Float,bx2:Float,by2:Float) {
+		var denom = ( (by2-by1) * (ax2-ax1)) - ((bx2-bx1) * (ay2-ay1) );
+        if( denom==0 )
+			return false;  // Lines are parallel
+		else {
+			var u = ( ( (bx2-bx1) * (ay1-by1) ) - ( (by2-by1) * (ax1-bx1) ) ) / denom;
+			if( u<0 || u>1 )
+				return false;
+
+			u = ( ( (ax2-ax1) * (ay1-by1) ) - ( (ay2-ay1) * (ax1-bx1) ) ) / denom;
+			return u>=0 && u<=1;
+		}
+	}
+
+
+	/** Check if segment A intersects segment B **/
+	public static function lineIntersectsRect(x1:Float,y1:Float,x2:Float,y2:Float, rx:Float,ry:Float,w:Float,h:Float) {
+		if( pointInsideRect(x1,y1, rx,ry,w,h) )
+			return true;
+		else if( pointInsideRect(x2,y2, rx,ry,w,h) )
+			return true;
+		else {
+			// Check rectangle edges
+			if( lineIntersectsLine(x1,y1,x2,y2,  rx, ry, rx, ry+h-1) ) return true; // left edge
+			if( lineIntersectsLine(x1,y1,x2,y2,  rx+w-1, ry, rx+w-1, ry+h-1) ) return true; // right edge
+			if( lineIntersectsLine(x1,y1,x2,y2,  rx, ry, rx+w-1, ry) ) return true; // top edge
+			if( lineIntersectsLine(x1,y1,x2,y2,  rx, ry+h-1, rx+w-1, ry+h-1) ) return true; // bottom edge
+		}
+		return false;
+	}
+
+
 	@:noCompletion
 	public static function __test() {
 		// Point vs Circle
