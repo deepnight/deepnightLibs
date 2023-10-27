@@ -2,8 +2,8 @@ package dn;
 
 class Geom {
 
-	/** Check if rectangle A collides rectangle B. **/
-	public static inline function rectCollidesRect(aX:Float, aY:Float, aWid:Float, aHei:Float, bX:Float, bY:Float, bWid:Float, bHei:Float) {
+	/** Check if rectangle A overlaps rectangle B. **/
+	public static inline function rectOverlapsRect(aX:Float, aY:Float, aWid:Float, aHei:Float, bX:Float, bY:Float, bWid:Float, bHei:Float) {
 		/*
 		Source: https://www.baeldung.com/java-check-if-two-rectangles-overlap
 
@@ -19,8 +19,25 @@ class Geom {
 			return true;
 	}
 
-	/** Check if a rectangle collides with a circle **/
-	public static inline function rectCollidesCircle(rx:Float, ry:Float, rWid:Float, rHei:Float, circleX:Float, circleY:Float, radius:Float) {
+	/** Check if rectangle A overlaps or TOUCHES THE EDGES of rectangle B. **/
+	public static inline function rectTouchesRect(aX:Float, aY:Float, aWid:Float, aHei:Float, bX:Float, bY:Float, bWid:Float, bHei:Float) {
+		/*
+		Source: https://www.baeldung.com/java-check-if-two-rectangles-overlap
+
+		"The two given rectangles won't overlap if either of the below conditions is true:
+			One of the two rectangles is above the top edge of the other rectangle
+			One of the two rectangles is on the left side of the left edge of the other rectangle"
+		*/
+		if( aY+aHei < bY || bY+bHei < aY )
+			return false;
+		else if( aX+aWid < bX || bX+bWid < aX )
+			return false;
+		else
+			return true;
+	}
+
+	/** Check if a rectangle overlaps (ie. overlaps) with a circle **/
+	public static inline function rectOverlapsCircle(rx:Float, ry:Float, rWid:Float, rHei:Float, circleX:Float, circleY:Float, radius:Float) {
 		// Find the closest point on the rectangle to the center of the circle
 		final closestX = M.fclamp(circleX, rx, rx+rWid);
 		final closestY = M.fclamp(circleY, ry, ry+rHei);
@@ -34,8 +51,14 @@ class Geom {
 	}
 
 
-	/** Check if a rectangle circle A with a circle B **/
-	public static inline function circleCollidesCircle(xA:Float, yA:Float, rA:Float,  xB:Float, yB:Float, rB:Float) {
+	/** Check if circle A overlaps circle B **/
+	public static inline function circleOverlapsCircle(xA:Float, yA:Float, rA:Float,  xB:Float, yB:Float, rB:Float) {
+		return M.distSqr(xA,yA,xB,yB) < (rA+rB)*(rA+rB);
+	}
+
+
+	/** Check if circle A overlaps or TOUCHES THE EDGES of circle B. **/
+	public static inline function circleTouchesCircle(xA:Float, yA:Float, rA:Float,  xB:Float, yB:Float, rB:Float) {
 		return M.distSqr(xA,yA,xB,yB) <= (rA+rB)*(rA+rB);
 	}
 
@@ -54,6 +77,32 @@ class Geom {
 
 	@:noCompletion
 	public static function __test() {
-		// TODO
+		// Point vs Circle
+		CiAssert.equals( pointInsideCircle(0,0,  5,0,5), true );
+		CiAssert.equals( pointInsideCircle(0,0,  -3,0,5), true );
+
+		CiAssert.equals( pointInsideCircle(0,0,  6,0,5), false );
+
+		// Point vs Rect
+		CiAssert.equals( pointInsideRect(0,0,  0,0,10,5), true );
+		CiAssert.equals( pointInsideRect(9,0,  0,0,10,5), true );
+		CiAssert.equals( pointInsideRect(0,4,  0,0,10,5), true );
+		CiAssert.equals( pointInsideRect(9,4,  0,0,10,5), true );
+
+		CiAssert.equals( pointInsideRect(10,0,  0,0,10,5), false );
+		CiAssert.equals( pointInsideRect(0,5,  0,0,10,5), false );
+		CiAssert.equals( pointInsideRect(-1,0,  0,0,10,5), false );
+		CiAssert.equals( pointInsideRect(0,-1,  0,0,10,5), false );
+
+		// Rect vs Rect
+		CiAssert.equals( rectOverlapsRect(0,0,10,5,  0,0,10,5), true );
+		CiAssert.equals( rectOverlapsRect(0,0,10,5,  1,1,3,3), true );
+		CiAssert.equals( rectOverlapsRect(0,0,10,5,  -1,-1,3,3), true );
+		CiAssert.equals( rectOverlapsRect(0,0,10,5,  9,0,10,5), true );
+		CiAssert.equals( rectTouchesRect(0,0,10,5,  10,0,10,5), true);
+		CiAssert.equals( rectTouchesRect(0,0,10,5,  0,5,10,5), true);
+
+		CiAssert.equals( rectOverlapsRect(0,0,10,5,  10,0,10,5), false);
+		CiAssert.equals( rectOverlapsRect(0,0,10,5,  0,5,10,5), false);
 	}
 }

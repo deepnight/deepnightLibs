@@ -41,6 +41,7 @@ class Tests {
 		dn.phys.Velocity.__test();
 		dn.Version.__test();
 		dn.Log.__test();
+		dn.Geom.__test();
 
 
 
