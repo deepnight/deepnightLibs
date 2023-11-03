@@ -10,7 +10,7 @@ class ControllerQueue<T:Int> {
 	var watches : Array<T> = [];
 	var ca : ControllerAccess<T>;
 	var events : Map<T, QueueEventStacks<T>> = new Map();
-	var defaultMaxKeepDurationS : Float;
+	public var defaultMaxKeepDurationS(default,null) : Float;
 
 	public function new(ca:ControllerAccess<T>, defaultMaxKeepDurationS=0.6) {
 		this.ca = ca;
@@ -52,6 +52,7 @@ class ControllerQueue<T:Int> {
 		events.remove(a);
 	}
 
+
 	/**
 		Check if given `action` was pressed recently, and removes it from history if TRUE.
 
@@ -64,7 +65,7 @@ class ControllerQueue<T:Int> {
 		- `checkAndPopPress(B, true)` would return TRUE, and B would be consumed from the queue, A would also be discarded because it happened before B, and C and D would stay in the queue.
 
 	**/
-	public function checkAndPopPress(action:T, ignoreChronologicalOrder=false) {
+	public function consumePress(action:T, ignoreChronologicalOrder=false) {
 		var nextT = events.get(action).getNextPress();
 		if( !ignoreChronologicalOrder ) {
 			for(ev in events)
@@ -78,6 +79,23 @@ class ControllerQueue<T:Int> {
 
 		return result;
 	}
+
+
+	/**
+		Check if the `action` press event is in the queue. This method doesn't "consume" the event from the queue.
+
+		See `consumePress` for more info.
+	**/
+	public function peekPress(action:T, ignoreChronologicalOrder=false) {
+		var nextT = events.get(action).getNextPress();
+		if( !ignoreChronologicalOrder ) {
+			for(ev in events)
+				if( ev.action!=action && ev.getNextPress()<nextT )
+					return false;
+		}
+		return events.get(action).peekPress(curTimeS);
+	}
+
 
 	public function clearAll() {
 		for(ev in events)
@@ -100,30 +118,39 @@ class ControllerQueue<T:Int> {
 			wrapper.removeChildren();
 			var i = 0;
 			var lineHei = 32;
-			var secondWidth = 100;
+			var secondWid = 100;
+			var labelWid = 60;
 			for(ev in events) {
-				var lineWrapper = new h2d.Object(wrapper);
-				lineWrapper.y = i*lineHei;
+				var rowWrapper = new h2d.Object(wrapper);
+				rowWrapper.y = i*lineHei;
+
+				var rowColor : Col = ev.peekPress(curTimeS) || ev.peekRelease(curTimeS) ? Green : Red;
+
+				// Full line bg
+				var bg = new h2d.Graphics(rowWrapper);
+				bg.beginFill(rowColor.toBlack(0.5), 0.9);
+				bg.drawRect(0,0, labelWid + ev.maxKeepDurationS*secondWid, lineHei-1);
+				bg.endFill();
 
 				// Label
-				var tf = new h2d.Text(font, lineWrapper);
-				tf.text = Std.string(ev.action);
+				var tf = new h2d.Text(font, rowWrapper);
+				tf.text = Const.resolveGameActionName(ev.action);
 
-				var g = new h2d.Graphics(lineWrapper);
-				g.x = 60;
+				var g = new h2d.Graphics(rowWrapper);
+				g.x = labelWid;
 
-				// Bg
-				g.beginFill(Black, 0.8);
-				g.drawRect(0,0, ev.maxKeepDurationS*secondWidth, lineHei);
+				// Graph bg
+				g.beginFill(Black, 0.3);
+				g.drawRect(0,0, ev.maxKeepDurationS*secondWid, lineHei);
 				g.endFill();
 
 				// Graduations
 				var t = 0.;
 				while( t<ev.maxKeepDurationS ) {
 					t+=0.1;
-					g.lineStyle(1, WarmMidGray, 0.3);
-					g.moveTo(t*secondWidth, 0);
-					g.lineTo(t*secondWidth, lineHei);
+					g.lineStyle(1, rowColor, 0.3);
+					g.moveTo(t*secondWid, 0);
+					g.lineTo(t*secondWid, lineHei);
 				}
 
 				// Keep limit
@@ -139,7 +166,7 @@ class ControllerQueue<T:Int> {
 					for(t in stack) {
 						g.beginFill(col,1);
 						g.lineStyle(1, col.toWhite(0.3));
-						g.drawCircle((ev.maxKeepDurationS-(curTimeS-t))*secondWidth, eventIdx*eventHei + eventHei*0.5, eventHei*0.5);
+						g.drawCircle((ev.maxKeepDurationS-(curTimeS-t))*secondWid, eventIdx*eventHei + eventHei*0.5, eventHei*0.5);
 						g.endFill();
 					}
 					eventIdx++;
@@ -151,11 +178,13 @@ class ControllerQueue<T:Int> {
 			}
 		}
 
-		p.onResizeCb = ()->{
-			p.root.setScale( dn.heaps.Scaler.bestFit_i(300));
-		}
+		// p.onResizeCb = ()->{
+			// p.root.setScale( dn.heaps.Scaler.bestFit_i(300));
+		// }
 
 		p.onDisposeCb = ()->{}
+
+		return p;
 	}
 }
 
@@ -190,24 +219,31 @@ private class QueueEventStacks<T> {
 		}
 	}
 
-	public inline function popPress(curTimeS:Float) : Bool {
-		return tryToPopFromStack(presses,curTimeS);
-	}
 
 	public inline function getNextPress() {
 		return presses.length>0 ? presses[0] : 999999;
 	}
 
-	public inline function popRelease(curTimeS:Float) : Bool {
-		return tryToPopFromStack(releases,curTimeS);
-	}
+	public inline function popPress(curTimeS:Float) return popFromStack(presses,curTimeS);
+	public inline function popRelease(curTimeS:Float) return popFromStack(releases,curTimeS);
 
-	function tryToPopFromStack(stack:Array<Float>, curTimeS:Float) : Bool {
+	public inline function peekPress(curTimeS:Float) return peekFromStack(presses,curTimeS);
+	public inline function peekRelease(curTimeS:Float) return peekFromStack(releases,curTimeS);
+
+	function popFromStack(stack:Array<Float>, curTimeS:Float) : Bool {
 		gc(stack,curTimeS);
-		if( stack.length>0 ) { //&& curTimeS-stack[0]<=maxKeepDurationS ) {
+		if( stack.length>0 ) {
 			stack.shift();
 			return true;
 		}
+		else
+			return false;
+	}
+
+	function peekFromStack(stack:Array<Float>, curTimeS:Float) : Bool {
+		gc(stack,curTimeS);
+		if( stack.length>0 )
+			return true;
 		else
 			return false;
 	}
