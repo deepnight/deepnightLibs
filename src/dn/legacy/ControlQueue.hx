@@ -1,4 +1,4 @@
-package dn.heaps.input;
+package dn.legacy;
 
 class ControlQueue<T:Int> {
 	var ca : ControllerAccess<T>;
