@@ -72,12 +72,12 @@ class ControllerQueue<T:Int> {
 				if( ev.action!=action && ev.getNextPress()<nextT )
 					return false;
 		}
-		var result = events.get(action).popPress(curTimeS);
-		if( result )
+		var pressed = events.get(action).popPress(curTimeS);
+		if( ignoreChronologicalOrder && pressed )
 			for(ev in events)
-				ev.discardPressesEarlier(nextT);
+				ev.clearStackUntil(ev.presses, nextT);
 
-		return result;
+		return pressed;
 	}
 
 
@@ -97,15 +97,16 @@ class ControllerQueue<T:Int> {
 	}
 
 
-	public function clearAll() {
+	public function clearAllQueues() {
 		for(ev in events)
 			ev.clear();
 	}
 
-	public function clearAction(a:T) {
+	public function clearQueue(a:T) {
 		if( events.exists(a) )
 			events.get(a).clear();
 	}
+
 
 	public function createDebugger(parent:dn.Process) {
 		var p = parent.createChildProcess();
@@ -248,9 +249,9 @@ private class QueueEventStacks<T> {
 			return false;
 	}
 
-	public function discardPressesEarlier(t:Float) {
-		while( presses.length>0 && presses[0]<=t )
-			presses.shift();
+	public function clearStackUntil(stack:Array<Float>, timeS:Float) {
+		while( stack.length>0 && stack[0]<=timeS )
+			stack.shift();
 	}
 
 	public inline function gc(stack:Array<Float>, curTimeS:Float) {
