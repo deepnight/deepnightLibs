@@ -119,7 +119,7 @@ class ControllerQueue<T:Int> {
 	}
 
 
-	public function createDebugger(parent:dn.Process) {
+	public function createDebugger(parent:dn.Process, ?actionNameResolver:T->String) {
 		var p = parent.createChildProcess();
 		p.createRootInLayers(parent.root, 99999);
 		var wrapper = new h2d.Object(p.root);
@@ -146,7 +146,7 @@ class ControllerQueue<T:Int> {
 
 				// Label
 				var tf = new h2d.Text(font, rowWrapper);
-				tf.text = Const.resolveGameActionName(ev.action);
+				tf.text = actionNameResolver!=null ? actionNameResolver(ev.action) : "#"+ev.action;
 
 				var g = new h2d.Graphics(rowWrapper);
 				g.x = labelWid;
