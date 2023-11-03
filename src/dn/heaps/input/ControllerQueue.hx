@@ -173,26 +173,39 @@ class ControllerQueue<T:Int> {
 				// Event stacks
 				var eventIdx = 0;
 				var eventHei = 8;
-				inline function _renderStack(stack:Array<Float>, col:dn.Col) {
+				inline function _renderStack(stack:Array<Float>, shape:Int, col:dn.Col) {
 					ev.gc(stack, curTimeS);
 					for(t in stack) {
 						g.beginFill(col,1);
 						g.lineStyle(1, col.toWhite(0.3));
-						g.drawCircle((ev.maxKeepDurationS-(curTimeS-t))*secondWid, eventIdx*eventHei + eventHei*0.5, eventHei*0.5);
+						var x = (ev.maxKeepDurationS-(curTimeS-t))*secondWid;
+						var y = eventIdx*eventHei;
+						switch shape {
+							case 0: // Down arrow
+								g.moveTo(x-4, y);
+								g.lineTo(x+4, y);
+								g.lineTo(x, y+eventHei);
+								g.lineTo(x-4, y);
+
+							case 1: // Up arrow
+								g.moveTo(x,y);
+								g.lineTo(x+4, y+eventHei);
+								g.lineTo(x-4, y+eventHei);
+								g.lineTo(x, y);
+
+							case _:
+								g.drawCircle(x, y+eventHei*0.5, eventHei*0.5);
+						}
 						g.endFill();
 					}
 					eventIdx++;
 				}
-				_renderStack(ev.presses, Green);
-				_renderStack(ev.releases, Orange);
+				_renderStack(ev.presses, 0, Green);
+				_renderStack(ev.releases, 1, Orange);
 
 				i++;
 			}
 		}
-
-		// p.onResizeCb = ()->{
-			// p.root.setScale( dn.heaps.Scaler.bestFit_i(300));
-		// }
 
 		p.onDisposeCb = ()->{}
 
