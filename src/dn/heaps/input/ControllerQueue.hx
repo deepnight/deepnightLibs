@@ -108,6 +108,17 @@ class ControllerQueue<T:Int> {
 	}
 
 
+	/**
+		Manually insert fake press/release event
+	**/
+	public function emulatePressRelease(a:T) {
+		if( events.exists(a) ) {
+			events.get(a).presses.push(curTimeS);
+			events.get(a).releases.push(curTimeS+0.06);
+		}
+	}
+
+
 	public function createDebugger(parent:dn.Process) {
 		var p = parent.createChildProcess();
 		p.createRootInLayers(parent.root, 99999);
@@ -188,6 +199,7 @@ class ControllerQueue<T:Int> {
 		return p;
 	}
 }
+
 
 
 private class QueueEventStacks<T> {
