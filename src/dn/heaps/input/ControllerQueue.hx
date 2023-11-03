@@ -6,22 +6,46 @@ import dn.struct.FixedArray;
 import dn.Col;
 
 class ControllerQueue<T:Int> {
+	var curTimeS = 0.;
 	var watches : Array<T> = [];
 	var ca : ControllerAccess<T>;
 	var events : Map<T, QueueEventStacks<T>> = new Map();
 	var defaultMaxKeepDurationS : Float;
 
-	public function new(ca:ControllerAccess<T>, defaultMaxKeepDurationS=0.3) {
+	public function new(ca:ControllerAccess<T>, defaultMaxKeepDurationS=0.6) {
 		this.ca = ca;
 		this.defaultMaxKeepDurationS = defaultMaxKeepDurationS;
 	}
 
-	public function watch(a:T, ?maxKeepDurationS=-1.) {
-		stopWatch(a);
+	public function watch(?action:T, ?actions:Array<T>, ?maxKeepDurationS=-1.) {
+		if( action==null && actions==null || action!=null && actions!=null )
+			throw "Need 1 argument";
 
-		watches.push(a);
-		events.set(a, new QueueEventStacks(a, maxKeepDurationS<=0 ? defaultMaxKeepDurationS : maxKeepDurationS));
+		if( actions==null )
+			actions = [action];
+
+		for(a in actions) {
+			stopWatch(a);
+			watches.push(a);
+			events.set(a, new QueueEventStacks(a, maxKeepDurationS<=0 ? defaultMaxKeepDurationS : maxKeepDurationS));
+		}
 	}
+
+
+	/**
+		This update MUST be called as early as possible, in each frame.
+
+		`curTimeS` is the context timestamp, in seconds.
+	**/
+	public function earlyFrameUpdate(curTimeS:Float) {
+		this.curTimeS = curTimeS;
+		for(a in watches)
+			if( ca.isDown(a) )
+				events.get(a).onDown(curTimeS);
+			else
+				events.get(a).onUp(curTimeS);
+	}
+
 
 	public function stopWatch(a:T) {
 		watches.remove(a);
@@ -31,18 +55,16 @@ class ControllerQueue<T:Int> {
 	/**
 		Check if given `action` was pressed recently, and removes it from history if TRUE.
 
-		`curTimeS` is the current context time stamp in seconds.
-
 		By default, the press events chronological order is respected. So, if another action was pressed before the one requested, this method would return FALSE accordingly.
 
 		If `ignoreChronologicalOrder` is FALSE, then the chronological order is ignored.
 
 		**Example**: if the user quickly pressed the A,B,C,D actions sequence:
-		- `checkAndPopPress(B, curTimeS)` would return FALSE (A is queued before B)
-		- `checkAndPopPress(B, curTimeS, true)` would return TRUE, and B would be consumed from the queue, A would also be discarded because it happened before B, and C and D would stay in the queue.
+		- `checkAndPopPress(B)` would return FALSE (A is queued before B)
+		- `checkAndPopPress(B, true)` would return TRUE, and B would be consumed from the queue, A would also be discarded because it happened before B, and C and D would stay in the queue.
 
 	**/
-	public function checkAndPopPress(action:T, curTimeS:Float, ignoreChronologicalOrder=false) {
+	public function checkAndPopPress(action:T, ignoreChronologicalOrder=false) {
 		var nextT = events.get(action).getNextPress();
 		if( !ignoreChronologicalOrder ) {
 			for(ev in events)
@@ -55,15 +77,6 @@ class ControllerQueue<T:Int> {
 				ev.discardPressesEarlier(nextT);
 
 		return result;
-	}
-
-	public function update(stime:Float) {
-		for(a in watches) {
-			if( ca.isDown(a) )
-				events.get(a).onDown(stime);
-			else
-				events.get(a).onUp(stime);
-		}
 	}
 
 	public function clearAll() {
@@ -84,8 +97,6 @@ class ControllerQueue<T:Int> {
 		var font = hxd.res.DefaultFont.get();
 
 		p.onUpdateCb = ()->{
-			var curTimeS = p.stime;
-
 			wrapper.removeChildren();
 			var i = 0;
 			var lineHei = 32;
@@ -163,19 +174,19 @@ private class QueueEventStacks<T> {
 		this.maxKeepDurationS = maxKeepDurationS;
 	}
 
-	public function onDown(stime:Float) {
+	public function onDown(curTimeS:Float) {
 		if( !wasDown ) {
 			wasDown = true;
-			presses.push(stime);
-			gc(presses, stime);
+			presses.push(curTimeS);
+			gc(presses, curTimeS);
 		}
 	}
 
-	public function onUp(stime:Float) {
+	public function onUp(curTimeS:Float) {
 		if( wasDown ) {
 			wasDown = false;
-			releases.push(stime);
-			gc(releases, stime);
+			releases.push(curTimeS);
+			gc(releases, curTimeS);
 		}
 	}
 
@@ -206,8 +217,8 @@ private class QueueEventStacks<T> {
 			presses.shift();
 	}
 
-	public inline function gc(stack:Array<Float>, stime:Float) {
-		while( stack.length>0 && stime-stack[0]>maxKeepDurationS )
+	public inline function gc(stack:Array<Float>, curTimeS:Float) {
+		while( stack.length>0 && curTimeS-stack[0]>maxKeepDurationS )
 			stack.shift();
 	}
 
