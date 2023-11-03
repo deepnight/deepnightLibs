@@ -4,9 +4,9 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.78",
+	"version": "1.0.79",
 	"classPath": "src/",
-	"releasenote": "Way too many fixes and updates (check git log)",
+	"releasenote": "Added Geom class",
 	"contributors": ["sbenard"],
 	"dependencies": {}
 }
