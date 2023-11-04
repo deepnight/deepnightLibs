@@ -80,6 +80,16 @@ class ControllerQueue<T:Int> {
 		return pressed;
 	}
 
+	/**
+		Same as `consumePressOrDown` but also returns TRUE if the action button is currently down.
+	**/
+	public inline function consumePressOrDown(action:T, ignoreChronologicalOrder=false) {
+		if( consumePress(action,ignoreChronologicalOrder) )
+			return true;
+		else
+			return ca.isDown(action);
+	}
+
 
 	/**
 		Check if the `action` press event is in the queue. This method doesn't "consume" the event from the queue.
@@ -94,6 +104,13 @@ class ControllerQueue<T:Int> {
 					return false;
 		}
 		return events.get(action).peekPress(curTimeS);
+	}
+
+	/**
+		Same as `peekPress` but also returns TRUE if the action button is currently down.
+	**/
+	public inline function peekPressOrDown(action:T, ignoreChronologicalOrder=false) {
+		return ca.isDown(action) || peekPress(action, ignoreChronologicalOrder);
 	}
 
 
