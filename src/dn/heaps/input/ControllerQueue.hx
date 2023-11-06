@@ -54,42 +54,28 @@ class ControllerQueue<T:Int> {
 
 
 	/**
-		Check if given `action` was pressed recently, and removes it from history if TRUE.
+		Check if given `action` was Pressed recently, and if TRUE, consumes (removes) it from history.
 
-		By default, the press events chronological order is respected. So, if another action was pressed before the one requested, this method would return FALSE accordingly.
+		By default, the Press events chronological order is respected. So, if another action was Pressed before the one requested, this method would return FALSE accordingly.
 
 		If `ignoreChronologicalOrder` is FALSE, then the chronological order is ignored.
 
 		**Example**: if the user quickly pressed the A,B,C,D actions sequence:
-		- `checkAndPopPress(B)` would return FALSE (A is queued before B)
-		- `checkAndPopPress(B, true)` would return TRUE, and B would be consumed from the queue, A would also be discarded because it happened before B, and C and D would stay in the queue.
-
+		- `consumePress(B)` would return FALSE (A is queued before B)
+		- `consumePress(B, true)` would return TRUE, and B would be consumed from the queue, A would also be discarded because it happened before B, and C and D would stay in the queue.
 	**/
 	public function consumePress(action:T, ignoreChronologicalOrder=false) {
+		if( !peekPress(action, ignoreChronologicalOrder) )
+			return false;
+
 		var nextT = events.get(action).getNextPress();
-		if( !ignoreChronologicalOrder ) {
-			for(ev in events) {
-				ev.gc(ev.presses, curTimeS);
-				if( ev.action!=action && ev.getNextPress()<nextT )
-					return false;
-			}
-		}
-		var pressed = events.get(action).popPress(curTimeS);
-		if( ignoreChronologicalOrder && pressed )
+		events.get(action).popPress(curTimeS);
+
+		if( ignoreChronologicalOrder )
 			for(ev in events)
 				ev.clearStackUntil(ev.presses, nextT);
 
-		return pressed;
-	}
-
-	/**
-		Same as `consumePressOrDown` but also returns TRUE if the action button is currently down.
-	**/
-	public inline function consumePressOrDown(action:T, ignoreChronologicalOrder=false) {
-		if( consumePress(action,ignoreChronologicalOrder) )
-			return true;
-		else
-			return ca.isDown(action);
+		return true;
 	}
 
 
@@ -110,6 +96,18 @@ class ControllerQueue<T:Int> {
 		return events.get(action).peekPress(curTimeS);
 	}
 
+
+	/**
+		Same as `consumePressOrDown` but also returns TRUE if the action button is currently down.
+	**/
+	public inline function consumePressOrDown(action:T, ignoreChronologicalOrder=false) {
+		if( consumePress(action,ignoreChronologicalOrder) )
+			return true;
+		else
+			return ca.isDown(action);
+	}
+
+
 	/**
 		Same as `peekPress` but also returns TRUE if the action button is currently down.
 	**/
@@ -129,10 +127,22 @@ class ControllerQueue<T:Int> {
 	}
 
 
-	/**
-		Manually insert fake press/release event
-	**/
-	public function emulatePressRelease(a:T) {
+	/** Manually insert fake Press event (no corresponding Release) **/
+	public function emulatePressOnly(a:T) {
+		if( events.exists(a) )
+			events.get(a).presses.push(curTimeS);
+	}
+
+
+	/** Manually insert fake Release event (no corresponding Press) **/
+	public function emulateReleaseOnly(a:T) {
+		if( events.exists(a) )
+			events.get(a).releases.push(curTimeS);
+	}
+
+
+	/** Manually insert a fake Press event followed by a fake Release event **/
+	public function emulatePressAndRelease(a:T) {
 		if( events.exists(a) ) {
 			events.get(a).presses.push(curTimeS);
 			events.get(a).releases.push(curTimeS+0.06);
