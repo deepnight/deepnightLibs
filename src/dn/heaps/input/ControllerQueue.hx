@@ -97,6 +97,44 @@ class ControllerQueue<T:Int> {
 	}
 
 
+
+	/**
+		Check if given `action` was Released recently, and if TRUE, consumes (removes) it from history.
+
+		See `consumePress()` for more info.
+	**/
+	public function consumeRelease(action:T, ignoreChronologicalOrder=false) {
+		if( !peekRelease(action, ignoreChronologicalOrder) )
+			return false;
+
+		var nextT = events.get(action).getNextRelease();
+		events.get(action).popRelease(curTimeS);
+
+		if( ignoreChronologicalOrder )
+			for(ev in events)
+				ev.clearStackUntil(ev.releases, nextT);
+
+		return true;
+	}
+
+	/**
+		Check if the `action` Release event is in the queue. This method doesn't "consume" the event from the queue.
+
+		See `consumeRelease` for more info.
+	**/
+	public function peekRelease(action:T, ignoreChronologicalOrder=false) {
+		var nextT = events.get(action).getNextRelease();
+		if( !ignoreChronologicalOrder ) {
+			for(ev in events) {
+				ev.gc(ev.releases, curTimeS);
+				if( ev.action!=action && ev.getNextRelease()<nextT )
+					return false;
+			}
+		}
+		return events.get(action).peekRelease(curTimeS);
+	}
+
+
 	/**
 		Same as `consumePressOrDown` but also returns TRUE if the action button is currently down.
 	**/
@@ -277,9 +315,8 @@ private class QueueEventStacks<T> {
 	}
 
 
-	public inline function getNextPress() {
-		return presses.length>0 ? presses[0] : 999999;
-	}
+	public inline function getNextPress() return presses.length>0 ? presses[0] : 999999;
+	public inline function getNextRelease() return releases.length>0 ? releases[0] : 999999;
 
 	public inline function popPress(curTimeS:Float) return popFromStack(presses,curTimeS);
 	public inline function popRelease(curTimeS:Float) return popFromStack(releases,curTimeS);
