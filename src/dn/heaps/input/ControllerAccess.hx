@@ -282,7 +282,7 @@ class ControllerAccess<T:Int> {
 		if( !isDown(action) )
 			return false;
 		else {
-			if( holdTimeS.get(action)>0 && getHoldTimeS(action) >= seconds ) {
+			if( holdTimeS.get(action)>0 && getRawHoldTimeS(action) >= seconds ) {
 				holdTimeS.set(action, -1);
 				return true;
 			}
@@ -291,7 +291,8 @@ class ControllerAccess<T:Int> {
 		}
 	}
 
-	inline function getHoldTimeS(action:T) : Float {
+	/** Return hold time for given action, without calling internal "held update" **/
+	inline function getRawHoldTimeS(action:T) : Float {
 		return holdTimeS.exists(action) ? haxe.Timer.stamp() - holdTimeS.get(action) : 0;
 	}
 
@@ -304,7 +305,15 @@ class ControllerAccess<T:Int> {
 			? 0
 			: holdTimeS.get(action)<0
 				? 1
-				: M.fclamp( getHoldTimeS(action) / seconds, 0, 1 );
+				: M.fclamp( getRawHoldTimeS(action) / seconds, 0, 1 );
+	}
+
+	/**
+		Return current "held time" in seconds of `action`.
+	**/
+	public inline function getHoldTimeS(action:T) : Float {
+		updateHeldState(action);
+		return getRawHoldTimeS(action);
 	}
 
 
