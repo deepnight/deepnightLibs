@@ -68,9 +68,11 @@ class ControllerQueue<T:Int> {
 	public function consumePress(action:T, ignoreChronologicalOrder=false) {
 		var nextT = events.get(action).getNextPress();
 		if( !ignoreChronologicalOrder ) {
-			for(ev in events)
+			for(ev in events) {
+				ev.gc(ev.presses, curTimeS);
 				if( ev.action!=action && ev.getNextPress()<nextT )
 					return false;
+			}
 		}
 		var pressed = events.get(action).popPress(curTimeS);
 		if( ignoreChronologicalOrder && pressed )
@@ -99,9 +101,11 @@ class ControllerQueue<T:Int> {
 	public function peekPress(action:T, ignoreChronologicalOrder=false) {
 		var nextT = events.get(action).getNextPress();
 		if( !ignoreChronologicalOrder ) {
-			for(ev in events)
+			for(ev in events) {
+				ev.gc(ev.presses, curTimeS);
 				if( ev.action!=action && ev.getNextPress()<nextT )
 					return false;
+			}
 		}
 		return events.get(action).peekPress(curTimeS);
 	}
