@@ -130,11 +130,13 @@ class ControllerQueue<T:Int> {
 
 
 	/**
-		Manually insert fake press event
+		Manually insert fake press/release event
 	**/
-	public function emulatePress(a:T) {
-		if( events.exists(a) )
+	public function emulatePressRelease(a:T) {
+		if( events.exists(a) ) {
 			events.get(a).presses.push(curTimeS);
+			events.get(a).releases.push(curTimeS+0.06);
+		}
 	}
 
 
@@ -155,7 +157,7 @@ class ControllerQueue<T:Int> {
 				var rowWrapper = new h2d.Object(wrapper);
 				rowWrapper.y = i*lineHei;
 
-				var rowColor : Col = ev.peekPress(curTimeS) ? Green : Red;
+				var rowColor : Col = ev.peekPress(curTimeS) || ev.peekRelease(curTimeS) ? Green : Red;
 
 				// Full line bg
 				var bg = new h2d.Graphics(rowWrapper);
@@ -220,6 +222,7 @@ class ControllerQueue<T:Int> {
 					eventIdx++;
 				}
 				_renderStack(ev.presses, 0, Green);
+				_renderStack(ev.releases, 1, Orange);
 
 				i++;
 			}
@@ -237,11 +240,13 @@ private class QueueEventStacks<T> {
 	public var action(default,null) : T;
 	var wasDown = false;
 	public var presses(default,null) : Array<Float>;
+	public var releases(default,null) : Array<Float>;
 	public var maxKeepDurationS(default,null) : Float;
 
 	public function new(a:T, maxKeepDurationS:Float) {
 		action = a;
 		presses = [];
+		releases = [];
 		this.maxKeepDurationS = maxKeepDurationS;
 	}
 
@@ -254,8 +259,11 @@ private class QueueEventStacks<T> {
 	}
 
 	public function onUp(curTimeS:Float) {
-		if( wasDown )
+		if( wasDown ) {
 			wasDown = false;
+			releases.push(curTimeS);
+			gc(releases, curTimeS);
+		}
 	}
 
 
@@ -264,7 +272,10 @@ private class QueueEventStacks<T> {
 	}
 
 	public inline function popPress(curTimeS:Float) return popFromStack(presses,curTimeS);
+	public inline function popRelease(curTimeS:Float) return popFromStack(releases,curTimeS);
+
 	public inline function peekPress(curTimeS:Float) return peekFromStack(presses,curTimeS);
+	public inline function peekRelease(curTimeS:Float) return peekFromStack(releases,curTimeS);
 
 	function popFromStack(stack:Array<Float>, curTimeS:Float) : Bool {
 		gc(stack,curTimeS);
@@ -297,5 +308,6 @@ private class QueueEventStacks<T> {
 	public function clear() {
 		wasDown = false;
 		presses = [];
+		releases = [];
 	}
 }
