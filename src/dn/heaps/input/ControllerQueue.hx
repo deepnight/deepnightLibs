@@ -195,6 +195,7 @@ class ControllerQueue<T:Int> {
 
 		var font = hxd.res.DefaultFont.get();
 
+		@:privateAccess(QueueEventStacks)
 		p.onUpdateCb = ()->{
 			wrapper.removeChildren();
 			var i = 0;
@@ -205,7 +206,7 @@ class ControllerQueue<T:Int> {
 				var rowWrapper = new h2d.Object(wrapper);
 				rowWrapper.y = i*lineHei;
 
-				var rowColor : Col = ev.peekPress(curTimeS) || ev.peekRelease(curTimeS) ? Green : Red;
+				var rowColor : Col = ev.wasDown ? Green : ev.lockedUntilUp ? Red : WarmMidGray;
 
 				// Full line bg
 				var bg = new h2d.Graphics(rowWrapper);
@@ -285,8 +286,9 @@ class ControllerQueue<T:Int> {
 
 
 private class QueueEventStacks<T> {
-	public var action(default,null) : T;
 	var wasDown = false;
+	var lockedUntilUp = false;
+	public var action(default,null) : T;
 	public var presses(default,null) : Array<Float>;
 	public var releases(default,null) : Array<Float>;
 	public var maxKeepDurationS(default,null) : Float;
@@ -299,7 +301,7 @@ private class QueueEventStacks<T> {
 	}
 
 	public function onDown(curTimeS:Float) {
-		if( !wasDown ) {
+		if( !lockedUntilUp && !wasDown ) {
 			wasDown = true;
 			presses.push(curTimeS);
 			gc(presses, curTimeS);
@@ -307,6 +309,9 @@ private class QueueEventStacks<T> {
 	}
 
 	public function onUp(curTimeS:Float) {
+		if( lockedUntilUp )
+			lockedUntilUp = false;
+
 		if( wasDown ) {
 			wasDown = false;
 			releases.push(curTimeS);
@@ -353,6 +358,7 @@ private class QueueEventStacks<T> {
 	}
 
 	public function clear() {
+		lockedUntilUp = true;
 		wasDown = false;
 		presses = [];
 		releases = [];
