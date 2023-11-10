@@ -981,6 +981,10 @@ class M {
 		return v!=null && !Math.isNaN(v) && Math.isFinite(v);
 	}
 
+	/** Return a value, or use a default value if it is null **/
+	public static inline function nullDefault<T>(v:Null<T>, defaultIfNull:T) : T {
+		return v!=null ? v : defaultIfNull;
+	}
 
 	/**
 		Parse a String to an Int. If the parsing result is not a valid number, returns the provided default value.
@@ -1169,5 +1173,10 @@ class M {
 		CiAssert.equals( M.pretty(M.decimals(0)), M.pretty(0) );
 		CiAssert.equals( M.pretty(M.decimals(3)), M.pretty(0) );
 		CiAssert.equals( M.pretty(M.decimals(10.62)), M.pretty(0.62) );
+
+		CiAssert.equals( M.pretty(M.nullDefault(0, 5)), 0 );
+		CiAssert.equals( M.pretty(M.nullDefault(0.1, 5)), 0.1 );
+		CiAssert.equals( M.pretty(M.nullDefault(null, 5)), 5 );
+		CiAssert.equals( M.pretty(M.nullDefault(null, 5.1)), 5.1 );
 	}
 }
