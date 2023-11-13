@@ -122,6 +122,8 @@ class ParticlePool {
 		all = null;
 	}
 
+	public inline function getAllocatedRatio() return allocated/size;
+
 	public inline function update(tmod:Float, ?updateCb:HParticle->Void) {
 		var i = 0;
 		var p : HParticle;
