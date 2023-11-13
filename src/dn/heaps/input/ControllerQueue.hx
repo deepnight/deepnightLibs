@@ -6,6 +6,7 @@ import dn.struct.FixedArray;
 import dn.Col;
 
 class ControllerQueue<T:Int> {
+	@:allow(dn.heaps.input.QueueEventStacks)
 	var curTimeS = 0.;
 	var watches : Array<T> = [];
 	var ca : ControllerAccess<T>;
@@ -41,10 +42,13 @@ class ControllerQueue<T:Int> {
 		this.curTimeS = curTimeS;
 		for(a in watches)
 			if( ca.isDown(a) )
-				events.get(a).onDown(curTimeS);
+				events.get(a).onDown(this);
 			else
-				events.get(a).onUp(curTimeS);
+				events.get(a).onUp(this);
 	}
+
+	public dynamic function onQueuePress(action:T) {}
+	public dynamic function onQueueRelease(action:T) {}
 
 
 	public function stopWatch(a:T) {
@@ -300,22 +304,24 @@ private class QueueEventStacks<T> {
 		this.maxKeepDurationS = maxKeepDurationS;
 	}
 
-	public function onDown(curTimeS:Float) {
+	public function onDown(queue:ControllerQueue<Dynamic>) {
 		if( !lockedUntilUp && !wasDown ) {
 			wasDown = true;
-			presses.push(curTimeS);
-			gc(presses, curTimeS);
+			presses.push(queue.curTimeS);
+			gc(presses, queue.curTimeS);
+			queue.onQueuePress(action);
 		}
 	}
 
-	public function onUp(curTimeS:Float) {
+	public function onUp(queue:ControllerQueue<Dynamic>) {
 		if( lockedUntilUp )
 			lockedUntilUp = false;
 
 		if( wasDown ) {
 			wasDown = false;
-			releases.push(curTimeS);
-			gc(releases, curTimeS);
+			releases.push(queue.curTimeS);
+			gc(releases, queue.curTimeS);
+			queue.onQueueRelease(action);
 		}
 	}
 
