@@ -88,6 +88,26 @@ class StatsBox extends dn.Process {
 		}});
 	}
 
+	/** Add a dynamic text field for a number value **/
+	public function addCounter( label:String, getter:Void->Float, color:Col=White, ?colorUpdate:Float->Col ) {
+		var f = new h2d.Flow();
+		flow.addChildAt(f,0);
+		f.layout = Horizontal;
+
+		var labelTf = new h2d.Text(getFont(), f);
+		labelTf.text = label;
+		labelTf.textColor = color;
+
+		var valueTf = new h2d.Text(getFont(), f);
+		valueTf.textColor = color;
+		components.push({ f:f, update:(_)->{
+			var v = getter();
+			valueTf.text = Std.string( M.pretty(v,1) );
+			if( colorUpdate!=null )
+				valueTf.textColor = colorUpdate(v);
+		}});
+	}
+
 	/**
 		Add a chart tracking an arbitrary value
 		@param refValue If not zero, this will display a reference horizontal line at given value
