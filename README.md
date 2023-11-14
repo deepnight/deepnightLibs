@@ -36,7 +36,7 @@ All the libs are in the `dn.*` package.
 ```haxe
 class MyProject {
 	public function new() {
-		trace( dn.Color.intToHex(0) ); // "#000000"
+		trace( dn.M.fmin(0.3,0.8) ); // 0.3
 	}
 }
 ```
@@ -47,12 +47,12 @@ Use global imports! To import libs in every HX files, just add a ``import.hx`` (
 
 ```
 dn.*;
-dn.Color as C;
+dn.Col as C;
 ```
 
  - The first line imports all classes in ``dn`` package,
 
- - The second one imports ``Color`` as an alias "C",
+ - The second one imports ``dn.Col`` as an alias "C",
 
  - Feel free to add your own convenient imports there.
 
@@ -69,16 +69,19 @@ M.randRange(0, 2); // either 0, 1 or 2
 M.pow(val, 2); // turns into val*val at compilation time
 ```
 
-## dn.Color
+## dn.Col
 
-The color management lib.
+The color management lib, with performance in mind.
 
-It mostly works using ``UInt`` colors (``0xRRGGBB``, like ``0xffcc00``), but contains many useful methods to convert color to various formats (HSL, ARGB, String).
+A color is an abstract class that revolves around a single Integer value (the color in 0xaarrggbb format). Most methods are just operations on this internal Int value.
 
 ```haxe
-dn.Color.intToHex(0); // #000000
-dn.Color.toWhite(0xff0000, 0.5); // Interpolates color to white at 50%
-dn.Color.getPerceivedLuminosityInt(0x7799ff); // return perceived luminosity (0 to 1.0)
+import dn.Col;
+var c : Col = 0xff0000;  // red
+var c : Col = Red;  // also red, but using and enum constant
+var c : Col = "#ff0000"; // still red, but the conversion from a constant String to Int is hard-inlined using macros. Costs 0 at runtime.
+var darker = c.toBlack(0.5); // return a 50% darker red
+var c2 = c.to(Yellow, 0.3); // return a mix from current color with 30% of the standard yellow
 ```
 
 ## dn.DecisionHelper
