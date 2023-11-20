@@ -394,6 +394,19 @@ class HParticle extends BatchElement {
 		this.y = y;
 	}
 
+	public inline function scaleTo(w:Float, h:Float) {
+		scaleToWid(w);
+		scaleToHei(h);
+	}
+
+	public inline function scaleToWid(w:Float) {
+		scaleX = w/t.width;
+	}
+
+	public inline function scaleToHei(h:Float) {
+		scaleY = h/t.height;
+	}
+
 
 	@:access(h2d.Tile)
 	public inline function setTile(tile:Tile) {
