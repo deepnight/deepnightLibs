@@ -142,6 +142,27 @@ class Lib {
 		return out;
 	}
 
+
+	public static function intToRoman(n:Int) : String {
+		if( n==0 )
+			return "N";
+
+		if( n<0 || n>4999 )
+			return "OutOfBounds";
+
+
+		var values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+		var numerals = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
+
+		var out = "";
+		for(i in 0...values.length)
+			while( n>=values[i] ) {
+				n -= values[i];
+				out += numerals[i];
+			}
+		return out;
+	}
+
 	/** Add `padChar` at the beginning of given String to ensure its length is at least `minLen` **/
 	public static inline function padLeft(str:String, minLen:Int, padChar=" ") {
 		while( str.length<minLen )
@@ -795,6 +816,18 @@ class Lib {
 		CiAssert.equals( wtrim(' \t '), '' );
 		CiAssert.equals( wtrim(''), '' );
 		CiAssert.equals( wtrim(null), '' );
+
+		CiAssert.equals( intToRoman(0), "N" );
+		CiAssert.equals( intToRoman(1), "I" );
+		CiAssert.equals( intToRoman(2), "II" );
+		CiAssert.equals( intToRoman(3), "III" );
+		CiAssert.equals( intToRoman(4), "IV" );
+		CiAssert.equals( intToRoman(42), "XLII" );
+		CiAssert.equals( intToRoman(100), "C" );
+		CiAssert.equals( intToRoman(200), "CC" );
+		CiAssert.equals( intToRoman(1000), "M" );
+		CiAssert.equals( intToRoman(2000), "MM" );
+		CiAssert.equals( intToRoman(4999), "MMMMCMXCIX" );
 	}
 
 	#end // End of "if macro"
