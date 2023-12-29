@@ -45,6 +45,8 @@ class ElectronTools {
 		IpcMain.handle("setFullScreen", (ev,flag)->setFullScreen(flag));
 		IpcMain.handle("setWindowTitle", (ev,str)->setWindowTitle(str));
 		IpcMain.handle("minimize", minimize);
+		IpcMain.handle("showWindow", showWindow);
+		IpcMain.handle("hideWindow", hideWindow);
 		IpcMain.handle("fatalError", (ev,str)->fatalError(str));
 		IpcMain.handle("showError", (ev,title,str)->showError(title,str));
 
@@ -104,6 +106,14 @@ class ElectronTools {
 	/** Minimize main window **/
 	public static function minimize()
 		isRenderer() ? IpcRenderer.invoke("minimize") : mainWindow.minimize();
+
+	/** Hide main window **/
+	public static function showWindow()
+		isRenderer() ? IpcRenderer.invoke("showWindow") : mainWindow.show();
+
+	/** Hide main window **/
+	public static function hideWindow()
+		isRenderer() ? IpcRenderer.invoke("hideWindow") : mainWindow.hide();
 
 	/** Return fullscreen mode **/
 	public static function isFullScreen() : Bool
