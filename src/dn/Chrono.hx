@@ -12,6 +12,8 @@ package dn;
 class Chrono {
 	/** Precision **/
 	public static var DECIMALS = 4;
+	public static var COLORS_LOW = { timeThreshold:0.05, col:new Col("#009c44") }
+	public static var COLORS_HIGH = { timeThreshold:0.50, col:new Col("#a10000") }
 
 	static var all : Array<ChronoInstance> = [];
 	static var results : Array<ChronoInstance> = [];
@@ -37,11 +39,11 @@ class Chrono {
 	**/
 	public static inline function printResults(init=true) {
 		stopAll();
-		var res = getResultsStr();
-		if( res.length>1 )
+		// var res = getResultsStr();
+		if( results.length>1 )
 			printer("--Chrono--");
-		for(r in res)
-			printer(r);
+		for(r in results)
+			printer(r.toString(), r.getColor());
 
 		if( init )
 			Chrono.init();
@@ -51,11 +53,14 @@ class Chrono {
 	/**
 		Print something to output (default is `trace()`). This method can be replaced by a custom method.
 	**/
-	public static dynamic function printer(str:String) {
+	public static dynamic function printer(str:String, ?col:dn.Col) {
 		#if sys
 			Sys.println(str);
 		#elseif js
-			js.html.Console.log(str);
+			if( col!=null )
+				js.html.Console.log("%c"+str, "color:"+col.toHex());
+			else
+				js.html.Console.log(str);
 		#else
 			trace(str);
 		#end
@@ -142,6 +147,13 @@ private class ChronoInstance {
 
 	public inline function isStopped() {
 		return stopStamp>=0;
+	}
+
+	public function getColor() : Null<dn.Col> {
+		if( !isStopped() )
+			return null;
+		else
+			return Chrono.COLORS_LOW.col.to( Chrono.COLORS_HIGH.col, M.subRatio(elapsedS, Chrono.COLORS_LOW.timeThreshold, Chrono.COLORS_HIGH.timeThreshold) );
 	}
 
 	public inline function stop() {
