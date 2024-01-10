@@ -8,13 +8,13 @@ package dn;
 		- or just call `start("someId",true)` (which stops all previous chrono before starting a new one) at the beginning of each block you need to measure
 	 - `printResults()` or `getResultsStr()` to end session
 **/
+
 class Chrono {
 	/** Precision **/
 	public static var DECIMALS = 4;
-	static var DEFAULT_ID = "";
 
-	static var all : Array<{ id:String, t:Float }> = [];
-	static var results : Array<{ id:String, t:Float }> = [];
+	static var all : Array<ChronoInstance> = [];
+	static var results : Array<ChronoInstance> = [];
 
 
 	/** Init chrono session **/
@@ -27,9 +27,9 @@ class Chrono {
 	/**
 		Stop every chrono then return results as an Array of Strings (one line per result)
 	**/
-	public static inline function getResultsStr() {
+	public static inline function getResultsStr() : Array<String> {
 		stopAll();
-		return results.map( (r)->( r.id=="" || r.id==null ? "" : r.id+" => " ) + M.pretty(r.t,DECIMALS)+"s" );
+		return results.map( (r)->r.toString() );
 	}
 
 	/**
@@ -65,14 +65,14 @@ class Chrono {
 		Start a chrono
 	**/
 	public static inline function start(?id:String, stopAllOthers=false) {
-		id = id!=null ? id : DEFAULT_ID;
-
 		if( stopAllOthers )
 			stopAll();
+		else if( id!=null )
+			stopId(id);
 		else
-			stop(id);
+			stopLast();
 
-		all.push({ id:id, t:haxe.Timer.stamp() });
+		all.push( new ChronoInstance(id) );
 	}
 
 	/**
@@ -96,37 +96,63 @@ class Chrono {
 	}
 
 
-	/**
-		Stop every running chrono
-	**/
-	public static inline function stopAll() {
-		while( all.length>0 )
-			stop();
+	public static function stopLast() : Float {
+		var last = all.pop();
+		last.stop();
+		results.push(last);
+		return last.elapsedS;
 	}
 
-	/**
-		Stop a chrono and return elapsed time (in seconds). If `id` is not provided, stops only the last one.
-	 **/
-	public static function stop(?id:String) : Float {
-		if( all.length==0 )
-			return 0;
+	public static function stopId(id:String) : Float {
+		for(i in 0...all.length)
+			if( all[i].id==id ) {
+				var c = all[i];
+				c.stop();
+				results.push(c);
+				all.splice(i,1);
+				return c.elapsedS;
+			}
+		return 0;
+	}
 
-		if( id==null ) {
-			var last = all.pop();
-			var t = haxe.Timer.stamp() - last.t;
-			results.push({ id:last.id, t:t });
-			return t;
+	public static function stopAll() {
+		for(c in all) {
+			c.stop();
+			results.push(c);
 		}
-		else {
-			for(i in 0...all.length)
-				if( all[i].id==id ) {
-					var t = haxe.Timer.stamp() - all[i].t;
-					results.push({ id:all[i].id, t:t });
-					all.splice(i,1);
-					return t;
-				}
+		all = [];
+	}
+}
 
-			throw 'Unknown chrono $id';
+
+private class ChronoInstance {
+	public var id(default,null): Null<String>;
+	var startStamp: Float;
+	var stopStamp: Float = -1;
+
+	public var elapsedS(get,never) : Float;
+		inline function get_elapsedS() {
+			return stopStamp<0 ? haxe.Timer.stamp()-startStamp : stopStamp-startStamp;
 		}
+
+	public inline function new(?id) {
+		this.id = id;
+		startStamp = haxe.Timer.stamp();
+	}
+
+	public inline function isStopped() {
+		return stopStamp>=0;
+	}
+
+	public inline function stop() {
+		if( !isStopped() )
+			stopStamp = haxe.Timer.stamp();
+	}
+
+	@:keep public function toString() {
+		return
+			( id=="" || id==null ? "" : id+" => " )
+			+ M.pretty(elapsedS, Chrono.DECIMALS)+"s"
+			+ ( !isStopped() ? " (running)" : "" );
 	}
 }
