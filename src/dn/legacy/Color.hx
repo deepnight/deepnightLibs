@@ -774,7 +774,7 @@ class Color {
 			0,0,m,0,
 			0,0,0,1,
 		]);
-		e.colorAdd = new h3d.Vector(o,o,o,0);
+		e.colorAdd = new h3d.Vector(o,o,o);
 	}
 
 	public static inline function uncolorizeBatchElement(e:h2d.SpriteBatch.BatchElement) {
