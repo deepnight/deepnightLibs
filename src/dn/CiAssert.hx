@@ -11,6 +11,7 @@ class CiAssert {
 	public static var VERBOSE = false;
 
 	public static macro function isTrue(code:Expr) {
+		if (!Context.defined("deepnightLibsTests")) return macro {};
 		return macro {
 			if( ${buildIsTrueExpr(code)} )
 				dn.CiAssert.printOk( $v{getCodeStr(code)} );
@@ -20,6 +21,7 @@ class CiAssert {
 	}
 
 	public static macro function equals(codeA:Expr, codeB:Expr) {
+		if (!Context.defined("deepnightLibsTests")) return macro {};
 		var eCheck : Expr = {
 			expr: EBinop(OpEq, codeA, codeB),
 			pos: Context.currentPos(),
@@ -40,6 +42,7 @@ class CiAssert {
 	}
 
 	public static macro function isFalse(code:Expr) {
+		if (!Context.defined("deepnightLibsTests")) return macro {};
 		return macro {
 			if( !${buildIsTrueExpr(code)} )
 				dn.CiAssert.printOk( $v{getCodeStr(code)} );
@@ -49,6 +52,7 @@ class CiAssert {
 	}
 
 	public static macro function noException(desc:String, code:Expr) {
+		if (!Context.defined("deepnightLibsTests")) return macro {};
 		return macro {
 			try {
 				$code;
@@ -61,6 +65,7 @@ class CiAssert {
 	}
 
 	public static macro function isNotNull(code:Expr) {
+		if (!Context.defined("deepnightLibsTests")) return macro {};
 		return macro {
 			if( ($code) != null )
 				dn.CiAssert.printOk( $v{getCodeStr(code)} );
