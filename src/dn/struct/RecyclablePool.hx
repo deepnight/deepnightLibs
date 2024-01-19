@@ -152,8 +152,8 @@ class RecyclablePool<T:Recyclable> {
 
 
 	/** Unit tests **/
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// Init
 		var i = 0;
 		var p : RecyclablePool<UnitTestObject> = new RecyclablePool(3, ()->new UnitTestObject(i++));
@@ -219,6 +219,7 @@ class RecyclablePool<T:Recyclable> {
 		CiAssert.equals( p.allocated, 2 );
 
 	}
+	#end
 }
 
 

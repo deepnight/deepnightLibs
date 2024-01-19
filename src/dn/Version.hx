@@ -244,8 +244,8 @@ class Version {
 
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		CiAssert.isNotNull( new Version() );
 		CiAssert.isNotNull( new Version("1") );
 		CiAssert.isNotNull( new Version("1.2") );
@@ -366,4 +366,5 @@ class Version {
 		CiAssert.isTrue( Version.equal("1.0.5-a", "1.0.5-a") );
 		CiAssert.isTrue( Version.equal("1.0.5-alpha", "1.0.5-beta", true) );
 	}
+	#end
 }

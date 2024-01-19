@@ -134,7 +134,8 @@ class Rand {
 
 
 
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var random = new Rand(0);
 		for(i in 0...20) {
 			var seed = Std.random(999999);
@@ -144,7 +145,7 @@ class Rand {
 			CiAssert.printIfVerbose("Seed="+seed+":");
 			CiAssert.equals( random.rand(), a );
 		}
-
 	}
+	#end
 
 }

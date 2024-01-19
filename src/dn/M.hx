@@ -1051,8 +1051,8 @@ class M {
 		return fclamp( (r-min) / (max-min), 0, 1 );
 	}
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// TODO more tests
 		CiAssert.isTrue( M.round(1.2)==1 );
 		CiAssert.isTrue( M.round(1.5)==2 );
@@ -1179,4 +1179,5 @@ class M {
 		CiAssert.equals( M.pretty(M.nullDefault(null, 5)), 5 );
 		CiAssert.equals( M.pretty(M.nullDefault(null, 5.1)), 5.1 );
 	}
+	#end
 }

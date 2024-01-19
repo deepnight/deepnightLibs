@@ -119,8 +119,9 @@ class Stat<T:Float> {
 }
 
 
+#if deepnightLibsTests
 class StatTest {
-	public static function __test() {
+	public static function test() {
 		// Int stat
 		var s : Stat<Int> = new Stat();
 		s.initZeroOnMax(3);
@@ -189,3 +190,4 @@ class StatTest {
 		CiAssert.equals( { s.max=-s.min; s.toString(); }, "[-4]-4/-4" );
 	}
 }
+#end

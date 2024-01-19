@@ -166,8 +166,8 @@ class AStar<T> {
 
 
 	// UNIT TESTS
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// Build a basic map for pathfinder
 		var matrix = [
 			"...#.",
@@ -194,6 +194,7 @@ class AStar<T> {
 		CiAssert.isTrue( path.length>0 );
 		CiAssert.isTrue( path[path.length-1].x==targetX && path[path.length-1].y==targetY );
 	}
+	#end
 }
 
 

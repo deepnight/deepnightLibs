@@ -135,8 +135,8 @@ class Changelog {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var markDown = "
 		# 0.9 - Not in proper position
 
@@ -176,4 +176,5 @@ class Changelog {
 		CiAssert.isNotNull( c.oldest );
 		CiAssert.isTrue( c.oldest.version.full == "0.1.0-alpha" );
 	}
+	#end
 }

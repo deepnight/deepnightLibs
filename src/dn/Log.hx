@@ -340,12 +340,13 @@ class Log {
 	public dynamic function onAdd(e:LogEntry) {}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var l = new Log(5);
 		l.logFilePath = "tests/bin/test.log";
 		l.add("someTag", "text", 0xff00ff);
 		l.flushToFile();
 		l.trimFileLines();
 	}
+	#end
 }

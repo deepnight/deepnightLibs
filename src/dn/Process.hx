@@ -757,8 +757,8 @@ class Process {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var root = new Process();
 		CiAssert.isNotNull(root);
 		CiAssert.isNotNull(root.cd);
@@ -811,4 +811,5 @@ class Process {
 		CiAssert.equals( ROOTS.allocated, 0);
 		#end
 	}
+	#end
 }

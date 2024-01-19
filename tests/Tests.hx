@@ -12,36 +12,37 @@ class Tests {
 		CiAssert.isTrue(true);
 		CiAssert.isFalse(false);
 		CiAssert.isNotNull("a");
+		CiAssert.equals("a","a");
 
 		// Libs
-		dn.Args.__test();
-		dn.pathfinder.AStar.__test();
-		dn.Bresenham.__test();
-		dn.Changelog.__test();
-		dn.Cinematic.__test();
-		dn.Col.UnitTest._test();
-		dn.legacy.Color.__test();
-		dn.Cooldown.__test();
-		dn.DecisionHelper.__test();
-		dn.Delayer.__test();
-		dn.FilePath.__test();
-		dn.struct.FixedArray.FixedArrayTests.__test();
-		dn.data.GetText.__test();
-		dn.legacy.GetText.__test();
-		dn.Lib.__test();
-		dn.data.LocalStorage.__test();
-		dn.M.__test();
-		dn.Process.__test();
-		dn.Rand.__test();
-		dn.struct.RandDeck.__test();
-		dn.struct.RandList.__test();
-		dn.RandomTools.__test();
-		dn.struct.RecyclablePool.__test();
-		dn.struct.Stat.StatTest.__test();
-		dn.phys.Velocity.__test();
-		dn.Version.__test();
-		dn.Log.__test();
-		dn.Geom.__test();
+		dn.Args.test();
+		dn.pathfinder.AStar.test();
+		dn.Bresenham.test();
+		dn.Changelog.test();
+		dn.Cinematic.test();
+		dn.Col.UnitTest.test();
+		dn.legacy.Color.test();
+		dn.Cooldown.test();
+		dn.DecisionHelper.test();
+		dn.Delayer.test();
+		dn.FilePath.test();
+		dn.struct.FixedArray.FixedArrayTests.test();
+		dn.data.GetText.test();
+		dn.legacy.GetText.test();
+		dn.Lib.test();
+		dn.data.LocalStorage.test();
+		dn.M.test();
+		dn.Process.test();
+		dn.Rand.test();
+		dn.struct.RandDeck.test();
+		dn.struct.RandList.test();
+		dn.RandomTools.test();
+		dn.struct.RecyclablePool.test();
+		dn.struct.Stat.StatTest.test();
+		dn.phys.Velocity.test();
+		dn.Version.test();
+		dn.Log.test();
+		dn.Geom.test();
 
 
 

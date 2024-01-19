@@ -775,8 +775,8 @@ class Lib {
 		return out;
 	}
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		CiAssert.equals( findMostFrequentValueInArray([0,0,1,0,1]), 0 );
 		CiAssert.equals( findMostFrequentValueInArray([5,0,1,0,1]), 0 );
 		CiAssert.equals( findMostFrequentValueInArray([5,1,0,0,1]), 1 );
@@ -829,6 +829,7 @@ class Lib {
 		CiAssert.equals( intToRoman(2000), "MM" );
 		CiAssert.equals( intToRoman(4999), "MMMMCMXCIX" );
 	}
+	#end
 
 	#end // End of "if macro"
 }

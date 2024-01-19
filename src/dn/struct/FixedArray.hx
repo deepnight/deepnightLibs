@@ -283,9 +283,9 @@ class FixedArray<T> {
 
 
 /** Unit tests **/
-@:noCompletion
+#if deepnightLibsTests
 class FixedArrayTests {
-	public static function __test() {
+	public static function test() {
 		var a = new FixedArray<Int>(10);
 		CiAssert.equals(a.allocated, 0);
 		CiAssert.equals(a.maxSize, 10);
@@ -409,6 +409,7 @@ class FixedArrayTests {
 		a.remove("b"); CiAssert.equals(a.shortString(), "d,e");
 	}
 }
+#end
 
 
 

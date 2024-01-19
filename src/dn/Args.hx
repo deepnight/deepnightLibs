@@ -153,8 +153,8 @@ class Args {
 
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// Checks
 		CiAssert.isTrue( new Args("-v=5").hasArg("-v") );
 		CiAssert.isTrue( new Args("--v=5").hasArg("--v") );
@@ -184,4 +184,5 @@ class Args {
 		CiAssert.equals( new Args("-v=5 foo bar", [ "-v"=>2 ]).getSoloValue(0), "bar" );
 		CiAssert.equals( new Args("-v:5 foo bar", [ "-v"=>2 ]).getArgParam("-v"), "5" );
 	}
+	#end
 }

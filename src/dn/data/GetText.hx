@@ -906,8 +906,8 @@ class GetText {
 	#end // end of "if macro"
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		#if( !macro && deepnightLibsTests )
 
 		CiAssert.printIfVerbose("Testing new GetText...");
@@ -939,6 +939,7 @@ class GetText {
 
 		#end
 	}
+	#end
 }
 
 

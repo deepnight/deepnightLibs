@@ -716,10 +716,10 @@ abstract Col(Int) from Int to Int {
 
 
 
-#if !macro
+#if( !macro && deepnightLibsTests )
 @:noCompletion
 class UnitTest {
-	public static function _test() {
+	public static function test() {
 		var c : Col = 0x12ff7f;
 
 		// Implicit casts

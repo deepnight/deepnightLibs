@@ -84,8 +84,8 @@ class RandDeck<T> {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var randDeck = new RandDeck();
 		randDeck.push(0, 2);
 		randDeck.push(1, 5);
@@ -99,6 +99,6 @@ class RandDeck<T> {
 					throw "Value "+v+" is incorrect";
 			}
 		});
-
 	}
+	#end
 }

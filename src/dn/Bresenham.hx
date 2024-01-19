@@ -604,8 +604,8 @@ class Bresenham {
 			cb(x,fy);
 	}
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// Disc
 		for( radius in [2, 5, 9, 12]) {
 			CiAssert.noException(
@@ -660,6 +660,7 @@ class Bresenham {
 			CiAssert.isTrue( _arrayIdentical(ltr, rtl) );
 		}
 	}
+	#end
 }
 
 

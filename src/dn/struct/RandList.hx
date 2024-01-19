@@ -195,8 +195,8 @@ class RandList<T> {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var randList = new RandList([0,1,2,3]);
 		CiAssert.noException("RandList.draw() check", {
 			for(i in 0...200) {
@@ -208,5 +208,5 @@ class RandList<T> {
 		CiAssert.isTrue( randList.getProbaPct(2)==25 );
 		CiAssert.isTrue( randList.contains(3) );
 	}
+	#end
 }
-

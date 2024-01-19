@@ -785,8 +785,8 @@ class FilePath {
 	inline function set_ext(v) return extension = v;
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// General
 		CiAssert.isNotNull( new FilePath() );
 		CiAssert.isTrue( FilePath.fromFile("/user/.htaccess").clone().full == FilePath.fromFile("/user/.htaccess").clone().full );
@@ -1029,4 +1029,5 @@ class FilePath {
 
 		CiAssert.equals( FilePath.cleanUpFileName("My file/name is*cool:.txt"), "My file_name is_cool_.txt" );
 	}
+	#end
 }

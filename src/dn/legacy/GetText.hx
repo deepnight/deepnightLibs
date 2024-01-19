@@ -639,8 +639,8 @@ class GetText {
 	#end // end of potools
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		#if( !macro && deepnightLibsTests )
 
 		CiAssert.printIfVerbose("Testing legacy GetText...");
@@ -668,6 +668,7 @@ class GetText {
 		CiAssert.equals(gt.get(CdbTest.texts.get(CdbTest.TextsKind.test_4).text, {param:"Test"}),  "Je suis un texte CDB avec paramètre: Test et commentaire");
 		#end
 	}
+	#end
 }
 
 /**

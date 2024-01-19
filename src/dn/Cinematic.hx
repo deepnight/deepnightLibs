@@ -426,8 +426,8 @@ class Cinematic {
 
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var c = new Cinematic(30);
 		var v = 0;
 		c.create({
@@ -444,6 +444,7 @@ class Cinematic {
 			c.update(1);
 		CiAssert.isTrue( v==3 );
 	}
+	#end
 
 	#end
 }

@@ -876,8 +876,8 @@ class Color {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// String Hex
 		CiAssert.equals( intToHex(0xff00ff), "#FF00FF" );
 		CiAssert.equals( hexToInt("#ff00ff"), 0xff00ff );
@@ -960,5 +960,6 @@ class Color {
 		CiAssert.equals( multiply(0x0000ff, 2), 0x0000ff);
 		CiAssert.equals( multiply(0x4466ff, 2), 0x88ccff);
 	}
+	#end
 }
 

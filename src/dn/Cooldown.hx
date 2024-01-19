@@ -503,8 +503,8 @@ class Cooldown {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		#if !macro
 		var fps = 10;
 		var cd = new Cooldown(fps);
@@ -562,6 +562,7 @@ class Cooldown {
 		CiAssert.equals( cd.cds.allocated, 0 );
 		#end
 	}
+	#end
 }
 
 

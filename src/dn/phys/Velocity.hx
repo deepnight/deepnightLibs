@@ -150,8 +150,8 @@ class Velocity {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// Init
 		var v = new Velocity();
 		CiAssert.equals( v.x, 0 );
@@ -220,6 +220,7 @@ class Velocity {
 		v.fixedUpdate();
 		CiAssert.equals( v.v, 1 );
 	}
+	#end
 }
 
 

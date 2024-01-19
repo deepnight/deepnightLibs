@@ -278,8 +278,8 @@ class DecisionHelper<T> {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		var arr = [ "a", "foo", "bar", "food", "hello", "longworld" ];
 
 		// Filtering
@@ -325,4 +325,5 @@ class DecisionHelper<T> {
 		CiAssert.equals( dh.countRemaining(), 2 );
 		CiAssert.equals( dh.getBest(), "food" );
 	}
+	#end
 }

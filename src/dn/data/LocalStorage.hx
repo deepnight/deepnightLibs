@@ -330,8 +330,8 @@ class LocalStorage {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		CiAssert.isTrue( isSupported() );
 
 		var baseName = "localStorage";
@@ -449,6 +449,7 @@ class LocalStorage {
 		else
 			CiAssert.printIfVerbose("WARNING: LocalStorage isn't supported on this platform!");
 	}
+	#end
 }
 
 private enum StorageTestEnum {

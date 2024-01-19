@@ -123,8 +123,8 @@ class Geom {
 	}
 
 
-	@:noCompletion
-	public static function __test() {
+	#if deepnightLibsTests
+	public static function test() {
 		// Point vs Circle
 		CiAssert.equals( pointInsideCircle(0,0,  5,0,5), true );
 		CiAssert.equals( pointInsideCircle(0,0,  -3,0,5), true );
@@ -159,4 +159,5 @@ class Geom {
 		// Rect vs Circle
 		// TODO
 	}
+	#end
 }
