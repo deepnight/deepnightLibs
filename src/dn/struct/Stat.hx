@@ -27,9 +27,15 @@ class Stat<T:Float> {
 		init(zero,zero,zero);
 	}
 
-	@:keep
-	public function toString() {
+	@:keep public function toString() {
 		return min==zero ? '$v/$max' : '[$min]$v/$max';
+	}
+
+	public inline function clone() : Stat<T> {
+		var s = new Stat<T>();
+		s.init(v,min,max);
+		s.onChange = onChange;
+		return s;
 	}
 
 	public inline function isZero() return v==zero;
