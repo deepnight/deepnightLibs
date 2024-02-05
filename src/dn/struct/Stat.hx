@@ -194,6 +194,12 @@ class StatTest {
 		CiAssert.equals( { s.min=0; s.toString(); }, "0/2" );
 		CiAssert.equals( { s.min=s.max*2; s.toString(); }, "[4]4/4" );
 		CiAssert.equals( { s.max=-s.min; s.toString(); }, "[-4]-4/-4" );
+
+		// Cloning
+		var c = s.clone();
+		CiAssert.equals( c.v, s.v );
+		CiAssert.equals( c.min, s.min );
+		CiAssert.equals( c.max, s.max );
 	}
 }
 #end
