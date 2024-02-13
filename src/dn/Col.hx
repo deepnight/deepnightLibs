@@ -668,6 +668,10 @@ abstract Col(Int) from Int to Int {
 		e.color.setColor( withAlpha(ratio) );
 	}
 
+	public inline function toTile() : h2d.Tile {
+		return h2d.Tile.fromColor(this);
+	}
+
 	/** Return a h3d.Matrix to colorize an object **/
 	public inline function getColorizeMatrixH2d(ratioNewColor=1.0, ?ratioOldColor:Float) : h3d.Matrix {
 		if( ratioOldColor==null )
