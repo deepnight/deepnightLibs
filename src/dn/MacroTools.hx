@@ -199,7 +199,7 @@ class MacroTools {
 		// If everything fails, check if Res ident was renamed due to duplicate names
 		var path = resPath+"/"+idents.join("/");
 		var extensionReg = ~/(.+)_([a-z0-9]*)$/gi;
-		extensionReg.replace(path,"$1.$2");
+		path = extensionReg.replace(path,"$1.$2");
 		if( sys.FileSystem.exists(path) )
 			return path;
 
