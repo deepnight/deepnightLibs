@@ -33,15 +33,6 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 	// Skew values
 	public var skewX = 0.;
 	public var skewY = 0.;
-	var tmpAA = 0.;
-	var tmpAB = 0.;
-	var tmpAC = 0.;
-	var tmpAD = 0.;
-	var tmpAX = 0.;
-	var tmpAY = 0.;
-	var tmpBB = 0.;
-	var tmpBC = 0.;
-
 
 	public function new(?l:SpriteLib, ?g:String, ?f=0, ?parent:h2d.Object) {
 		super(parent);
@@ -274,7 +265,9 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 
 	/**
 		Skew the bottom and right sides by pixels distances.
-		WARNING: if the HSprite scaleX/Y changed later, this method should be called again.
+		WARNING:
+		1. if the HSprite scaleX/Y changes later, this method should be called again.
+		2. This method is not compatible with rotation(s).
 	**/
 	public function skewPx(xPixels:Float, yPixels:Float) {
 		skewX = Math.atan(xPixels/(tile.height*scaleY));
@@ -285,21 +278,8 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 		super.calcAbsPos();
 
 		if( skewX!=0 || skewY!=0 ) {
-			tmpAA = matA;
-			tmpAB = matB;
-			tmpAC = matC;
-			tmpAD = matD;
-			tmpAX = absX;
-			tmpAY = absY;
-			tmpBB = Math.tan(skewY);
-			tmpBC = Math.tan(skewX);
-
-			matA = tmpAA + tmpAB * tmpBC;
-			matB = tmpAA * tmpBB + tmpAB;
-			matC = tmpAC + tmpAD * tmpBC;
-			matD = tmpAC * tmpBB + tmpAD;
-			absX = tmpAX + tmpAY * tmpBC;
-			absY = tmpAX * tmpBB + tmpAY;
+			matB += matA * Math.tan(skewY);
+			matC += matD * Math.tan(skewX);
 		}
 	}
 
