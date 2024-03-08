@@ -30,6 +30,18 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 	var lastPage : Int;
 	public var tile(get,never) : h2d.Tile;
 
+	// Skew values
+	public var skewX = 0.;
+	public var skewY = 0.;
+	var tmpAA = 0.;
+	var tmpAB = 0.;
+	var tmpAC = 0.;
+	var tmpAD = 0.;
+	var tmpAX = 0.;
+	var tmpAY = 0.;
+	var tmpBB = 0.;
+	var tmpBC = 0.;
+
 
 	public function new(?l:SpriteLib, ?g:String, ?f=0, ?parent:h2d.Object) {
 		super(parent);
@@ -217,6 +229,7 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 		addBounds(relativeTo, out, tile.dx, tile.dy, tile.width, tile.height);
 	}
 
+
 	inline function get_tile() {
 		if( customTile!=null ) {
 			if( pivot.isUsingCoord() ) {
@@ -257,6 +270,39 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 			return rawTile;
 		}
 	}
+
+
+	/**
+		Skew the bottom and right sides by pixels distances.
+		WARNING: if the HSprite scaleX/Y changed later, this method should be called again.
+	**/
+	public function skewPx(xPixels:Float, yPixels:Float) {
+		skewX = Math.atan(xPixels/(tile.height*scaleY));
+		skewY = Math.atan(yPixels/(tile.width*scaleX));
+	}
+
+	override function calcAbsPos() {
+		super.calcAbsPos();
+
+		if( skewX!=0 || skewY!=0 ) {
+			tmpAA = matA;
+			tmpAB = matB;
+			tmpAC = matC;
+			tmpAD = matD;
+			tmpAX = absX;
+			tmpAY = absY;
+			tmpBB = Math.tan(skewY);
+			tmpBC = Math.tan(skewX);
+
+			matA = tmpAA + tmpAB * tmpBC;
+			matB = tmpAA * tmpBB + tmpAB;
+			matC = tmpAC + tmpAD * tmpBC;
+			matD = tmpAC * tmpBB + tmpAD;
+			absX = tmpAX + tmpAY * tmpBC;
+			absY = tmpAX * tmpBB + tmpAY;
+		}
+	}
+
 
 	override function draw( ctx : h2d.RenderContext ) {
 		emitTile(ctx, tile);
