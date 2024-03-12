@@ -132,14 +132,20 @@ class Velocity {
 
 	public inline function isZero() return M.fabs(x)<=clearThreshold  &&  M.fabs(y)<=clearThreshold;
 
+	/** Call this method to update Velocity at fixed/constant FPS **/
 	public inline function fixedUpdate(frictOverride=-1.) {
+		frameUpdate(1, frictOverride);
+	}
+
+	/** Call this method to update Velocity at variable FPS **/
+	public inline function frameUpdate(tmod:Float, frictOverride=-1.) {
 		if( frictOverride>=0 ) {
-			x *= frictOverride;
-			y *= frictOverride;
+			x *= Math.pow(frictOverride,tmod);
+			y *= Math.pow(frictOverride,tmod);
 		}
 		else {
-			x*=frictX;
-			y*=frictY;
+			x *= Math.pow(frictX,tmod);
+			y *= Math.pow(frictY,tmod);
 		}
 
 		if( M.fabs(x)<clearThreshold )
@@ -219,6 +225,16 @@ class Velocity {
 		CiAssert.equals( v.v, 2 );
 		v.fixedUpdate();
 		CiAssert.equals( v.v, 1 );
+
+		// Frame updates
+		var v = new Velocity();
+		v.frict = 0.5;
+		v.v = 4;
+		CiAssert.equals( v.v, 4 );
+		v.frameUpdate(2);
+		CiAssert.equals( v.v, 1 );
+		v.frameUpdate(1);
+		CiAssert.equals( v.v, 0.5 );
 	}
 	#end
 }
