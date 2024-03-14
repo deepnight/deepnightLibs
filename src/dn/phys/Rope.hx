@@ -40,9 +40,14 @@ class Rope {
 		}
 	}
 
-	/** Pin a point to a specific position. **/
-	public function pinPoint(pointIndexRatio:Float, x:Float, y:Float) {
+	/** Pin the point specified by its "ratio" in the rope (0-1) to a world position. **/
+	public function pinPointRatio(pointIndexRatio:Float, x:Float, y:Float) {
 		getPointAtRatio(pointIndexRatio).pinTo(x,y);
+	}
+
+	/** Pin the point specified by its index to a world position. **/
+	public function pinPointIndex(pointIndex:Int, x:Float, y:Float) {
+		points.get(pointIndex).pinTo(x,y);
 	}
 
 	/** Attach this rope to another rope */
