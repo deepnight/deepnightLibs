@@ -1,7 +1,7 @@
 package dn.heaps.assets;
 
 class PixelLookup extends dn.Process {
-	public static function fromSlib(slib:dn.heaps.slib.SpriteLib, ?slibPixels:hxd.Pixels) : Map<Int,PixelCoord> {
+	public static function fromSlib(slib:dn.heaps.slib.SpriteLib, ?slibPixels:hxd.Pixels, color:dn.Col) : Map<Int,PixelCoord> {
 		if( slibPixels==null )
 			slibPixels = slib.tile.getTexture().capturePixels();
 
@@ -9,7 +9,7 @@ class PixelLookup extends dn.Process {
 		var output = new PixelCoord(0,0);
 		for(group in slib.getGroups())
 		for(fd in group.frames)
-			if( lookupPixelSub(slibPixels, fd.x, fd.y, fd.wid, fd.hei, "#0400ff", output) )
+			if( lookupPixelSub(slibPixels, fd.x, fd.y, fd.wid, fd.hei, color, output) )
 				pixelCoords.set(fd.uid, output.clone());
 
 		return pixelCoords;
@@ -20,8 +20,8 @@ class PixelLookup extends dn.Process {
 		for(px in x...x+w)
 		for(py in y...y+h)
 			if( slibPixels.getPixel(px,py)==col ) {
-				output.x = px;
-				output.y = py;
+				output.x = px-x;
+				output.y = py-y;
 				return true;
 			}
 
