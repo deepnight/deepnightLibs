@@ -12,6 +12,7 @@ import h2d.SpriteBatch;
 
 @:structInit
 class FrameData {
+	public var uid     : Int;
 	public var page    : Int;
 	public var x       : Int;
 	public var y       : Int;
@@ -249,6 +250,11 @@ class SpriteLib {
 	* ATLAS INIT FUNCTIONS
 	******************************************************/
 
+	var lastUid = 0;
+	inline function makeUID() {
+		return lastUid++;
+	}
+
 	public function sliceCustom(groupName:String, page:Int, frame:Int, x:Int, y:Int, wid:Int, hei:Int, realX:Int, realY:Int, realWid: Int, realHei: Int) {
 		var g = if( exists(groupName) ) getGroup(groupName) else createGroup(groupName);
 		g.maxWid = M.imax( g.maxWid, wid );
@@ -257,7 +263,7 @@ class SpriteLib {
 		// if( realFrame==null )
 		// 	realFrame = {x:0, y:0, realWid:wid, realHei:hei}
 
-		var fd : FrameData = { page:page, x:x, y:y, wid:wid, hei:hei, realX: realX, realY: realY, realWid: realWid, realHei: realHei, tile: null };
+		var fd : FrameData = { uid:makeUID(), page:page, x:x, y:y, wid:wid, hei:hei, realX: realX, realY: realY, realWid: realWid, realHei: realHei, tile: null };
 		g.frames[frame] = fd;
 		return fd;
 	}
@@ -277,7 +283,7 @@ class SpriteLib {
 		g.maxHei = M.imax( g.maxHei, hei );
 		for(iy in 0...repeatY)
 			for(ix in 0...repeatX)
-				g.frames.push({page : page, x : x+ix*wid, y : y+iy*hei, wid:wid, hei:hei, realX:0, realY:0, realWid: wid, realHei: hei, tile: null });
+				g.frames.push({uid:makeUID(), page : page, x : x+ix*wid, y : y+iy*hei, wid:wid, hei:hei, realX:0, realY:0, realWid: wid, realHei: hei, tile: null });
 	}
 
 	public function sliceGrid(groupName:String, page:Int, gx:Int, gy:Int, repeatX=1, repeatY=1) {
@@ -287,7 +293,7 @@ class SpriteLib {
 		g.maxHei = M.imax( g.maxHei, gridY );
 		for(iy in 0...repeatY)
 			for(ix in 0...repeatX)
-				g.frames.push({page : page, x : gridX*(gx+ix), y : gridY*(gy+iy), wid:gridX, hei:gridY, realX:0, realY:0, realWid:gridX, realHei:gridY, tile: null });
+				g.frames.push({uid:makeUID(), page : page, x : gridX*(gx+ix), y : gridY*(gy+iy), wid:gridX, hei:gridY, realX:0, realY:0, realWid:gridX, realHei:gridY, tile: null });
 	}
 
 	public function sliceAnim(groupName:String, page:Int, frameDuration:Int, x:Int, y:Int, wid:Int, hei:Int, repeatX=1, repeatY=1) {
