@@ -983,7 +983,11 @@ class M {
 
 	/** Return a value, or use a default value if it is null **/
 	public static inline function nullDefault<T>(v:Null<T>, defaultIfNull:T) : T {
+		#if haxe4
+		return v ?? defaultIfNull;
+		#else
 		return v!=null ? v : defaultIfNull;
+		#end
 	}
 
 	/**
