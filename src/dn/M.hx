@@ -1040,6 +1040,15 @@ class M {
 		return rotCenterY  -  (x-rotCenterX) * Math.sin(ang)  +  (y-rotCenterY) * Math.cos(ang);
 	}
 
+	/** Return a 0-1 value from a cosinus value **/
+	public static inline function cosZeroToOne(ang:Float) {
+		return ( 1 + Math.cos(ang) ) / 2;
+	}
+
+	/** Return a 0-1 value from a sinus value **/
+	public static inline function sinZeroToOne(ang:Float) {
+		return ( 1 + Math.sin(ang) ) / 2;
+	}
 
 	/**
 		Return a 0-1 ratio by "clamping" `r` to [min,max].
