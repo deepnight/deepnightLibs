@@ -35,10 +35,14 @@ class Velocity {
 
 	/** Angle in radians of the vector represented by x/y **/
 	public var ang(get,never) : Float; inline function get_ang() return Math.atan2(y,x);
+
 	/** Length of the vector represented by x/y **/
 	public var len(get,never) : Float; inline function get_len() return Math.sqrt(x*x + y*y);
 
+	/** Sign of X (-1 or 1) **/
 	public var dirX(get,never) : Int; inline function get_dirX() return M.sign(x);
+
+	/** Sign of Y (-1 or 1) **/
 	public var dirY(get,never) : Int; inline function get_dirY() return M.sign(y);
 
 
@@ -47,21 +51,31 @@ class Velocity {
 		frict = 1;
 	}
 
-	public static inline function createInit(x:Float, y:Float, frict=1.) {
+	/** Create a Velocity instance with X and Y values **/
+	public static inline function createXY(x:Float, y:Float, frict=1.) {
 		var v = new Velocity();
 		v.set(x,y);
 		v.frict = frict;
 		return v;
 	}
+	@:deprecated("Use createXY(f)") @:noCompletion public inline function createInit(x,y,?f) createXY(x,y,f);
 
+	/** Create a Velocity instance with an angle and a length **/
+	public static inline function createAng(ang:Float, len:Float, frict=1.) {
+		var v = new Velocity();
+		v.setAng(ang,len);
+		v.frict = frict;
+		return v;
+	}
+
+	/** Create a Velocity instance with just an initial friction **/
 	public static inline function createFrict(frict:Float) {
 		var v = new Velocity();
 		v.frict = frict;
 		return v;
 	}
 
-	@:keep
-	public function toString() {
+	@:keep public function toString() {
 		return 'Velocity${ id<0?"":"#"+id }(${ shortString() })';
 	}
 
@@ -69,32 +83,34 @@ class Velocity {
 		return '${ M.pretty(x,2) },${ M.pretty(y,2) }';
 	}
 
+	/** Set individual frictions **/
 	public inline function setFricts(fx:Float, fy:Float) {
 		frictX = fx;
 		frictY = fy;
 	}
 
+	/* Multiply X/Y values by individual factors */
 	public inline function mulXY(fx:Float, fy:Float) {
 		x*=fx;
 		y*=fy;
 	}
 
-	@:deprecated("Use mul(f)") @:noCompletion public inline function mulBoth(f:Float) mul(f);
+	/** Multiply both X/Y values by a factor **/
 	public inline function mul(f:Float) {
 		x*=f;
 		y*=f;
 	}
+	@:deprecated("Use mul(f)") @:noCompletion public inline function mulBoth(f:Float) mul(f);
 
 	public inline function clear() {
 		x = y = 0;
 	}
 
+	/** Add individual values to X/Y **/
 	public inline function addXY(vx:Float, vy:Float) {
 		x += vx;
 		y += vy;
 	}
-
-	@:deprecated("This method is no longer implemented.") @:noCompletion public inline function addBoth(v:Float) {}
 
 	public inline function addLen(v:Float) {
 		var l = len;
@@ -102,21 +118,26 @@ class Velocity {
 		x = Math.cos(a)*(l+v);
 		y = Math.sin(a)*(l+v);
 	}
+	@:deprecated("This method is no longer implemented.") @:noCompletion public inline function addBoth(v:Float) {}
 
+	/** Set X and Y to specific values **/
 	public inline function set(x:Float, y:Float) {
 		this.x = x;
 		this.y = y;
 	}
 
+	/** Set both X and Y to the same value **/
 	public inline function setBoth(v:Float) {
 		return x = y = v;
 	}
 
+	/** Add a vector to this one **/
 	public inline function addAng(ang:Float, v:Float) {
 		x += Math.cos(ang)*v;
 		y += Math.sin(ang)*v;
 	}
 
+	/** Set X and Y to specific values based on given angle and current length **/
 	public inline function setAng(ang:Float, v:Float) {
 		x = Math.cos(ang)*v;
 		y = Math.sin(ang)*v;
@@ -130,6 +151,7 @@ class Velocity {
 	}
 
 
+	/** Return true if X and Y are both below the `clearThreshold` value **/
 	public inline function isZero() return M.fabs(x)<=clearThreshold  &&  M.fabs(y)<=clearThreshold;
 
 	/** Call this method to update Velocity at fixed/constant FPS **/
