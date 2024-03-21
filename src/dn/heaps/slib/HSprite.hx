@@ -188,8 +188,9 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 	}
 
 	public inline function colorize(col:Col, ?alpha=1.0) {
-		color.setColor(dn.legacy.Color.addAlphaF(col, alpha));
+		color.setColor( col.withAlpha(alpha) );
 	}
+
 	public inline function uncolorize() {
 		color.set(1,1,1,1);
 	}
