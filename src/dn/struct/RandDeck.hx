@@ -8,10 +8,13 @@ class RandDeck<T> {
 	var rndFunc : Int->Int;
 	public var autoShuffle = true;
 
-	public function new(?rnd : Int->Int) {
+	public function new(?rnd : Int->Int, ?values:Array<T>) {
 		curIdx  = 0;
 		size = 0;
 		rndFunc = rnd==null ? Std.random : rnd;
+		if( values!=null )
+			for(v in values)
+				push(v);
 	}
 
 	public function toString() {
