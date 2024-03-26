@@ -47,6 +47,12 @@ class Rand {
 		#end
 	}
 
+	/** Randomly variate given value `v` in +/- `pct`%. If `sign` is true, the value will some times be multiplied by -1. **/
+	public inline function around(v:Float, pct=10, sign=false) {
+		return v * ( 1 + range(0,pct/100,true) ) * ( sign ? this.sign() : 1 );
+	}
+
+
 	public inline function range(min:Float, max:Float,?randSign=false) { // tirage inclusif [min, max]
 		return ( min + rand() * (max-min) ) * (randSign ? random(2)*2-1 : 1);
 	}
