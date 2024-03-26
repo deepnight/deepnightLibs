@@ -417,6 +417,12 @@ class HParticle extends BatchElement {
 		this.t.switchTexture(tile);
 	}
 
+	public inline function mulRGB(v:Float) {
+		r*=v;
+		g*=v;
+		b*=v;
+	}
+
 	public inline function isSet0() return !Math.isNaN(data0);
 	public inline function isSet1() return !Math.isNaN(data1);
 	public inline function isSet2() return !Math.isNaN(data2);
