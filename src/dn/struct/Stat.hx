@@ -12,11 +12,14 @@ class Stat<T:Float> {
 	public var min(default,set) : T;
 	public var max(default,set) : T;
 
-	/** Ratio of the current value (0-1) **/
-	public var ratio(get,never) : Float;
+	/** Ratio of the current "maxed" ratio (0=value is zero, to 1=value is maxed) **/
+	public var fullRatio(get,never) : Float;
 
-	/** Same as `ratio` but with 2 digits max **/
-	public var prettyRatio(get,never) : Float;
+	/** Ratio of the current "emptied" ratio (0=value is maxed, to 1=value is zero) **/
+	public var emptyRatio(get,never) : Float;
+
+	/** Same as `fullRatio` but with 2 digits max **/
+	public var prettyFullRatio(get,never) : Float;
 
 	var zero : T = cast 0;
 
@@ -115,12 +118,16 @@ class Stat<T:Float> {
 		return max;
 	}
 
-	inline function get_ratio() {
+	inline function get_fullRatio() {
 		return max==min ? 0 : (v-min)/(max-min);
 	}
 
-	inline function get_prettyRatio() {
-		return M.pretty(ratio,2);
+	inline function get_emptyRatio() {
+		return 1-fullRatio;
+	}
+
+	inline function get_prettyFullRatio() {
+		return M.pretty(fullRatio,2);
 	}
 }
 
