@@ -309,6 +309,13 @@ class VelocityArray {
 		return _sum;
 	}
 
+	public inline function getSumLen() {
+		_sum = 0.;
+		for(v in all)
+			_sum+=v.len;
+		return _sum;
+	}
+
 	public inline function mulAll(f:Float) {
 		for(v in all)
 			v.mul(f);
