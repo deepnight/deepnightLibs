@@ -163,17 +163,26 @@ class StatTest {
 		// Ratio
 		s.initZeroOnMax(2);
 		CiAssert.equals( s.toString(), "0/2" );
-		CiAssert.equals( { s.v=0; s.ratio; }, 0 );
-		CiAssert.equals( { s.v=1; s.ratio; }, 0.5 );
-		CiAssert.equals( { s.v=2; s.ratio; }, 1 );
-		CiAssert.equals( { s.v=5; s.ratio; }, 1 );
+		CiAssert.equals( { s.v=0; s.fullRatio; }, 0 );
+		CiAssert.equals( { s.v=1; s.fullRatio; }, 0.5 );
+		CiAssert.equals( { s.v=2; s.fullRatio; }, 1 );
+		CiAssert.equals( { s.v=5; s.fullRatio; }, 1 );
+
+		CiAssert.equals( { s.v=0; s.emptyRatio; }, 1 );
+		CiAssert.equals( { s.v=1; s.emptyRatio; }, 0.5 );
+		CiAssert.equals( { s.v=2; s.emptyRatio; }, 0 );
+		CiAssert.equals( { s.v=5; s.emptyRatio; }, 0 );
 
 		// Ratio with min
 		s.init(0, 1,3);
 		CiAssert.equals( s.toString(), "[1]1/3" );
-		CiAssert.equals( { s.v=1; s.ratio; }, 0 );
-		CiAssert.equals( { s.v=2; s.ratio; }, 0.5 );
-		CiAssert.equals( { s.v=3; s.ratio; }, 1 );
+		CiAssert.equals( { s.v=1; s.fullRatio; }, 0 );
+		CiAssert.equals( { s.v=2; s.fullRatio; }, 0.5 );
+		CiAssert.equals( { s.v=3; s.fullRatio; }, 1 );
+
+		CiAssert.equals( { s.v=1; s.emptyRatio; }, 1 );
+		CiAssert.equals( { s.v=2; s.emptyRatio; }, 0.5 );
+		CiAssert.equals( { s.v=3; s.emptyRatio; }, 0 );
 
 		// Negative min
 		s.init(0, -1,3);
@@ -186,7 +195,7 @@ class StatTest {
 		s.initZeroOnMax(3);
 		CiAssert.equals( s.toString(), "0/3" );
 		CiAssert.equals( { s.v=1; s.toString(); }, "1/3" );
-		CiAssert.equals( s.prettyRatio, 0.33 );
+		CiAssert.equals( s.prettyFullRatio, 0.33 );
 
 		// Weird min/max changes
 		s.initZeroOnMax(3);
