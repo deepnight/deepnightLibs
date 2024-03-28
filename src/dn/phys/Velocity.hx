@@ -295,6 +295,7 @@ class VelocityArray {
 		all = null;
 	}
 
+	/** Get the sum of all X values **/
 	public inline function getSumX() {
 		_sum = 0.;
 		for(v in all)
@@ -302,6 +303,7 @@ class VelocityArray {
 		return _sum;
 	}
 
+	/** Get the sum of all Y values **/
 	public inline function getSumY() {
 		_sum = 0.;
 		for(v in all)
@@ -309,11 +311,9 @@ class VelocityArray {
 		return _sum;
 	}
 
-	public inline function getSumLen() {
-		_sum = 0.;
-		for(v in all)
-			_sum+=v.len;
-		return _sum;
+	/** Get the overall "total" length of all vectors **/
+	public inline function getOverallLen() {
+		return Math.sqrt( getSumX()*getSumX() + getSumY()*getSumY() );
 	}
 
 	public inline function mulAll(f:Float) {
