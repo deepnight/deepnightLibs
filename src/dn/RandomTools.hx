@@ -125,7 +125,7 @@ class RandomTools {
 			? null
 			: removeAfterPick
 				? a.splice( Std.random(a.length), 1 )[0]
-				: a[Std.random(a.length)];
+				: a[ Std.random(a.length) ];
 	}
 
 
