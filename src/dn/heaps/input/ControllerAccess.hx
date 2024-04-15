@@ -320,9 +320,9 @@ class ControllerAccess<T:Int> {
 	/**
 		Return TRUE if given action is "pressed", and this will repeatedly return TRUE, just like a keyboard key that is held down for an extended period of time.
 		@param firstDelayS Delay in seconds after the first press to start firing other presses.
-		@param subsequentDelayS Delay in seconds between presses after the first one.
+		@param repeatDelayS Delay in seconds between presses after the first one.
 	**/
-	public inline function isPressedAutoFire(action:T, firstDelayS=0.28, subsequentDelayS=0.07) {
+	public inline function isPressedAutoFire(action:T, firstDelayS=0.28, repeatDelayS=0.07) {
 		if( !isDown(action) ) {
 			autoFireNextS.set(action, 0);
 			autoFireFirstDone.remove(action);
@@ -331,7 +331,7 @@ class ControllerAccess<T:Int> {
 		else {
 			var now = haxe.Timer.stamp();
 			if( !autoFireNextS.exists(action) || now>=autoFireNextS.get(action) ) {
-				autoFireNextS.set(action, now + ( !autoFireFirstDone.exists(action) ? firstDelayS : subsequentDelayS ));
+				autoFireNextS.set(action, now + ( !autoFireFirstDone.exists(action) ? firstDelayS : repeatDelayS ));
 				autoFireFirstDone.set(action, true);
 				return true;
 			}
