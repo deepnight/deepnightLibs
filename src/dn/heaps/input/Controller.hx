@@ -91,8 +91,9 @@ enum abstract ControllerType(Int) {
 class Controller<T:Int> {
 
 	/**
-		Create a new Controller instance using an existing **Int based Abstract Enum**.
+		Create a new Controller instance using an existing **Int-based Abstract Enum** that **can be casted to Int**.
 
+		Example:
 		```haxe
 		enum abstract MyGameActions(Int) to Int {
 			var MoveX;
