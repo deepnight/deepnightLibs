@@ -722,6 +722,32 @@ class Controller<T:Int> {
 
 
 
+	public function getMouseButtonIcon(buttonIdx:Int, ?parent:h2d.Object) : h2d.Flow {
+		var f = new h2d.Flow(parent);
+		#if heaps_aseprite
+			var baseId = switch buttonIdx {
+				case 0: "mouseLeft";
+				case 1: "mouseRight";
+				case 2: "mouseMiddle";
+				case _: "mouse";
+			};
+			if( ICONS_LIB.exists(baseId) )
+				new h2d.Bitmap( ICONS_LIB.getTile(baseId), f );
+			else
+				new h2d.Bitmap( _errorTile(), f );
+		#else
+			var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
+			tf.text = switch buttonIdx {
+				case 0: "LMB";
+				case 1: "RMB";
+				case 2: "MMB";
+				case _: "MB"+buttonIdx;
+			}
+		#end
+		return f;
+	}
+
+
 	/**
 		Return a visual representation (as h2d.Flow) of given gamepad button.
 	**/
@@ -809,7 +835,6 @@ class Controller<T:Int> {
 						f.paddingRight+=8;
 
 					case _:
-
 						tf.text = getKeyName(keyId).toUpperCase();
 				}
 				tf.textColor = 0x242234;
