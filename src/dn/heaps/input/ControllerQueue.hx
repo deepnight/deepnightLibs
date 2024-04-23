@@ -40,11 +40,16 @@ class ControllerQueue<T:Int> {
 	**/
 	public function earlyFrameUpdate(curTimeS:Float) {
 		this.curTimeS = curTimeS;
-		for(a in watches)
+
+		if( !ca.isActive() )
+			return;
+
+		for(a in watches) {
 			if( ca.isDown(a) )
-				events.get(a).onDown(this);
+				events.get(a).registerDown(this);
 			else
-				events.get(a).onUp(this);
+				events.get(a).registerUp(this);
+		}
 	}
 
 	public dynamic function onQueuePress(action:T) {}
@@ -89,6 +94,9 @@ class ControllerQueue<T:Int> {
 		See `consumePress` for more info.
 	**/
 	public function peekPress(action:T, ignoreChronologicalOrder=false) {
+		if( isLockedUntilUp(action) )
+			return false;
+
 		var nextT = events.get(action).getNextPress();
 		if( !ignoreChronologicalOrder ) {
 			for(ev in events) {
@@ -127,6 +135,9 @@ class ControllerQueue<T:Int> {
 		See `consumeRelease` for more info.
 	**/
 	public function peekRelease(action:T, ignoreChronologicalOrder=false) {
+		if( isLockedUntilUp(action) )
+			return false;
+
 		var nextT = events.get(action).getNextRelease();
 		if( !ignoreChronologicalOrder ) {
 			for(ev in events) {
@@ -143,7 +154,9 @@ class ControllerQueue<T:Int> {
 		Same as `consumePressOrDown` but also returns TRUE if the action button is currently down.
 	**/
 	public inline function consumePressOrDown(action:T, ignoreChronologicalOrder=false) {
-		if( consumePress(action,ignoreChronologicalOrder) )
+		if( isLockedUntilUp(action) )
+			return false;
+		else if( consumePress(action,ignoreChronologicalOrder) )
 			return true;
 		else
 			return ca.isDown(action);
@@ -154,7 +167,14 @@ class ControllerQueue<T:Int> {
 		Same as `peekPress` but also returns TRUE if the action button is currently down.
 	**/
 	public inline function peekPressOrDown(action:T, ignoreChronologicalOrder=false) {
-		return ca.isDown(action) || peekPress(action, ignoreChronologicalOrder);
+		if( isLockedUntilUp(action) )
+			return false;
+		else
+			return ca.isDown(action) || peekPress(action, ignoreChronologicalOrder);
+	}
+
+	inline function isLockedUntilUp(a:T) {
+		return events.get(a).lockedUntilUp;
 	}
 
 
@@ -291,7 +311,7 @@ class ControllerQueue<T:Int> {
 
 private class QueueEventStacks<T> {
 	var wasDown = false;
-	var lockedUntilUp = false;
+	public var lockedUntilUp(default,null) = false;
 	public var action(default,null) : T;
 	public var presses(default,null) : Array<Float>;
 	public var releases(default,null) : Array<Float>;
@@ -304,7 +324,7 @@ private class QueueEventStacks<T> {
 		this.maxKeepDurationS = maxKeepDurationS;
 	}
 
-	public function onDown(queue:ControllerQueue<Dynamic>) {
+	public function registerDown(queue:ControllerQueue<Dynamic>) {
 		if( !lockedUntilUp && !wasDown ) {
 			wasDown = true;
 			presses.push(queue.curTimeS);
@@ -313,7 +333,7 @@ private class QueueEventStacks<T> {
 		}
 	}
 
-	public function onUp(queue:ControllerQueue<Dynamic>) {
+	public function registerUp(queue:ControllerQueue<Dynamic>) {
 		if( lockedUntilUp )
 			lockedUntilUp = false;
 
