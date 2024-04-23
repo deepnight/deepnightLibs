@@ -662,7 +662,7 @@ class Controller<T:Int> {
 	/**
 		Return the first binding visual representation of given Action. If no binding is found, an empty h2d.Flow is returned.
 		@param action The action to lookup
-		@param ctrlType Optionally, only show the binding associated with the given controller type
+		@param ctrlType (Keyboard or Gamepad) Optionally, only show the binding associated with the given controller type
 		@param parent  Optional display object to add the icon to.
 	**/
 	public function getFirstBindindIconFor(action:T, ?ctrlType:ControllerType, ?parent:h2d.Object) : h2d.Flow {
