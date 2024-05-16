@@ -395,16 +395,16 @@ class HParticle extends BatchElement {
 	}
 
 	public inline function scaleTo(w:Float, h:Float) {
-		scaleToWid(w);
-		scaleToHei(h);
+		scaleXTo(w);
+		scaleYTo(h);
 	}
 
-	public inline function scaleToWid(w:Float) {
-		scaleX = w/t.width;
+	public inline function scaleXTo(len:Float) {
+		scaleX = len/t.width;
 	}
 
-	public inline function scaleToHei(h:Float) {
-		scaleY = h/t.height;
+	public inline function scaleYTo(len:Float) {
+		scaleY = len/t.height;
 	}
 
 
