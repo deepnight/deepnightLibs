@@ -86,8 +86,8 @@ class Process {
 	public var stageWid(get,never) : Int;
 	public var stageHei(get,never) : Int;
 
-	public var scaleStageWid(get,never) : Int; inline function get_scaleStageWid() return M.ceil( w() / (root!=null?root.scaleX:1) );
-	public var scaleStageHei(get,never) : Int; inline function get_scaleStageHei() return M.ceil( h() / (root!=null?root.scaleY:1) );
+	public var scaledRootWid(get,never) : Int; function get_scaledRootWid() return M.ceil( stageWid / (root!=null?root.scaleX:1) );
+	public var scaledRootHei(get,never) : Int; function get_scaledRootHei() return M.ceil( stageHei / (root!=null?root.scaleY:1) );
 
 	/** Delayer allows for callbacks to be called in a future frame **/
 	public var delayer : dn.Delayer;
