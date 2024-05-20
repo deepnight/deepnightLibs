@@ -205,7 +205,7 @@ class StatsBox extends dn.Process {
 		super.postUpdate();
 
 		if( root.visible ) {
-			anchor.set( w()*anchorRatioX, h()*anchorRatioY );
+			anchor.set( stageWid*anchorRatioX, stageHei*anchorRatioY );
 			root.globalToLocal(anchor);
 			flow.x = anchor.x - flow.outerWidth * anchorRatioX;
 			flow.y = anchor.y - flow.outerHeight * anchorRatioY;
