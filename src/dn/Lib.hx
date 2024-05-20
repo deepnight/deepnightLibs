@@ -563,7 +563,7 @@ class Lib {
 			});
 
 			p.createChildProcess( function(_) {
-				g.x = p.w()-w-2;
+				g.x = p.stageWid-w-2;
 				g.y = 2;
 				g.visible = !isFullscreen();
 			});

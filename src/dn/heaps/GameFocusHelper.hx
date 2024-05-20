@@ -101,22 +101,22 @@ class GameFocusHelper extends dn.Process {
         createChildProcess(
             function(c) {
                 // Resize dynamically
-                tf.setScale( M.imax(1, Math.floor( w()*0.5 / tf.textWidth )) );
-                tf.x = Std.int( w()*0.5 - tf.textWidth*tf.scaleX*0.5 );
-                tf.y = Std.int( h()*0.5 - tf.textHeight*tf.scaleY*0.5 );
+                tf.setScale( M.imax(1, Math.floor( stageWid*0.5 / tf.textWidth )) );
+                tf.x = Std.int( stageWid*0.5 - tf.textWidth*tf.scaleX*0.5 );
+                tf.y = Std.int( stageHei*0.5 - tf.textHeight*tf.scaleY*0.5 );
 
-                i.width = w()+1;
-                i.height = h()+1;
+                i.width = stageWid+1;
+                i.height = stageHei+1;
                 if( isThumb ) {
-                    var s = M.fmax( w()/thumb.width, h()/thumb.height );
+                    var s = M.fmax( stageWid/thumb.width, stageHei/thumb.height );
                     bg.filter = new h2d.filter.Blur(32,1,3);
                     bg.setScale(s);
-                    bg.x = w()*0.5 - bg.tile.width*bg.scaleX*0.5;
-                    bg.y = h()*0.5 - bg.tile.height*bg.scaleY*0.5;
+                    bg.x = stageWid*0.5 - bg.tile.width*bg.scaleX*0.5;
+                    bg.y = stageHei*0.5 - bg.tile.height*bg.scaleY*0.5;
                 }
                 else {
-                    bg.scaleX = w()+1;
-                    bg.scaleY = h()+1;
+                    bg.scaleX = stageWid+1;
+                    bg.scaleY = stageHei+1;
                 }
 
                 // Auto-kill
@@ -129,8 +129,8 @@ class GameFocusHelper extends dn.Process {
         i.onPush = function(_) {
             if( loadingMsg ) {
                 tf.text = "Loading, please wait...";
-                tf.x = Std.int( w()*0.5 - tf.textWidth*tf.scaleX*0.5 );
-                tf.y = Std.int( h()*0.5 - tf.textHeight*tf.scaleY*0.5 );
+                tf.x = Std.int( stageWid*0.5 - tf.textWidth*tf.scaleX*0.5 );
+                tf.y = Std.int( stageHei*0.5 - tf.textHeight*tf.scaleY*0.5 );
                 delayer.addS(resumeGame, 1);
             }
             else

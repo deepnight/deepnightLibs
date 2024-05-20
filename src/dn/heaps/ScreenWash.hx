@@ -60,8 +60,8 @@ class ScreenWash extends dn.Process {
 		maskWrapper = new h2d.Object(rotatedWrapper);
 
 		this.color = color;
-		screenWidth = w();
-		screenHeight = h();
+		screenWidth = stageWid;
+		screenHeight = stageHei;
 
 
 		mask = new h2d.Bitmap( h2d.Tile.fromColor(color), maskWrapper );
@@ -95,8 +95,8 @@ class ScreenWash extends dn.Process {
 		Override screen dimensions
 	**/
 	public inline function setScreenScale(s:Float) {
-		screenWidth = M.ceil( w()/s );
-		screenHeight = M.ceil( h()/s );
+		screenWidth = M.ceil( stageWid/s );
+		screenHeight = M.ceil( stageHei/s );
 		invalidated = true;
 		render();
 	}
