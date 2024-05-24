@@ -86,11 +86,6 @@ class Process {
 	public var stageWid(get,never) : Int;
 	public var stageHei(get,never) : Int;
 
-	#if heaps
-	public var scaledRootWid(get,never) : Int; function get_scaledRootWid() return M.ceil( stageWid / (root!=null?root.scaleX:1) );
-	public var scaledRootHei(get,never) : Int; function get_scaledRootHei() return M.ceil( stageHei / (root!=null?root.scaleY:1) );
-	#end
-
 	/** Delayer allows for callbacks to be called in a future frame **/
 	public var delayer : dn.Delayer;
 
