@@ -399,6 +399,12 @@ class HParticle extends BatchElement {
 		scaleYTo(h);
 	}
 
+	public inline function scaleAnimTo(to:Float, seconds:Float) {
+		dsFrict = 0.8;
+		dsX = (to-scaleX) / (seconds*fps);
+		dsY = (to-scaleY) / (seconds*fps);
+	}
+
 	public inline function scaleXTo(len:Float) {
 		scaleX = len/t.width;
 	}
