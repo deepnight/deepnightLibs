@@ -10,247 +10,6 @@ import h2d.SpriteBatch;
 import dn.Lib;
 import hxd.impl.AllocPos;
 
-class ParticlePool {
-	var all : haxe.ds.Vector<HParticle>;
-	var nalloc : Int;
-
-	public var size(get,never) : Int;
-		inline function get_size() return all.length;
-
-	public var allocated(get,never) : Int;
-		inline function get_allocated() return nalloc;
-
-	public function new(tile:h2d.Tile, count:Int, fps:Int) {
-		all = new haxe.ds.Vector(count);
-		nalloc = 0;
-
-		for(i in 0...count) {
-			var p = @:privateAccess new HParticle(this, tile.clone(), fps);
-			all[i] = p;
-			p.kill();
-		}
-	}
-
-	public inline function alloc(sb:SpriteBatch, t:h2d.Tile, x:Float, y:Float, ?pos: AllocPos) : HParticle {
-		return if( nalloc<all.length ) {
-			// Use a killed part
-			var p = all[nalloc];
-			@:privateAccess p.reset(sb, t, x,y);
-			@:privateAccess p.poolIdx = nalloc;
-			nalloc++;
-			#if debug
-			p.allocPos = pos;
-			#end
-			p;
-		}
-		else {
-			// Find oldest active part
-			var best : HParticle = null;
-			for(p in all)
-				if( best==null || @:privateAccess p.stamp<=@:privateAccess best.stamp ) // TODO optimize that
-					best = p;
-
-			@:privateAccess best.onKillCallbacks();
-			@:privateAccess best.reset(sb, t, x, y);
-			#if debug
-			best.allocPos = pos;
-			#end
-			best;
-		}
-	}
-
-	/**
-		When a particle is killed, pick last allocated one and move it here. This prevents "gaps" in the pool.
-	**/
-	inline function free(kp:HParticle) {
-		if( all!=null ) {
-			if( nalloc>1 ) {
-				var idx = @:privateAccess kp.poolIdx;
-				var tmp = all[idx];
-				all[idx] = all[nalloc-1];
-				@:privateAccess all[idx].poolIdx = idx;
-				all[nalloc-1] = tmp;
-				nalloc--;
-			}
-			else
-				nalloc = 0;
-		}
-	}
-
-	/** Count active particles **/
-	@:noCompletion @:deprecated("Use `allocated` var")
-	public inline function count() return nalloc;
-
-
-	/** Destroy every active particles **/
-	public function clear() {
-		// Because new particles might be allocated during onKill() callbacks,
-		// it's sometimes necessary to repeat the clearing loop multiple times.
-		var repeat = false;
-		var maxRepeats = 10;
-		var p : HParticle = null;
-		do {
-			repeat = false;
-
-			for(i in 0...size) {
-				p = all[i];
-				if( @:privateAccess p.onKillCallbacks() )
-					repeat = true;
-				@:privateAccess p.reset(null);
-				p.visible = false;
-			}
-
-			if( repeat && maxRepeats--<=0 )
-				throw("Infinite loop during clear: an onKill() callback is repeatingly allocating new particles.");
-		} while( repeat );
-	}
-
-
-	@:noCompletion @:deprecated("Use clear()")
-	public inline function killAll() clear();
-
-	public inline function killAllWithFade() {
-		for( i in 0...nalloc) {
-			all[i].lifeS = 0;
-			all[i].fadeOutSpeed = M.fmax(all[i].fadeOutSpeed, 0.03);
-		}
-	}
-
-	public function dispose() {
-		for(p in all)
-			@:privateAccess p.dispose();
-		all = null;
-	}
-
-	public inline function getAllocatedRatio() return allocated/size;
-
-	public inline function update(tmod:Float, ?updateCb:HParticle->Void) {
-		var i = 0;
-		var p : HParticle;
-		while( i < nalloc ) {
-			p = all[i];
-			@:privateAccess p.updatePart(tmod);
-			if( !p.killed ) {
-				if( updateCb!=null )
-					updateCb( p );
-				i++;
-			}
-		}
-	}
-}
-
-
-class Emitter {
-	public var id : Null<String>;
-	public var x : Float;
-	public var y : Float;
-	public var wid : Float;
-	public var hei : Float;
-	public var cd : dn.Cooldown;
-	public var delayer : dn.Delayer;
-
-	/** If this method is set, it should return TRUE to enable the emitter or FALSE to disable it. **/
-	public var activeCond : Null<Void->Bool>;
-
-	/** Active state of the emitter **/
-	public var active(default,set) : Bool;
-	public var tmod : Float;
-	public var destroyed(default,null) : Bool;
-
-	/** Frequency (in seconds) of the `onUpdate` calls **/
-	public var tickS : Float;
-
-	public var padding : Int;
-
-	public var top(get,never) : Float;  inline function get_top() return y;
-	public var bottom(get,never) : Float;  inline function get_bottom() return y+hei-1;
-	public var left(get,never) : Float;  inline function get_left() return x;
-	public var right(get,never) : Float;  inline function get_right() return x+wid-1;
-	var permanent = true;
-
-	public function new(?id:String, fps:Int) {
-		tickS = 0;
-		this.id = id;
-		destroyed = false;
-		x = y = 0;
-		wid = hei = 0;
-		padding = 0;
-		active = true;
-
-		delayer = new Delayer(fps);
-		cd = new Cooldown(fps);
-	}
-
-	public inline function setPosition(x,y, ?w, ?h) {
-		this.x = x;
-		this.y = y;
-		if( w!=null ) wid = w;
-		if( h!=null ) hei = h;
-		if( h==null && w!=null ) hei = w;
-	}
-
-	public inline function setSize(w, h) {
-		wid = w;
-		hei = h;
-	}
-
-	public inline function setDurationS(t:Float) {
-		cd.setS("emitterLife", t);
-		permanent = false;
-	}
-
-	public dynamic function onActivate() {}
-	public dynamic function onDeactivate() {}
-	public dynamic function onUpdate() {}
-	public dynamic function onDispose() {}
-
-	inline function set_active(v:Bool) {
-		if( v==active || destroyed )
-			return active;
-
-		active = v;
-		if( active )
-			onActivate();
-		else
-			onDeactivate();
-		return active;
-	}
-
-	public function dispose() {
-		if( destroyed )
-			return;
-
-		destroyed = true;
-		cd.dispose();
-		delayer.destroy();
-		onDispose();
-		activeCond = null;
-		cd = null;
-	}
-
-	public inline function update(tmod:Float) {
-		if( activeCond!=null )
-			active = activeCond();
-
-		if( active && !destroyed ) {
-			this.tmod = tmod;
-			cd.update(tmod);
-			delayer.update(tmod);
-
-			if( tickS<=0 || !cd.has("emitterTick") ) {
-				onUpdate();
-				cd.setS("emitterTick", tickS);
-			}
-
-			if( !permanent && !cd.has("emitterLife") )
-				dispose();
-		}
-
-	}
-}
-
-
-
 
 class HParticle extends BatchElement {
 	public static var DEFAULT_BOUNDS : h2d.col.Bounds = null;
@@ -283,6 +42,9 @@ class HParticle extends BatchElement {
 	public var maxAlpha(default,set): Float;
 	public var alphaFlicker		: Float;
 	public var customTmod		: Void->Float;
+
+	public var scaleX_tween(default,null) : TinyTween;
+	public var scaleY_tween(default,null) : TinyTween;
 
 	var delayedCb : Null< HParticle->Void >;
 	var delayedCbTimeS : Float;
@@ -344,6 +106,10 @@ class HParticle extends BatchElement {
 		this.fps = fps;
 		pool = p;
 		poolIdx = -1;
+
+		scaleX_tween = new TinyTween();
+		scaleY_tween = new TinyTween();
+
 		reset(null, x,y);
 	}
 
@@ -397,12 +163,6 @@ class HParticle extends BatchElement {
 	public inline function scaleTo(w:Float, h:Float) {
 		scaleXTo(w);
 		scaleYTo(h);
-	}
-
-	public inline function scaleAnimTo(to:Float, seconds:Float) {
-		dsFrict = 0.8;
-		dsX = (to-scaleX) / (seconds*fps);
-		dsY = (to-scaleY) / (seconds*fps);
 	}
 
 	public inline function scaleXTo(len:Float) {
@@ -509,6 +269,10 @@ class HParticle extends BatchElement {
 		groupId = null;
 		autoRotateSpeed = 0;
 		delayedCbTimeS = 0;
+
+		// Tweens
+		scaleX_tween.clear();
+		scaleY_tween.clear();
 
 		// Callbacks
 		onStart = null;
@@ -861,16 +625,31 @@ class HParticle extends BatchElement {
 				if( !killed ) { // Could have been killed in onBounce
 					rotation += dr * tmod;
 					dr *= optimPow(drFrict, tmod);
-					scaleX += (ds+dsX) * tmod;
-					scaleY += (ds+dsY) * tmod;
+
 					var scaleMulTmod = optimPow(scaleMul, tmod);
-					scaleX *= scaleMulTmod;
-					scaleX *= optimPow(scaleXMul, tmod);
-					scaleY *= scaleMulTmod;
-					scaleY *= optimPow(scaleYMul, tmod);
+
+					// X scale
+					if( scaleX_tween.isRunning() )
+						scaleX = scaleX_tween.update(tmod, fps);
+					else {
+						scaleX += (ds+dsX) * tmod;
+						scaleX *= scaleMulTmod;
+						scaleX *= optimPow(scaleXMul, tmod);
+					}
+
+					// Y scale
+					if( scaleY_tween.isRunning() )
+						scaleY = scaleY_tween.update(tmod, fps);
+					else {
+						scaleY += (ds+dsY) * tmod;
+						scaleY *= scaleMulTmod;
+						scaleY *= optimPow(scaleYMul, tmod);
+					}
+
 					ds     *= optimPow(dsFrict, tmod);
 					dsX    *= optimPow(dsFrict, tmod);
 					dsY    *= optimPow(dsFrict, tmod);
+
 
 					if( autoRotateSpeed!=0 )
 						rotation += M.radSubstract( getMoveAng(), rotation ) * M.fmin(1,autoRotateSpeed*tmod);
@@ -932,3 +711,292 @@ class HParticle extends BatchElement {
 	}
 }
 
+
+
+/************************************************************
+	Particle Pool manager
+************************************************************/
+
+class ParticlePool {
+	var all : haxe.ds.Vector<HParticle>;
+	var nalloc : Int;
+
+	public var size(get,never) : Int;
+		inline function get_size() return all.length;
+
+	public var allocated(get,never) : Int;
+		inline function get_allocated() return nalloc;
+
+	public function new(tile:h2d.Tile, count:Int, fps:Int) {
+		all = new haxe.ds.Vector(count);
+		nalloc = 0;
+
+		for(i in 0...count) {
+			var p = @:privateAccess new HParticle(this, tile.clone(), fps);
+			all[i] = p;
+			p.kill();
+		}
+	}
+
+	public inline function alloc(sb:SpriteBatch, t:h2d.Tile, x:Float, y:Float, ?pos: AllocPos) : HParticle {
+		return if( nalloc<all.length ) {
+			// Use a killed part
+			var p = all[nalloc];
+			@:privateAccess p.reset(sb, t, x,y);
+			@:privateAccess p.poolIdx = nalloc;
+			nalloc++;
+			#if debug
+			p.allocPos = pos;
+			#end
+			p;
+		}
+		else {
+			// Find oldest active part
+			var best : HParticle = null;
+			for(p in all)
+				if( best==null || @:privateAccess p.stamp<=@:privateAccess best.stamp ) // TODO optimize that
+					best = p;
+
+			@:privateAccess best.onKillCallbacks();
+			@:privateAccess best.reset(sb, t, x, y);
+			#if debug
+			best.allocPos = pos;
+			#end
+			best;
+		}
+	}
+
+	/**
+		When a particle is killed, pick last allocated one and move it here. This prevents "gaps" in the pool.
+	**/
+	inline function free(kp:HParticle) {
+		if( all!=null ) {
+			if( nalloc>1 ) {
+				var idx = @:privateAccess kp.poolIdx;
+				var tmp = all[idx];
+				all[idx] = all[nalloc-1];
+				@:privateAccess all[idx].poolIdx = idx;
+				all[nalloc-1] = tmp;
+				nalloc--;
+			}
+			else
+				nalloc = 0;
+		}
+	}
+
+	/** Count active particles **/
+	@:noCompletion @:deprecated("Use `allocated` var")
+	public inline function count() return nalloc;
+
+
+	/** Destroy every active particles **/
+	public function clear() {
+		// Because new particles might be allocated during onKill() callbacks,
+		// it's sometimes necessary to repeat the clearing loop multiple times.
+		var repeat = false;
+		var maxRepeats = 10;
+		var p : HParticle = null;
+		do {
+			repeat = false;
+
+			for(i in 0...size) {
+				p = all[i];
+				if( @:privateAccess p.onKillCallbacks() )
+					repeat = true;
+				@:privateAccess p.reset(null);
+				p.visible = false;
+			}
+
+			if( repeat && maxRepeats--<=0 )
+				throw("Infinite loop during clear: an onKill() callback is repeatingly allocating new particles.");
+		} while( repeat );
+	}
+
+
+	@:noCompletion @:deprecated("Use clear()")
+	public inline function killAll() clear();
+
+	public inline function killAllWithFade() {
+		for( i in 0...nalloc) {
+			all[i].lifeS = 0;
+			all[i].fadeOutSpeed = M.fmax(all[i].fadeOutSpeed, 0.03);
+		}
+	}
+
+	public function dispose() {
+		for(p in all)
+			@:privateAccess p.dispose();
+		all = null;
+	}
+
+	public inline function getAllocatedRatio() return allocated/size;
+
+	public inline function update(tmod:Float, ?updateCb:HParticle->Void) {
+		var i = 0;
+		var p : HParticle;
+		while( i < nalloc ) {
+			p = all[i];
+			@:privateAccess p.updatePart(tmod);
+			if( !p.killed ) {
+				if( updateCb!=null )
+					updateCb( p );
+				i++;
+			}
+		}
+	}
+}
+
+
+/************************************************************
+	Particle auto emitter
+************************************************************/
+
+class Emitter {
+	public var id : Null<String>;
+	public var x : Float;
+	public var y : Float;
+	public var wid : Float;
+	public var hei : Float;
+	public var cd : dn.Cooldown;
+	public var delayer : dn.Delayer;
+
+	/** If this method is set, it should return TRUE to enable the emitter or FALSE to disable it. **/
+	public var activeCond : Null<Void->Bool>;
+
+	/** Active state of the emitter **/
+	public var active(default,set) : Bool;
+	public var tmod : Float;
+	public var destroyed(default,null) : Bool;
+
+	/** Frequency (in seconds) of the `onUpdate` calls **/
+	public var tickS : Float;
+
+	public var padding : Int;
+
+	public var top(get,never) : Float;  inline function get_top() return y;
+	public var bottom(get,never) : Float;  inline function get_bottom() return y+hei-1;
+	public var left(get,never) : Float;  inline function get_left() return x;
+	public var right(get,never) : Float;  inline function get_right() return x+wid-1;
+	var permanent = true;
+
+	public function new(?id:String, fps:Int) {
+		tickS = 0;
+		this.id = id;
+		destroyed = false;
+		x = y = 0;
+		wid = hei = 0;
+		padding = 0;
+		active = true;
+
+		delayer = new Delayer(fps);
+		cd = new Cooldown(fps);
+	}
+
+	public inline function setPosition(x,y, ?w, ?h) {
+		this.x = x;
+		this.y = y;
+		if( w!=null ) wid = w;
+		if( h!=null ) hei = h;
+		if( h==null && w!=null ) hei = w;
+	}
+
+	public inline function setSize(w, h) {
+		wid = w;
+		hei = h;
+	}
+
+	public inline function setDurationS(t:Float) {
+		cd.setS("emitterLife", t);
+		permanent = false;
+	}
+
+	public dynamic function onActivate() {}
+	public dynamic function onDeactivate() {}
+	public dynamic function onUpdate() {}
+	public dynamic function onDispose() {}
+
+	inline function set_active(v:Bool) {
+		if( v==active || destroyed )
+			return active;
+
+		active = v;
+		if( active )
+			onActivate();
+		else
+			onDeactivate();
+		return active;
+	}
+
+	public function dispose() {
+		if( destroyed )
+			return;
+
+		destroyed = true;
+		cd.dispose();
+		delayer.destroy();
+		onDispose();
+		activeCond = null;
+		cd = null;
+	}
+
+	public inline function update(tmod:Float) {
+		if( activeCond!=null )
+			active = activeCond();
+
+		if( active && !destroyed ) {
+			this.tmod = tmod;
+			cd.update(tmod);
+			delayer.update(tmod);
+
+			if( tickS<=0 || !cd.has("emitterTick") ) {
+				onUpdate();
+				cd.setS("emitterTick", tickS);
+			}
+
+			if( !permanent && !cd.has("emitterLife") )
+				dispose();
+		}
+
+	}
+}
+
+
+
+
+/************************************************************
+	Internal lightweight tweening tool
+************************************************************/
+
+enum abstract TinyTweenStyle(Int) to Int {
+	var Linear;
+}
+
+class TinyTween {
+	var fromValue = 0.;
+	var toValue = 0.;
+	var elapsedS = 0.;
+	var durationS = 0.;
+	var style : TinyTweenStyle = Linear;
+
+	public inline function new() {}
+
+	public inline function isRunning() {
+		return durationS>0 && elapsedS<durationS;
+	}
+
+	public inline function clear() {
+		durationS = elapsedS = 0;
+	}
+
+	public function start(from:Float, to:Float, durationS:Float) {
+		this.fromValue = from;
+		this.toValue = to;
+		this.durationS = durationS;
+		this.elapsedS = 0;
+	}
+
+	public inline function update(tmod:Float, fps:Int) {
+		elapsedS = M.fmin( durationS, elapsedS + tmod/fps );
+		return fromValue + ( toValue - fromValue ) * (elapsedS/durationS);
+	}
+}
