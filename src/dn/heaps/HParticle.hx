@@ -160,6 +160,11 @@ class HParticle extends BatchElement {
 		this.y = y;
 	}
 
+	public inline function tweenBothScales(from:Float, to:Float, durationS:Float) {
+		scaleX_tween.start(from, to, durationS);
+		scaleY_tween.start(from, to, durationS);
+	}
+
 	public inline function scaleTo(w:Float, h:Float) {
 		scaleXTo(w);
 		scaleYTo(h);
