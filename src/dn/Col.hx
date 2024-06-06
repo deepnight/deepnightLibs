@@ -630,10 +630,12 @@ abstract Col(Int) from Int to Int {
 	/** Interpolate to given color, at % ratio **/
 	public inline function interpolate(to:Col, ratio:Float) : Col {
 		return
-			( M.round( M.lerp( ai, to.ai, ratio ) ) << 24 ) |
-			( M.round( M.lerp( ri, to.ri, ratio ) ) << 16 ) |
-			( M.round( M.lerp( gi, to.gi, ratio ) ) << 8 ) |
-			( M.round( M.lerp( bi, to.bi, ratio ) ) );
+			ratio<=0 ? this
+			: ratio>=1 ? to
+			:	( M.round( M.lerp( ai, to.ai, ratio ) ) << 24 ) |
+				( M.round( M.lerp( ri, to.ri, ratio ) ) << 16 ) |
+				( M.round( M.lerp( gi, to.gi, ratio ) ) << 8 ) |
+				( M.round( M.lerp( bi, to.bi, ratio ) ) );
 	}
 
 
