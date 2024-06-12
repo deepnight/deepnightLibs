@@ -811,6 +811,16 @@ class M {
 		}
 	}
 
+	/** Round a float percentage to given precision **/
+	public static inline function prettyPct(v:Float, precision=0) : String {
+		if( precision<=0 )
+			return round(v*100) + "%";
+		else {
+			var d = Math.pow(10,precision);
+			return round(v*100*d)/d + "%";
+		}
+	}
+
 	/** Truncate a float to given precision **/
 	public static inline function truncateStr(v:Float, maxPrecision=2) : String {
 		if( maxPrecision<=0 )
