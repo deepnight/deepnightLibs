@@ -18,8 +18,10 @@ class Rand {
 	var seed : #if (flash9 || cpp || hl || neko) Float #else Int #end;
 	#end
 
-	public function new( seed : Int ) {
+	public function new( seed:Int, callInitSeed=false ) {
 		this.seed = ((seed < 0) ? -seed : seed) + 131;
+		if( callInitSeed )
+			initSeed(seed);
 	}
 
 	public inline function clone() {
