@@ -84,18 +84,30 @@ class Delayer {
 	}
 
 	public function addMs(?id:String, cb:Void->Void, ms:Float) {
-		delays.push( new Task( id, ms / 1000 * fps, cb) );
-		haxe.ds.ArraySort.sort(delays, cmp);
+		if( ms<=0 )
+			cb();
+		else {
+			delays.push( new Task( id, ms / 1000 * fps, cb) );
+			haxe.ds.ArraySort.sort(delays, cmp);
+		}
 	}
 
 	public function addS(?id:String, cb:Void->Void, sec:Float) {
-		delays.push( new Task( id, sec*fps, cb) );
-		haxe.ds.ArraySort.sort(delays, cmp);
+		if( sec<=0 )
+			cb();
+		else {
+			delays.push( new Task( id, sec*fps, cb) );
+			haxe.ds.ArraySort.sort(delays, cmp);
+		}
 	}
 
 	public function addF(?id:String, cb:Void->Void, frames:Float) {
-		delays.push( new Task( id, frames, cb ) );
-		haxe.ds.ArraySort.sort(delays, cmp);
+		if( frames<=0 )
+			cb();
+		else {
+			delays.push( new Task( id, frames, cb ) );
+			haxe.ds.ArraySort.sort(delays, cmp);
+		}
 	}
 
 	public inline function hasAny() return !isDestroyed() && delays.length>0;
