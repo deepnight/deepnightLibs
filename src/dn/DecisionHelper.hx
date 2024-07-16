@@ -168,6 +168,14 @@ class DecisionHelper<T> {
 		return best;
 	}
 
+	/** Return the non-discarded value with the highest score, then removes it from the pool. **/
+	public function getBestAndDiscard() : Null<T> {
+		var best = getBest();
+		if( best!=null )
+			discardValue(best);
+		return best;
+	}
+
 	/** Run a callback on the best value (ie. non-discarded and highest score) **/
 	public inline function useBest(action:T->Void) : Null<T> {
 		var e = getBest();
