@@ -189,7 +189,7 @@ class HSpriteBE extends BatchElement implements SpriteInterface {
 	public inline function uncolorize() {
 		dn.legacy.Color.uncolorizeBatchElement(this);
 	}
-	public inline function colorize(c:UInt, ?ratio=1.0) {
+	public inline function colorize(c:dn.Col, ?ratio=1.0) {
 		dn.legacy.Color.colorizeBatchElement(this, c, ratio);
 	}
 	public inline function isColorized() return r!=1 || g!=1 || b!=1;
