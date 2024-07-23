@@ -95,9 +95,11 @@ class Changelog {
 					throw 'Version number "$rawVersion" in changelog do not comply to SemVer semantics';
 
 				var ver = new Version(rawVersion);
+				var title = VERSION_TITLE_REG.matched(2)=="" ? null : VERSION_TITLE_REG.matched(2);
 				cur = {
 					version: ver,
-					title: VERSION_TITLE_REG.matched(2)=="" ? null : VERSION_TITLE_REG.matched(2),
+					title: title,
+					displayTitle: title==null ? ver.toString() : '${ver.toString()} - $title',
 					allNoteLines: [],
 					notEmptyNoteLines: [],
 				}
@@ -184,9 +186,15 @@ typedef ChangelogEntry = {
 	var version : dn.Version;
 
 	/**
-		Version title
+		Raw version title
 	**/
 	var title: Null<String>;
+
+	/**
+		If title is not null: "x.y.z" - "Title string"
+		Otherwise: "x.y.z"
+	**/
+	var displayTitle: Null<String>;
 
 	/**
 		Markdown description lines
