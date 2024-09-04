@@ -170,6 +170,37 @@ class RandomTools {
 	}
 
 
+	/** Shuffle an array in place **/
+	public static function shuffleArray<T>(arr:Array<T>, randFunc:Int->Int) {
+		// WARNING!! Now modifies the array itself (changed on Apr. 27 2016)
+		// Source: http://bost.ocks.org/mike/shuffle/
+		var m = arr.length;
+		var i = 0;
+		var tmp = null;
+		while( m>0 ) {
+			i = randFunc(m--);
+			tmp = arr[m];
+			arr[m] = arr[i];
+			arr[i] = tmp;
+		}
+	}
+
+	/** Shuffle a vector in place **/
+	public static function shuffleVector<T>(arr:haxe.ds.Vector<T>, randFunc:Int->Int) {
+		// Source: http://bost.ocks.org/mike/shuffle/
+		var m = arr.length;
+		var i = 0;
+		var tmp = null;
+		while( m>0 ) {
+			i = randFunc(m);
+			m--;
+			tmp = arr[m];
+			arr[m] = arr[i];
+			arr[i] = tmp;
+		}
+	}
+
+
 
 	#if deepnightLibsTests
 	public static function test() {
