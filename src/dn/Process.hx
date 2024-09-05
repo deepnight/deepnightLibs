@@ -709,6 +709,14 @@ class Process {
 		}
 	}
 
+	/**
+		Not recommended to use this method, as it will force the garbage collection of all processes.
+		This automatically happens once per frame, at the end of the frame.
+	**/
+	public static function forceProcessGarbageCollection() {
+		_garbageCollector(ROOTS);
+	}
+
 	/** Request a onResize() call for all processes. If `immediately` is false (default), the call will only happen **once** and **at the end** of current frame. **/
 	public static function resizeAll(immediately=false) {
 		if( immediately ) {
