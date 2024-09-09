@@ -1,4 +1,4 @@
-package dn.data;
+package dn;
 
 #if macro
 import haxe.macro.Expr;
@@ -85,7 +85,7 @@ class AbstractEnumFlags<T:Int> {
 
 		// Build Map declaration as `[ 0=>"ValueName", 1=>"ValueName" ]`
 		var flagNamesExpr : Expr = { pos:Context.currentPos(), expr: EArrayDecl(mapInitExprs) }
-		return macro @:privateAccess new dn.data.AbstractEnumFlags( $flagNamesExpr );
+		return macro @:privateAccess new dn.AbstractEnumFlags( $flagNamesExpr );
 	}
 
 }
