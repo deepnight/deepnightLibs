@@ -13,35 +13,35 @@ class AbstractEnumFlags<T:Int> {
 		this.flagNames = flagNames;
 	}
 
-	public inline function hasFlag(flag:T) {
+	public inline function has(flag:T) {
 		return flagValues.exists(flag);
 	}
 
-	public inline function setFlagOnce(flag:T) {
-		if( !hasFlag(flag) ) {
-			setFlag(flag);
+	public inline function setOnce(flag:T) {
+		if( !has(flag) ) {
+			set(flag);
 			return true;
 		}
 		else
 			return false;
 	}
 
-	public inline function setFlag(flag:T, v=true) {
+	public inline function set(flag:T, v=true) {
 		if( v )
 			flagValues.set(flag,v);
 		else
 			flagValues.remove(flag);
 	}
 
-	public inline function toggleFlag(flag:T) {
-		setFlag(flag, !hasFlag(flag));
+	public inline function toggle(flag:T) {
+		set(flag, !has(flag));
 	}
 
 	public inline function getFlagValue(flag:T) {
 		return flagValues.exists(flag);
 	}
 
-	public inline function removeFlag(flag:T) {
+	public inline function remove(flag:T) {
 		return flagValues.remove(flag);
 	}
 
