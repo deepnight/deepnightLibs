@@ -78,6 +78,8 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 		customTile = t;
 	}
 
+	public inline function isUsingCustomTile() return customTile!=null;
+
 	public function setEmptyTexture() {
 		#if debug
 		rawTile = h2d.Tile.fromColor(0x80FF00,4,4);
