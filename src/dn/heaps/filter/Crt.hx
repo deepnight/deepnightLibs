@@ -23,7 +23,7 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 	/** Set this method to automatically update scanline size based on your own criterions. It should return the new scanline size. **/
 	public var autoUpdateSize: Null< Void->Int > = null;
 
-	var scanlineTex : hxsl.Types.Sampler2D;
+	var scanlineTex : h3d.mat.Texture;
 	var invalidated = true;
 
 	/**
@@ -100,7 +100,7 @@ class Crt extends h2d.filter.Shader<InternalShader> {
 		for(x in 0...bd.width)
 			bd.setPixel(x, 0, scanlineColor);
 
-		scanlineTex = hxsl.Types.Sampler2D.fromBitmap(bd);
+		scanlineTex = h3d.mat.Texture.fromBitmap(bd);
 		scanlineTex.filter = Nearest;
 		scanlineTex.wrap = Repeat;
 
