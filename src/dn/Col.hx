@@ -701,6 +701,13 @@ abstract Col(Int) from Int to Int {
 		return c.getColorizeFilterH2d(ratioNewColor, ratioOldColor);
 	}
 
+	/** Return a ColorMatrix filter to desaturate an object (factor is -1 -> 1)**/
+	public static inline function makeSaturationFilter(saturation:Float) : h2d.filter.ColorMatrix {
+		var f = new h2d.filter.ColorMatrix();
+		f.matrix.colorSaturate( M.fclamp(saturation,-1,1) );
+		return f;
+	}
+
 	/** Return a h3d.Matrix to colorize an object **/
 	public static inline function makeColorizeMatrixH2d(c:dn.Col, ?ratioNewColor=1.0, ?ratioOldColor:Float) : h3d.Matrix {
 		return c.getColorizeMatrixH2d(ratioNewColor, ratioOldColor);
