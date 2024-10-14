@@ -294,14 +294,14 @@ class Process {
 
 
 
-	/** Called at the "beginning of the frame", before any Process update(), in declaration order **/
+	/** Called at the "beginning of the frame", before any Process update(), in instanciation order **/
 	function preUpdate() {}
 
-	/** Called in the "middle of the frame", after all preUpdates() in declaration order **/
+	/** Called in the "middle of the frame", after all preUpdates() in instanciation order **/
 	function update() {}
 
 	/**
-		Called in the "middle of the frame", after all updates(), but only X times per seconds (see `fixedUpdateFps`), in declaration order.
+		Called in the "middle of the frame", after all updates(), but only X times per seconds (see `fixedUpdateFps`), in instanciation order.
 
 		Eg. if the client is running 60fps, and fixedUpdateFps if 30fps, this method will only be called 1 frame out of 2.
 	 **/
@@ -315,8 +315,11 @@ class Process {
 		return _fixedUpdateAccu / ( getDefaultFrameRate() / FIXED_UPDATE_FPS );
 	}
 
-	/** Called at the "end of the frame", after all updates()/fixedUpdates(), in declaration order. That's were graphic updates should probably happen. **/
+	/** Called at the after all preUpdates/updates/fixedUpdates, in instanciation order. That's were graphic updates should probably happen. **/
 	function postUpdate() { }
+
+	/** Last updates of the frame after everything, but before resizing callbacks & garbage collection **/
+	function finalUpdate() {}
 
 	/** Called when client window is resized. **/
 	function onResize() {
@@ -589,6 +592,17 @@ class Process {
 				_doPostUpdate(c);
 	}
 
+	static inline function _doFinalUpdate(p : Process) {
+		if( !canRun(p) )
+			return;
+
+		p.finalUpdate();
+
+		if( !p.destroyed )
+			for (c in p.children)
+				_doFinalUpdate(c);
+	}
+
 	static function _garbageCollector(plist:#if unlimitedProcesses Array #else FixedArray #end<Process>) {
 		var i = 0;
 		var p : Process;
@@ -692,6 +706,9 @@ class Process {
 
 		for (p in ROOTS)
 			_doPostUpdate(p);
+
+		for (p in ROOTS)
+			_doFinalUpdate(p);
 
 		if( RESIZE_REQUESTED ) {
 			RESIZE_REQUESTED = false;
