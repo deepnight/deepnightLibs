@@ -674,6 +674,18 @@ abstract Col(Int) from Int to Int {
 		return h2d.Tile.fromColor(withoutAlpha(), wid, hei, alpha);
 	}
 
+	public inline function toBitmap(wid=1, hei=1, alpha=1.0, ?p) : h2d.Bitmap {
+		return new h2d.Bitmap( toTile(wid, hei, alpha), p );
+	}
+
+	public function toGraphics(wid=1, hei=1, alpha=1.0, ?p) : h2d.Graphics {
+		var g = new h2d.Graphics(p);
+		g.beginFill( this, alpha );
+		g.drawRect( 0, 0, wid, hei );
+		g.endFill();
+		return g;
+	}
+
 	/** Return a h3d.Matrix to colorize an object **/
 	public inline function getColorizeMatrixH2d(ratioNewColor=1.0, ?ratioOldColor:Float) : h3d.Matrix {
 		if( ratioOldColor==null )
