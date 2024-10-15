@@ -209,6 +209,7 @@ class Lib {
 
 	#if( heaps )
 	public static function redirectTracesToH2dConsole(c:h2d.Console) {
+		h2d.Console.HIDE_LOG_TIMEOUT = M.fmax(15, h2d.Console.HIDE_LOG_TIMEOUT);
 		haxe.Log.trace = function(m, ?pos) {
 			if ( pos != null && pos.customParams == null )
 				pos.customParams = ["debug"];
