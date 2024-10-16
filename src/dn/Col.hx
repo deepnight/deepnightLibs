@@ -720,6 +720,13 @@ abstract Col(Int) from Int to Int {
 		return f;
 	}
 
+	/** Return a ColorMatrix filter to change lightness of an object (factor is -1 -> 1)**/
+	public static inline function makeLightnessFilter(lightness:Float) : h2d.filter.ColorMatrix {
+		var f = new h2d.filter.ColorMatrix();
+		f.matrix.colorLightness(lightness);
+		return f;
+	}
+
 	/** Return a h3d.Matrix to colorize an object **/
 	public static inline function makeColorizeMatrixH2d(c:dn.Col, ?ratioNewColor=1.0, ?ratioOldColor:Float) : h3d.Matrix {
 		return c.getColorizeMatrixH2d(ratioNewColor, ratioOldColor);
