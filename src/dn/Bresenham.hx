@@ -367,6 +367,21 @@ class Bresenham {
 	}
 
 
+	/** Iterate a filled square. For non-even sizes, the square is aligned to the left/top. **/
+	public static function iterateSquareAlignLow(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
+		for(y in 0...hei)
+		for(x in 0...wid)
+			cb( Std.int(centerX-wid*0.5) + x, Std.int(centerY-hei*0.5) + y );
+	}
+
+	/** Iterate a filled square. For non-even sizes, the square is aligned to the right/bottom. **/
+	public static function iterateSquareAlignHigh(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
+		for(y in 0...hei)
+		for(x in 0...wid)
+			cb( Std.int(centerX-wid*0.5 + 0.5) + x, Std.int(centerY-hei*0.5 + 0.5) + y );
+	}
+
+
 	/**
 	 * A helper function to iterate over each tile in a line from `(x0, y0)` to `(x1, y1)` while
 	 * allowing diagonal traversal.
@@ -626,6 +641,60 @@ class Bresenham {
 						throw 'Failed at $x,$y';
 				})
 			);
+		}
+
+		// Square (low-aligned)
+		for(w in [1,2,3,4,7])
+		for(h in [1,2,3,4,7]) {
+			var n = 0;
+			var left = 9999;
+			var top = 9999;
+			var right = -9999;
+			var bottom = -9999;
+
+			CiAssert.noException(
+				"Bresenham square (low-aligned)",
+				iterateSquareAlignLow(0,0,w,h, function(x,y) {
+					left = M.imin(left, x);
+					right = M.imax(right, x);
+					top = M.imin(top, y);
+					bottom = M.imax(bottom, y);
+					n++;
+				})
+			);
+
+			CiAssert.equals( left, Std.int(-w*0.5) );
+			CiAssert.equals( right, Std.int(-w*0.5) + w - 1 );
+			CiAssert.equals( top, Std.int(-h*0.5) );
+			CiAssert.equals( bottom, Std.int(-h*0.5) + h - 1 );
+			CiAssert.equals( n, w*h );
+		}
+
+		// Square (high-aligned)
+		for(w in [1,2,3,4,7])
+		for(h in [1,2,3,4,7]) {
+			var n = 0;
+			var left = 9999;
+			var top = 9999;
+			var right = -9999;
+			var bottom = -9999;
+
+			CiAssert.noException(
+				"Bresenham square (high-aligned)",
+				iterateSquareAlignHigh(0,0,w,h, function(x,y) {
+					left = M.imin(left, x);
+					right = M.imax(right, x);
+					top = M.imin(top, y);
+					bottom = M.imax(bottom, y);
+					n++;
+				})
+			);
+
+			CiAssert.equals( left, Std.int(-w*0.5 + 0.5) );
+			CiAssert.equals( right, Std.int(-w*0.5 + 0.5) + w - 1 );
+			CiAssert.equals( top, Std.int(-h*0.5 + 0.5) );
+			CiAssert.equals( bottom, Std.int(-h*0.5 + 0.5) + h - 1 );
+			CiAssert.equals( n, w*h );
 		}
 
 		// Circles / discs
