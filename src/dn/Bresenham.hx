@@ -368,14 +368,14 @@ class Bresenham {
 
 
 	/** Iterate a filled square. For non-even sizes, the square is aligned to the left/top. **/
-	public static function iterateSquareAlignLow(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
+	public static function iterateCenteredSquareAlignLow(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
 		for(y in 0...hei)
 		for(x in 0...wid)
 			cb( Std.int(centerX-wid*0.5) + x, Std.int(centerY-hei*0.5) + y );
 	}
 
 	/** Iterate a filled square. For non-even sizes, the square is aligned to the right/bottom. **/
-	public static function iterateSquareAlignHigh(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
+	public static function iterateCenteredSquareAlignHigh(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
 		for(y in 0...hei)
 		for(x in 0...wid)
 			cb( Std.int(centerX-wid*0.5 + 0.5) + x, Std.int(centerY-hei*0.5 + 0.5) + y );
@@ -643,7 +643,7 @@ class Bresenham {
 			);
 		}
 
-		// Square (low-aligned)
+		// Centered square (low-aligned)
 		for(w in [1,2,3,4,7])
 		for(h in [1,2,3,4,7]) {
 			var n = 0;
@@ -654,7 +654,7 @@ class Bresenham {
 
 			CiAssert.noException(
 				"Bresenham square (low-aligned)",
-				iterateSquareAlignLow(0,0,w,h, function(x,y) {
+				iterateCenteredSquareAlignLow(0,0,w,h, function(x,y) {
 					left = M.imin(left, x);
 					right = M.imax(right, x);
 					top = M.imin(top, y);
@@ -670,7 +670,7 @@ class Bresenham {
 			CiAssert.equals( n, w*h );
 		}
 
-		// Square (high-aligned)
+		// Centered square (high-aligned)
 		for(w in [1,2,3,4,7])
 		for(h in [1,2,3,4,7]) {
 			var n = 0;
@@ -681,7 +681,7 @@ class Bresenham {
 
 			CiAssert.noException(
 				"Bresenham square (high-aligned)",
-				iterateSquareAlignHigh(0,0,w,h, function(x,y) {
+				iterateCenteredSquareAlignHigh(0,0,w,h, function(x,y) {
 					left = M.imin(left, x);
 					right = M.imax(right, x);
 					top = M.imin(top, y);
