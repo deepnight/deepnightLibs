@@ -1,4 +1,4 @@
-package dn;
+package dn.geom;
 
 /**
  * Various helper methods for 2D grid traversal.
@@ -22,10 +22,10 @@ class Bresenham {
 	 * @param x1 End x coordinate
 	 * @param y1 End y coordinate
 	 * @param respectOrder=false Whether the list of points should be ordered start -> end. (This might not be the case when the end is geometrically closer to the origin than the start)
-	 * @return Array<BresenhamPoint> An array of points along the line
+	 * @return Array<dn.geom.GridPoint> An array of points along the line
 	 */
-	public static function getThinLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false) : Array<BresenhamPoint> {
-		var pts : Array<BresenhamPoint> = [];
+	public static function getThinLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false) : Array<GridPoint> {
+		var pts : Array<GridPoint> = [];
 		var swapXY = M.iabs( y1 - y0 ) > M.iabs( x1 - x0 );
 		var swapped = false;
         var tmp : Int;
@@ -48,7 +48,7 @@ class Bresenham {
 		if( swapXY )
 			// Y / X
 			for ( x in x0 ... x1+1 ) {
-				pts.push( new BresenhamPoint(y,x) );
+				pts.push( new GridPoint(y,x) );
 				error -= deltay;
 				if ( error < 0 ) {
 					y+=ystep;
@@ -58,7 +58,7 @@ class Bresenham {
 		else
 			// X / Y
 			for ( x in x0 ... x1+1 ) {
-				pts.push( new BresenhamPoint(x,y) );
+				pts.push( new GridPoint(x,y) );
 				error -= deltay;
 				if ( error < 0 ) {
 					y+=ystep;
@@ -89,8 +89,8 @@ class Bresenham {
 	 * @param respectOrder=false Whether the list of points should be ordered start -> end. (This might not be the case when the end is geometrically closer to the origin than the start)
 	 * @return Array<{x:Int, y:Int}> An array of points along the line
 	 */
-	public static function getThickLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false): Array<BresenhamPoint> {
-		var pts : Array<BresenhamPoint> = [];
+	public static function getThickLine(x0:Int, y0:Int, x1:Int, y1:Int, ?respectOrder=false): Array<GridPoint> {
+		var pts : Array<GridPoint> = [];
 		var swapXY = M.iabs( y1 - y0 ) > M.iabs( x1 - x0 );
 		var swapped = false;
         var tmp : Int;
@@ -114,13 +114,13 @@ class Bresenham {
 		if( swapXY )
 			// Y / X
 			for ( x in x0 ... x1+1 ) {
-				pts.push( new BresenhamPoint(y,x) );
+				pts.push( new GridPoint(y,x) );
 
 				error -= deltay;
 				if ( error < 0 ) {
 					if( x<x1 ) {
-						pts.push( new BresenhamPoint(y+ystep, x) );
-						pts.push( new BresenhamPoint(y, x+1) );
+						pts.push( new GridPoint(y+ystep, x) );
+						pts.push( new GridPoint(y, x+1) );
 					}
 					y+=ystep;
 					error = error + deltax;
@@ -129,13 +129,13 @@ class Bresenham {
 		else
 			// X / Y
 			for ( x in x0 ... x1+1 ) {
-				pts.push( new BresenhamPoint(x,y) );
+				pts.push( new GridPoint(x,y) );
 
 				error -= deltay;
 				if ( error < 0 ) {
 					if( x<x1 ) {
-						pts.push( new BresenhamPoint(x, y+ystep) );
-						pts.push( new BresenhamPoint(x+1, y) );
+						pts.push( new GridPoint(x, y+ystep) );
+						pts.push( new GridPoint(x+1, y) );
 					}
 					y+=ystep;
 					error = error + deltax;
@@ -160,9 +160,9 @@ class Bresenham {
 	 * @param radius Radius
 	 * @return Array<{x:Int, y:Int}> An array of points along the circle
 	 */
-	public inline static function getCircle(x0,y0,radius) : Array<BresenhamPoint> {
+	public inline static function getCircle(x0,y0,radius) : Array<GridPoint> {
 		var pts = [];
-		iterateCircle(x0, y0, radius, (x,y)->pts.push( new BresenhamPoint(x,y) ));
+		iterateCircle(x0, y0, radius, (x,y)->pts.push( new GridPoint(x,y) ));
 		return pts;
 	}
 
@@ -176,9 +176,9 @@ class Bresenham {
 	 * @param radius Radius
 	 * @return Array<{x:Int, y:Int}> An array of points filling the disc
 	 */
-	public static function getDisc(x0,y0,radius):Array<BresenhamPoint> {
+	public static function getDisc(x0,y0,radius):Array<GridPoint> {
 		var pts = [];
-		iterateDisc(x0, y0, radius, (x,y)->pts.push( new BresenhamPoint(x,y) ));
+		iterateDisc(x0, y0, radius, (x,y)->pts.push( new GridPoint(x,y) ));
 		return pts;
 	}
 
@@ -642,7 +642,7 @@ class Bresenham {
 		CiAssert.equals( Bresenham.getThinLine(0,0, 4,2).length, 5 );
 
 		// Check line symetry
-		function _arrayIdentical(a:Array<BresenhamPoint>, b:Array<BresenhamPoint>) {
+		function _arrayIdentical(a:Array<GridPoint>, b:Array<GridPoint>) {
 			if( a.length!=b.length )
 				return false;
 
@@ -661,30 +661,4 @@ class Bresenham {
 		}
 	}
 	#end
-}
-
-
-
-class BresenhamPoint {
-	public var x : Int;
-	public var y : Int;
-
-	/** X alias **/
-	public var cx(get,set) : Int;
-		inline function get_cx() return x;
-		inline function set_cx(v:Int) return x = v;
-
-	/** Y alias **/
-	public var cy(get,set) : Int;
-		inline function get_cy() return y;
-		inline function set_cy(v:Int) return y = v;
-
-
-	public inline function new(x,y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	@:keep
-	public function toString() return '<$x,$y>';
 }

@@ -1,4 +1,4 @@
-package dn;
+package dn.geom;
 
 class Geom {
 
@@ -123,20 +123,17 @@ class Geom {
 	}
 
 
-	/** Iterate a filled square. For non-even sizes, the square is aligned to the left/top. **/
-	public static function iterateCenteredSquareAlignLow(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
-		for(y in 0...hei)
-		for(x in 0...wid)
-			cb( Std.int(centerX-wid*0.5) + x, Std.int(centerY-hei*0.5) + y );
+	/** Iterate a filled centered rectangle. **/
+	public static function iterateCenteredRect(centerX:Int, centerY:Int, radiusX:Int, radiusY, cb:Int->Int->Void) {
+		for(dy in 0...(radiusY*2+1))
+		for(dx in 0...(radiusX*2+1))
+			cb( centerX-radiusX+dx, centerY-radiusY+dy );
 	}
 
-	/** Iterate a filled square. For non-even sizes, the square is aligned to the right/bottom. **/
-	public static function iterateCenteredSquareAlignHigh(centerX:Int, centerY:Int, wid:Int, hei:Int, cb:Int->Int->Void) {
-		for(y in 0...hei)
-		for(x in 0...wid)
-			cb( Std.int(centerX-wid*0.5 + 0.5) + x, Std.int(centerY-hei*0.5 + 0.5) + y );
+	/** Iterate a filled centered square. **/
+	public static inline function iterateCenteredSquare(centerX:Int, centerY:Int, radius:Int, cb:Int->Int->Void) {
+		iterateCenteredRect(centerX, centerY, radius, radius, cb);
 	}
-
 
 
 
@@ -177,60 +174,58 @@ class Geom {
 		// TODO
 
 
-		// Centered square (low-aligned)
-		for(w in [1,2,3,4,7])
-			for(h in [1,2,3,4,7]) {
-				var n = 0;
-				var left = 9999;
-				var top = 9999;
-				var right = -9999;
-				var bottom = -9999;
+		// Centered rect
+		for(rx in [0,1,2,3,4])
+		for(ry in [0,1,2,3,4]) {
+			var n = 0;
+			var left = 9999;
+			var top = 9999;
+			var right = -9999;
+			var bottom = -9999;
 
-				CiAssert.noException(
-					"Bresenham square (low-aligned)",
-					iterateCenteredSquareAlignLow(0,0,w,h, function(x,y) {
-						left = M.imin(left, x);
-						right = M.imax(right, x);
-						top = M.imin(top, y);
-						bottom = M.imax(bottom, y);
-						n++;
-					})
-				);
+			CiAssert.noException(
+				"Centered rect iteration",
+				iterateCenteredRect(0,0,rx,ry, function(x,y) {
+					left = M.imin(left, x);
+					right = M.imax(right, x);
+					top = M.imin(top, y);
+					bottom = M.imax(bottom, y);
+					n++;
+				})
+			);
 
-				CiAssert.equals( left, Std.int(-w*0.5) );
-				CiAssert.equals( right, Std.int(-w*0.5) + w - 1 );
-				CiAssert.equals( top, Std.int(-h*0.5) );
-				CiAssert.equals( bottom, Std.int(-h*0.5) + h - 1 );
-				CiAssert.equals( n, w*h );
-			}
+			CiAssert.equals( n, (rx*2+1) * (ry*2+1) );
+			CiAssert.equals( left, -rx );
+			CiAssert.equals( right, rx );
+			CiAssert.equals( top, -ry );
+			CiAssert.equals( bottom, ry );
+		}
 
-			// Centered square (high-aligned)
-			for(w in [1,2,3,4,7])
-			for(h in [1,2,3,4,7]) {
-				var n = 0;
-				var left = 9999;
-				var top = 9999;
-				var right = -9999;
-				var bottom = -9999;
+		// Centered square
+		for(r in [0,1,2,3,4]) {
+			var n = 0;
+			var left = 9999;
+			var top = 9999;
+			var right = -9999;
+			var bottom = -9999;
 
-				CiAssert.noException(
-					"Bresenham square (high-aligned)",
-					iterateCenteredSquareAlignHigh(0,0,w,h, function(x,y) {
-						left = M.imin(left, x);
-						right = M.imax(right, x);
-						top = M.imin(top, y);
-						bottom = M.imax(bottom, y);
-						n++;
-					})
-				);
+			CiAssert.noException(
+				"Centered rect iteration",
+				iterateCenteredSquare(0,0, r, function(x,y) {
+					left = M.imin(left, x);
+					right = M.imax(right, x);
+					top = M.imin(top, y);
+					bottom = M.imax(bottom, y);
+					n++;
+				})
+			);
 
-				CiAssert.equals( left, Std.int(-w*0.5 + 0.5) );
-				CiAssert.equals( right, Std.int(-w*0.5 + 0.5) + w - 1 );
-				CiAssert.equals( top, Std.int(-h*0.5 + 0.5) );
-				CiAssert.equals( bottom, Std.int(-h*0.5 + 0.5) + h - 1 );
-				CiAssert.equals( n, w*h );
-			}
-
+			CiAssert.equals( n, Math.pow(r*2+1, 2) );
+			CiAssert.equals( left, -r );
+			CiAssert.equals( right, r );
+			CiAssert.equals( top, -r );
+			CiAssert.equals( bottom, r );
+		}
 	}
 	#end
 }

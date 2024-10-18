@@ -17,7 +17,8 @@ class Tests {
 		// Libs
 		dn.Args.test();
 		dn.pathfinder.AStar.test();
-		dn.Bresenham.test();
+		dn.geom.Bresenham.test();
+		dn.geom.Geom.test();
 		dn.Changelog.test();
 		dn.Cinematic.test();
 		dn.Col.UnitTest.test();
@@ -42,7 +43,6 @@ class Tests {
 		dn.phys.Velocity.test();
 		dn.Version.test();
 		dn.Log.test();
-		dn.Geom.test();
 
 
 
