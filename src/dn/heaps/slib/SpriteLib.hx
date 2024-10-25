@@ -440,8 +440,8 @@ class SpriteLib {
 		return new h2d.Bitmap( getTile(g,frame,px,py), p );
 	}
 
-	public inline function getBitmapRandom(g:String, ?px:Float=0.0, ?py:Float=0.0, ?p:h2d.Object) : h2d.Bitmap {
-		return new h2d.Bitmap( getTileRandom(g,px,py), p );
+	public inline function getBitmapRandom(g:String, ?px:Float=0.0, ?py:Float=0.0, ?rndFunc, ?p:h2d.Object) : h2d.Bitmap {
+		return new h2d.Bitmap( getTileRandom(g,px,py,rndFunc), p );
 	}
 
 	public inline function updTile(t:h2d.Tile, g:String, frame=0, px:Float=0.0, py:Float=0.0) : h2d.Tile {
