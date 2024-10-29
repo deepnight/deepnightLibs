@@ -638,6 +638,26 @@ class Lib {
 		return -1;
 	}
 
+	/** Return the value before `v` in `arr` (or `v` if not found or is first element) **/
+	public static function getArrayValueBefore<T>(v:T, arr:Array<T>) : T {
+		if( arr.length==0 )
+			return v;
+
+		var idx = getArrayIndex(v,arr);
+		return idx>0 && idx<arr.length ? arr[idx-1] : v;
+	}
+
+
+	/** Return the value after `v` in `arr` (or `v` if not found, or if `v` is the last element) **/
+	public static function getArrayValueAfter<T>(v:T, arr:Array<T>) : T {
+		if( arr.length==0 )
+			return v;
+
+		var idx = getArrayIndex(v,arr);
+		return idx>=0 && idx<arr.length-1 ? arr[idx+1] : v;
+	}
+
+
 	/** Return a pretty bytes size value (bytes, kilobytes, or megabytes)**/
 	public static inline function prettyBytesSize(bytesCount:Int) : String {
 		return
