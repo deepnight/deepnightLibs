@@ -874,6 +874,18 @@ class Lib {
 		CiAssert.equals( intToRoman(1000), "M" );
 		CiAssert.equals( intToRoman(2000), "MM" );
 		CiAssert.equals( intToRoman(4999), "MMMMCMXCIX" );
+
+		CiAssert.equals( getArrayValueBefore(12, [3,1,7,9]), 12 );
+		CiAssert.equals( getArrayValueBefore(9, [3,1,7,9]), 7 );
+		CiAssert.equals( getArrayValueBefore(7, [3,1,7,9]), 1 );
+		CiAssert.equals( getArrayValueBefore(1, [3,1,7,9]), 3 );
+		CiAssert.equals( getArrayValueBefore(3, [3,1,7,9]), 3 );
+
+		CiAssert.equals( getArrayValueAfter(12, [3,1,7,9]), 12 );
+		CiAssert.equals( getArrayValueAfter(9, [3,1,7,9]), 9 );
+		CiAssert.equals( getArrayValueAfter(7, [3,1,7,9]), 9 );
+		CiAssert.equals( getArrayValueAfter(1, [3,1,7,9]), 7 );
+		CiAssert.equals( getArrayValueAfter(3, [3,1,7,9]), 1 );
 	}
 	#end
 
