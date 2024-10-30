@@ -110,6 +110,10 @@ class Delayer {
 		}
 	}
 
+	public inline function nextFrame(cb:Void->Void) {
+		addF(cb, 1);
+	}
+
 	public inline function hasAny() return !isDestroyed() && delays.length>0;
 
 	public function update(dt:Float) {
