@@ -654,20 +654,15 @@ class Process {
 			p.onDisposeCb();
 
 		// Tools
-		p.delayer.destroy();
-		p.udelayer.destroy();
-		p.cd.dispose();
-		p.ucd.dispose();
-		p.tw.destroy();
+		p.delayer.dispose(); p.delayer = null;
+		p.udelayer.dispose(); p.udelayer = null;
+		p.cd.dispose(); p.cd = null;
+		p.ucd.dispose(); p.ucd = null;
+		p.tw.destroy(); p.tw = null;
 
 		// Clean up
 		p.parent = null;
 		p.children = null;
-		p.cd = null;
-		p.ucd = null;
-		p.delayer = null;
-		p.udelayer = null;
-		p.tw = null;
 		#if heaps
 		p.root = null;
 		#end
