@@ -938,7 +938,7 @@ class Emitter {
 
 		destroyed = true;
 		cd.dispose();
-		delayer.destroy();
+		delayer.dispose();
 		onDispose();
 		activeCond = null;
 		cd = null;
