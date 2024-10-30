@@ -121,6 +121,24 @@ class FixedArray<T> {
 		return exists(idx) ? values[idx] : null;
 	}
 
+
+	/** Return a filtered standard Array **/
+	public function filter(filterFunc:T->Bool) : Array<T> {
+		var out = [];
+		for(v in this)
+			if( filterFunc(v) )
+				out.push(v);
+		return out;
+	}
+
+	/** Return the first value that matches the filter function **/
+	public function find(filterFunc:T->Bool) : Null<T> {
+		for(v in this)
+			if( filterFunc(v) )
+				return v;
+		return null;
+	}
+
 	public function pickRandom(?rndFunc:Int->Int, removeAfterPick=false) : Null<T> {
 		if( allocated==0 )
 			return null;
@@ -407,6 +425,20 @@ class FixedArrayTests {
 		a.shift(); CiAssert.equals(a.shortString(), "b,c,d,e");
 		a.removeIndex(1); CiAssert.equals(a.shortString(), "b,d,e");
 		a.remove("b"); CiAssert.equals(a.shortString(), "d,e");
+
+		// Filter
+		var a = FixedArray.fromArray([0,1,2,3,4,5]);
+		CiAssert.equals( a.filter( v->v%2==0 ).length, 3);
+		CiAssert.equals( a.filter( v->v>=0 ).length, 6);
+		CiAssert.equals( a.filter( v->v>=5 ).length, 1);
+		CiAssert.equals( a.filter( v->v>=10 ).length, 0);
+
+		// Find
+		var a = FixedArray.fromArray([0,1,2,3,4,5]);
+		CiAssert.equals( a.find( v->v==3 ), 3);
+		CiAssert.equals( a.find( v->v==10 ), null);
+		CiAssert.equals( a.find( v->v%2==0 ), 0);
+		CiAssert.equals( a.find( v->v%2!=0 ), 1);
 	}
 }
 #end
