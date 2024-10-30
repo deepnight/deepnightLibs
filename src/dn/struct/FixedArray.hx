@@ -132,7 +132,7 @@ class FixedArray<T> {
 	}
 
 	/** Return the first value that matches the filter function **/
-	public function find(filterFunc:T->Bool) : Null<T> {
+	public function findFirst(filterFunc:T->Bool) : Null<T> {
 		for(v in this)
 			if( filterFunc(v) )
 				return v;
@@ -435,10 +435,10 @@ class FixedArrayTests {
 
 		// Find
 		var a = FixedArray.fromArray([0,1,2,3,4,5]);
-		CiAssert.equals( a.find( v->v==3 ), 3);
-		CiAssert.equals( a.find( v->v==10 ), null);
-		CiAssert.equals( a.find( v->v%2==0 ), 0);
-		CiAssert.equals( a.find( v->v%2!=0 ), 1);
+		CiAssert.equals( a.findFirst( v->v==3 ), 3);
+		CiAssert.equals( a.findFirst( v->v==10 ), null);
+		CiAssert.equals( a.findFirst( v->v%2==0 ), 0);
+		CiAssert.equals( a.findFirst( v->v%2!=0 ), 1);
 	}
 }
 #end
