@@ -165,6 +165,16 @@ class HParticle extends BatchElement {
 		scaleY_tween.start(from, to, durationS);
 	}
 
+	public inline function squashX(s:Float, durationS=0.1) {
+		scaleX_tween.start(scaleX*s, scaleX, durationS);
+		scaleY_tween.start(scaleX*(2-s), scaleY, durationS);
+	}
+
+	public inline function squashY(s:Float, durationS=0.1) {
+		scaleX_tween.start(scaleX*(2-s), scaleX, durationS);
+		scaleY_tween.start(scaleY*s, scaleY, durationS);
+	}
+
 	public inline function scaleTo(w:Float, h:Float) {
 		scaleXTo(w);
 		scaleYTo(h);
