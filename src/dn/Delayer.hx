@@ -2,47 +2,50 @@ package dn;
 
 
 private class Task { // Classes are faster
+	public var frames : Float;
+	public var id : String;
+	public var cb : Void->Void;
 
-	public var t	: Float;
-	public var id	: String;
-	public var cb	: Void->Void;
-
-	public inline function new(id, t,cb) { // Inline new classes are faster faster
-		this.t = t;
+	public inline function new(id, frames,cb) { // Inline new classes are faster faster
+		this.frames = frames;
 		this.cb = cb;
 		this.id = id;
 	}
 
-	public inline function toString() return t + " " + cb;
+	@:keep public function toString() return frames+"f "+cb;
 }
 
 class Delayer {
-	var delays		: Array<Task>;
-	var fps			: Float;
+	var delays : Array<Task> = [];
+	var fps : Float;
 
-	public function new(fps:Float) { // No need for nullability because no other nullable args
+	public function new(fps:Float) {
 		this.fps = fps;
-		delays = new Array();
 	}
 
-	public function toString() {
-		return "Delayer(timers="+delays.map(function(d) return d.t).join(",")+")";
+	@:keep public function toString() {
+		return "Delayer(timers=" + delays.map( d->M.pretty(d.frames/fps,1)+"s" ).join(",") + ")";
 	}
 
 	public inline function isDestroyed() return delays == null;
 
-	public function destroy() {
+	@:deprecated("Use dispose() instead") @:noCompletion
+	public inline function destroy() {
+		dispose();
+	}
+
+	public function dispose() {
 		delays = null;
 	}
 
-	public function skip() {
-		var limit = delays.length+100;
-		while( delays.length>0 && limit-->0 ) {
-			var d = delays.shift();
-			d.cb();
-			d.cb = null;//help garbage
-		}
-	}
+	// public function skip() {
+	// 	var limit = delays.length+100;
+	// 	while( delays.length>0 && limit-->0 ) {
+	// 		var d = delays.shift();
+	// 		d.cb();
+	// 		d.cb = null;
+	// 	}
+	// }
 
 	public function cancelEverything() {
 		delays = [];
@@ -77,17 +80,16 @@ class Delayer {
 	}
 
 	inline function cmp(a:Task, b:Task) {
-		return
-			if ( a.t < b.t ) -1
-			else if ( a.t > b.t ) 1;
-			else 0;
+		return a.frames < b.frames ? -1
+			: a.frames > b.frames ? 1
+			: 0;
 	}
 
 	public function addMs(?id:String, cb:Void->Void, ms:Float) {
 		if( ms<=0 )
 			cb();
 		else {
-			delays.push( new Task( id, ms / 1000 * fps, cb) );
+			delays.push( new Task( id, fps*ms/1000, cb) );
 			haxe.ds.ArraySort.sort(delays, cmp);
 		}
 	}
@@ -96,7 +98,7 @@ class Delayer {
 		if( sec<=0 )
 			cb();
 		else {
-			delays.push( new Task( id, sec*fps, cb) );
+			delays.push( new Task( id, fps*sec, cb) );
 			haxe.ds.ArraySort.sort(delays, cmp);
 		}
 	}
@@ -111,16 +113,16 @@ class Delayer {
 	}
 
 	public inline function nextFrame(cb:Void->Void) {
-		addF(cb, 1);
+		addF(cb, 0.000001);
 	}
 
 	public inline function hasAny() return !isDestroyed() && delays.length>0;
 
-	public function update(dt:Float) {
+	public function update(tmod:Float) {
 		var i = 0;
 		while( i<delays.length ) {
-			delays[i].t-=dt;
-			if( delays[i].t<=0 ) {
+			delays[i].frames -= tmod;
+			if( delays[i].frames <= 0 ) {
 				delays[i].cb();
 				if( delays==null || delays[i]==null ) // can happen if cb() called a cancel or dispose method
 					break;
@@ -136,21 +138,31 @@ class Delayer {
 	public static function test() {
 		var fps = 30;
 		var delayer = new Delayer(fps);
+
+		// Test a 2 sec delay
 		var done = false;
-		delayer.addS("test", function() done = true, 2);
+		delayer.addS("test", ()->done=true, 2);
 		CiAssert.isTrue( delayer.hasId("test") );
 		CiAssert.isFalse( done );
 
-		for(i in 0...fps) delayer.update(1);
+		for(i in 0...fps) delayer.update(1); // 1s
 		CiAssert.isFalse( done );
 
-		for(i in 0...fps) delayer.update(1);
-		CiAssert.isFalse( delayer.hasId("test") );
+		for(i in 0...fps) delayer.update(1); // 2s
 		CiAssert.isTrue( done );
+		CiAssert.isFalse( delayer.hasId("test") );
 
-		delayer.addF("test", function() CiAssert.isFalse(true), 1);
+		// Cancelling
+		delayer.addF("test", ()->throw "exception", 1);
 		delayer.cancelById("test");
 		delayer.update(1);
+
+		// Next frame
+		var done = false;
+		delayer.nextFrame( ()->done=true );
+		CiAssert.isFalse( done );
+		delayer.update(1);
+		CiAssert.isTrue( done );
 	}
 	#end
 }
