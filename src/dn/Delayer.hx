@@ -47,6 +47,15 @@ class Delayer {
 	// 	}
 	// }
 
+	/** Completes all tasks immediately (tasks callbacks will be called) */
+	public function completeEverything() {
+		var all = delays.copy();
+		delays = [];
+		for(d in all)
+			d.cb();
+	}
+
+	/** Cancels all tasks (their callbacks won't be called) */
 	public function cancelEverything() {
 		delays = [];
 	}
@@ -156,6 +165,16 @@ class Delayer {
 		delayer.addF("test", ()->throw "exception", 1);
 		delayer.cancelById("test");
 		delayer.update(1);
+
+		// Completing all
+		var n = 0;
+		delayer.addF("a", ()->n++, 1);
+		delayer.addF("b", ()->n++, 99);
+		delayer.addF("c", ()->n++, 99);
+		delayer.update(1);
+		CiAssert.equals( n, 1 );
+		delayer.completeEverything();
+		CiAssert.equals( n, 3 );
 
 		// Next frame
 		var done = false;
