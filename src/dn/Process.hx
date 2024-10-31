@@ -119,7 +119,7 @@ class Process {
 		else
 			parent.addChild(this);
 
-		resizeAll(false);
+		emitResizeAtEndOfFrame();
 	}
 
 	public function init(){
