@@ -471,6 +471,22 @@ class SpriteLib {
 		return fd.tile;
 	}
 
+	#if castle
+	public function getCdbTile(tileInf:cdb.Types.TilePos) {
+		if( tileInf==null )
+			return h2d.Tile.fromColor(0xff0000, 4,4, 0);
+
+		final size = tileInf.size;
+		return tile.sub(
+			tileInf.x*size,
+			tileInf.y*size,
+			(tileInf.width==null ? 1 : tileInf.width)*size,
+			(tileInf.height==null ? 1 : tileInf.height)*size
+		);
+	}
+	#end
+
+
 	#end // End of #if !macro
 
 
