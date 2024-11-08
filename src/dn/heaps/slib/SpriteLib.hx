@@ -484,6 +484,10 @@ class SpriteLib {
 			(tileInf.height==null ? 1 : tileInf.height)*size
 		);
 	}
+
+	public inline function getCdbBitmap(tileInf:cdb.Types.TilePos, ?p:h2d.Object) {
+		return new h2d.Bitmap( getCdbTile(tileInf), p );
+	}
 	#end
 
 
