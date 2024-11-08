@@ -91,6 +91,16 @@ class Rand {
 		return random(2)*2-1;
 	}
 
+	/** Return TRUE if a random percentage (ie. 0-100) is below given threshold **/
+	public inline function pct(percentageChance:Int) {
+		return random(100) < percentageChance;
+	}
+
+	/** Return TRUE if a random percentage (ie. 0-1) is below given threshold **/
+	public inline function pctf(percentageChance:Float) {
+		return rand() < percentageChance;
+	}
+
 	public inline function addSeed( d : Int ) {
 		#if neko
 		seed = untyped __dollar__int((seed + d) % 2147483647.0) & 0x3FFFFFFF;
