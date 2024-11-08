@@ -92,7 +92,7 @@ class Rand {
 	}
 
 	/** Return TRUE if a random percentage (ie. 0-100) is below given threshold **/
-	public inline function pct(percentageChance:Int) {
+	public inline function pcti(percentageChance:Int) {
 		return random(100) < percentageChance;
 	}
 
