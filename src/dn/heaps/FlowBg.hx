@@ -6,15 +6,15 @@ class FlowBg extends h2d.Flow {
 	var bgTile : Null<h2d.Tile>;
 	var bgBorderHorizontal : Int;
 	var bgBorderVertical : Int;
-	var bgColor : Col;
+	var bgColor : Col = 0;
+
+	public var repeatBorders = true;
+	public var repeatCenter = true;
 
 
 	public function new(?bgTile:h2d.Tile, horizontalBorder=1, ?verticalBorder:Int, ?p:h2d.Object) {
 		super(p);
-
-		this.bgTile = bgTile;
-		this.bgBorderHorizontal = horizontalBorder;
-		this.bgBorderVertical = verticalBorder ?? horizontalBorder;
+		setBg(bgTile, horizontalBorder, verticalBorder);
 	}
 
 	public inline function setBg(t:h2d.Tile, horizontalBorder:Int, ?verticalBorder:Int) {
@@ -39,15 +39,18 @@ class FlowBg extends h2d.Flow {
 			if( _bg==null || _bg.parent==null ) {
 				_bg = new h2d.ScaleGrid(bgTile, 1,1);
 				addChildAt(_bg, 0);
+				getProperties(_bg).isAbsolute = true;
 			}
 
 			_bg.tile = bgTile;
-			getProperties(_bg).isAbsolute = true;
 			_bg.borderLeft = _bg.borderRight = bgBorderHorizontal;
 			_bg.borderTop = _bg.borderBottom = bgBorderVertical;
-			_bg.color.setColor( bgColor );
+			if( bgColor!=0 )
+				_bg.color.setColor( bgColor.withAlphaIfMissing() );
 			_bg.width = outerWidth;
 			_bg.height = outerHeight;
+			_bg.tileBorders = repeatBorders;
+			_bg.tileCenter = repeatCenter;
 		}
 	}
 }
