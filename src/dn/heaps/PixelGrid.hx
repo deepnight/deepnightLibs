@@ -107,7 +107,7 @@ class PixelGrid extends h2d.Object {
 
 
 	public inline function line(x1:Int, y1:Int, x2:Int, y2:Int, c:UInt, a=1.0) {
-		Bresenham.iterateThinLine( x1,y1,x2,y2, (x,y)->setPixel(x,y, c, a) );
+		dn.geom.Bresenham.iterateThinLine( x1, y1, x2, y2, (x,y)->setPixel(x, y, c, a) );
 	}
 
 	public function lines(pts:Array<{x:Int, y:Int}>, c:UInt, a=1.0, loop=false) {
