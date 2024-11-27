@@ -293,8 +293,8 @@ class AsepriteDictEntry {
 	}
 
 	/** Allocate a HSprite **/
-	public inline function getHsprite(frame=0, xr=0., yr=0.) : dn.heaps.slib.HSprite {
-		return lib.h_get(id, frame, xr,yr);
+	public inline function getHsprite(frame=0, xr=0., yr=0., ?p:h2d.Object) : dn.heaps.slib.HSprite {
+		return lib.h_get(id, frame, xr,yr, p);
 	}
 
 	/** Allocate a HSpriteBE **/
