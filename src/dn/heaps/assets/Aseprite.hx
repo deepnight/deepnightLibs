@@ -181,13 +181,13 @@ class Aseprite {
 			var modName = modPack.pop();
 
 			// Class field initializers for the `initWithLib` method
-			var initExprs : Array<Expr> = [];
-			for(k in keys) {
-				initExprs.push({
+			var localVarsInitExprs : Array<Expr> = [];
+			for(k in keys)
+				localVarsInitExprs.push({
 					pos: pos,
-					expr: EBinop(OpAssign, {pos:pos, expr:EField(macro this, k)}, macro new dn.heaps.assets.Aseprite.AsepriteDictEntry(slib, $v{k})),
+					expr: ( macro $i{k} = new dn.heaps.assets.Aseprite.AsepriteDictEntry( slib, $v{k} ) ).expr,
+					// expr: EBinop(OpAssign, {pos:pos, expr:EField(macro this, k)}, macro new dn.heaps.assets.Aseprite.AsepriteDictEntry(slib, $v{k})),
 				});
-			}
 
 			// Create class definition
 			var dictClass : TypeDefinition = {
@@ -197,10 +197,20 @@ class Aseprite {
 				pack : modPack,
 				kind : TDClass(),
 				fields : (macro class {
+					var allKeys : Array<String>;
+					var resolveMap : Map<String, dn.heaps.assets.Aseprite.AsepriteDictEntry> = new Map();
+
 					public function new() {}
 
 					public function initWithLib(slib:dn.heaps.slib.SpriteLib) {
-						$a{initExprs}
+						$a{localVarsInitExprs}
+						allKeys = $v{keys};
+						for(k in allKeys)
+							resolveMap.set(k, Reflect.field(this,k));
+					}
+
+					public inline function resolve(id:String) : Null<dn.heaps.assets.Aseprite.AsepriteDictEntry> {
+						return resolveMap.get(id);
 					}
 				}).fields,
 			}
@@ -288,8 +298,8 @@ class AsepriteDictEntry {
 	}
 
 	/** Allocate a random Tile **/
-	public inline function getTileRandom(xr=0., yr=0.) : h2d.Tile {
-		return lib.getTileRandom(id, xr,yr);
+	public inline function getTileRandom(xr=0., yr=0., ?rndFunc:Int->Int) : h2d.Tile {
+		return lib.getTileRandom(id, xr, yr, rndFunc);
 	}
 
 	/** Allocate a HSprite **/
