@@ -36,6 +36,7 @@ class FlowBg extends h2d.Flow {
 		super.sync(ctx);
 
 		if( bgTile!=null ) {
+			// Recreate bg if needed
 			if( _bg==null || _bg.parent==null ) {
 				_bg = new h2d.ScaleGrid(bgTile, 1,1);
 				addChildAt(_bg, 0);
