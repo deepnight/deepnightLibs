@@ -670,6 +670,11 @@ abstract Col(Int) from Int to Int {
 		e.color.setColor( withAlpha(ratio) );
 	}
 
+	/** Apply color to a Drawable using its Vector color **/
+	public static inline function uncolorizeH2dDrawable(e:h2d.Drawable) {
+		e.color.setColor(0);
+	}
+
 	public inline function toTile(wid=1, hei=1, alpha=1.0) : h2d.Tile {
 		return h2d.Tile.fromColor(withoutAlpha(), wid, hei, alpha);
 	}
