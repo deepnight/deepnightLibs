@@ -47,6 +47,12 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 			setEmptyTexture();
 	}
 
+	public static function fromTile(t:h2d.Tile, ?parent:h2d.Object) : HSprite {
+		var s = new HSprite(parent);
+		s.useCustomTile(t);
+		return s;
+	}
+
 	override function toString() return "HSprite_"+groupName+"["+frame+"]";
 
 	inline function get_anim() {
