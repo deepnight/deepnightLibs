@@ -4,8 +4,10 @@ class FlowBg extends h2d.Flow {
 	var _bg : Null<h2d.ScaleGrid>;
 
 	var bgTile : Null<h2d.Tile>;
-	var bgBorderHorizontal : Int;
-	var bgBorderVertical : Int;
+	public var bgBorderLeft : Int;
+	public var bgBorderRight : Int;
+	public var bgBorderTop : Int;
+	public var bgBorderBottom : Int;
 	var bgColor : Col = 0;
 
 	public var repeatBorders = true;
@@ -19,13 +21,12 @@ class FlowBg extends h2d.Flow {
 
 	public inline function setBg(t:h2d.Tile, horizontalBorder:Int, ?verticalBorder:Int) {
 		bgTile = t;
-		bgBorderHorizontal = horizontalBorder;
-		bgBorderVertical = verticalBorder ?? horizontalBorder;
+		setBgBorder(horizontalBorder, verticalBorder);
 	}
 
 	public inline function setBgBorder(horizontal:Int, ?vertical:Int) {
-		bgBorderHorizontal = horizontal;
-		bgBorderVertical = vertical!=null ? vertical : horizontal;
+		bgBorderLeft = bgBorderRight = horizontal;
+		bgBorderTop = bgBorderBottom = vertical ?? horizontal;
 	}
 
 	public inline function colorizeBg(c:Col, alpha=1.0) {
@@ -44,8 +45,10 @@ class FlowBg extends h2d.Flow {
 			}
 
 			_bg.tile = bgTile;
-			_bg.borderLeft = _bg.borderRight = bgBorderHorizontal;
-			_bg.borderTop = _bg.borderBottom = bgBorderVertical;
+			_bg.borderLeft = bgBorderLeft;
+			_bg.borderRight = bgBorderRight;
+			_bg.borderTop = bgBorderTop;
+			_bg.borderBottom = bgBorderBottom;
 			if( bgColor!=0 )
 				_bg.color.setColor( bgColor.withAlphaIfMissing() );
 			_bg.width = outerWidth;
