@@ -3,6 +3,8 @@ package dn.heaps.slib;
 import dn.M;
 
 private class AnimInstance {
+	public static inline var LOOP_PLAYS = 999999;
+
 	var spr : SpriteInterface;
 	public var group : String;
 	public var frames : Array<Int> = [];
@@ -19,7 +21,7 @@ private class AnimInstance {
 	public var reverse = false;
 
 
-	public function new(s:SpriteInterface, g:String) {
+	public inline function new(s:SpriteInterface, g:String) {
 		spr = s;
 		group = g;
 		if( !spr.lib.exists(group) )
@@ -41,9 +43,15 @@ private class AnimInstance {
 			spr.setFrame(f);
 
 		lastFrame = f;
+		onEachFrame();
+	}
+
+	public inline function loop() {
+		plays = LOOP_PLAYS;
 	}
 
 	public dynamic function onEnd() {}
+	public dynamic function onEachFrame() {}
 	public dynamic function onEachLoop() {}
 }
 
@@ -173,12 +181,12 @@ class AnimManager {
 	}
 
 	public inline function chainLoop(id:String) {
-		play(id, 99999, true);
+		play(id, AnimInstance.LOOP_PLAYS, true);
 		return this;
 	}
 
 	public inline function chainFor(id:String, durationFrames:Float) {
-		play(id, 99999, true);
+		play(id, AnimInstance.LOOP_PLAYS, true);
 		if( hasAnim() )
 			getLastAnim().playDuration = durationFrames;
 		return this;
@@ -254,27 +262,40 @@ class AnimManager {
 		return this;
 	}
 
-	public function playOverlap(g:String, ?spd=1.0) {
+	public function playOverlap(g:String, spd=1.0, loop=false) {
 		if( !spr.lib.exists(g) ) {
 			#if debug
 			trace("WARNING: unknown overlap anim "+g);
 			#end
 			return;
 		}
+		clearOverlapAnim();
 		overlap = new AnimInstance(spr,g);
 		overlap.speed = spd;
 		overlap.applyFrame();
+		overlap.loop();
 		startUpdates();
+	}
+
+	public function playConditionalOverlap(g:String, spd=1.0, continueCond:Void->Bool) {
+		playOverlap(g, spd, true);
+		if( overlap!=null )
+			overlap.onEachFrame = ()->{
+				if( !continueCond() )
+					clearOverlapAnim();
+			};
 	}
 
 	public function clearOverlapAnim() {
 		overlap = null;
 	}
+
 	public function hasOverlapAnim() return overlap!=null;
+
 
 	public function loop() {
 		if( hasAnim() )
-			getLastAnim().plays = 999999;
+			getLastAnim().loop();
 		return this;
 	}
 
