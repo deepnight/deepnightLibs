@@ -375,7 +375,7 @@ class AnimManager {
 		stateAnimsActive = false;
 		stack = [];
 		if( k!=null )
-			spr.set(k, frame!=null ? frame : 0);
+			spr.set(k, frame>=0 ? frame : 0);
 		else if( frame>=0 )
 			spr.setFrame(frame);
 	}
