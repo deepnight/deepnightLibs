@@ -170,7 +170,7 @@ class AnimManager {
 	public inline function getAnimCursor() return hasAnim() ? getCurrentAnim().animCursor : 0;
 	public inline function getAnimId() :Null<String> return hasAnim() ? getCurrentAnim().group : null;
 
-	public inline function chain(id:String, ?plays=1) {
+	public inline function chain(id:String, plays=1) {
 		play(id, plays, true);
 		return this;
 	}
@@ -205,7 +205,7 @@ class AnimManager {
 		return play(k).loop();
 	}
 
-	public function playCustomSequence(group:String, from:Int, to:Int, ?queueAnim=false) {
+	public function playCustomSequence(group:String, from:Int, to:Int, queueAnim=false) {
 		var g = spr.lib.getGroup(group);
 		if( g==null ) {
 			#if debug
@@ -236,7 +236,7 @@ class AnimManager {
 		return this;
 	}
 
-	public function play(group:String, ?plays=1, ?queueAnim=false) : AnimManager {
+	public function play(group:String, plays=1, queueAnim=false) : AnimManager {
 		var g = spr.lib.getGroup(group);
 		if( g==null ) {
 			#if debug
@@ -371,12 +371,12 @@ class AnimManager {
 		applyStateAnims();
 	}
 
-	public function stopWithoutStateAnims(?k:String,?frame:Int) {
+	public function stopWithoutStateAnims(?k:String, frame=-1) {
 		stateAnimsActive = false;
 		stack = [];
 		if( k!=null )
 			spr.set(k, frame!=null ? frame : 0);
-		else if( frame!=null )
+		else if( frame>=0 )
 			spr.setFrame(frame);
 	}
 
@@ -443,7 +443,7 @@ class AnimManager {
 	}
 
 
-	public inline function registerTransitions(froms:Array<String>, tos:Array<String>, animId:String, ?spd=1.0, ?reverse=false) {
+	public inline function registerTransitions(froms:Array<String>, tos:Array<String>, animId:String, spd=1.0, reverse=false) {
 		for(from in froms)
 		for(to in tos)
 			registerTransition(from, to, animId, spd, reverse);
@@ -457,7 +457,7 @@ class AnimManager {
 		registerTransition("*", "idle", "toIdle"); // means: play "toIdle" before "idle" starts
 		```
 	**/
-	public function registerTransition(from:String, to:String, animId:String, ?spd=1.0, ?reverse=false, ?cond:Void->Bool) {
+	public function registerTransition(from:String, to:String, animId:String, spd=1.0, reverse=false, ?cond:Void->Bool) {
 		if( from==ANYTHING && to==ANYTHING )
 			throw "* is not allowed for both from and to animations.";
 
@@ -489,21 +489,21 @@ class AnimManager {
 		return null;
 	}
 
-	public function appendStateAnim(group:String, ?spd=1.0, ?condition:Void->Bool) {
+	public function appendStateAnim(group:String, spd=1.0, ?condition:Void->Bool) {
 		var maxPrio = 0.;
 		for(s in stateAnims)
 			maxPrio = M.fmax(s.priority, maxPrio);
 		registerStateAnim(group, maxPrio+1, spd, condition);
 	}
 
-	public function prependStateAnim(group:String, ?spd=1.0, ?condition:Void->Bool) {
+	public function prependStateAnim(group:String, spd=1.0, ?condition:Void->Bool) {
 		var minPrio = 0.;
 		for(s in stateAnims)
 			minPrio = M.fmin(s.priority, minPrio);
 		registerStateAnim(group, minPrio-1, spd, condition);
 	}
 
-	public function registerStateAnim(group:String, priority:Float, ?spd=1.0, ?condition:Void->Bool) {
+	public function registerStateAnim(group:String, priority:Float, spd=1.0, ?condition:Void->Bool) {
 		if( condition==null )
 			condition = function() return true;
 
