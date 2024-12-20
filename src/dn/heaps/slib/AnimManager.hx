@@ -262,7 +262,7 @@ class AnimManager {
 		return this;
 	}
 
-	public function playOverlap(g:String, spd=1.0, loop=false) {
+	public function playOverlap(g:String, spd=1.0, ?loopCondition:Void->Bool) {
 		if( !spr.lib.exists(g) ) {
 			#if debug
 			trace("WARNING: unknown overlap anim "+g);
@@ -270,23 +270,27 @@ class AnimManager {
 			return;
 		}
 		clearOverlapAnim();
+
+		trace("play "+g);
 		overlap = new AnimInstance(spr,g);
 		overlap.speed = spd;
+		if( loopCondition!=null )
+			overlap.loop();
 		overlap.applyFrame();
-		overlap.loop();
 		startUpdates();
-	}
 
-	public function playConditionalOverlap(g:String, spd=1.0, continueCond:Void->Bool) {
-		playOverlap(g, spd, true);
-		if( overlap!=null )
+		if( loopCondition!=null ) {
 			overlap.onEachFrame = ()->{
-				if( !continueCond() )
+				if( !loopCondition() ) {
+					trace("condition failed");
 					clearOverlapAnim();
-			};
+				}
+			}
+		}
 	}
 
 	public function clearOverlapAnim() {
+		trace("clear overlap");
 		overlap = null;
 	}
 
@@ -663,14 +667,28 @@ class AnimManager {
 		// Overlap anim
 		if( overlap!=null && !spr.destroyed ) {
 			overlap.curFrameCpt += dt * genSpeed * overlap.speed;
+
 			while( overlap.curFrameCpt>1 ) {
 				overlap.curFrameCpt--;
 				overlap.animCursor++;
+
 				if( overlap.overLastFrame() ) {
-					overlap = null;
-					if( getCurrentAnim()!=null )
-						getCurrentAnim().applyFrame();
-					break;
+					// Anim complete
+					overlap.animCursor = 0;
+					overlap.plays--;
+
+					if( overlap.plays>0 ) {
+						// Loop
+						overlap.onEachLoop();
+					}
+					else {
+						// End
+						overlap.onEnd();
+						clearOverlapAnim();
+						if( getCurrentAnim()!=null )
+							getCurrentAnim().applyFrame();
+						break;
+					}
 				}
 			}
 			if( overlap!=null )
