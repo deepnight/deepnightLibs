@@ -208,9 +208,7 @@ class AnimManager {
 	public function playCustomSequence(group:String, from:Int, to:Int, queueAnim=false) {
 		var g = spr.lib.getGroup(group);
 		if( g==null ) {
-			#if debug
-			trace("WARNING: unknown anim "+group);
-			#end
+			printError("WARNING: unknown anim "+group);
 			return this;
 		}
 
@@ -239,9 +237,7 @@ class AnimManager {
 	public function play(group:String, plays=1, queueAnim=false) : AnimManager {
 		var g = spr.lib.getGroup(group);
 		if( g==null ) {
-			#if debug
-			trace("WARNING: unknown anim "+group);
-			#end
+			printError("WARNING: unknown anim "+group);
 			return this;
 		}
 
@@ -264,14 +260,11 @@ class AnimManager {
 
 	public function playOverlap(g:String, spd=1.0, ?loopCondition:Void->Bool) {
 		if( !spr.lib.exists(g) ) {
-			#if debug
-			trace("WARNING: unknown overlap anim "+g);
-			#end
+			printError("WARNING: unknown overlap anim "+g);
 			return;
 		}
 		clearOverlapAnim();
 
-		trace("play "+g);
 		overlap = new AnimInstance(spr,g);
 		overlap.speed = spd;
 		if( loopCondition!=null )
@@ -281,16 +274,13 @@ class AnimManager {
 
 		if( loopCondition!=null ) {
 			overlap.onEachFrame = ()->{
-				if( !loopCondition() ) {
-					trace("condition failed");
+				if( !loopCondition() )
 					clearOverlapAnim();
-				}
 			}
 		}
 	}
 
 	public function clearOverlapAnim() {
-		trace("clear overlap");
 		overlap = null;
 	}
 
@@ -435,15 +425,19 @@ class AnimManager {
 				a.speed = t.spd;
 				a.reverse = t.reverse;
 			}
-			else {
-				#if debug
-				trace("WARNING: unknown transition anim "+t.anim);
-				#end
-			}
+			else
+				printError("WARNING: unknown transition anim "+t.anim);
 
 		}
 
 		getCurrentAnim().applyFrame();
+	}
+
+
+	public dynamic function printError(msg:String) {
+		#if debug
+		trace(msg);
+		#end
 	}
 
 
