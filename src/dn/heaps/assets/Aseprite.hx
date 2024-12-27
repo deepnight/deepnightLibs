@@ -313,8 +313,8 @@ class AsepriteDictEntry {
 	}
 
 	/** Allocate a HSpriteBE **/
-	public inline function getRandomHspriteBE(sb:dn.heaps.slib.HSpriteBatch, frame=0, xr=0., yr=0., ?rndFunc:Int->Int) : dn.heaps.slib.HSpriteBE {
-		return lib.hbe_getRandom(sb, id, frame, xr,yr, rndFunc);
+	public inline function getRandomHspriteBE(sb:dn.heaps.slib.HSpriteBatch, ?rndFunc:Int->Int) : dn.heaps.slib.HSpriteBE {
+		return lib.hbe_getRandom(sb, id, rndFunc);
 	}
 
 	/** Allocate a Bitmap **/

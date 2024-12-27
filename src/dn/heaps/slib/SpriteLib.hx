@@ -440,8 +440,13 @@ class SpriteLib {
 		return new h2d.Bitmap( getTile(g,frame,px,py), p );
 	}
 
+	@:deprecated("Use getRandomBitmap() instead") @:noCompletion
 	public inline function getBitmapRandom(g:String, ?px:Float=0.0, ?py:Float=0.0, ?rndFunc, ?p:h2d.Object) : h2d.Bitmap {
-		return new h2d.Bitmap( getTileRandom(g,px,py,rndFunc), p );
+		return getBitmapRandom(g,px,py,rndFunc,p);
+	}
+
+	public inline function getRandomBitmap(g:String, ?px:Float=0.0, ?py:Float=0.0, ?rndFunc, ?p:h2d.Object) : h2d.Bitmap {
+		return new h2d.Bitmap( getRandomTile(g,px,py,rndFunc), p );
 	}
 
 	public inline function updTile(t:h2d.Tile, g:String, frame=0, px:Float=0.0, py:Float=0.0) : h2d.Tile {
@@ -458,7 +463,12 @@ class SpriteLib {
 		return t;
 	}
 
+	@:deprecated("Use getRandomTile() instead") @:noCompletion
 	public inline function getTileRandom(g:String, px:Float=0.0, py:Float=0.0, ?rndFunc) : h2d.Tile {
+		return getRandomTile(g,px,py,rndFunc);
+	}
+
+	public inline function getRandomTile(g:String, px:Float=0.0, py:Float=0.0, ?rndFunc) : h2d.Tile {
 		return getTile(g, getRandomFrame(g,rndFunc), px, py);
 	}
 
