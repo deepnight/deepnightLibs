@@ -298,8 +298,8 @@ class AsepriteDictEntry {
 	}
 
 	/** Allocate a random Tile **/
-	public inline function getTileRandom(xr=0., yr=0., ?rndFunc:Int->Int) : h2d.Tile {
-		return lib.getTileRandom(id, xr, yr, rndFunc);
+	public inline function getRandomTile(xr=0., yr=0., ?rndFunc:Int->Int) : h2d.Tile {
+		return lib.getRandomTile(id, xr, yr, rndFunc);
 	}
 
 	/** Allocate a HSprite **/
@@ -310,6 +310,11 @@ class AsepriteDictEntry {
 	/** Allocate a HSpriteBE **/
 	public inline function getHspriteBE(sb:dn.heaps.slib.HSpriteBatch, frame=0, xr=0., yr=0.) : dn.heaps.slib.HSpriteBE {
 		return lib.hbe_get(sb, id, frame, xr,yr);
+	}
+
+	/** Allocate a HSpriteBE **/
+	public inline function getRandomHspriteBE(sb:dn.heaps.slib.HSpriteBatch, frame=0, xr=0., yr=0., ?rndFunc:Int->Int) : dn.heaps.slib.HSpriteBE {
+		return lib.hbe_getRandom(sb, id, frame, xr,yr, rndFunc);
 	}
 
 	/** Allocate a Bitmap **/
