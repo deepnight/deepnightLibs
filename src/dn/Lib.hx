@@ -358,6 +358,7 @@ class Lib {
 		if (total<=0 || nbStacks<=0)
 			return new Array();
 
+		// Spreading would overflow all maxStackValues
 		if( maxStackValue!=null && total/nbStacks>maxStackValue ) {
 			var a = [];
 			for(i in 0...nbStacks)
@@ -365,6 +366,7 @@ class Lib {
 			return a;
 		}
 
+		// Too many stacks
 		if( nbStacks>total ) {
 			var a = [];
 			for(i in 0...total)
@@ -372,10 +374,12 @@ class Lib {
 			return a;
 		}
 
+		// Ensure we have at least one in each stack
 		var plist = new Array();
 		for (i in 0...nbStacks)
 			plist[i] = 1;
 
+		// Spread the rest
 		var remain = total-plist.length;
 		while (remain>0) {
 			var move = M.ceil(total*(randFunc(8)+1)/100);
