@@ -351,6 +351,25 @@ class Lib {
 		return best;
 	}
 
+
+	public static function splitArray<T>(arr:Array<T>, splitCount:Int) : Array<Array<T>> {
+		if( splitCount<=1 )
+			return [arr];
+
+		var out = new Array();
+		var splitSize = M.ceil(arr.length/splitCount);
+		for(i in 0...splitCount) {
+			var start = i*splitSize;
+			var end = M.imin( (i+1)*splitSize, arr.length );
+			if( start<end )
+				out.push( arr.slice(start,end) );
+		}
+
+		while( out.length<splitCount )
+			out.push([]);
+		return out;
+	}
+
 	/**
 		Randomly spread `total` in `nbStacks`.
 	**/
@@ -890,6 +909,24 @@ class Lib {
 		CiAssert.equals( getArrayValueAfter(7, [3,1,7,9]), 9 );
 		CiAssert.equals( getArrayValueAfter(1, [3,1,7,9]), 7 );
 		CiAssert.equals( getArrayValueAfter(3, [3,1,7,9]), 1 );
+
+		// Split array
+		var arr = ["A","B","C","D","E"];
+		CiAssert.equals( splitArray(arr,2).length, 2 );
+		CiAssert.equals( splitArray(arr,10).length, 10 );
+
+		CiAssert.equals( splitArray(arr,2)[0].length, 3 );
+		CiAssert.equals( splitArray(arr,2)[1].length, 2 );
+
+		CiAssert.equals( splitArray(arr,3)[0].length, 2 );
+		CiAssert.equals( splitArray(arr,3)[1].length, 2 );
+		CiAssert.equals( splitArray(arr,3)[2].length, 1 );
+
+		CiAssert.equals( splitArray(arr,2)[0][0], "A" );
+		CiAssert.equals( splitArray(arr,2)[0][1], "B" );
+		CiAssert.equals( splitArray(arr,2)[0][2], "C" );
+		CiAssert.equals( splitArray(arr,2)[1][0], "D" );
+		CiAssert.equals( splitArray(arr,2)[1][1], "E" );
 	}
 	#end
 
