@@ -856,7 +856,7 @@ class M {
 
 
 	public static function addSign(v:Float) : String {
-		return v>0 ? "+"+v : Std.string(v);
+		return v>=0 ? "+"+v : Std.string(v);
 	}
 
 
@@ -1206,6 +1206,10 @@ class M {
 		CiAssert.equals( M.pretty(M.nullDefault(0.1, 5)), 0.1 );
 		CiAssert.equals( M.pretty(M.nullDefault(null, 5)), 5 );
 		CiAssert.equals( M.pretty(M.nullDefault(null, 5.1)), 5.1 );
+
+		CiAssert.equals( M.addSign(0), "+0" );
+		CiAssert.equals( M.addSign(-1), "-1" );
+		CiAssert.equals( M.addSign(2), "+2" );
 	}
 	#end
 }
