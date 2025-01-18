@@ -855,6 +855,11 @@ class M {
 	}
 
 
+	public static function addSign(v:Float) : String {
+		return v>0 ? "+"+v : Std.string(v);
+	}
+
+
 	public static inline function groupNumbers(v:Int, sep=" ") : String {
 		var str = Std.string(v);
 		if( str.length<=3 )
