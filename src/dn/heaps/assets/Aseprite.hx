@@ -303,22 +303,22 @@ class AsepriteDictEntry {
 	}
 
 	/** Allocate a HSprite **/
-	public inline function getHsprite(frame=0, xr=0., yr=0., ?p:h2d.Object) : dn.heaps.slib.HSprite {
+	public inline function getHSprite(frame=0, xr=0., yr=0., ?p:h2d.Object) : dn.heaps.slib.HSprite {
 		return lib.h_get(id, frame, xr,yr, p);
 	}
 
 	/** Allocate a HSprite **/
-	public inline function getRandomHsprite(?rndFunc:Int->Int, ?p:h2d.Object) : dn.heaps.slib.HSprite {
+	public inline function getRandomHSprite(?rndFunc:Int->Int, ?p:h2d.Object) : dn.heaps.slib.HSprite {
 		return lib.h_getRandom(id, rndFunc, p);
 	}
 
 	/** Allocate a HSpriteBE **/
-	public inline function getHspriteBE(sb:dn.heaps.slib.HSpriteBatch, frame=0, xr=0., yr=0.) : dn.heaps.slib.HSpriteBE {
+	public inline function getHSpriteBE(sb:dn.heaps.slib.HSpriteBatch, frame=0, xr=0., yr=0.) : dn.heaps.slib.HSpriteBE {
 		return lib.hbe_get(sb, id, frame, xr,yr);
 	}
 
 	/** Allocate a HSpriteBE **/
-	public inline function getRandomHspriteBE(sb:dn.heaps.slib.HSpriteBatch, ?rndFunc:Int->Int) : dn.heaps.slib.HSpriteBE {
+	public inline function getRandomHSpriteBE(sb:dn.heaps.slib.HSpriteBatch, ?rndFunc:Int->Int) : dn.heaps.slib.HSpriteBE {
 		return lib.hbe_getRandom(sb, id, rndFunc);
 	}
 
