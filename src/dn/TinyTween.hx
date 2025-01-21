@@ -10,15 +10,21 @@ enum abstract TinyTweenInterpolation(Int) to Int {
 
 class TinyTween {
 	var fps : Int;
-	var fromValue = 0.;
-	var toValue = 0.;
-	var elapsedS = 0.;
-	var durationS = 0.;
+	var fromValue : Float;
+	var toValue : Float;
+	var elapsedS : Float;
+	var durationS : Float;
 	var interp : TinyTweenInterpolation = Linear;
 	public var curValue(get,never) : Float;
 
 	public inline function new(fps) {
 		this.fps = fps;
+		reset();
+	}
+
+	public inline function reset() {
+		fromValue = toValue = 0;
+		durationS = elapsedS = 0;
 	}
 
 	inline function get_curValue() {
@@ -44,10 +50,6 @@ class TinyTween {
 
 	public inline function getElapsedRatio() : Float {
 		return isComplete() ? 1 : elapsedS/durationS;
-	}
-
-	public inline function clear() {
-		durationS = elapsedS = 0;
 	}
 
 	public inline function start(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation=EaseInOut) {
