@@ -43,6 +43,7 @@ class Tests {
 		dn.phys.Velocity.test();
 		dn.Version.test();
 		dn.Log.test();
+		dn.TinyTween.test();
 
 
 

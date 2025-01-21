@@ -33,7 +33,7 @@ class TinyTween {
 			case EaseIn: M.bezier4( elapsedS/durationS, 0, 0, 0.5, 1 );
 			case EaseOut: M.bezier4( elapsedS/durationS, 0, 0.5, 1, 1 );
 			case EaseInOut: M.bezier4( elapsedS/durationS, 0, 0, 1, 1 );
-			case BackForth: M.bezier4( elapsedS/durationS, 0, 1.33, 1.33, 0 );
+			case BackForth: M.bezier4( elapsedS/durationS, 0, 1+1/3, 1+1/3, 0 );
 		}
 		return fromValue + ( toValue - fromValue ) * ratio;
 	}
@@ -66,4 +66,47 @@ class TinyTween {
 		elapsedS = M.fmin( durationS, elapsedS + tmod/fps );
 		return true;
 	}
+
+
+	#if deepnightLibsTests
+	public static function test() {
+		var v = 0.;
+		var fps = 10;
+		var t = new TinyTween(fps);
+
+		// Linear
+		t.start(10, 20, 1, Linear);
+		CiAssert.equals( t.curValue, 10 );
+		CiAssert.equals( t.isComplete(), false );
+		t.update(fps*0.5);
+		CiAssert.equals( M.round(t.curValue), 15 );
+		CiAssert.equals( t.isComplete(), false );
+		t.update(fps*0.5);
+		CiAssert.equals( M.round(t.curValue), 20 );
+		CiAssert.equals( t.isComplete(), true );
+
+		t.start(10, 20, 1, EaseIn);
+		CiAssert.equals( t.curValue, 10 );
+		t.update(fps);
+		CiAssert.equals( t.curValue, 20 );
+
+		t.start(10, 20, 1, EaseOut);
+		CiAssert.equals( t.curValue, 10 );
+		t.update(fps);
+		CiAssert.equals( t.curValue, 20 );
+
+		t.start(10, 20, 1, EaseInOut);
+		CiAssert.equals( t.curValue, 10 );
+		t.update(fps);
+		CiAssert.equals( t.curValue, 20 );
+
+		t.start(10, 20, 1, BackForth);
+		CiAssert.equals( t.curValue, 10 );
+		t.update(fps*0.5);
+		CiAssert.equals( M.round(t.curValue), 20 );
+		t.update(fps*0.5);
+		CiAssert.equals( t.curValue, 10 );
+	}
+	#end
 }
+
