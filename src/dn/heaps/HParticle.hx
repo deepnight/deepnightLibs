@@ -1003,7 +1003,7 @@ class TinyTween {
 		durationS = elapsedS = 0;
 	}
 
-	public function start(from:Float, to:Float, durationS:Float) {
+	public inline function start(from:Float, to:Float, durationS:Float) {
 		this.fromValue = from;
 		this.toValue = to;
 		this.durationS = durationS;
