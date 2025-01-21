@@ -74,7 +74,7 @@ class TinyTween {
 		fromValue = from;
 	}
 
-	/** Advance the tween, return TRUE if complete **/
+	/** Advance the tween, return TRUE if the tween is running and curValue changed **/
 	public inline function update(tmod:Float) : Bool {
 		if( !hasAnyValue() || isComplete() )
 			return false;
