@@ -47,7 +47,7 @@ class TinyTween {
 			case Linear: elapsedS/durationS;
 			case EaseIn: M.bezier4( elapsedS/durationS, 0, 0, 0.5, 1 );
 			case EaseOut: M.bezier4( elapsedS/durationS, 0, 0.5, 1, 1 );
-			case EaseInOut: M.bezierFull4( elapsedS/durationS,   0, 0.5, 0.5, 1,   0, 0, 1, 1 );
+			case EaseInOut: M.bezierFull4( elapsedS/durationS,   0, 0.66, 0.66, 1,   0, 0, 1, 1 );
 			case BackForth: M.bezier4( elapsedS/durationS, 0, 1+1/3, 1+1/3, 0 );
 		}
 		return fromValue + ( toValue - fromValue ) * ratio;
