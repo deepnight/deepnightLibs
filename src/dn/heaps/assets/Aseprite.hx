@@ -317,6 +317,14 @@ class AsepriteDictEntry {
 		return lib.hbe_get(sb, id, frame, xr,yr);
 	}
 
+	/** Allocate a standard BatchElement **/
+	public inline function getBE(?sb:h2d.SpriteBatch, frame=0, xr=0., yr=0.) : h2d.SpriteBatch.BatchElement {
+		var be = new h2d.SpriteBatch.BatchElement( getTile(frame,xr,yr) );
+		if( sb!=null )
+			sb.add(be);
+		return be;
+	}
+
 	/** Allocate a HSpriteBE **/
 	public inline function getRandomHSpriteBE(sb:dn.heaps.slib.HSpriteBatch, ?rndFunc:Int->Int) : dn.heaps.slib.HSpriteBE {
 		return lib.hbe_getRandom(sb, id, rndFunc);
