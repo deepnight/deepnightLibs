@@ -498,6 +498,13 @@ class SpriteLib {
 	public inline function getCdbBitmap(tileInf:cdb.Types.TilePos, ?p:h2d.Object) {
 		return new h2d.Bitmap( getCdbTile(tileInf), p );
 	}
+
+	public inline function getCdbBatchElement(tileInf:cdb.Types.TilePos, ?sb:SpriteBatch) {
+		var be = new BatchElement( getCdbTile(tileInf) );
+		if( sb!=null )
+			sb.add(be);
+		return be;
+	}
 	#end
 
 
