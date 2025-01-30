@@ -57,6 +57,10 @@ class TinyTween {
 		return hasAnyValue() && elapsedS>=durationS;
 	}
 
+	public inline function isCurrentlyRunning() {
+		return hasAnyValue() && elapsedS<durationS;
+	}
+
 	public inline function getElapsedRatio() : Float {
 		return !hasAnyValue() ? 0 : isComplete() ? 1 : elapsedS/durationS;
 	}
