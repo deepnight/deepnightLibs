@@ -99,7 +99,7 @@ class RandomTools {
 
 	/** Return TRUE if a random percentage (ie. 0-1) is below given threshold **/
 	public static inline function pctf(thresholdOrBelow:Float) {
-		return Std.random(100) < thresholdOrBelow*100;
+		return Std.random(10000) < thresholdOrBelow*10000;
 	}
 
 
