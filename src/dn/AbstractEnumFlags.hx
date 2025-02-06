@@ -67,6 +67,13 @@ class AbstractEnumFlags<T:Int> {
 		return "["+out.join(",")+"]";
 	}
 
+	public function toArray() : Array<T> {
+		var out = [];
+		for(f in flagValues.keys())
+			out.push(f);
+		return out;
+	}
+
 
 	public static macro function createFromAbstractIntEnum(abstractEnumType:haxe.macro.Expr) {
 		var allValues = MacroTools.getAbstractEnumValuesForMacros(abstractEnumType);
