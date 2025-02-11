@@ -171,9 +171,12 @@ class RandomTools {
 
 
 	/** Shuffle an array in place **/
-	public static function shuffleArray<T>(arr:Array<T>, randFunc:Int->Int) {
+	public static function shuffleArray<T>(arr:Array<T>, ?randFunc:Int->Int) : Array<T> {
 		// WARNING!! Now modifies the array itself (changed on Apr. 27 2016)
 		// Source: http://bost.ocks.org/mike/shuffle/
+		if( randFunc==null )
+			randFunc = Std.random;
+
 		var m = arr.length;
 		var i = 0;
 		var tmp = null;
@@ -183,11 +186,15 @@ class RandomTools {
 			arr[m] = arr[i];
 			arr[i] = tmp;
 		}
+		return arr;
 	}
 
 	/** Shuffle a vector in place **/
-	public static function shuffleVector<T>(arr:haxe.ds.Vector<T>, randFunc:Int->Int) {
+	public static function shuffleVector<T>(arr:haxe.ds.Vector<T>, ?randFunc:Int->Int) : haxe.ds.Vector<T> {
 		// Source: http://bost.ocks.org/mike/shuffle/
+		if( randFunc==null )
+			randFunc = Std.random;
+		
 		var m = arr.length;
 		var i = 0;
 		var tmp = null;
@@ -198,6 +205,7 @@ class RandomTools {
 			arr[m] = arr[i];
 			arr[i] = tmp;
 		}
+		return arr;
 	}
 
 
