@@ -51,7 +51,11 @@ class DecisionHelper<T> {
 	}
 
 	inline function isDiscarded(idx:Int) {
-		return scores.exists(idx) && scores.get(idx)==DISCARDED;
+		return scores.exists(idx) && isDiscardScore( scores.get(idx) );
+	}
+
+	static inline function isDiscardScore(s:Float) : Bool {
+		return s==DISCARDED;
 	}
 
 
@@ -167,6 +171,19 @@ class DecisionHelper<T> {
 		}
 		return out;
 	}
+
+	/* Return the best value from a set of DecisionHelperResult<T> */
+	public static function getBestFromResults<T>(results : Array<DecisionHelperResult<T>>) : Null<T> {
+		var best : Null< DecisionHelperResult<T> > = null;
+		var idx = 0;
+		for(r in results) {
+			if( !isDiscardScore(r.score) && ( best==null || r.score>best.score ) )
+				best = r;
+			idx++;
+		}
+		return best.value;
+	}
+
 
 	/** Return the non-discarded value with the highest score. **/
 	public function getBest() : Null<T> {
