@@ -202,7 +202,7 @@ class DecisionHelper<T> {
 	}
 
 	/** Pick a random value among all non-discardeds **/
-	public function getRemainingRandomWithoutScore(rndFunc:Int->Int) : Null<T> {
+	public function getRandomNonDiscarded(rndFunc:Int->Int) : Null<T> {
 		var count = countRemaining();
 		if( count==0 )
 			return null;
