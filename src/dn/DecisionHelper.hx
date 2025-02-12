@@ -1,5 +1,10 @@
 package dn;
 
+typedef DecisionHelperResult<T> = {
+	value : T,
+	score : Float,
+}
+
 class DecisionHelper<T> {
 	static inline var DISCARDED = -1e+20;
 
@@ -142,13 +147,25 @@ class DecisionHelper<T> {
 	}
 
 	/** Iterate all non-discarded values. The callback `cb` gets the value and its score as arguments. **/
-	public inline function iterateRemainings( cb : (value:T,score:Float)->Void ) {
+	public inline function iterateRemainings( cb : (value:T, score:Float)->Void ) {
 		var idx = 0;
 		for(v in values) {
 			if( !isDiscarded(idx) )
 				cb(v, getScore(idx));
 			idx++;
 		}
+	}
+
+	/** Return the values with their score, without the discarded ones **/
+	public function getRemainings() : Array< DecisionHelperResult<T> > {
+		var out = [];
+		var idx = 0;
+		for(v in values) {
+			if( !isDiscarded(idx) )
+				out.push({ value:v, score:getScore(idx) });
+			idx++;
+		}
+		return out;
 	}
 
 	/** Return the non-discarded value with the highest score. **/
