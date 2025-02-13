@@ -819,7 +819,7 @@ class Lib {
 
 	public static function prettyGroupedArray<T:Dynamic>(arr:Array<T>, join=",") : String {
 		return groupArray(arr)
-			.map( (g) -> g.count==1 ? Std.string(g.value) : '${g.count}x ${g.value}' )
+			.map( (g) -> g.count==1 ? Std.string(g.value) : '${g.value}(${g.count})' )
 			.join(join);
 	}
 
