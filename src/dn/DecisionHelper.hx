@@ -160,8 +160,12 @@ class DecisionHelper<T> {
 		}
 	}
 
-	/** Return the values with their score, without the discarded ones **/
+	@:deprecated("Use getResults()") @:noCompletion
 	public function getRemainings() : Array< DecisionHelperResult<T> > {
+		return getResults();
+	}
+	/** Return the values with their score, without the discarded ones **/
+	public function getResults() : Array< DecisionHelperResult<T> > {
 		var out = [];
 		var idx = 0;
 		for(v in values) {
