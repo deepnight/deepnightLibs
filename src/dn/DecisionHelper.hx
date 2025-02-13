@@ -174,6 +174,9 @@ class DecisionHelper<T> {
 
 	/* Return the best value from a set of DecisionHelperResult<T> */
 	public static function getBestFromResults<T>(results : Array<DecisionHelperResult<T>>) : Null<T> {
+		if( results.length==0 )
+			return null;
+
 		var best : Null< DecisionHelperResult<T> > = null;
 		var idx = 0;
 		for(r in results) {
