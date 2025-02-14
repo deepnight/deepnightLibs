@@ -103,19 +103,19 @@ class RandomTools {
 	}
 
 
-	public static inline function either<T>(a:T, b:T, aChance=0.5) : T {
-		return rnd(0,1)<aChance ? a : b;
+	public static inline function either<T>(a:T, b:T, pctChanceForA=0.5) : T {
+		return rnd(0,1)<pctChanceForA ? a : b;
 	}
 
-	public static inline function oneOf2<T>(main:T, mainWeight:Float, alt:T, altWeight:Float) : T {
-		return rnd(0,mainWeight+altWeight)<=mainWeight ? main : alt;
+	public static inline function oneOf2<T>(a:T, aWeight:Float, b:T, bWeight:Float) : T {
+		return rnd(0,aWeight+bWeight)<=aWeight ? a : b;
 	}
 
-	public static inline function oneOf3<T>(main:T, mainWeight:Float, alt1:T, alt1Weight:Float, alt2:T, alt2Weight) : T {
-		var r = rnd(0, mainWeight + alt1Weight + alt2Weight);
-		return r<=mainWeight ? main
-			: r<=mainWeight+alt1Weight ? alt1
-			: alt2;
+	public static inline function oneOf3<T>(a:T, aWeight:Float, b:T, bWeight:Float, c:T, cWeight) : T {
+		var r = rnd(0, aWeight + bWeight + cWeight);
+		return r<=aWeight ? a
+			: r<=aWeight+bWeight ? b
+			: c;
 	}
 
 
@@ -194,7 +194,7 @@ class RandomTools {
 		// Source: http://bost.ocks.org/mike/shuffle/
 		if( randFunc==null )
 			randFunc = Std.random;
-		
+
 		var m = arr.length;
 		var i = 0;
 		var tmp = null;
