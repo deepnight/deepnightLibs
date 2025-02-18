@@ -492,7 +492,7 @@ class HParticle extends BatchElement {
 			kill();
 		else {
 			lifeS = 0;
-			fadeOutSpeed = alpha / (fadeOutDurationS*fps);
+			fadeOutSpeed = M.fmax( alpha / (fadeOutDurationS*fps), fadeOutSpeed );
 		}
 	}
 
@@ -780,6 +780,9 @@ class ParticlePool {
 			best;
 		}
 	}
+
+	/** Direct access to a HParticle by its index **/
+	public inline function get(idx:Int) return idx>=0 && idx<nalloc ? all[idx] : null;
 
 	/**
 		When a particle is killed, pick last allocated one and move it here. This prevents "gaps" in the pool.
