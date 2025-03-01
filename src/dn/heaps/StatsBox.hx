@@ -100,11 +100,16 @@ class StatsBox extends dn.Process {
 
 		var valueTf = new h2d.Text(getFont(), f);
 		valueTf.textColor = color;
+		var old = -getter();
 		components.push({ f:f, update:(_)->{
 			var v = getter();
-			valueTf.text = Std.string( M.pretty(v,1) );
-			if( colorUpdate!=null )
-				valueTf.textColor = colorUpdate(v);
+			if( v!=old ) {
+				valueTf.text = Std.string( M.pretty(v,1) );
+				if( colorUpdate!=null )
+					valueTf.textColor = colorUpdate(v);
+				old = v;
+			}
+
 		}});
 	}
 
