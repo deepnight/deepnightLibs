@@ -16,6 +16,18 @@ class Scaler {
 	}
 
 
+	/**
+		Fit `wid`x`hei` in current viewport, optionally snapping to closest Integer scale value (for pixel perfect rendering)
+		If the resulting scaling is below `integerIfBelow`, it will be snapped to an integer value to avoid too much pixel distortion.
+	**/
+	public static function bestFit_smart(widPx:Float, ?heiPx:Float, ?contextWid:Float, ?contextHei:Float, integerIfBelow=3, allowBelowOne=false) : Float {
+		var sx = ( contextWid==null ? getViewportWidth() : contextWid ) / widPx;
+		var sy = ( contextHei==null ? getViewportHeight() : contextHei ) / ( heiPx==null ? widPx : heiPx );
+		var s = allowBelowOne ? M.fmin(sx,sy) : M.fmax(1, M.fmin(sx,sy) );
+		return s < integerIfBelow ? M.floor(s) : s;
+	}
+
+
 	/** Fit `wid`x`hei` in current viewport, while keeping scaling value as Int **/
 	public static inline function bestFit_i(widPx:Float, ?heiPx:Float, ?contextWid:Float, ?contextHei:Float) : Int {
 		return M.floor( bestFit_f(widPx, heiPx, contextWid, contextHei) );
