@@ -671,6 +671,13 @@ abstract Col(Int) from Int to Int {
 	}
 
 	/** Apply color to a Drawable using its Vector color **/
+	public inline function colorizeFlowBackground(f:h2d.Flow, ratio=1.0) {
+		@:privateAccess
+		if( f.background!=null )
+			colorizeH2dDrawable(f.background, ratio);
+	}
+
+	/** Apply color to a Drawable using its Vector color **/
 	public static inline function uncolorizeH2dDrawable(e:h2d.Drawable) {
 		e.color.setColor( white(true) );
 	}
