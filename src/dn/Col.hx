@@ -18,8 +18,10 @@ enum abstract ColorEnum(Int) to Int to Col {
 
 	var ColdLightGray = 0xadb4cc;
 	var ColdMidGray = 0x6a6e80;
-	var WarmLightGray = 0xccc3b8;
+	var ColdDarkGray = 0x3e414d;
+	var WarmLightGray = 0xcabcab;
 	var WarmMidGray = 0x807a73;
+	var WarmDarkGray = 0x3d3934;
 
 	var Orange = 0xff8800;
 	var Yellow = 0xffcc00;
@@ -40,8 +42,10 @@ abstract Col(Int) from Int to Int {
 	public static inline function midGray(withAlpha=false) return _colorEnumWithAlpha(MidGray, withAlpha);
 	public static inline function coldLightGray(withAlpha=false) return _colorEnumWithAlpha(ColdLightGray, withAlpha);
 	public static inline function coldMidGray(withAlpha=false) return _colorEnumWithAlpha(ColdMidGray, withAlpha);
+	public static inline function coldDarkGray(withAlpha=false) return _colorEnumWithAlpha(ColdDarkGray, withAlpha);
 	public static inline function warmLightGray(withAlpha=false) return _colorEnumWithAlpha(WarmLightGray, withAlpha);
 	public static inline function warmMidGray(withAlpha=false) return _colorEnumWithAlpha(WarmMidGray, withAlpha);
+	public static inline function warmDarkGray(withAlpha=false) return _colorEnumWithAlpha(WarmDarkGray, withAlpha);
 
 	public static inline function red(withAlpha=false) return _colorEnumWithAlpha(Red, withAlpha);
 	public static inline function green(withAlpha=false) return _colorEnumWithAlpha(Green, withAlpha);
