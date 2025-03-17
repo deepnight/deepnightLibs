@@ -989,7 +989,7 @@ enum abstract TinyTweenStyle(Int) to Int {
 	var Linear;
 }
 
-class TinyTween {
+class TinyTween { // TODO use dn.TinyTween
 	var fromValue = 0.;
 	var toValue = 0.;
 	var elapsedS = 0.;
