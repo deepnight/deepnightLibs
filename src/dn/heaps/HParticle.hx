@@ -175,9 +175,9 @@ class HParticle extends BatchElement {
 		scaleY_tween.start(scaleY*s, scaleY, durationS);
 	}
 
-	public inline function scaleTo(w:Float, h:Float) {
+	public inline function scaleTo(w:Float, h=-1.) {
 		scaleXTo(w);
-		scaleYTo(h);
+		scaleYTo(h>=0 ? h : w);
 	}
 
 	public inline function scaleXTo(len:Float) {
