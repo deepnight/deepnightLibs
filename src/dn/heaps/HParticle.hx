@@ -175,16 +175,22 @@ class HParticle extends BatchElement {
 		scaleY_tween.start(scaleY*s, scaleY, durationS);
 	}
 
-	public inline function scaleTo(w:Float, h=-1.) {
-		scaleXTo(w);
-		scaleYTo(h>=0 ? h : w);
+	@:deprecated("Use resizeTo (note: second arg is now optional)") @:noCompletion
+	public inline function scaleTo(w:Float, h:Float) resizeTo(w,h);
+	public inline function resizeTo(w:Float, h=-1.) {
+		resizeXTo(w);
+		resizeYTo(h>=0 ? h : w);
 	}
 
-	public inline function scaleXTo(len:Float) {
+	@:deprecated("Use resizeXTo") @:noCompletion
+	public inline function scaleXTo(len:Float) resizeXTo(len);
+	public inline function resizeXTo(len:Float) {
 		scaleX = len/t.width;
 	}
 
-	public inline function scaleYTo(len:Float) {
+	@:deprecated("Use resizeYTo") @:noCompletion
+	public inline function scaleYTo(len:Float) resizeYTo(len);
+	public inline function resizeYTo(len:Float) {
 		scaleY = len/t.height;
 	}
 
