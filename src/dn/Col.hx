@@ -92,6 +92,20 @@ abstract Col(Int) from Int to Int {
 		);
 	}
 
+	/** Create a random color based on a string **/
+	public static inline function randomFromString(str:String, sat=0.8, lum=1.0) : Col {
+		if( str.length==0 )
+			return fromHsl(0, sat, lum);
+
+		var sum = 0;
+		for( i in 0...str.length )
+			sum += str.charCodeAt(i);
+
+		var hue = ( ( sum*5 ) / 126) % 1.;
+		return fromHsl( hue, sat, lum );
+	}
+
+
 	/** Create a random color using RGB **/
 	public static inline function randomRGB(?r:Float, ?g:Float, ?b:Float) : Col {
 		return fromRGBf(
