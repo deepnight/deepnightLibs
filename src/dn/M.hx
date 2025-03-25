@@ -345,6 +345,11 @@ class M {
 		return from + (to - from) * t;
 	}
 
+	/** Linear interpolation over interval a...b with t = 0...1 **/
+	inline public static function lerpTmod(from:Float, to:Float, t:Float, tmod:Float) : Float {
+		return from + (to - from) * M.fmin(t*tmod,1);
+	}
+
 
 	/**
 	 * Spherically interpolates between two angles.
