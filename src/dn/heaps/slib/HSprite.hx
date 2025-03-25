@@ -84,7 +84,9 @@ class HSprite extends h2d.Drawable implements SpriteInterface {
 		customTile = t;
 	}
 
-	public inline function isUsingCustomTile() return customTile!=null;
+	public inline function isUsingCustomTile(?t:h2d.Tile) {
+		return t==null && customTile!=null  ||  t!=null && customTile==t;
+	}
 
 	public function setEmptyTexture() {
 		#if debug
