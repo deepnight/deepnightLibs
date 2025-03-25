@@ -514,10 +514,9 @@ class M {
 	/**
 	 * Snaps x to the grid y.
 	 */
-	inline public static function snap(x:Float, y:Float):Float
-	{
-		return floor((x + y * .5) / y);
-	}
+	// inline public static function snap(x:Float, y:Float):Float {
+	// 	return floor((x + y * .5) / y);
+	// }
 
 	/**
 	 * Returns true if min <= x <= max.
@@ -759,6 +758,10 @@ class M {
 		return r;
 	}
 
+
+	public static inline function snapValue(v:Float, snapInterval:Float) {
+		return round( v / snapInterval ) * snapInterval;
+	}
 
 
 	public static inline function normalizeDeg(a:Float) { // [-180,180]
