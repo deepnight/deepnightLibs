@@ -336,18 +336,18 @@ class M {
 	/**
 	 * Returns the nearest power of two value
 	 */
-	inline public static function nearestPow2(x:Int) {
+	public static inline function nearestPow2(x:Int) {
 		return Math.pow( 2, Math.round( Math.log( x ) / Math.log( 2 ) ) );
 	}
 
 	/** Linear interpolation over interval a...b with t = 0...1 **/
-	inline public static function lerp(from:Float, to:Float, t:Float) : Float {
+	public static inline function lerp(from:Float, to:Float, t:Float) : Float {
 		return from + (to - from) * t;
 	}
 
 	/** Linear interpolation over interval a...b with t = 0...1 **/
-	inline public static function lerpTmod(from:Float, to:Float, t:Float, tmod:Float) : Float {
-		return from + (to - from) * M.fmin(t*tmod,1);
+	public static inline function lerpTmod(from:Float, to:Float, t:Float, tmod:Float) : Float {
+		return lerp(from, to, fmin(t*tmod,1));
 	}
 
 
