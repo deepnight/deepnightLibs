@@ -1077,6 +1077,10 @@ class M {
 		return ( 1 + Math.sin(ang) ) / 2;
 	}
 
+	public static inline function sinOscillate(from:Float, to:Float, ang:Float) {
+		return lerp(from, to, sinZeroToOne(ang));
+	}
+
 	/**
 		Return a 0-1 ratio by "clamping" `r` to [min,max].
 		 - If r<=min, this returns 0,
