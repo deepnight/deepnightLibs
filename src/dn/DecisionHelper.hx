@@ -377,6 +377,8 @@ class DecisionHelper<T> {
 		dh.applyAsyncMethods();
 		CiAssert.equals( dh.countRemaining(), 2 );
 		CiAssert.equals( dh.getBest(), "food" );
+
+		// TODO add quickPick() tests
 	}
 	#end
 }
