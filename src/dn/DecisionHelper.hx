@@ -66,18 +66,22 @@ class DecisionHelper<T> {
 
 		If the score of the best element is <= to `minScoreDiscard`, then the pick returns `null`.
 	**/
+	@:deprecated("Use quickPick()") @:noCompletion
 	public static inline function optimizedPick<T>(all:Iterable<T>, score:T->Float, minScoreDiscard=-999999) : Null<T> {
-		var best : T = null;
+		return quickPick(all, score, minScoreDiscard);
+	}
+	public static inline function quickPick<T>(all:Iterable<T>, score:T->Float, ?minScoreDiscard=-99999999) : Null<T> {
+		var bestElement : T = null;
 		var bestScore = -999999.;
 		var s = 0.;
 		for(e in all) {
 			s = score(e);
 			if( s>bestScore ) {
-				best = e;
+				bestElement = e;
 				bestScore = s;
 			}
 		}
-		return bestScore<=minScoreDiscard ? null : best;
+		return bestScore<=minScoreDiscard ? null : bestElement;
 	}
 
 	/** Reset scores and removals **/
