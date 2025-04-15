@@ -243,8 +243,8 @@ class GetText {
 		`sayMessage( myGetText.untranslated("Do not translate") )`. The "Do not translate" string will be
 		passed as-is and will not be exported in PO during extraction.
 	**/
-	public inline function untranslated(str:Dynamic) : LocaleString {
-		return new LocaleString( Std.string(str) );
+	public inline function untranslated(str:Dynamic) : Null<LocaleString> {
+		return str!=null ? new LocaleString( Std.string(str) ) : null;
 	}
 
 
