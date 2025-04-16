@@ -482,17 +482,19 @@ class SpriteLib {
 	}
 
 	#if castle
-	public function getCdbTile(tileInf:cdb.Types.TilePos) {
+	public function getCdbTile(tileInf:cdb.Types.TilePos, xr=0., yr=0.) {
 		if( tileInf==null )
 			return h2d.Tile.fromColor(0xff0000, 4,4, 0);
 
 		final size = tileInf.size;
-		return tile.sub(
+		var t = tile.sub(
 			tileInf.x*size,
 			tileInf.y*size,
 			(tileInf.width==null ? 1 : tileInf.width)*size,
 			(tileInf.height==null ? 1 : tileInf.height)*size
 		);
+		t.setCenterRatio(xr,yr);
+		return t;
 	}
 
 	public inline function getCdbBitmap(tileInf:cdb.Types.TilePos, ?p:h2d.Object) {
