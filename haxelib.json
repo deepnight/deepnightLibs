@@ -4,7 +4,7 @@
 	"license": "Apache",
 	"tags": ["Heaps","Hashlink","package","deepnight"],
 	"description": "The general personal libs I use in my Haxe projects.",
-	"version": "1.0.84",
+	"version": "1.0.85",
 	"classPath": "src/",
 	"releasenote": "Misc stuff, bug fixes (check git log)",
 	"contributors": ["sbenard"],
