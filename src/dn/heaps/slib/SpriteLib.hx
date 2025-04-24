@@ -77,8 +77,9 @@ class SpriteLib {
 	var gridY					: Int;
 	var children				: Array<SpriteInterface>;
 
-	public var tile  (get,never)     : h2d.Tile;
-	public var pages (default,null) : Array<h2d.Tile>;
+	public var tile(get,never) : h2d.Tile;
+	public var texture(get,never) : h3d.mat.Texture;
+	public var pages(default,null) : Array<h2d.Tile>;
 	public var normalPages (default, null) : Array<h2d.Tile>;
 
 	public function new(pages : Array<h2d.Tile>, ?normalPages : Array<h2d.Tile>) {
@@ -96,6 +97,10 @@ class SpriteLib {
 	inline function get_tile() {
 		if (pages.length > 1) throw "Cannot access tile when there is multiple pages";
 		return pages[0];
+	}
+
+	inline function get_texture() {
+		return tile.getTexture();
 	}
 
 	public function reloadUsing(l:SpriteLib) {
