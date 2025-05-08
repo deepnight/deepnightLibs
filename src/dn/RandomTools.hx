@@ -129,6 +129,51 @@ class RandomTools {
 	}
 
 
+	/** Pick a value randomly in an array **/
+	static var pickFilteredIndexes = new dn.struct.FixedArray(100);
+	public static inline function pickFiltered<T>(arr:Array<T>, removeAfterPick=false, filter:T->Bool) : Null<T> {
+		if( arr==null || arr.length==0 )
+			return null;
+
+		pickFilteredIndexes.empty();
+		var idx = 0;
+		for(e in arr) {
+			if( filter(e) )
+				pickFilteredIndexes.push(idx);
+			idx++;
+		}
+
+		if( pickFilteredIndexes.allocated==0 )
+			return null;
+
+		idx = pickFilteredIndexes.pickRandom();
+		return removeAfterPick ? arr.splice(idx, 1)[0] : arr[idx];
+	}
+
+
+	/** Pick a value randomly in an array **/
+	public static inline function pickFilteredFixedArray<T>(arr:dn.struct.FixedArray<T>, removeAfterPick=false, filter:T->Bool) : Null<T> {
+		if( arr==null || arr.allocated==0 )
+			return null;
+
+		pickFilteredIndexes.empty();
+		var idx = 0;
+		for(e in arr) {
+			if( filter(e) )
+				pickFilteredIndexes.push(idx);
+			idx++;
+		}
+
+		if( pickFilteredIndexes.allocated==0 )
+			return null;
+
+		var out = arr.get( pickFilteredIndexes.pickRandom() );
+		if( removeAfterPick )
+			arr.removeIndex(idx);
+		return out;
+	}
+
+
 	/**
 		Randomly spread `value` in `nbStacks` stacks. Example:
 	**/
