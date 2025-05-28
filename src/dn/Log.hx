@@ -206,7 +206,7 @@ class Log {
 		`markAsCritical` is used to check if the whole log contains any "critical"
 	**/
 
-	public inline function add(tag:String, text:String, ?color:UInt, markAsCritical=false) {
+	public inline function add(tag:String, text:String, ?color:Col, markAsCritical=false) {
 		if( currentIndent>0 )
 			text = Lib.repeatChar("  ",currentIndent) + (indentBullet==null ? "" : indentBullet+" ") + text;
 
@@ -236,7 +236,7 @@ class Log {
 	}
 
 
-	public var tagColors : Map<String,String> = [
+	public var tagColors : Map<String,Col> = [
 		"general" => "#c8c9e3",
 		"warning" => "#ff9900",
 		"error" => "#ff0000",
@@ -251,8 +251,8 @@ class Log {
 		add("general", str);
 	}
 
-	public inline function getTagColor(tag:String) : UInt {
-		return tagColors.exists(tag) ? dn.legacy.Color.hexToInt(tagColors.get(tag)) : 0xffffff;
+	public inline function getTagColor(tag:String) : Col {
+		return tagColors.exists(tag) ? tagColors.get(tag) : 0xffffff;
 	}
 
 	public inline function emptyEntry()				add("","");
