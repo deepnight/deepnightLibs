@@ -431,6 +431,8 @@ class ControllerAccess<T:Int> {
 	**/
 	public inline function anyStandardContinuePressed() {
 		return anyPadButtonPressed()
+			|| isKeyboardPressed(Key.E)
+			|| isKeyboardPressed(Key.F)
 			|| isKeyboardPressed(Key.ESCAPE)
 			|| isKeyboardPressed(Key.SPACE)
 			|| isKeyboardPressed(Key.ENTER)
