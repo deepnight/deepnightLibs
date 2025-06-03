@@ -817,6 +817,31 @@ class Lib {
 		return out;
 	}
 
+	public static function groupArrayCustom<T:Dynamic,X:Dynamic>(arr:Array<T>, isEqual:(a:T,b:T)->Bool, getOutputValue:T->X) : Array<{ value:X, count:Int }> {
+		var grouped : Array<{ value:T, count:Int }> = [];
+		for(i in 0...arr.length) {
+			var v = arr[i];
+
+			// Skip if already counted
+			var found = false;
+			for(e in grouped)
+				if( isEqual(e.value, v)) {
+					found = true;
+					break;
+				}
+			if( found )
+				continue;
+
+			// Count
+			var n = 1;
+			for(j in i+1...arr.length)
+				if( isEqual(arr[j],v) )
+					n++;
+			grouped.push({ value:v, count:n });
+		}
+		return grouped.map( g->{ value:getOutputValue(g.value), count:g.count } );
+	}
+
 	public static function prettyGroupedArray<T:Dynamic>(arr:Array<T>, join=",") : String {
 		return groupArray(arr)
 			.map( (g) -> g.count==1 ? Std.string(g.value) : '${g.value}(${g.count})' )
@@ -933,6 +958,34 @@ class Lib {
 		CiAssert.equals( splitArray(arr,2)[0][2], "C" );
 		CiAssert.equals( splitArray(arr,2)[1][0], "D" );
 		CiAssert.equals( splitArray(arr,2)[1][1], "E" );
+
+		// Array grouping (simple)
+		var arr = [1,1,1, 2,2, 3,3,3,3];
+		CiAssert.equals( groupArray(arr).length, 3 );
+
+		CiAssert.equals( groupArray(arr)[0].value, 1 );
+		CiAssert.equals( groupArray(arr)[0].count, 3 );
+
+		CiAssert.equals( groupArray(arr)[1].value, 2 );
+		CiAssert.equals( groupArray(arr)[1].count, 2 );
+
+		CiAssert.equals( groupArray(arr)[2].value, 3 );
+		CiAssert.equals( groupArray(arr)[2].count, 4 );
+
+		// Array grouping (custom)
+		var arr = [ {v:1,b:false}, {v:1,b:true}, {v:2,b:true}, {v:2,b:false}, {v:3,b:true} ];
+		var isEqual = (a,b)->a.v==b.v;
+		var outputValue = (a)->a.v;
+		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue).length, 3 );
+
+		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[0].value, 1 );
+		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[0].count, 2 );
+
+		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[1].value, 2 );
+		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[1].count, 2 );
+
+		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[2].value, 3 );
+		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[2].count, 1 );
 	}
 	#end
 
