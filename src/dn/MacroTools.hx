@@ -252,7 +252,7 @@ class MacroTools {
 
 
 	/**
-		Create an `Array<{ name:String, value:XXX }>` from an Abstract Enum, where XXX type depends on the underlying enum type (Int or String).
+		Create an `Array<{ name:String, value:XXX }>` from an Abstract Enum, where `value` type depends on the underlying enum type (Int or String).
 	**/
 	public static macro function getAbstractEnumValues(abstractEnumType:haxe.macro.Expr) {
 		var allValues = getAbstractEnumValuesForMacros(abstractEnumType);
