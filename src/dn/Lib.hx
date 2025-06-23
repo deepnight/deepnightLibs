@@ -935,11 +935,23 @@ class Lib {
 		CiAssert.equals( getArrayValueBefore(1, [3,1,7,9]), 3 );
 		CiAssert.equals( getArrayValueBefore(3, [3,1,7,9]), 3 );
 
+		CiAssert.equals( getArrayValueBefore(99., [2.5, 1.1, 3.7, 4.1]), 99 );
+		CiAssert.equals( getArrayValueBefore(0., [2.5, 1.1, 3.7, 4.1]), 0 );
+		CiAssert.equals( getArrayValueBefore(4.1, [2.5, 1.1, 3.7, 4.1]), 3.7 );
+		CiAssert.equals( getArrayValueBefore(1.1, [2.5, 1.1, 3.7, 4.1]), 2.5 );
+		CiAssert.equals( getArrayValueBefore(2.5, [2.5, 1.1, 3.7, 4.1]), 2.5 );
+
 		CiAssert.equals( getArrayValueAfter(12, [3,1,7,9]), 12 );
 		CiAssert.equals( getArrayValueAfter(9, [3,1,7,9]), 9 );
 		CiAssert.equals( getArrayValueAfter(7, [3,1,7,9]), 9 );
 		CiAssert.equals( getArrayValueAfter(1, [3,1,7,9]), 7 );
 		CiAssert.equals( getArrayValueAfter(3, [3,1,7,9]), 1 );
+
+		CiAssert.equals( getArrayValueAfter(99., [2.5, 1.1, 3.7, 4.1]), 99 );
+		CiAssert.equals( getArrayValueAfter(0., [2.5, 1.1, 3.7, 4.1]), 0 );
+		CiAssert.equals( getArrayValueAfter(4.1, [2.5, 1.1, 3.7, 4.1]), 4.1 );
+		CiAssert.equals( getArrayValueAfter(1.1, [2.5, 1.1, 3.7, 4.1]), 3.7 );
+		CiAssert.equals( getArrayValueAfter(2.5, [2.5, 1.1, 3.7, 4.1]), 1.1 );
 
 		// Split array
 		var arr = ["A","B","C","D","E"];
