@@ -26,6 +26,7 @@ class TinyTween {
 	public inline function reset() {
 		fromValue = toValue = 0;
 		durationS = elapsedS = -1;
+		interp = EaseInOut;
 	}
 
 	/** Return TRUE if the tween has any valid value (ie. it's either started, or completed). Reseting makes this function FALSE. **/
