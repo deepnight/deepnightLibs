@@ -110,7 +110,7 @@ class TinyTween {
 		CiAssert.equals( M.round(t.curValue), 20 );
 		CiAssert.equals( t.isComplete(), true );
 		CiAssert.equals( t.hasAnyValue(), true );
-		CiAssert.equals( { t.reset(); t.hasAnyValue() }, false );
+		CiAssert.equals( { t.reset(); t.hasAnyValue(); }, false );
 
 		t.start(10, 20, 1, EaseIn);
 		CiAssert.equals( t.curValue, 10 );
