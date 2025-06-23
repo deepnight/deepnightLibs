@@ -44,8 +44,8 @@ class HParticle extends BatchElement {
 	public var alphaFlicker		: Float;
 	public var customTmod		: Void->Float;
 
-	public var scaleX_tween(default,null) : TinyTween;
-	public var scaleY_tween(default,null) : TinyTween;
+	var scaleX_tween(default,null) : TinyTween;
+	var scaleY_tween(default,null) : TinyTween;
 
 	var delayedCb : Null< HParticle->Void >;
 	var delayedCbTimeS : Float;
@@ -163,7 +163,20 @@ class HParticle extends BatchElement {
 
 	public inline function tweenBothScales(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
 		scaleX_tween.start(from, to, durationS, interp);
+		scaleX = from;
+
 		scaleY_tween.start(from, to, durationS, interp);
+		scaleY = from;
+	}
+
+	public inline function tweenScaleX(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
+		scaleX_tween.start(from, to, durationS, interp);
+		scaleX = from;
+	}
+
+	public inline function tweenScaleY(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
+		scaleY_tween.start(from, to, durationS, interp);
+		scaleY = from;
 	}
 
 	public inline function squashX(s:Float, durationS=0.06) {
