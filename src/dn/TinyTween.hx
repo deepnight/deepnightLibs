@@ -81,11 +81,13 @@ class TinyTween {
 
 	/** Advance the tween, return TRUE if the tween is running and curValue changed **/
 	public inline function update(tmod:Float) : Bool {
-		if( !hasAnyValue() || isComplete() )
+		if( hasAnyValue() && !isComplete() ) {
+			elapsedS = M.fmin( durationS, elapsedS + tmod/fps );
+			return true;
+		}
+		else
 			return false;
 
-		elapsedS = M.fmin( durationS, elapsedS + tmod/fps );
-		return true;
 	}
 
 
@@ -108,6 +110,7 @@ class TinyTween {
 		CiAssert.equals( M.round(t.curValue), 20 );
 		CiAssert.equals( t.isComplete(), true );
 		CiAssert.equals( t.hasAnyValue(), true );
+		CiAssert.equals( { t.reset(); t.hasAnyValue() }, false );
 
 		t.start(10, 20, 1, EaseIn);
 		CiAssert.equals( t.curValue, 10 );
