@@ -9,6 +9,7 @@ import h2d.Tile;
 import h2d.SpriteBatch;
 import dn.Lib;
 import hxd.impl.AllocPos;
+import dn.TinyTween;
 
 
 class HParticle extends BatchElement {
@@ -107,8 +108,8 @@ class HParticle extends BatchElement {
 		pool = p;
 		poolIdx = -1;
 
-		scaleX_tween = new TinyTween();
-		scaleY_tween = new TinyTween();
+		scaleX_tween = new TinyTween(fps);
+		scaleY_tween = new TinyTween(fps);
 
 		reset(null, x,y);
 	}
@@ -160,19 +161,19 @@ class HParticle extends BatchElement {
 		this.y = y;
 	}
 
-	public inline function tweenBothScales(from:Float, to:Float, durationS:Float) {
-		scaleX_tween.start(from, to, durationS);
-		scaleY_tween.start(from, to, durationS);
+	public inline function tweenBothScales(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
+		scaleX_tween.start(from, to, durationS, interp);
+		scaleY_tween.start(from, to, durationS, interp);
 	}
 
 	public inline function squashX(s:Float, durationS=0.06) {
-		scaleX_tween.start(scaleX*s, scaleX, durationS);
-		scaleY_tween.start(scaleX*(2-s), scaleY, durationS);
+		scaleX_tween.start(scaleX*s, scaleX, durationS, Linear);
+		scaleY_tween.start(scaleX*(2-s), scaleY, durationS, Linear);
 	}
 
 	public inline function squashY(s:Float, durationS=0.06) {
-		scaleX_tween.start(scaleX*(2-s), scaleX, durationS);
-		scaleY_tween.start(scaleY*s, scaleY, durationS);
+		scaleX_tween.start(scaleX*(2-s), scaleX, durationS, Linear);
+		scaleY_tween.start(scaleY*s, scaleY, durationS, Linear);
 	}
 
 	@:deprecated("Use resizeTo (note: second arg is now optional)") @:noCompletion
@@ -292,8 +293,8 @@ class HParticle extends BatchElement {
 		delayedCbTimeS = 0;
 
 		// Tweens
-		scaleX_tween.clear();
-		scaleY_tween.clear();
+		scaleX_tween.reset();
+		scaleY_tween.reset();
 
 		// Callbacks
 		onStart = null;
@@ -650,8 +651,10 @@ class HParticle extends BatchElement {
 					var scaleMulTmod = optimPow(scaleMul, tmod);
 
 					// X scale
-					if( scaleX_tween.isRunning() )
-						scaleX = scaleX_tween.update(tmod, fps);
+					if( scaleX_tween.isCurrentlyRunning() ) {
+						scaleX_tween.update(tmod);
+						scaleX = scaleX_tween.curValue;
+					}
 					else {
 						scaleX += (ds+dsX) * tmod;
 						scaleX *= scaleMulTmod;
@@ -659,8 +662,10 @@ class HParticle extends BatchElement {
 					}
 
 					// Y scale
-					if( scaleY_tween.isRunning() )
-						scaleY = scaleY_tween.update(tmod, fps);
+					if( scaleY_tween.isCurrentlyRunning() ) {
+						scaleY_tween.update(tmod);
+						scaleY = scaleY_tween.curValue;
+					}
 					else {
 						scaleY += (ds+dsY) * tmod;
 						scaleY *= scaleMulTmod;
@@ -984,43 +989,3 @@ class Emitter {
 	}
 }
 
-
-
-
-/************************************************************
-	Internal lightweight tweening tool
-************************************************************/
-
-enum abstract TinyTweenStyle(Int) to Int {
-	var Linear;
-}
-
-class TinyTween { // TODO use dn.TinyTween
-	var fromValue = 0.;
-	var toValue = 0.;
-	var elapsedS = 0.;
-	var durationS = 0.;
-	var style : TinyTweenStyle = Linear;
-
-	public inline function new() {}
-
-	public inline function isRunning() {
-		return durationS>0 && elapsedS<durationS;
-	}
-
-	public inline function clear() {
-		durationS = elapsedS = 0;
-	}
-
-	public inline function start(from:Float, to:Float, durationS:Float) {
-		this.fromValue = from;
-		this.toValue = to;
-		this.durationS = durationS;
-		this.elapsedS = 0;
-	}
-
-	public inline function update(tmod:Float, fps:Int) {
-		elapsedS = M.fmin( durationS, elapsedS + tmod/fps );
-		return fromValue + ( toValue - fromValue ) * (elapsedS/durationS);
-	}
-}
