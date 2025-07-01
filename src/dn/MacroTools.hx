@@ -96,6 +96,7 @@ class MacroTools {
 		return { pos:Context.currentPos(), expr:EConst( CString( Date.now().toString() ) ) }
 	}
 
+
 	/**
 		Return a version String containing various info about current build: platform, steam, debug, 32/64bits etc.
 		Example: "2021-10-01-21-39-53--hldx-steam-debug-64"
@@ -279,4 +280,33 @@ class MacroTools {
 			arr;
 		}
 	}
+
+	public static macro function addMetaToClass(fullClassName:String, metas:Array<String>) {
+		var pos = Context.currentPos();
+		Context.registerModuleDependency("dn.MacroTools", pos.getInfos().file);
+		var nameParts = fullClassName.indexOf(".")>0 ? fullClassName.split(".") : [fullClassName];
+		var pack = nameParts.length>1 ? nameParts.slice(0,nameParts.length-1).join(".") : "";
+		var className = nameParts.length>1 ? nameParts.pop() : fullClassName;
+
+		Context.onGenerate(allTypes->{
+			var found = false;
+			for(t in allTypes)
+				switch t {
+					case TInst(t, _):
+						if( t.get().name==className && t.get().pack.join(".")==pack ) {
+							found = true;
+							for(meta in metas)
+								t.get().meta.add(meta, [], pos);
+						}
+
+					case _:
+				}
+
+			if( !found )
+				Context.error('$fullClassName class not found', pos);
+		}, false);
+
+		return macro {}
+	}
+
 }
