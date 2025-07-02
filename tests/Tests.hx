@@ -45,6 +45,9 @@ class Tests {
 		dn.Log.test();
 		dn.TinyTween.test();
 
+		#if hscript
+		dn.script.ScriptTest.run();
+		#end
 
 
 		// Done!

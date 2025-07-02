@@ -28,6 +28,7 @@ jobs:
 
       # Install libs
       - run: haxelib git castle https://github.com/deepnight/castle
+      - run: haxelib git hscript https://github.com/deepnight/hscript
       - run: haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs.git
       - run: haxelib list
 
