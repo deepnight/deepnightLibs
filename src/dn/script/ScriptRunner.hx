@@ -39,8 +39,8 @@ class ScriptRunner {
 
 	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
 
-	// If TRUE, catch ScriptError exceptions
-	public var catchErrors = true;
+	// If TRUE, throw errors
+	public var throwErrors = false;
 
 	// If TRUE, the script is not checked before running. This should only be used if check() is manually called before hand.
 	public var runWithoutCheck = false;
@@ -119,7 +119,7 @@ class ScriptRunner {
 	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
 		switch Type.typeof(instance) {
 			case TClass(c):
-			case _: throw new ScriptError(Init, "Not a class: "+instance);
+			case _: error( new ScriptError(Init, "Not a class: "+instance) );
 		}
 
 		var cl = interfaceInScript ?? Type.getClass(instance);
@@ -177,7 +177,7 @@ class ScriptRunner {
 
 	inline function checkRtti<T>(cl:Class<T>) {
 		if( !Reflect.hasField(cl, "__rtti") )
-			throw new ScriptError(Check, 'Missing @:rtti for $cl');
+			error( new ScriptError(Check, 'Missing @:rtti for $cl') );
 	}
 
 
@@ -399,7 +399,7 @@ class ScriptRunner {
 					case CData:
 					case Comment:
 					case ProcessingInstruction:
-					case DocType, Document: throw new ScriptError(Check, "Unexpected node type "+e.nodeType);
+					case DocType, Document: error( new ScriptError(Check, "Unexpected node type "+e.nodeType) );
 				}
 			}
 
@@ -458,7 +458,7 @@ class ScriptRunner {
 			transformConditionExprs(program);
 		}
 		catch(err:hscript.Expr.Error) {
-			ScriptError.fromHScriptError(Parse, err, script);
+			ScriptError.rethrowHScriptError(Parse, err, script);
 		}
 		return program;
 	}
@@ -482,7 +482,7 @@ class ScriptRunner {
 				return true;
 			}
 			catch(err:hscript.Expr.Error) {
-				ScriptError.fromHScriptError(Check, err, script);
+				ScriptError.rethrowHScriptError(Check, err, script);
 				return false;
 			}
 		}
@@ -516,7 +516,7 @@ class ScriptRunner {
 				return true;
 			}
 			catch(err:hscript.Expr.Error) {
-				ScriptError.fromHScriptError(Execution, err, script);
+				ScriptError.rethrowHScriptError(Execution, err, script);
 				return false;
 			}
 		}
@@ -539,7 +539,7 @@ class ScriptRunner {
 
 	inline function error(err:ScriptError) {
 		onError(err);
-		if( !catchErrors )
+		if( throwErrors )
 			throw err;
 	}
 
@@ -599,7 +599,7 @@ class ScriptRunner {
 				onUpdate(tmod);
 			}
 			catch(err:hscript.Expr.Error) {
-				ScriptError.fromHScriptError(Execution, err, lastScript);
+				ScriptError.rethrowHScriptError(Execution, err, lastScript);
 			}
 		}
 		catch( err:ScriptError ) {

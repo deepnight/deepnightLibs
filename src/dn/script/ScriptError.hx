@@ -18,7 +18,7 @@ class ScriptError extends haxe.Exception {
 		this.scriptStr = scriptStr;
 	}
 
-	public static inline function fromHScriptError(ctx:ErrorContext, err:hscript.Expr.Error, scriptStr:Null<String>) {
+	public static inline function rethrowHScriptError(ctx:ErrorContext, err:hscript.Expr.Error, scriptStr:Null<String>) {
 		#if hscriptPos
 		var e = new ScriptError(ctx, err.toString(), scriptStr);
 		e.line = err.line;
