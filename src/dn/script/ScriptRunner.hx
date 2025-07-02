@@ -438,13 +438,6 @@ class ScriptRunner {
 	}
 
 
-	// Check the Expr program validity
-	function checkProgramExpr(program:Expr) {
-		if( checker==null )
-			initChecker();
-		checker.check(program);
-	}
-
 
 
 	function scriptStringToExpr(rawScript:String) : Null<Expr> {
@@ -469,17 +462,20 @@ class ScriptRunner {
 		Check the script validity.
 		This requires all types used in scripting to be registered first!
 	**/
-	public function check(script:String) : Bool {
+	public function check(script:String, ?scriptExpr:Expr) : Bool {
 		stop();
 		lastScript = script;
 
 		try {
-			var program = scriptStringToExpr(script);
+			var program = scriptExpr ?? scriptStringToExpr(script);
 			if( program==null )
 				return false;
 
 			try {
-				checkProgramExpr(program);
+				if( checker==null )
+					initChecker();
+				checker.check(program);
+
 				return true;
 			}
 			catch(err:hscript.Expr.Error) {
@@ -501,14 +497,15 @@ class ScriptRunner {
 		stop();
 		lastScript = script;
 
-		// Check the script
-		if( !runWithoutCheck && !check(script) )
-			return false;
 
 		try {
 			try {
 				var program = scriptStringToExpr(script);
 				if( program==null )
+					return false;
+
+				// Check the script
+				if( !runWithoutCheck && !check(script,program) )
 					return false;
 
 				// Run
