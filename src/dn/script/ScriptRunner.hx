@@ -405,6 +405,7 @@ class ScriptRunner {
 
 		// Register types
 		checker.types.defineClass("String");
+		checker.types.defineClass("Array");
 		checker.types.addXmlApi(fullXml);
 
 		// Internal API functions
@@ -512,6 +513,7 @@ class ScriptRunner {
 
 				// Run
 				running = true;
+				Sys.println( programExprToString(program) );
 				interp.execute(program);
 				return true;
 			}
