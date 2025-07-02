@@ -365,14 +365,6 @@ class ScriptRunner {
 			allXmls.push( Xml.parse(xmlStr.join("\n")) );
 		}
 
-		function _registerClassInstanceFieldsAsGlobals<T>(c:Class<T>, includePrivates=true) {
-			var path = haxe.rtti.Rtti.getRtti(c).path;
-			switch checker.types.resolve(path) {
-				case TInst(c, args): checker.setGlobals(c, args, includePrivates);
-				case _:
-			}
-		}
-
 
 		// Build all registered types XMLs
 		for(e in checkerEnums)
@@ -433,8 +425,12 @@ class ScriptRunner {
 			}
 
 			// Optionally: register this class instance fields as globals
-			if( ac.globalInstanceFields )
-				_registerClassInstanceFieldsAsGlobals(ac.cl);
+			if( ac.globalInstanceFields ) {
+				switch tt {
+					case TInst(c, args): checker.setGlobals(c, args, true);
+					case _:
+				}
+			}
 		}
 	}
 
