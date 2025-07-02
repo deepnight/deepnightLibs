@@ -18,8 +18,12 @@ class ScriptError extends haxe.Exception {
 	}
 
 	public static inline function fromHScriptError(ctx:ErrorContext, err:hscript.Expr.Error, scriptStr:Null<String>) {
+		#if hscriptPos
 		var e = new ScriptError(ctx, err.toString(), scriptStr);
 		e.line = err.line;
+		#else
+		var e = new ScriptError(ctx, Std.string(err), scriptStr);
+		#end
 		throw e;
 	}
 
