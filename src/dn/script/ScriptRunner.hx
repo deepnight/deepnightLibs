@@ -18,11 +18,12 @@ private typedef CheckerClass = {
 	ScriptRunner: an HScript wrapper
 
 	USAGE:
-		Create a new instance of ScriptRunner and provide an API class instance that the script will rely on.
-		Don't forget to call the ScriptRunner update()!
+		Create a new instance of ScriptRunner
+		Call the ScriptRunner update() loop!
+		Optional: provide an API class instance that the script will rely on.
 		Use run() to execute a script text.
 		Use check() to verify a script text syntax.
-		Used Classes and Enums must be provided using "exposeXXX()" methods.
+		Provide Classes and Enums used in scripts using "exposeXXX()" methods.
 **/
 class ScriptRunner {
 	var fps : Int;
