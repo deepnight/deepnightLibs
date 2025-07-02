@@ -510,7 +510,6 @@ class ScriptRunner {
 
 				// Run
 				running = true;
-				Sys.println( programExprToString(program) );
 				interp.execute(program);
 				return true;
 			}
