@@ -9,8 +9,17 @@ class ScriptTest {
 		var api = new Api();
 		var r = new ScriptRunner();
 		r.log = (str,?col)->{}
+		r.catchErrors = false;
 		r.setApiClass(api);
 
+		var script = "
+		var x = 5;
+		x++;
+		1; // wait 1s
+		x++;
+		trace(x);
+		";
+		CiAssert.noException( "scriptChecking", r.check(script) );
 		CiAssert.equals( { r.run("reset();"); Api.retValue; },  0 );
 		CiAssert.equals( { r.run("api.ret(1);"); Api.retValue; },  1 );
 		CiAssert.equals( { r.run("ret(1);"); Api.retValue; },  1 );
@@ -18,11 +27,12 @@ class ScriptTest {
 		CiAssert.equals( { r.run("ret( api.pow(2) );"); Api.retValue; },  4 );
 
 		// Errors
-		CiAssert.equals( { r.run("unknown(); ret(1);"); Api.retValue; },  0 );
-		CiAssert.equals( { r.run("api.unknown(); ret(1);"); Api.retValue; },  0 );
-		CiAssert.equals( { r.run("ù$^!ù; ret(1);"); Api.retValue; },  0 );
-		CiAssert.equals( { r.run("var x=5; x=''; ret(1);"); Api.retValue; },  0 );
-		CiAssert.equals( { r.run("var x=pow('a'); ret(1);"); Api.retValue; },  0 );
+		CiAssert.throwsException( "Unknown identifier 1", r.run("unknown();") );
+		CiAssert.throwsException( "Unknown identifier 2", r.run("api.unknown();") );
+		CiAssert.throwsException( "Invalid characters", r.run("var x=1; ù$^!ù;") );
+		CiAssert.throwsException( "Incompatible types", r.run("var x=5; x='';") );
+		CiAssert.throwsException( "Incompatible arg types", r.run("var x=pow('a');") );
+		CiAssert.throwsException( "Undefined var", r.run("x=1") );
 	}
 }
 

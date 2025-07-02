@@ -59,6 +59,22 @@ class CiAssert {
 			}
 		};
 	}
+	public static macro function throwsException(desc:String, code:Expr) {
+		return macro {
+			var thrown = false;
+			try {
+				$code;
+			}
+			catch(e:Dynamic) {
+				thrown = true;
+			}
+
+			if( thrown )
+				dn.CiAssert.printOk($v{getDescWithPrefix(desc)} );
+			else
+				dn.CiAssert.fail( $v{getFilePos()}, $v{getDescWithPrefix(desc)}, "This expression should throw an exception" );
+		};
+	}
 
 	public static macro function isNotNull(code:Expr) {
 		return macro {
