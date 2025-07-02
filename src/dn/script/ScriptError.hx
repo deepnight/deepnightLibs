@@ -1,6 +1,7 @@
 package dn.script;
 
 private enum ErrorContext {
+	Init;
 	Parse;
 	Check;
 	Execution;
