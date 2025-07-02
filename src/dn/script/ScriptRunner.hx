@@ -25,8 +25,6 @@ private typedef CheckerClass = {
 		Used Classes and Enums must be provided using "exposeXXX()" methods.
 **/
 class ScriptRunner {
-	public var apiInst(default,null) : Null<IScriptRunnerApi>;
-
 	var fps : Int;
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
@@ -62,7 +60,6 @@ class ScriptRunner {
 	public function dispose() {
 		stop();
 
-		apiInst = null;
 		interp = null;
 
 		conditionKeywords = null;
@@ -115,21 +112,17 @@ class ScriptRunner {
 
 	}
 
-	/**
-		Register the main API class accessible from scripting. The API class must comply to the IScriptApi interface.
-		All its public fields will be globally accessible in scripts.
-	 **/
-	public function setApiClass<T>(nameInScript="api", instance:IScriptRunnerApi, ?scriptingInterface:Class<T>, globalApiFields=true) {
-		apiInst = instance;
-		exposeClassInstance(nameInScript, cast instance, scriptingInterface, globalApiFields);
-	}
-
 
 	/**
 		Expose an existing class instance to the script, as a global var with the given name
 	 **/
-	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:T, ?classInterface:Class<T>, makeFieldsGlobals=false) {
-		var cl = classInterface ?? Type.getClass(instance);
+	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
+		switch Type.typeof(instance) {
+			case TClass(c):
+			case _: throw new ScriptError(Init, "Not a class: "+instance);
+		}
+
+		var cl = interfaceInScript ?? Type.getClass(instance);
 		checkRtti(cl);
 
 		// Register for check
@@ -538,8 +531,6 @@ class ScriptRunner {
 	function stop() {
 		running = false;
 		runLoops = [];
-		if( apiInst!=null )
-			apiInst.reset();
 	}
 
 
@@ -618,7 +609,7 @@ class ScriptRunner {
 
 
 		// Script completion detection
-		if( running && runLoops.length==0 && ( apiInst==null || !apiInst.isRunning() ) ) {
+		if( running && runLoops.length==0 ) {
 			running = false;
 			onScriptComplete();
 		}
