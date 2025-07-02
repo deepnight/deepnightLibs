@@ -4,18 +4,17 @@ package dn.script;
 // #error "Only available for lib testing"
 // #end
 
-class ScriptTest {
+class Test {
 	public static function run() {
 		var api = new Api();
-		var r = new ScriptRunner();
+		var r = new ScriptRunner(60);
 		r.log = (str,?col)->{}
-		r.catchErrors = false;
-		r.setApiClass(api);
+		r.throwErrors = true;
+		r.exposeClassInstance("api", api, true);
 
 		var script = "
-		var x = 5;
+		var x = 0;
 		x++;
-		1; // wait 1s
 		x++;
 		trace(x);
 		";
@@ -37,7 +36,7 @@ class ScriptTest {
 }
 
 @:rtti @:keep
-private class Api implements IScriptRunnerApi {
+private class Api {
 	public static var retValue : Int;
 	// JS BUG: for some reason, the script cant't acceess "this.retValue" when using the script "ret(1);".
 	// It seems script scope isn't correct in JS.
@@ -46,11 +45,7 @@ private class Api implements IScriptRunnerApi {
 	public function new() {
 		reset();
 	}
-	public function reset() { retValue = 0; }
-	public function delay(cb,t) cb();
-	public function isRunning() return true;
-	public function update(tmod:Float) {}
-
+	public function reset() retValue = 0;
 	public function pow(v:Int) return v*v;
 	public function ret(v:Int) retValue = v;
 }
