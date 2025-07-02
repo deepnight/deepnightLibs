@@ -507,11 +507,6 @@ class ScriptRunner {
 		stop();
 		lastScript = script;
 
-		if( apiInst==null ) {
-			error( new ScriptError(Execution, "Missing API class", script) );
-			return false;
-		}
-
 		// Check the script
 		if( !runWithoutCheck && !check(script) )
 			return false;
@@ -623,7 +618,7 @@ class ScriptRunner {
 
 
 		// Script completion detection
-		if( running && apiInst!=null && runLoops.length==0 && !apiInst.isRunning() ) {
+		if( running && runLoops.length==0 && ( apiInst==null || !apiInst.isRunning() ) ) {
 			running = false;
 			onScriptComplete();
 		}
