@@ -284,9 +284,10 @@ class MacroTools {
 	public static macro function addMetaToClass(fullClassName:String, metas:Array<String>) {
 		var pos = Context.currentPos();
 		Context.registerModuleDependency("dn.MacroTools", pos.getInfos().file);
-		var nameParts = fullClassName.indexOf(".")>0 ? fullClassName.split(".") : [fullClassName];
-		var pack = nameParts.length>1 ? nameParts.slice(0,nameParts.length-1).join(".") : "";
-		var className = nameParts.length>1 ? nameParts.pop() : fullClassName;
+
+		var pathParts = fullClassName.indexOf(".")>0 ? fullClassName.split(".") : [fullClassName];
+		var pack = pathParts.length>1 ? pathParts.slice(0,pathParts.length-1).join(".") : "";
+		var className = pathParts[pathParts.length-1];
 
 		Context.onGenerate(allTypes->{
 			var found = false;
