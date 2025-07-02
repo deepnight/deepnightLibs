@@ -27,16 +27,19 @@ private typedef CheckerClass = {
 class ScriptRunner {
 	public var apiInst(default,null) : Null<IScriptRunnerApi>;
 
+	var fps : Int;
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
 	var running = false;
-	public var lastExecutedScript(default,null) : Null<String>;
-	public var lastProgramExpr(default,null) : Null<Expr>;
-	public var lastError(default,null) : Null<ScriptError>;
+	var timeS = 0.;
+	var lastScript(default,null) : Null<String>;
 
 	var conditionKeywords : Map<String, Bool> = new Map();
 	var checkerEnums : Array<Enum<Dynamic>> = [];
 	var checkerClasses: Array<CheckerClass> = [];
+	var internalApiFunctions: Array<{ name:String, func:Dynamic }> = [];
+
+	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
 
 	// If TRUE, catch ScriptError exceptions
 	public var catchErrors = true;
@@ -45,8 +48,11 @@ class ScriptRunner {
 	public var runWithoutCheck = false;
 
 
-	public function new() {
+	public function new(fps:Int) {
+		this.fps = fps;
+
 		interp = new hscript.Interp();
+		bindInternalFunction("delayExecutionS", delayExecutionS);
 	}
 
 
@@ -54,7 +60,7 @@ class ScriptRunner {
 		Destroy the runner and clean things up
 	**/
 	public function dispose() {
-		reset();
+		stop();
 
 		apiInst = null;
 		interp = null;
@@ -63,11 +69,36 @@ class ScriptRunner {
 		checkerEnums = null;
 		checkerClasses = null;
 
-		lastExecutedScript = null;
-		lastProgramExpr = null;
-		lastError = null;
+		lastScript = null;
 	}
 
+
+	function bindInternalFunction(name:String, func:Dynamic) {
+		internalApiFunctions.push({
+			name: name,
+			func: func,
+		});
+		interp.variables.set(name,func);
+	}
+
+
+	/**
+		Add a loop function to be used only during script execution. For example, this could be used to wait for a specific event to happen during the execution before continuing.
+		See `delayExecutionS()` for an example.
+		A custom loop function is removed from the array if it returns TRUE.
+	**/
+	public function addRunLoop(loopFunc:Float->Bool) {
+		runLoops.push(loopFunc);
+	}
+
+	function delayExecutionS( doNext:Void->Void, t:Float ) {
+		var endS = timeS+t;
+		addRunLoop((tmod)->{
+			if( timeS>=endS )
+				doNext();
+			return timeS>=endS;
+		});
+	}
 
 	/**
 		Register an Enum accessible from scripting.
@@ -232,7 +263,7 @@ class ScriptRunner {
 								var timerExpr = mkExpr(EConst(CFloat(timerS)), e);
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								_replaceExpr( ECall(
-									mkIdentExpr("delay",e),
+									mkIdentExpr("delayExecutionS",e),
 									[ mkSyncAnonymousFunction(followingExprsBlock,e), timerExpr ]
 								));
 								break;
@@ -245,7 +276,7 @@ class ScriptRunner {
 									// 0.5 >> {...}
 									case EConst(CInt(_)), EConst(CFloat(_)):
 										_replaceExpr( ECall(
-											mkIdentExpr("delay", e),
+											mkIdentExpr("delayExecutionS", e),
 											[ mkSyncAnonymousFunction(rightExpr,e), leftExpr ]
 										));
 
@@ -334,7 +365,7 @@ class ScriptRunner {
 			allXmls.push(xml);
 		}
 
-		function _addTypeAlias(name:String, alias:String) {
+		function _addTypeAliasXml(name:String, alias:String) {
 			var xmlStr = [];
 			xmlStr.push('<typedef path="$name" params="" file="" module="$name"><x path="$alias"/></typedef>');
 			allXmls.push( Xml.parse(xmlStr.join("\n")) );
@@ -349,7 +380,7 @@ class ScriptRunner {
 		}
 
 
-		// Build all registered types XMLs and aggregate them into a single large XML
+		// Build all registered types XMLs
 		for(e in checkerEnums)
 			_addEnumRttiXml(e);
 
@@ -359,11 +390,13 @@ class ScriptRunner {
 			// Add alias for the class name alone, without its package
 			var name = Type.getClassName(ac.cl);
 			if( name.indexOf(".")>=0 )
-				_addTypeAlias(name.split(".").pop(), name);
+				_addTypeAliasXml(name.split(".").pop(), name);
 		}
 
-		_addTypeAlias("dn.Col", "Int");
+		_addTypeAliasXml("dn.Col", "Int");
 
+
+		// Aggregate XMLs into a single large XML
 		var fullXml = Xml.createDocument();
 		for(xml in allXmls)
 			for(e in xml.elements()) {
@@ -380,6 +413,10 @@ class ScriptRunner {
 		// Register types
 		checker.types.defineClass("String");
 		checker.types.addXmlApi(fullXml);
+
+		// Internal API functions
+		for(f in internalApiFunctions)
+			checker.setGlobal(f.name, TDynamic);
 
 		// Register all enum values as globals
 		for(e in checkerEnums) {
@@ -439,14 +476,15 @@ class ScriptRunner {
 		This requires all types used in scripting to be registered first!
 	**/
 	public function check(script:String) : Bool {
+		stop();
+		lastScript = script;
+
 		try {
-			reset();
 			var program = scriptStringToExpr(script);
 			if( program==null )
 				return false;
 
 			try {
-				lastProgramExpr = program;
 				checkProgramExpr(program);
 				return true;
 			}
@@ -466,6 +504,9 @@ class ScriptRunner {
 		Execute a script
 	**/
 	public function run(script:String) : Bool {
+		stop();
+		lastScript = script;
+
 		if( apiInst==null ) {
 			error( new ScriptError(Execution, "Missing API class", script) );
 			return false;
@@ -477,14 +518,11 @@ class ScriptRunner {
 
 		try {
 			try {
-				reset();
-				lastExecutedScript = script;
 				var program = scriptStringToExpr(script);
 				if( program==null )
 					return false;
 
 				// Run
-				lastProgramExpr = program;
 				running = true;
 				interp.execute(program);
 				return true;
@@ -502,14 +540,9 @@ class ScriptRunner {
 	}
 
 
-	function reset() {
-		stop();
-		lastExecutedScript = null;
-		lastError = null;
-	}
-
 	function stop() {
 		running = false;
+		runLoops = [];
 		if( apiInst!=null )
 			apiInst.reset();
 	}
@@ -558,14 +591,29 @@ class ScriptRunner {
 	}
 
 
-	public function update(tmod) {
+	public dynamic function onUpdate(tmod:Float) {}
+
+
+	public function update(tmod:Float) {
+		timeS += tmod/fps;
+
 		try {
 			try {
-				if( apiInst!=null )
-					apiInst.update(tmod);
+				// Update custom loops
+				var i = 0;
+				while( i<runLoops.length ) {
+					var f = runLoops[i];
+					if( f(tmod) )
+						runLoops.splice(i, 1);
+					else
+						i++;
+				}
+
+				// Custom update
+				onUpdate(tmod);
 			}
 			catch(err:hscript.Expr.Error) {
-				ScriptError.fromHScriptError(Execution, err, lastExecutedScript);
+				ScriptError.fromHScriptError(Execution, err, lastScript);
 			}
 		}
 		catch( err:ScriptError ) {
@@ -575,7 +623,7 @@ class ScriptRunner {
 
 
 		// Script completion detection
-		if( running && apiInst!=null && !apiInst.isRunning() ) {
+		if( running && apiInst!=null && runLoops.length==0 && !apiInst.isRunning() ) {
 			running = false;
 			onScriptComplete();
 		}
