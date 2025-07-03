@@ -25,21 +25,16 @@ private typedef CheckerClass = {
 	 - Use `check()` to verify a script text syntax.
 **/
 class ScriptRunner {
-	var fps : Int;
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
 	var running = false;
-	var runningTimeS = 0.;
-	public var tmod(default,null) : Float = 1;
 	var lastScript(default,null) : Null<String>;
 	var onStopOnce : Null<Bool->Void>;
+	public var tmod(default,null) : Float = 1;
 
-	var waitUntilFunctions : Map<String, Bool> = new Map();
 	var checkerEnums : Array<Enum<Dynamic>> = [];
 	var checkerClasses: Array<CheckerClass> = [];
 	var internalApiFunctions: Array<{ name:String, func:Dynamic }> = [];
-
-	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
 
 	// If TRUE, throw errors
 	public var throwErrors = false;
@@ -47,18 +42,12 @@ class ScriptRunner {
 	// If TRUE, the script is not checked before running. This should only be used if check() is manually called before hand.
 	public var runWithoutCheck = false;
 
-	public var asyncLoopSupport = false;
-
 
 	#if( debug && !hscriptPos )
 	@:deprecated('"-D hscriptPos" is recommended when using ScriptRunner in debug mode')
 	#end
-	public function new(fps:Int) {
-		this.fps = fps;
-
+	public function new() {
 		interp = new hscript.Interp();
-		bindInternalFunction("delayExecutionS", api_delayExecutionS);
-		bindInternalFunction("waitUntil", api_waitUntil);
 	}
 
 
@@ -67,10 +56,8 @@ class ScriptRunner {
 	**/
 	public function dispose() {
 		running = false;
-		runLoops = null;
 		interp = null;
 
-		waitUntilFunctions = null;
 		checkerEnums = null;
 		checkerClasses = null;
 
@@ -86,33 +73,6 @@ class ScriptRunner {
 		interp.variables.set(name,func);
 	}
 
-
-	/**
-		Add a loop function to be used only during script execution. For example, this could be used to wait for a specific event to happen during the execution before continuing.
-		See `delayExecutionS()` for an example.
-		A custom loop function is removed from the array if it returns TRUE.
-	**/
-	public function addRunLoop(loopFunc:Float->Bool) {
-		runLoops.push(loopFunc);
-	}
-
-	function api_delayExecutionS( doNext:Void->Void, t:Float ) {
-		var endS = runningTimeS + t;
-		addRunLoop((tmod)->{
-			if( runningTimeS>=endS )
-				doNext();
-			return runningTimeS>=endS;
-		});
-	}
-
-	function api_waitUntil( cond:Void->Bool, doNext:Void->Void ) {
-		addRunLoop((tmod)->{
-			var result = cond();
-			if( result )
-				doNext();
-			return result;
-		});
-	}
 
 	/**
 		Register an Enum accessible from scripting.
@@ -198,35 +158,6 @@ class ScriptRunner {
 	}
 
 
-	/**
-		Register a shortcut to a custom "waitUntil" function that can be used in scripting like this:
-		```
-			waitUntil;
-			waitUntil(args);
-			waitUntil >> {...}
-			waitUntil(args) >> {...}
-		```
-
-		The code following the "waitUntil" (or the nested block when using >> syntax) will be paused until proceed() is called.
-
-		The "waitUntil" function is required to return a Bool (TRUE means "proceed and continue script execution"):
-		```
-			function actionIsDone( ... ) : Bool;
-		```
-
-		Example:
-		```
-			someAction1();
-			actionIsDone >> { // actionIsDone is a custom API function that returns TRUE when done
-				someAction2(); // this only happens when actionIsDone() return TRUE.
-			}
-		```
-	**/
-	public function addWaitUntilFunction(funcName:String) {
-		waitUntilFunctions.set(funcName,true);
-	}
-
-
 
 	// Create a script expression
 	inline function mkExpr(e:ExprDef, p:Expr) {
@@ -267,133 +198,6 @@ class ScriptRunner {
 			0.5 >> {...}		// async call block content in 0.5s
 	*/
 	function convertProgramExpr(e:hscript.Expr) {
-		switch hscript.Tools.expr(e) {
-			case EBlock(exprs):
-				var idx = 0;
-				function _replaceCurBlockExpr(with:ExprDef) {
-					#if hscriptPos
-					exprs[idx].e = with;
-					#else
-					exprs[idx] = with;
-					#end
-				}
-				for(e in exprs) {
-					switch hscript.Tools.expr(e) {
-						// Pausing
-						case EConst(c):
-							var timerS : Float = switch c {
-								case CInt(v): v;
-								case CFloat(v): v;
-								case CString(v): 0;
-							}
-							if( timerS>0 ) {
-								var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
-								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								_replaceCurBlockExpr( ECall(
-									mkIdentExpr("delayExecutionS",e),
-									[ mkSyncAnonymousFunction(followingExprsBlock,e), delayExpr ]
-								));
-								break;
-							}
-
-						// Special ">>" usage
-						case EBinop(op, leftExpr, rightExpr):
-							if( op==">>" ) {
-								switch hscript.Tools.expr(leftExpr) {
-									// 0.5 >> {...}
-									case EConst(CInt(_)), EConst(CFloat(_)):
-										_replaceCurBlockExpr( ECall(
-											mkIdentExpr("delayExecutionS", e),
-											[ mkSyncAnonymousFunction(rightExpr,e), leftExpr ]
-										));
-
-									// TURNS: customWaitUntil >> { XXX }
-									// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
-									case EIdent(id):
-										if( waitUntilFunctions.exists(id) ) {
-											var args = [
-												mkSyncAnonymousFunction( mkCall(id,[],e), e ),
-												mkSyncAnonymousFunction( rightExpr, e ),
-											];
-											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-										}
-
-									// TURNS: customWaitUntil(...) >> { XXX }
-									// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
-									#if hscriptPos
-									case ECall({e:EIdent(id)}, params):
-									#else
-									case ECall(EIdent(id), params):
-									#end
-										if( waitUntilFunctions.exists(id) ) {
-											var args = [
-												mkSyncAnonymousFunction( mkCall(id,params,e), e ),
-												mkSyncAnonymousFunction( rightExpr, e ),
-											];
-											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-										}
-
-									case _:
-								}
-							}
-
-						// TURNS: customWaitUntil; XXX;
-						// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
-						case EIdent(id):
-							if( waitUntilFunctions.exists(id) ) {
-								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								var args = [
-									mkSyncAnonymousFunction( mkCall(id,[],e), e ),
-									mkSyncAnonymousFunction( followingExprsBlock, e ),
-								];
-								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-								break;
-							}
-
-						// TURNS: customWaitUntil(...); XXX;
-						// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
-						#if hscriptPos
-						case ECall({e:EIdent(id)}, params):
-						#else
-						case ECall(EIdent(id), params):
-						#end
-							if( waitUntilFunctions.exists(id) ) {
-								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								var args = [
-									mkSyncAnonymousFunction( mkCall(id,params,e), e ),
-									mkSyncAnonymousFunction( followingExprsBlock, e ),
-								];
-								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-								break;
-							}
-
-						case EFor(v, iterExpr, blockExpr):
-							if( asyncLoopSupport ) {
-								throw new ScriptError('"for" loop is not supported in async mode yet', lastScript);
-								// TODO support async transform of: for(...) {...}
-								// See implementation in Async.toCps (EFor)
-								/*
-									for(i in v) block; loops are translated to the following:
-
-									var _i = makeIterator(v);
-									function _loop() {
-										if( !_i.hasNext() )
-											return;
-										var v = _i.next();
-										block(function(_) _loop());
-									}
-									_loop();
-								*/
-							}
-
-						case _:
-					}
-					idx++;
-				}
-
-			case _:
-		}
-		hscript.Tools.iter(e, convertProgramExpr);
 	}
 
 
@@ -535,21 +339,6 @@ class ScriptRunner {
 		if( checker==null )
 			initChecker();
 
-		// Check waitUntil functions
-		for(fn in waitUntilFunctions.keys()) {
-			if( !checker.getGlobals().exists(fn) )
-				throw new ScriptError('Unknown waitUntil function: $fn', lastScript);
-			var tt = checker.getGlobals().get(fn);
-			switch tt {
-				case TFun(args, ret):
-					if( ret!=TBool )
-						throw new ScriptError('"$fn" function must return a Bool', lastScript);
-
-				case _:
-					throw new ScriptError('"$fn" should be a function, found $tt', lastScript);
-			}
-		}
-
 		checker.check(scriptExpr);
 	}
 
@@ -560,7 +349,6 @@ class ScriptRunner {
 	public function run(script:String, ?onDone:Bool->Void) : Bool {
 		init();
 		lastScript = script;
-		runningTimeS = 0;
 		onStopOnce = onDone;
 
 		return tryCatch(()->{
@@ -601,7 +389,6 @@ class ScriptRunner {
 	function init() {
 		onStopOnce = null;
 		running = false;
-		runLoops = [];
 	}
 
 	function end(success:Bool) {
@@ -659,29 +446,20 @@ class ScriptRunner {
 
 
 	function updateRunningScript() {
-		// Update custom loops
-		var i = 0;
-		while( i<runLoops.length ) {
-			var f = runLoops[i];
-			if( f(tmod) )
-				runLoops.splice(i, 1);
-			else
-				i++;
-		}
-
 		// Custom update
 		onRunningUpdate(tmod);
 	}
 
+	function hasAnythingGoingOn() return false;
+
 	public function update(tmod:Float) {
 		this.tmod = tmod;
-		runningTimeS += tmod/fps;
 
 		if( running )
 			tryCatch(updateRunningScript);
 
 		// Script completion detection
-		if( running && runLoops.length==0 )
+		if( running && !hasAnythingGoingOn() )
 			end(true);
 	}
 }
