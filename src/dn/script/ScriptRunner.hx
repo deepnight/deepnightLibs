@@ -511,6 +511,12 @@ class ScriptRunner {
 	function checkScriptExpr(scriptExpr:Expr) {
 		if( checker==null )
 			initChecker();
+
+		// Check waitUntil functions
+		for(fn in waitUntilFunctions.keys())
+			if( !checker.getGlobals().exists(fn) )
+				throw new ScriptError("Unknown waitUntil function: "+fn, lastScript);
+
 		checker.check(scriptExpr);
 	}
 
