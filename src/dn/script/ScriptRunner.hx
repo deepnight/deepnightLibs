@@ -268,7 +268,7 @@ class ScriptRunner {
 		switch hscript.Tools.expr(e) {
 			case EBlock(exprs):
 				var idx = 0;
-				function _replaceExpr(with:ExprDef) {
+				function _replaceCurBlockExpr(with:ExprDef) {
 					#if hscriptPos
 					exprs[idx].e = with;
 					#else
@@ -287,7 +287,7 @@ class ScriptRunner {
 							if( timerS>0 ) {
 								var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								_replaceExpr( ECall(
+								_replaceCurBlockExpr( ECall(
 									mkIdentExpr("delayExecutionS",e),
 									[ mkSyncAnonymousFunction(followingExprsBlock,e), delayExpr ]
 								));
@@ -300,7 +300,7 @@ class ScriptRunner {
 								switch hscript.Tools.expr(leftExpr) {
 									// 0.5 >> {...}
 									case EConst(CInt(_)), EConst(CFloat(_)):
-										_replaceExpr( ECall(
+										_replaceCurBlockExpr( ECall(
 											mkIdentExpr("delayExecutionS", e),
 											[ mkSyncAnonymousFunction(rightExpr,e), leftExpr ]
 										));
@@ -313,7 +313,7 @@ class ScriptRunner {
 												mkSyncAnonymousFunction( mkCall(id,[],e), e ),
 												mkSyncAnonymousFunction( rightExpr, e ),
 											];
-											_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
 
 									// TURNS: customWaitUntil(...) >> { XXX }
@@ -328,7 +328,7 @@ class ScriptRunner {
 												mkSyncAnonymousFunction( mkCall(id,params,e), e ),
 												mkSyncAnonymousFunction( rightExpr, e ),
 											];
-											_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
 
 									case _:
@@ -344,7 +344,7 @@ class ScriptRunner {
 									mkSyncAnonymousFunction( mkCall(id,[],e), e ),
 									mkSyncAnonymousFunction( followingExprsBlock, e ),
 								];
-								_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
 							}
 
@@ -361,7 +361,7 @@ class ScriptRunner {
 									mkSyncAnonymousFunction( mkCall(id,params,e), e ),
 									mkSyncAnonymousFunction( followingExprsBlock, e ),
 								];
-								_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
 							}
 
