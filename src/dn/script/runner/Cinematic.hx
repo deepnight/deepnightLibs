@@ -39,7 +39,7 @@ class Cinematic extends dn.script.Runner {
 		See `delayExecutionS()` for an example.
 		A custom loop function is removed from the array if it returns TRUE.
 	**/
-	public function addRunLoop(loopFunc:Float->Bool) {
+	function addRunLoop(loopFunc:Float->Bool) {
 		runLoops.push(loopFunc);
 	}
 
