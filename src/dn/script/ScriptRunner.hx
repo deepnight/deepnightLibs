@@ -61,6 +61,7 @@ class ScriptRunner {
 		Destroy the runner and clean things up
 	**/
 	public function dispose() {
+		running = false;
 		runLoops = null;
 		interp = null;
 
@@ -531,6 +532,8 @@ class ScriptRunner {
 		onScriptStopped(success);
 	}
 
+
+	public function hasScriptRunning() return running;
 
 	public dynamic function onScriptStopped(success:Bool) {}
 	public dynamic function onError(err:ScriptError) {}
