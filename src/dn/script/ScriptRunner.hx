@@ -34,7 +34,7 @@ class ScriptRunner {
 	var lastScript(default,null) : Null<String>;
 	var onStopOnce : Null<Bool->Void>;
 
-	var conditionKeywords : Map<String, Bool> = new Map();
+	var waitUntilFunctions : Map<String, Bool> = new Map();
 	var checkerEnums : Array<Enum<Dynamic>> = [];
 	var checkerClasses: Array<CheckerClass> = [];
 	var internalApiFunctions: Array<{ name:String, func:Dynamic }> = [];
@@ -55,7 +55,8 @@ class ScriptRunner {
 		this.fps = fps;
 
 		interp = new hscript.Interp();
-		bindInternalFunction("delayExecutionS", delayExecutionS);
+		bindInternalFunction("delayExecutionS", api_delayExecutionS);
+		bindInternalFunction("waitUntil", api_waitUntil);
 	}
 
 
@@ -67,7 +68,7 @@ class ScriptRunner {
 		runLoops = null;
 		interp = null;
 
-		conditionKeywords = null;
+		waitUntilFunctions = null;
 		checkerEnums = null;
 		checkerClasses = null;
 
@@ -93,12 +94,21 @@ class ScriptRunner {
 		runLoops.push(loopFunc);
 	}
 
-	function delayExecutionS( doNext:Void->Void, t:Float ) {
+	function api_delayExecutionS( doNext:Void->Void, t:Float ) {
 		var endS = runningTimeS + t;
 		addRunLoop((tmod)->{
 			if( runningTimeS>=endS )
 				doNext();
 			return runningTimeS>=endS;
+		});
+	}
+
+	function api_waitUntil( cond:Void->Bool, doNext:Void->Void ) {
+		addRunLoop((tmod)->{
+			var result = cond();
+			if( result )
+				doNext();
+			return result;
 		});
 	}
 
@@ -210,8 +220,8 @@ class ScriptRunner {
 			}
 		```
 	**/
-	public function addConditionKeyword(shortcut:String) {
-		conditionKeywords.set(shortcut,true);
+	public function addWaitUntilFunction(funcName:String) {
+		waitUntilFunctions.set(funcName,true);
 	}
 
 
@@ -219,6 +229,16 @@ class ScriptRunner {
 	// Create a script expression
 	inline function mkExpr(e:ExprDef, p:Expr) {
 		return hscript.Tools.mk(e,p);
+	}
+
+	inline function mkCall(func:String, args:Array<Expr>, p:Expr) {
+		return mkExpr(
+			ECall(
+				mkIdentExpr(func,p),
+				args
+			),
+			p
+		);
 	}
 
 	// Create an identifier expression
@@ -235,10 +255,10 @@ class ScriptRunner {
 
 	/*
 		Convert "custom conditions" expressions to valid expressions.
-			customKeyword(...)
-			customKeyword
-			customKeyword >> {...}
-			customKeyword(...) >> {...}
+			customWaitUntil(...)
+			customWaitUntil
+			customWaitUntil >> {...}
+			customWaitUntil(...) >> {...}
 			0.5;				// pause for 0.5s
 			0.5 >> {...}		// async call block content in 0.5s
 	*/
@@ -263,11 +283,11 @@ class ScriptRunner {
 								case CString(v): 0;
 							}
 							if( timerS>0 ) {
-								var timerExpr = mkExpr(EConst(CFloat(timerS)), e);
+								var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								_replaceExpr( ECall(
 									mkIdentExpr("delayExecutionS",e),
-									[ mkSyncAnonymousFunction(followingExprsBlock,e), timerExpr ]
+									[ mkSyncAnonymousFunction(followingExprsBlock,e), delayExpr ]
 								));
 								break;
 							}
@@ -283,49 +303,63 @@ class ScriptRunner {
 											[ mkSyncAnonymousFunction(rightExpr,e), leftExpr ]
 										));
 
-									// "customKeyword >> {...}"
+									// TURNS: customWaitUntil >> { XXX }
+									// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
 									case EIdent(id):
-										if( conditionKeywords.exists(id) ) {
-											_replaceExpr( ECall(
-												mkIdentExpr(id,e),
-												[ mkSyncAnonymousFunction(rightExpr,e) ]
-											));
+										if( waitUntilFunctions.exists(id) ) {
+											var args = [
+												mkSyncAnonymousFunction( mkCall(id,[],e), e ),
+												mkSyncAnonymousFunction( rightExpr, e ),
+											];
+											_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
 
-									// "customKeyword(...) >> {...}"
+									// TURNS: customWaitUntil(...) >> { XXX }
+									// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
 									#if hscriptPos
 									case ECall({e:EIdent(id)}, params):
 									#else
 									case ECall(EIdent(id), params):
 									#end
-										if( conditionKeywords.exists(id) ) {
-											var args = [ mkSyncAnonymousFunction(rightExpr,e) ].concat(params);
-											_replaceExpr( ECall( mkIdentExpr(id,e), args ) );
+										if( waitUntilFunctions.exists(id) ) {
+											var args = [
+												mkSyncAnonymousFunction( mkCall(id,params,e), e ),
+												mkSyncAnonymousFunction( rightExpr, e ),
+											];
+											_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
 
 									case _:
 								}
 							}
 
-						// "customKeyword;"
+						// TURNS: customWaitUntil; XXX;
+						// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
 						case EIdent(id):
-							if( conditionKeywords.exists(id) ) {
+							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								var args = [ mkSyncAnonymousFunction(followingExprsBlock,e) ];
-								_replaceExpr( ECall( mkIdentExpr(id,e), args ) );
+								var args = [
+									mkSyncAnonymousFunction( mkCall(id,[],e), e ),
+									mkSyncAnonymousFunction( followingExprsBlock, e ),
+								];
+								_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
 							}
 
-						// "customKeyword();"
+						// TURNS: customWaitUntil(...); XXX;
+						// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
 						#if hscriptPos
 						case ECall({e:EIdent(id)}, params):
 						#else
 						case ECall(EIdent(id), params):
 						#end
-							if( conditionKeywords.exists(id) ) {
+							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								var args = [ mkSyncAnonymousFunction(followingExprsBlock,e) ].concat(params);
-								_replaceExpr( ECall( mkIdentExpr(id,e), args ) );
+								var args = [
+									mkSyncAnonymousFunction( mkCall(id,params,e), e ),
+									mkSyncAnonymousFunction( followingExprsBlock, e ),
+								];
+								_replaceExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
 							}
 
@@ -492,6 +526,7 @@ class ScriptRunner {
 
 		return tryCatch(()->{
 			var program = scriptStringToExpr(script);
+			Sys.println(programExprToString(program));
 
 			// Check the script
 			if( !runWithoutCheck )
