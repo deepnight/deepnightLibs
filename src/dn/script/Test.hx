@@ -7,7 +7,7 @@ package dn.script;
 class Test {
 	public static function run() {
 		var api = new Api();
-		var r = new ScriptRunner(60);
+		var r = new Runner();
 		r.log = (str,?col)->{}
 		r.throwErrors = true;
 		r.exposeClassInstance("api", api, true);

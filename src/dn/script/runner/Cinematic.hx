@@ -11,6 +11,7 @@ class Cinematic extends dn.script.Runner {
 	public var tmod(default,null) : Float = 1;
 	var fps : Int;
 	var runningTimeS = 0.;
+	var running = false;
 
 	var waitUntilFunctions : Map<String, Bool> = new Map();
 	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
@@ -29,10 +30,19 @@ class Cinematic extends dn.script.Runner {
 	**/
 	override function dispose() {
 		super.dispose();
+		running = false;
 		runLoops = null;
 		waitUntilFunctions = null;
 	}
 
+
+	override function run(script:String, ?onDone:Bool -> Void):Bool {
+		var ok = super.run(script, onDone);
+		running = ok;
+		return ok;
+	}
+
+	public inline function hasScriptRunning() return running;
 
 	/**
 		Add a loop function to be used only during script execution. For example, this could be used to wait for a specific event to happen during the execution before continuing.
@@ -259,6 +269,7 @@ class Cinematic extends dn.script.Runner {
 
 	override function init() {
 		super.init();
+		running = false;
 		runningTimeS = 0;
 		runLoops = [];
 	}

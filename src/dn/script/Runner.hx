@@ -27,7 +27,6 @@ private typedef CheckerClass = {
 class Runner {
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
-	var running = false;
 	var lastScript(default,null) : Null<String>;
 	var onStopOnce : Null<Bool->Void>;
 
@@ -54,7 +53,6 @@ class Runner {
 		Destroy the runner and clean things up
 	**/
 	public function dispose() {
-		running = false;
 		interp = null;
 
 		checkerEnums = null;
@@ -345,7 +343,7 @@ class Runner {
 	/**
 		Execute a script
 	**/
-	public function run(script:String, ?onDone:Bool->Void) : Bool {
+	public function run(script:String, ?onDone:(success:Bool)->Void) : Bool {
 		init();
 		lastScript = script;
 		onStopOnce = onDone;
@@ -359,10 +357,10 @@ class Runner {
 				checkScriptExpr(program);
 
 			// Run
-			running = true;
 			interp.execute(program);
 		});
 	}
+
 
 
 	function tryCatch(cb:Void->Void) : Bool {
@@ -387,7 +385,6 @@ class Runner {
 
 	function init() {
 		onStopOnce = null;
-		running = false;
 	}
 
 	function end(success:Bool) {
@@ -398,8 +395,6 @@ class Runner {
 		onScriptStopped(success);
 	}
 
-
-	public function hasScriptRunning() return running;
 
 	public dynamic function onScriptStopped(success:Bool) {}
 	public dynamic function onError(err:ScriptError) {}
