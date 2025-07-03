@@ -30,7 +30,8 @@ class ScriptRunner {
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
 	var running = false;
-	var timeS = 0.;
+	var runningTimeS = 0.;
+	public var tmod(default,null) : Float = 1;
 	var lastScript(default,null) : Null<String>;
 
 	var conditionKeywords : Map<String, Bool> = new Map();
@@ -59,8 +60,7 @@ class ScriptRunner {
 		Destroy the runner and clean things up
 	**/
 	public function dispose() {
-		stop();
-
+		runLoops = null;
 		interp = null;
 
 		conditionKeywords = null;
@@ -90,11 +90,11 @@ class ScriptRunner {
 	}
 
 	function delayExecutionS( doNext:Void->Void, t:Float ) {
-		var endS = timeS+t;
+		var endS = runningTimeS + t;
 		addRunLoop((tmod)->{
-			if( timeS>=endS )
+			if( runningTimeS>=endS )
 				doNext();
-			return timeS>=endS;
+			return runningTimeS>=endS;
 		});
 	}
 
@@ -120,7 +120,7 @@ class ScriptRunner {
 	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
 		switch Type.typeof(instance) {
 			case TClass(c):
-			case _: error( new ScriptError(Init, "Not a class: "+instance) );
+			case _: error( new ScriptError("Not a class: "+instance) );
 		}
 
 		var cl = interfaceInScript ?? Type.getClass(instance);
@@ -178,7 +178,7 @@ class ScriptRunner {
 
 	inline function checkRtti<T>(cl:Class<T>) {
 		if( !Reflect.hasField(cl, "__rtti") )
-			error( new ScriptError(Check, 'Missing @:rtti for $cl') );
+			error( new ScriptError('Missing @:rtti for $cl') );
 	}
 
 
@@ -392,7 +392,7 @@ class ScriptRunner {
 					case CData:
 					case Comment:
 					case ProcessingInstruction:
-					case DocType, Document: error( new ScriptError(Check, "Unexpected node type "+e.nodeType) );
+					case DocType, Document: error( new ScriptError("Unexpected node type "+e.nodeType) );
 				}
 			}
 
@@ -439,18 +439,14 @@ class ScriptRunner {
 
 	function scriptStringToExpr(rawScript:String) : Null<Expr> {
 		var script = rawScript;
-		var program : Expr = null;
-		try {
-			var parser = new hscript.Parser();
-			parser.allowTypes = true;
-			parser.allowMetadata = true;
 
-			program = parser.parseString(script);
-			transformConditionExprs(program);
-		}
-		catch(err:hscript.Expr.Error) {
-			ScriptError.rethrowHScriptError(Parse, err, script);
-		}
+		var parser = new hscript.Parser();
+		parser.allowTypes = true;
+		parser.allowMetadata = true;
+
+		var program = parser.parseString(script);
+		transformConditionExprs(program);
+
 		return program;
 	}
 
@@ -463,27 +459,13 @@ class ScriptRunner {
 		stop();
 		lastScript = script;
 
-		try {
+		return tryCatch(()->{
 			var program = scriptExpr ?? scriptStringToExpr(script);
-			if( program==null )
-				return false;
 
-			try {
-				if( checker==null )
-					initChecker();
-				checker.check(program);
-
-				return true;
-			}
-			catch(err:hscript.Expr.Error) {
-				ScriptError.rethrowHScriptError(Check, err, script);
-				return false;
-			}
-		}
-		catch(err:ScriptError) {
-			error(err);
-			return false;
-		}
+			if( checker==null )
+				initChecker();
+			checker.check(program);
+		});
 	}
 
 
@@ -493,33 +475,40 @@ class ScriptRunner {
 	public function run(script:String) : Bool {
 		stop();
 		lastScript = script;
+		runningTimeS = 0;
+
+		return tryCatch(()->{
+			var program = scriptStringToExpr(script);
+
+			// Check the script
+			if( !runWithoutCheck )
+				check(script,program);
+
+			// Run
+			running = true;
+			interp.execute(program);
+		});
+	}
 
 
+	function tryCatch(cb:Void->Void) : Bool {
+		// Try...catch are nested because of VScode debugger issue that breaks on 2nd+ catch
 		try {
-			try {
-				var program = scriptStringToExpr(script);
-				if( program==null )
-					return false;
-
-				// Check the script
-				if( !runWithoutCheck && !check(script,program) )
-					return false;
-
-				// Run
-				running = true;
-				interp.execute(program);
-				return true;
-			}
-			catch(err:hscript.Expr.Error) {
-				ScriptError.rethrowHScriptError(Execution, err, script);
-				return false;
-			}
+			cb();
+			return true;
+		}
+		catch( err:hscript.Expr.Error ) {
+			error( ScriptError.fromHScriptError(err, lastScript) );
+			return false;
 		}
 		catch( err:ScriptError ) {
 			error(err);
 			return false;
 		}
-
+		catch( e:haxe.Exception ) {
+			error( ScriptError.fromGeneralException(e, lastScript) );
+			return false;
+		}
 	}
 
 
@@ -529,16 +518,12 @@ class ScriptRunner {
 	}
 
 
-	public dynamic function onScriptComplete() {}
+	public dynamic function onScriptStopped(complete:Bool) {}
+	public dynamic function onError(err:ScriptError) {}
+	public dynamic function onRunningUpdate(tmod:Float) {}
 
 
 	inline function error(err:ScriptError) {
-		onError(err);
-		if( throwErrors )
-			throw err;
-	}
-
-	public dynamic function onError(err:ScriptError) {
 		#if hscriptPos
 			if( err.scriptStr!=null && err.line>0 )
 				printErrorInContext(err);
@@ -548,7 +533,13 @@ class ScriptRunner {
 			log(err.toString(), Red);
 		#end
 		stop();
+		onScriptStopped(false);
+
+		onError(err);
+		if( throwErrors )
+			throw err;
 	}
+
 
 	function printErrorInContext(err:ScriptError) {
 		log('-- START OF SCRIPT --', Cyan);
@@ -572,41 +563,32 @@ class ScriptRunner {
 	}
 
 
-	public dynamic function onUpdate(tmod:Float) {}
+	function updateRunningScript() {
+		// Update custom loops
+		var i = 0;
+		while( i<runLoops.length ) {
+			var f = runLoops[i];
+			if( f(tmod) )
+				runLoops.splice(i, 1);
+			else
+				i++;
+		}
 
+		// Custom update
+		onRunningUpdate(tmod);
+	}
 
 	public function update(tmod:Float) {
-		timeS += tmod/fps;
+		this.tmod = tmod;
+		runningTimeS += tmod/fps;
 
-		try {
-			try {
-				// Update custom loops
-				var i = 0;
-				while( i<runLoops.length ) {
-					var f = runLoops[i];
-					if( f(tmod) )
-						runLoops.splice(i, 1);
-					else
-						i++;
-				}
-
-				// Custom update
-				onUpdate(tmod);
-			}
-			catch(err:hscript.Expr.Error) {
-				ScriptError.rethrowHScriptError(Execution, err, lastScript);
-			}
-		}
-		catch( err:ScriptError ) {
-			error(err);
-			return false;
-		}
-
+		if( running )
+			tryCatch(updateRunningScript);
 
 		// Script completion detection
 		if( running && runLoops.length==0 ) {
-			running = false;
-			onScriptComplete();
+			stop();
+			onScriptStopped(true);
 		}
 	}
 }
