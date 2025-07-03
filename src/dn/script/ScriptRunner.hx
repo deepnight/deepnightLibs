@@ -33,6 +33,7 @@ class ScriptRunner {
 	var runningTimeS = 0.;
 	public var tmod(default,null) : Float = 1;
 	var lastScript(default,null) : Null<String>;
+	var onStopOnce : Null<Bool->Void>;
 
 	var conditionKeywords : Map<String, Bool> = new Map();
 	var checkerEnums : Array<Enum<Dynamic>> = [];
@@ -456,7 +457,7 @@ class ScriptRunner {
 		This requires all types used in scripting to be registered first!
 	**/
 	public function check(script:String, ?scriptExpr:Expr) : Bool {
-		stop();
+		init();
 		lastScript = script;
 
 		return tryCatch(()->{
@@ -472,10 +473,11 @@ class ScriptRunner {
 	/**
 		Execute a script
 	**/
-	public function run(script:String) : Bool {
-		stop();
+	public function run(script:String, ?onDone:Bool->Void) : Bool {
+		init();
 		lastScript = script;
 		runningTimeS = 0;
+		onStopOnce = onDone;
 
 		return tryCatch(()->{
 			var program = scriptStringToExpr(script);
@@ -512,13 +514,22 @@ class ScriptRunner {
 	}
 
 
-	function stop() {
+	function init() {
+		onStopOnce = null;
 		running = false;
 		runLoops = [];
 	}
 
+	function end(success:Bool) {
+		var cb = onStopOnce;
+		init();
+		if( cb!=null )
+			cb(success);
+		onScriptStopped(success);
+	}
 
-	public dynamic function onScriptStopped(complete:Bool) {}
+
+	public dynamic function onScriptStopped(success:Bool) {}
 	public dynamic function onError(err:ScriptError) {}
 	public dynamic function onRunningUpdate(tmod:Float) {}
 
@@ -532,9 +543,7 @@ class ScriptRunner {
 		#else
 			log(err.toString(), Red);
 		#end
-		stop();
-		onScriptStopped(false);
-
+		end(false);
 		onError(err);
 		if( throwErrors )
 			throw err;
@@ -586,10 +595,8 @@ class ScriptRunner {
 			tryCatch(updateRunningScript);
 
 		// Script completion detection
-		if( running && runLoops.length==0 ) {
-			stop();
-			onScriptStopped(true);
-		}
+		if( running && runLoops.length==0 )
+			end(true);
 	}
 }
 
