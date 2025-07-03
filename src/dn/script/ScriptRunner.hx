@@ -371,6 +371,7 @@ class ScriptRunner {
 							if( asyncLoopSupport ) {
 								throw new ScriptError('"for" loop is not supported in async mode yet', lastScript);
 								// TODO support async transform of: for(...) {...}
+								// See implementation in Async.toCps (EFor)
 								/*
 									for(i in v) block; loops are translated to the following:
 
