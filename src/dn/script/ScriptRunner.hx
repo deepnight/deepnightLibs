@@ -456,17 +456,20 @@ class ScriptRunner {
 		Check the script validity.
 		This requires all types used in scripting to be registered first!
 	**/
-	public function check(script:String, ?scriptExpr:Expr) : Bool {
+	public function check(script:String) : Bool {
 		init();
 		lastScript = script;
 
 		return tryCatch(()->{
-			var program = scriptExpr ?? scriptStringToExpr(script);
-
-			if( checker==null )
-				initChecker();
-			checker.check(program);
+			var program = scriptStringToExpr(script);
+			checkScriptExpr(program);
 		});
+	}
+
+	function checkScriptExpr(scriptExpr:Expr) {
+		if( checker==null )
+			initChecker();
+		checker.check(scriptExpr);
 	}
 
 
@@ -484,7 +487,7 @@ class ScriptRunner {
 
 			// Check the script
 			if( !runWithoutCheck )
-				check(script,program);
+				checkScriptExpr(program);
 
 			// Run
 			running = true;
