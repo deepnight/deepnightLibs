@@ -5,7 +5,7 @@ import hscript.Expr;
 /**
 	Cinematic: a specialized script runner that supports cinematic oriented features (pausing, async calls, waitUntil etc)
 **/
-class Cinematic extends dn.script.ScriptRunner {
+class Cinematic extends dn.script.Runner {
 	var fps : Int;
 	var runningTimeS = 0.;
 
@@ -91,7 +91,7 @@ class Cinematic extends dn.script.ScriptRunner {
 
 
 	/*
-		Convert a standard program Expr to support ScriptRunner features.
+		Convert a standard program Expr to support Runner features.
 
 		Transforms "custom waitUntil conditions" expressions to valid expressions.
 			customWaitUntil(...)

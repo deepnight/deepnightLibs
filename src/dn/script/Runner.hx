@@ -15,16 +15,16 @@ private typedef CheckerClass = {
 
 
 /**
-	ScriptRunner: an HScript wrapper
+	Runner: an HScript wrapper that easily supports running and checking text scripts.
 
 	USAGE:
-	 - Create a new instance of ScriptRunner
+	 - Create a new instance of Runner
 	 - Provide Classes and Enums used in scripts using "exposeXXX()" methods.
-	 - Call the ScriptRunner `update()` loop
+	 - Call the Runner `update()` loop
 	 - Use `run()` to execute a script text.
 	 - Use `check()` to verify a script text syntax.
 **/
-class ScriptRunner {
+class Runner {
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
 	var running = false;
@@ -44,7 +44,7 @@ class ScriptRunner {
 
 
 	#if( debug && !hscriptPos )
-	@:deprecated('"-D hscriptPos" is recommended when using ScriptRunner in debug mode')
+	@:deprecated('"-D hscriptPos" is recommended when using Runner in debug mode')
 	#end
 	public function new() {
 		interp = new hscript.Interp();
@@ -187,7 +187,7 @@ class ScriptRunner {
 
 
 	/*
-		Convert a standard program Expr to support ScriptRunner features.
+		Convert a standard program Expr to support Runner features.
 
 		Transforms "custom waitUntil conditions" expressions to valid expressions.
 			customWaitUntil(...)
