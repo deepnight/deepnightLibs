@@ -49,6 +49,9 @@ class ScriptRunner {
 	public var runWithoutCheck = false;
 
 
+	#if( debug && !hscriptPos )
+	@:deprecated('"-D hscriptPos" is recommended when using ScriptRunner in debug mode')
+	#end
 	public function new(fps:Int) {
 		this.fps = fps;
 
