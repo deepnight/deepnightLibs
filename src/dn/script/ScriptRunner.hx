@@ -197,26 +197,26 @@ class ScriptRunner {
 
 
 	/**
-		Register a shortcut to a custom "condition" function that can be used in scripting like this:
+		Register a shortcut to a custom "waitUntil" function that can be used in scripting like this:
 		```
-			condition;
-			condition(args);
-			condition >> {...}
-			condition(args) >> {...}
-		```
-
-		The condition function is required to have a callback as its 1st arg:
-		```
-			function shortcut( proceed:Void->Void, ... );
+			waitUntil;
+			waitUntil(args);
+			waitUntil >> {...}
+			waitUntil(args) >> {...}
 		```
 
-		The code following the condition (or the nested block when using >> syntax) will be paused until proceed() is called.
+		The code following the "waitUntil" (or the nested block when using >> syntax) will be paused until proceed() is called.
+
+		The "waitUntil" function is required to return a Bool (TRUE means "proceed and continue script execution"):
+		```
+			function actionIsDone( ... ) : Bool;
+		```
 
 		Example:
 		```
 			someAction1();
-			actionCompleted >> { // actionCompleted is a custom API function that will call its proceed() at some later point
-				someAction2(); // this only happens when actionCompleted calls its proceed()
+			actionIsDone >> { // actionIsDone is a custom API function that returns TRUE when done
+				someAction2(); // this only happens when actionIsDone() return TRUE.
 			}
 		```
 	**/
