@@ -370,6 +370,18 @@ class ScriptRunner {
 						case EFor(v, iterExpr, blockExpr):
 							if( asyncLoopSupport ) {
 								// TODO support async transform of: for(...) {...}
+								/*
+									for(i in v) block; loops are translated to the following:
+
+									var _i = makeIterator(v);
+									function _loop() {
+										if( !_i.hasNext() )
+											return;
+										var v = _i.next();
+										block(function(_) _loop());
+									}
+									_loop();
+								*/
 							}
 
 						case _:
