@@ -47,6 +47,8 @@ class ScriptRunner {
 	// If TRUE, the script is not checked before running. This should only be used if check() is manually called before hand.
 	public var runWithoutCheck = false;
 
+	public var asyncLoopSupport = false;
+
 
 	#if( debug && !hscriptPos )
 	@:deprecated('"-D hscriptPos" is recommended when using ScriptRunner in debug mode')
@@ -363,6 +365,11 @@ class ScriptRunner {
 								];
 								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
+							}
+
+						case EFor(v, iterExpr, blockExpr):
+							if( asyncLoopSupport ) {
+								// TODO support async transform of: for(...) {...}
 							}
 
 						case _:
