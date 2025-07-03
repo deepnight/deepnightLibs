@@ -6,6 +6,7 @@ import hscript.Expr;
 	Cinematic: a specialized script runner that supports cinematic oriented features (pausing, async calls, waitUntil etc)
 **/
 class Cinematic extends dn.script.Runner {
+	public var tmod(default,null) : Float = 1;
 	var fps : Int;
 	var runningTimeS = 0.;
 
@@ -261,9 +262,7 @@ class Cinematic extends dn.script.Runner {
 	}
 
 
-	override function updateRunningScript() {
-		super.updateRunningScript();
-
+	function updateRunningScript() {
 		// Update custom loops
 		var i = 0;
 		while( i<runLoops.length ) {
@@ -275,13 +274,16 @@ class Cinematic extends dn.script.Runner {
 		}
 	}
 
-	override function hasAnythingGoingOn():Bool {
-		return super.hasAnythingGoingOn() || runLoops.length>0;
-	}
-
-	override function update(tmod:Float) {
-		super.update(tmod);
+	public function update(tmod:Float) {
+		this.tmod = tmod;
 		runningTimeS += tmod/fps;
+
+		if( running )
+			tryCatch(updateRunningScript);
+
+		// Script completion detection
+		if( running && runLoops.length==0 )
+			end(true);
 	}
 }
 

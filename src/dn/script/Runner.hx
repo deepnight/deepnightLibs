@@ -30,7 +30,6 @@ class Runner {
 	var running = false;
 	var lastScript(default,null) : Null<String>;
 	var onStopOnce : Null<Bool->Void>;
-	public var tmod(default,null) : Float = 1;
 
 	var checkerEnums : Array<Enum<Dynamic>> = [];
 	var checkerClasses: Array<CheckerClass> = [];
@@ -404,7 +403,6 @@ class Runner {
 
 	public dynamic function onScriptStopped(success:Bool) {}
 	public dynamic function onError(err:ScriptError) {}
-	public dynamic function onRunningUpdate(tmod:Float) {}
 
 
 	inline function error(err:ScriptError) {
@@ -442,25 +440,6 @@ class Runner {
 	/** Default log output method, replace it with your own **/
 	public dynamic function log(str:String, col:dn.Col=White) {
 		Sys.println(str);
-	}
-
-
-	function updateRunningScript() {
-		// Custom update
-		onRunningUpdate(tmod);
-	}
-
-	function hasAnythingGoingOn() return false;
-
-	public function update(tmod:Float) {
-		this.tmod = tmod;
-
-		if( running )
-			tryCatch(updateRunningScript);
-
-		// Script completion detection
-		if( running && !hasAnythingGoingOn() )
-			end(true);
 	}
 }
 
