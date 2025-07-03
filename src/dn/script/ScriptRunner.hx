@@ -513,9 +513,19 @@ class ScriptRunner {
 			initChecker();
 
 		// Check waitUntil functions
-		for(fn in waitUntilFunctions.keys())
+		for(fn in waitUntilFunctions.keys()) {
 			if( !checker.getGlobals().exists(fn) )
-				throw new ScriptError("Unknown waitUntil function: "+fn, lastScript);
+				throw new ScriptError('Unknown waitUntil function: $fn', lastScript);
+			var tt = checker.getGlobals().get(fn);
+			switch tt {
+				case TFun(args, ret):
+					if( ret!=TBool )
+						throw new ScriptError('"$fn" function must return a Bool', lastScript);
+
+				case _:
+					throw new ScriptError('"$fn" should be a function, found $tt', lastScript);
+			}
+		}
 
 		checker.check(scriptExpr);
 	}
