@@ -369,6 +369,7 @@ class ScriptRunner {
 
 						case EFor(v, iterExpr, blockExpr):
 							if( asyncLoopSupport ) {
+								throw new ScriptError('"for" loop is not supported in async mode yet', lastScript);
 								// TODO support async transform of: for(...) {...}
 								/*
 									for(i in v) block; loops are translated to the following:
