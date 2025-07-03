@@ -498,7 +498,6 @@ class ScriptRunner {
 
 
 	function tryCatch(cb:Void->Void) : Bool {
-		// Try...catch are nested because of VScode debugger issue that breaks on 2nd+ catch
 		try {
 			cb();
 			return true;

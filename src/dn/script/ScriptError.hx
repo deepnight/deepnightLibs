@@ -15,7 +15,7 @@ class ScriptError extends haxe.Exception {
 			e.line = err.line;
 			return e;
 		#else
-			return new ScriptError(Std.string(err), scriptStr);
+			return new ScriptError(hscript.Printer.errorToString(err), scriptStr);
 		#end
 	}
 
