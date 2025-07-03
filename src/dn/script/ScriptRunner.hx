@@ -18,12 +18,11 @@ private typedef CheckerClass = {
 	ScriptRunner: an HScript wrapper
 
 	USAGE:
-		Create a new instance of ScriptRunner
-		Call the ScriptRunner update() loop!
-		Optional: provide an API class instance that the script will rely on.
-		Use run() to execute a script text.
-		Use check() to verify a script text syntax.
-		Provide Classes and Enums used in scripts using "exposeXXX()" methods.
+	 - Create a new instance of ScriptRunner
+	 - Provide Classes and Enums used in scripts using "exposeXXX()" methods.
+	 - Call the ScriptRunner `update()` loop
+	 - Use `run()` to execute a script text.
+	 - Use `check()` to verify a script text syntax.
 **/
 class ScriptRunner {
 	var fps : Int;
@@ -189,22 +188,27 @@ class ScriptRunner {
 
 	/**
 		Register a shortcut to a custom "condition" function that can be used in scripting like this:
-
+		```
 			condition;
 			condition(args);
 			condition >> {...}
 			condition(args) >> {...}
+		```
 
 		The condition function is required to have a callback as its 1st arg:
+		```
 			function shortcut( proceed:Void->Void, ... );
+		```
 
 		The code following the condition (or the nested block when using >> syntax) will be paused until proceed() is called.
 
 		Example:
+		```
 			someAction1();
 			actionCompleted >> { // actionCompleted is a custom API function that will call its proceed() at some later point
 				someAction2(); // this only happens when actionCompleted calls its proceed()
 			}
+		```
 	**/
 	public function addConditionKeyword(shortcut:String) {
 		conditionKeywords.set(shortcut,true);
