@@ -4,6 +4,8 @@ import hscript.Expr;
 
 /**
 	Cinematic: a specialized script runner that supports cinematic oriented features (pausing, async calls, waitUntil etc)
+
+	IMPORTANT: `update()` must be called to support async features!
 **/
 class Cinematic extends dn.script.Runner {
 	public var tmod(default,null) : Float = 1;
