@@ -254,7 +254,9 @@ class ScriptRunner {
 
 
 	/*
-		Convert "custom conditions" expressions to valid expressions.
+		Convert a standard program Expr to support ScriptRunner features.
+
+		Transforms "custom waitUntil conditions" expressions to valid expressions.
 			customWaitUntil(...)
 			customWaitUntil
 			customWaitUntil >> {...}
@@ -262,7 +264,7 @@ class ScriptRunner {
 			0.5;				// pause for 0.5s
 			0.5 >> {...}		// async call block content in 0.5s
 	*/
-	function transformConditionExprs(e:hscript.Expr) {
+	function convertProgramExpr(e:hscript.Expr) {
 		switch hscript.Tools.expr(e) {
 			case EBlock(exprs):
 				var idx = 0;
@@ -370,7 +372,7 @@ class ScriptRunner {
 
 			case _:
 		}
-		hscript.Tools.iter(e, transformConditionExprs);
+		hscript.Tools.iter(e, convertProgramExpr);
 	}
 
 
@@ -488,7 +490,7 @@ class ScriptRunner {
 		parser.allowMetadata = true;
 
 		var program = parser.parseString(script);
-		transformConditionExprs(program);
+		convertProgramExpr(program);
 
 		return program;
 	}
