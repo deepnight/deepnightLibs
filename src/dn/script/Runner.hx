@@ -352,9 +352,11 @@ class Runner {
 			interp.variables.set(className.split(".").pop(), c.cl); // expose class name alone (wthout package)
 
 			// Copy all instance fields as globals in script
-			if( c.instance!=null && c.instance.globalFields )
-				for( f in Type.getInstanceFields( Type.getClass(c.instance.ref)) )
+			if( c.instance!=null && c.instance.globalFields ) {
+				var fields = Type.getInstanceFields( Type.getClass(c.instance.ref));
+				for( f in fields )
 					interp.variables.set(f, Reflect.field(c.instance.ref, f));
+			}
 		}
 
 		// Enums
