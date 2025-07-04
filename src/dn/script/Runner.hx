@@ -28,7 +28,7 @@ class Runner {
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
 	var lastScript(default,null) : Null<String>;
-	public var lastRunOuput : Null<Dynamic>;
+	var lastRunOuput : Null<Dynamic>;
 
 	var checkerEnums : Array<Enum<Dynamic>> = [];
 	var checkerClasses: Array<CheckerClass> = [];
@@ -387,24 +387,39 @@ class Runner {
 	}
 
 
-	public function getRunOutput_int() : Int {
+
+	public var output(get,never) : Dynamic;
+	inline function get_output() return lastRunOuput;
+
+	public var output_int(get,never) : Int;
+	function get_output_int() {
 		return switch Type.typeof(lastRunOuput) {
 			case TInt, TFloat: M.isValidNumber(lastRunOuput) ? Std.int(lastRunOuput) : 0;
 			case _: 0;
 		}
 	}
 
-	public function getRunOutput_float() : Float {
+	public var output_bool(get,never) : Bool;
+	function get_output_bool() {
+		return switch Type.typeof(lastRunOuput) {
+			case TBool: lastRunOuput;
+			case _: false;
+		}
+	}
+
+	public var output_float(get,never) : Float;
+	function get_output_float() {
 		return switch Type.typeof(lastRunOuput) {
 			case TInt, TFloat: M.isValidNumber(lastRunOuput) ? lastRunOuput : 0;
 			case _: 0;
 		}
 	}
 
-	public function getRunOutput_string() : Null<String> {
+	public var output_str(get,never) : Null<String>;
+	function get_output_str() {
 		return switch Type.typeof(lastRunOuput) {
-			case TClass(String): lastRunOuput;
 			case TNull: null;
+			case TClass(String): lastRunOuput;
 			case _: Std.string(lastRunOuput);
 		}
 	}
