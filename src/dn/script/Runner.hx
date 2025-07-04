@@ -424,7 +424,7 @@ class Runner {
 	}
 
 
-	inline function tryCatch(cb:Void->Void) : Bool {
+	function tryCatch(cb:Void->Void) : Bool {
 		try {
 			cb();
 			return true;
