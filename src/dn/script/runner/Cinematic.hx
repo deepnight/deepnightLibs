@@ -301,8 +301,10 @@ class Cinematic extends dn.script.Runner {
 			tryCatch(updateRunningScript);
 
 		// Script completion detection
-		if( running && runLoops.length==0 )
+		if( running && runLoops.length==0 ) {
+			running = false;
 			onScriptStopped(true);
+		}
 	}
 }
 
