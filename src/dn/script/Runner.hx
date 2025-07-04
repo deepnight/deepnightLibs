@@ -483,7 +483,7 @@ class Runner {
 
 	/** Default log output method, replace it with your own **/
 	public dynamic function log(str:String, col:dn.Col=White) {
-		Sys.println(str);
+		trace(str);
 	}
 }
 
