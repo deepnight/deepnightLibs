@@ -36,10 +36,16 @@ class Cinematic extends dn.script.Runner {
 	}
 
 
-	override function run(script:String, ?onDone:Bool -> Void):Bool {
-		var ok = super.run(script, onDone);
-		running = ok;
-		return ok;
+	public dynamic function onScriptStopped(success:Bool) {}
+
+
+	override function run(script:String):Bool {
+		return running = super.run(script);
+	}
+
+	override function reportError(err:ScriptError) {
+		super.reportError(err);
+		onScriptStopped(false);
 	}
 
 	public inline function hasScriptRunning() return running;
@@ -296,7 +302,7 @@ class Cinematic extends dn.script.Runner {
 
 		// Script completion detection
 		if( running && runLoops.length==0 )
-			end(true);
+			onScriptStopped(true);
 	}
 }
 
