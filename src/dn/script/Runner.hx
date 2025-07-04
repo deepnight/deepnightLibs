@@ -93,11 +93,18 @@ class Runner {
 	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
 		switch Type.typeof(instance) {
 			case TClass(c):
-			case _: error( new ScriptError("Not a class: "+instance) );
+				if( interfaceInScript!=null && !Std.isOfType(instance,interfaceInScript) ) {
+					emitError('$c is not $interfaceInScript');
+					return;
+				}
+			case _:
+				emitError('Not a class: $instance');
+				return;
 		}
 
 		var cl = interfaceInScript ?? Type.getClass(instance);
-		checkRtti(cl);
+		if( !checkRtti(cl) )
+			return;
 
 		// Register for check
 		checkerClasses.push({
@@ -125,7 +132,9 @@ class Runner {
 		Expose a class to the script
 	 **/
 	public function exposeClass<T>(cl:Class<T>) {
-		checkRtti(cl);
+		if( !checkRtti(cl) )
+			return;
+
 		checkerClasses.push({
 			cl: cl,
 			globalInstanceFields: false,
@@ -141,7 +150,9 @@ class Runner {
 		Register a class type for the check to work.
 	 **/
 	public function exposeClassForCheck<T>(cl:Class<T>) {
-		checkRtti(cl);
+		if( !checkRtti(cl) )
+			return;
+
 		checkerClasses.push({
 			cl: cl,
 			globalInstanceFields: false,
@@ -149,9 +160,26 @@ class Runner {
 	}
 
 
-	inline function checkRtti<T>(cl:Class<T>) {
-		if( !Reflect.hasField(cl, "__rtti") )
-			error( new ScriptError('Missing @:rtti for $cl') );
+	function checkRtti<T>(cl:Class<T>) : Bool {
+		if( Reflect.hasField(cl, "__rtti") ) {
+			return true;
+			// Check @:keep presence (not working)
+			// var rtti = haxe.rtti.Rtti.getRtti(cl);
+			// var hasKeep = false;
+			// for(m in rtti.meta) {
+			// 	trace('$cl => ${m.name}');
+			// 	if( m.name==":keep" )
+			// 		hasKeep = true;
+			// }
+
+			// if( !hasKeep )
+			// 	emitError('Missing @:keep for $cl (this is required to prevent DCE from dumping functions used only through scripting)');
+			// return hasKeep;
+		}
+		else {
+			emitError('Missing @:rtti for $cl');
+			return false;
+		}
 	}
 
 
@@ -255,11 +283,7 @@ class Runner {
 			for(e in xml.elements()) {
 				switch e.nodeType {
 					case Element: fullXml.addChild(e);
-					case PCData:
-					case CData:
-					case Comment:
-					case ProcessingInstruction:
-					case DocType, Document: error( new ScriptError("Unexpected node type "+e.nodeType) );
+					case _:
 				}
 			}
 
@@ -386,21 +410,29 @@ class Runner {
 	}
 
 
-	function tryCatch(cb:Void->Void) : Bool {
+	inline function tryCatch(cb:Void->Void) : Bool {
 		try {
 			cb();
 			return true;
 		}
 		catch( err:hscript.Expr.Error ) {
-			error( ScriptError.fromHScriptError(err, lastScript) );
+			var err = ScriptError.fromHScriptError(err, lastScript);
+			reportError(err);
+			if( throwErrors )
+				throw err;
 			return false;
 		}
 		catch( err:ScriptError ) {
-			error(err);
+			reportError(err);
+			if( throwErrors )
+				throw err;
 			return false;
 		}
 		catch( e:haxe.Exception ) {
-			error( ScriptError.fromGeneralException(e, lastScript) );
+			if( throwErrors )
+				throw e;
+			else
+				reportError( ScriptError.fromGeneralException(e, lastScript) );
 			return false;
 		}
 	}
@@ -410,32 +442,30 @@ class Runner {
 		lastRunOuput = null;
 	}
 
-	function end(success:Bool) {
-		onScriptStopped(success);
-	}
 
-
-	public dynamic function onScriptStopped(success:Bool) {}
 	public dynamic function onError(err:ScriptError) {}
 
+	function emitError(msg:String) {
+		var err = new ScriptError(msg);
+		reportError(err);
+		if( throwErrors )
+			throw err;
+	}
 
-	inline function error(err:ScriptError) {
+	function reportError(err:ScriptError) {
 		#if hscriptPos
 			if( err.scriptStr!=null && err.line>0 )
-				logScriptWithError(err);
+				printErrorInContext(err);
 			else
 				log(err.toString(), Red);
 		#else
 			log(err.toString(), Red);
 		#end
-		end(false);
 		onError(err);
-		if( throwErrors )
-			throw err;
 	}
 
 
-	function logScriptWithError(err:ScriptError) {
+	function printErrorInContext(err:ScriptError) {
 		log('-- START OF SCRIPT --', Cyan);
 		var i = 1;
 		for(line in err.scriptStr.split("\n")) {
