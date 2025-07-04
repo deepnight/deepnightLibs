@@ -354,8 +354,15 @@ class Runner {
 			// Copy all instance fields as globals in script
 			if( c.instance!=null && c.instance.globalFields ) {
 				var fields = Type.getInstanceFields( Type.getClass(c.instance.ref));
-				for( f in fields )
-					interp.variables.set(f, Reflect.field(c.instance.ref, f));
+				for( f in fields ) {
+					if( f.substr(0,4)=="set_" )
+						continue;
+
+					if( f.substr(0,4)=="get_" )
+						f = f.substr(4);
+
+					interp.variables.set(f, Reflect.getProperty(c.instance.ref, f));
+				}
 			}
 		}
 
