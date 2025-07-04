@@ -7,10 +7,9 @@ import dn.Col;
 #error "hscript lib is required"
 #end
 
-private typedef CheckerClass = {
+private typedef ExposedClass = {
 	var cl : Class<Dynamic>;
-	var globalInstanceFields : Bool;
-	var ?instanceName : Null<String>;
+	var ?instance : { scriptName:String, ref:Dynamic, globalFields:Bool }
 }
 
 
@@ -30,8 +29,8 @@ class Runner {
 	var lastScript(default,null) : Null<String>;
 	var lastRunOuput : Null<Dynamic>;
 
-	var checkerEnums : Array<Enum<Dynamic>> = [];
-	var checkerClasses: Array<CheckerClass> = [];
+	var enums : Array<Enum<Dynamic>> = [];
+	var classes : Array<ExposedClass> = [];
 	var internalApiFunctions: Array<{ name:String, func:Dynamic }> = [];
 
 	// If TRUE, throw errors
@@ -55,8 +54,8 @@ class Runner {
 	public function dispose() {
 		interp = null;
 
-		checkerEnums = null;
-		checkerClasses = null;
+		enums = null;
+		classes = null;
 
 		lastScript = null;
 	}
@@ -67,7 +66,6 @@ class Runner {
 			name: name,
 			func: func,
 		});
-		interp.variables.set(name,func);
 	}
 
 
@@ -75,15 +73,7 @@ class Runner {
 		Register an Enum accessible from scripting.
 	**/
 	public function exposeEnum<T>(e:Enum<T>) {
-		checkerEnums.push(e);
-
-		// Add enum name to interp
-		interp.variables.set(e.getName(), e);
-
-		// Add enum values to interp
-		for(c in e.getConstructors())
-			interp.variables.set(c, e.createByName(c));
-
+		enums.push(e);
 	}
 
 
@@ -107,42 +97,25 @@ class Runner {
 			return;
 
 		// Register for check
-		checkerClasses.push({
+		classes.push({
 			cl: cl,
-			instanceName: nameInScript,
-			globalInstanceFields: makeFieldsGlobals,
+			instance: {
+				scriptName: nameInScript,
+				ref: instance,
+				globalFields: makeFieldsGlobals,
+			},
 		});
-
-		// Add instance variable to script
-		interp.variables.set(nameInScript, instance);
-
-		// Add class name to script
-		var className = Type.getClassName(cl);
-		interp.variables.set(className, cl); // expose package + class name
-		interp.variables.set(className.split(".").pop(), cl); // expose class name only
-
-		// Add all instance fields as globals in script
-		if( makeFieldsGlobals )
-			for( f in Type.getInstanceFields(cl) )
-				interp.variables.set(f, Reflect.field(instance, f));
 	}
 
 
-	/**
+	/**)
 		Expose a class to the script
 	 **/
 	public function exposeClass<T>(cl:Class<T>) {
 		if( !checkRtti(cl) )
 			return;
 
-		checkerClasses.push({
-			cl: cl,
-			globalInstanceFields: false,
-		});
-
-		var className = Type.getClassName(cl);
-		interp.variables.set(className, cl); // expose true class name (with package)
-		interp.variables.set(className.split(".").pop(), cl); // expose just the class name (no package)
+		classes.push({ cl: cl });
 	}
 
 
@@ -153,10 +126,7 @@ class Runner {
 		if( !checkRtti(cl) )
 			return;
 
-		checkerClasses.push({
-			cl: cl,
-			globalInstanceFields: false,
-		});
+		classes.push({ cl: cl });
 	}
 
 
@@ -262,10 +232,10 @@ class Runner {
 
 
 		// Build all registered types XMLs
-		for(e in checkerEnums)
+		for(e in enums)
 			_addEnumRttiXml(e);
 
-		for(ac in checkerClasses) {
+		for(ac in classes) {
 			_addClassRttiXml(ac.cl);
 
 			// Add alias for the class name alone, without its package
@@ -297,30 +267,31 @@ class Runner {
 			checker.setGlobal(f.name, TDynamic);
 
 		// Register all enum values as globals
-		for(e in checkerEnums) {
+		for(e in enums) {
 			var tt = checker.types.resolve( e.getName() );
 			for(k in e.getConstructors())
 				checker.setGlobal(k, tt);
 		}
 
-		for(ac in checkerClasses) {
+		for(ac in classes) {
 			var name = Type.getClassName(ac.cl);
 			var tt = checker.types.resolve(name);
 			checker.setGlobal(name.split(".").pop(), tt);
 
-			// Register class instance var as global
-			if( ac.instanceName!=null ) {
+			if( ac.instance!=null ) {
+				// Register class instance var as global
 				var name = Type.getClassName(ac.cl);
 				var tt = checker.types.resolve(name);
-				checker.setGlobal(ac.instanceName, tt);
+				checker.setGlobal(ac.instance.scriptName, tt);
+
+				// Optionally: register this class instance fields as globals
+				if( ac.instance.globalFields ) {
+					switch tt {
+						case TInst(c, args): checker.setGlobals(c, args, true);
+						case _:
+					}
 			}
 
-			// Optionally: register this class instance fields as globals
-			if( ac.globalInstanceFields ) {
-				switch tt {
-					case TInst(c, args): checker.setGlobals(c, args, true);
-					case _:
-				}
 			}
 		}
 	}
@@ -364,6 +335,44 @@ class Runner {
 	}
 
 
+
+	function initInterpVariables() {
+		// Init
+		@:privateAccess interp.resetVariables(); // use Interp defaults
+
+		// Classes
+		for(c in classes) {
+			// Add class instance variable to script
+			if( c.instance!=null )
+				interp.variables.set(c.instance.scriptName, c.instance.ref);
+
+			// Add class name to script
+			var className = Type.getClassName(c.cl);
+			interp.variables.set(className, c.cl); // expose package + class name
+			interp.variables.set(className.split(".").pop(), c.cl); // expose class name alone (wthout package)
+
+			// Copy all instance fields as globals in script
+			if( c.instance!=null && c.instance.globalFields )
+				for( f in Type.getInstanceFields( Type.getClass(c.instance.ref)) )
+					interp.variables.set(f, Reflect.field(c.instance.ref, f));
+		}
+
+		// Enums
+		for(e in enums) {
+			// Add enum name to interp
+			interp.variables.set(e.getName(), e);
+
+			// Add enum values to interp
+			for(c in e.getConstructors())
+				interp.variables.set(c, e.createByName(c));
+		}
+
+
+		// Internal API functions
+		for(f in internalApiFunctions)
+			interp.variables.set(f.name, f.func);
+	}
+
 	/**
 		Execute a script
 	**/
@@ -372,6 +381,8 @@ class Runner {
 		lastScript = script;
 
 		var result = tryCatch(()->{
+			initInterpVariables();
+
 			var program = scriptStringToExpr(script);
 
 			// Check the script
