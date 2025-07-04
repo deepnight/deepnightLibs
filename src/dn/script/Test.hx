@@ -13,10 +13,10 @@ class Test {
 		r.exposeClassInstance("api", api, true);
 
 		var script = "
-		var x = 0;
-		x++;
-		x++;
-		trace(x);
+			var x = 0;
+			x++;
+			x++;
+			trace(x);
 		";
 		CiAssert.noException( "scriptChecking", r.check(script) );
 
