@@ -28,7 +28,7 @@ class Runner {
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
 	var lastScript(default,null) : Null<String>;
-	var onStopOnce : Null<Bool->Void>;
+	public var lastRunOuput : Null<Dynamic>;
 
 	var checkerEnums : Array<Enum<Dynamic>> = [];
 	var checkerClasses: Array<CheckerClass> = [];
@@ -343,12 +343,11 @@ class Runner {
 	/**
 		Execute a script
 	**/
-	public function run(script:String, ?onDone:(success:Bool)->Void) : Bool {
+	public function run(script:String) : Bool {
 		init();
 		lastScript = script;
-		onStopOnce = onDone;
 
-		return tryCatch(()->{
+		var result = tryCatch(()->{
 			var program = scriptStringToExpr(script);
 			Sys.println(programExprToString(program));
 
@@ -357,10 +356,34 @@ class Runner {
 				checkScriptExpr(program);
 
 			// Run
-			interp.execute(program);
+			lastRunOuput = interp.execute(program);
 		});
+
+		return result;
 	}
 
+
+	public function getRunOutput_int() : Int {
+		return switch Type.typeof(lastRunOuput) {
+			case TInt, TFloat: M.isValidNumber(lastRunOuput) ? Std.int(lastRunOuput) : 0;
+			case _: 0;
+		}
+	}
+
+	public function getRunOutput_float() : Float {
+		return switch Type.typeof(lastRunOuput) {
+			case TInt, TFloat: M.isValidNumber(lastRunOuput) ? lastRunOuput : 0;
+			case _: 0;
+		}
+	}
+
+	public function getRunOutput_string() : Null<String> {
+		return switch Type.typeof(lastRunOuput) {
+			case TClass(String): lastRunOuput;
+			case TNull: null;
+			case _: Std.string(lastRunOuput);
+		}
+	}
 
 
 	function tryCatch(cb:Void->Void) : Bool {
@@ -384,14 +407,10 @@ class Runner {
 
 
 	function init() {
-		onStopOnce = null;
+		lastRunOuput = null;
 	}
 
 	function end(success:Bool) {
-		var cb = onStopOnce;
-		init();
-		if( cb!=null )
-			cb(success);
 		onScriptStopped(success);
 	}
 
