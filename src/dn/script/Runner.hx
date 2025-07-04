@@ -422,7 +422,7 @@ class Runner {
 	inline function error(err:ScriptError) {
 		#if hscriptPos
 			if( err.scriptStr!=null && err.line>0 )
-				printErrorInContext(err);
+				logScriptWithError(err);
 			else
 				log(err.toString(), Red);
 		#else
@@ -435,7 +435,7 @@ class Runner {
 	}
 
 
-	function printErrorInContext(err:ScriptError) {
+	function logScriptWithError(err:ScriptError) {
 		log('-- START OF SCRIPT --', Cyan);
 		var i = 1;
 		for(line in err.scriptStr.split("\n")) {
