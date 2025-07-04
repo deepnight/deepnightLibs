@@ -373,7 +373,6 @@ class Runner {
 
 		var result = tryCatch(()->{
 			var program = scriptStringToExpr(script);
-			Sys.println(programExprToString(program));
 
 			// Check the script
 			if( !runWithoutCheck )

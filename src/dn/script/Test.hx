@@ -19,11 +19,34 @@ class Test {
 		trace(x);
 		";
 		CiAssert.noException( "scriptChecking", r.check(script) );
-		CiAssert.equals( { r.run("reset();"); Api.retValue; },  0 );
+
+		// Function calls
+		CiAssert.equals( { Api.retValue=-1; r.run("reset();"); Api.retValue; },  0 );
 		CiAssert.equals( { r.run("api.ret(1);"); Api.retValue; },  1 );
 		CiAssert.equals( { r.run("ret(1);"); Api.retValue; },  1 );
 		CiAssert.equals( { r.run("ret( pow(2) );"); Api.retValue; },  4 );
 		CiAssert.equals( { r.run("ret( api.pow(2) );"); Api.retValue; },  4 );
+
+		// Output
+		CiAssert.equals( { r.run(""); r.output; },  null );
+		CiAssert.equals( { r.run(""); r.output_int; },  0 );
+		CiAssert.equals( { r.run(""); r.output_float; },  0 );
+		CiAssert.equals( { r.run(""); r.output_bool; },  false );
+		CiAssert.equals( { r.run(""); r.output_str; },  null );
+
+		CiAssert.equals( { r.run("var x=5; x;"); r.output_int; },  5 );
+		CiAssert.equals( { r.run("var x=5; x++;"); r.output_int; },  5 );
+		CiAssert.equals( { r.run("var x=5; ++x;"); r.output_int; },  6 );
+
+		CiAssert.equals( { r.run("var x=5; x;"); r.output_float; },  5 );
+
+		CiAssert.equals( { r.run("var x=true; x;"); r.output_bool; },  true );
+		CiAssert.equals( { r.run("var x=5; x;"); r.output_bool; },  false);
+		CiAssert.equals( { r.run("var x='hello'; x;"); r.output_bool; },  false);
+
+		CiAssert.equals( { r.run("var x=5; x;"); r.output_str; },  "5" );
+		CiAssert.equals( { r.run("var x=true; x;"); r.output_str; },  "true" );
+		CiAssert.equals( { r.run("var x='hello'; x;"); r.output_str; },  "hello" );
 
 		// Errors
 		CiAssert.throwsException( "Unknown identifier 1", r.run("unknown();") );
