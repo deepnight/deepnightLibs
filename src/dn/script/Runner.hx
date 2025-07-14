@@ -35,7 +35,7 @@ class Runner {
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
 	var lastScript(default,null) : Null<String>;
-	var lastRunOuput : Null<Dynamic>;
+	var lastRunOutput : Null<Dynamic>;
 
 	var enums : Array<Enum<Dynamic>> = [];
 	var classes : Array<ExposedClass> = [];
@@ -46,6 +46,22 @@ class Runner {
 
 	// If TRUE, the script is not checked before running. This should only be used if check() is manually called before hand.
 	public var runWithoutCheck = false;
+
+	/** Last script output, untyped **/
+	public var output(get,never) : Null<Dynamic>;
+
+	/** Last script output value typed as Null<String>. If the output isn't an actual String, this equals to the String representation of the output. **/
+	public var output_str(get,never) : Null<String>;
+
+	/** Last script output value typed as Int. If the output isn't a valid number, this equals to 0. **/
+	public var output_int(get,never) : Int;
+
+	/** Last script output value typed as Float. If the output isn't a valid number, this equals to 0. **/
+	public var output_float(get,never) : Float;
+
+	/** Last script output value typed as Bool. If the output isn't a valid Bool, this equals to FALSE. **/
+	public var output_bool(get,never) : Bool;
+
 
 
 	#if( debug && !hscriptPos )
@@ -372,47 +388,41 @@ class Runner {
 				checkScriptExpr(program);
 
 			// Run
-			lastRunOuput = interp.execute(program);
+			lastRunOutput = interp.execute(program);
 		});
 
 		return result;
 	}
 
 
+	inline function get_output() return lastRunOutput;
 
-	public var output(get,never) : Dynamic;
-	inline function get_output() return lastRunOuput;
-
-	public var output_int(get,never) : Int;
 	function get_output_int() {
-		return switch Type.typeof(lastRunOuput) {
-			case TInt, TFloat: M.isValidNumber(lastRunOuput) ? Std.int(lastRunOuput) : 0;
+		return switch Type.typeof(lastRunOutput) {
+			case TInt, TFloat: M.isValidNumber(lastRunOutput) ? Std.int(lastRunOutput) : 0;
 			case _: 0;
 		}
 	}
 
-	public var output_bool(get,never) : Bool;
+	function get_output_float() {
+		return switch Type.typeof(lastRunOutput) {
+			case TInt, TFloat: M.isValidNumber(lastRunOutput) ? lastRunOutput : 0;
+			case _: 0;
+		}
+	}
+
 	function get_output_bool() {
-		return switch Type.typeof(lastRunOuput) {
-			case TBool: lastRunOuput;
+		return switch Type.typeof(lastRunOutput) {
+			case TBool: lastRunOutput;
 			case _: false;
 		}
 	}
 
-	public var output_float(get,never) : Float;
-	function get_output_float() {
-		return switch Type.typeof(lastRunOuput) {
-			case TInt, TFloat: M.isValidNumber(lastRunOuput) ? lastRunOuput : 0;
-			case _: 0;
-		}
-	}
-
-	public var output_str(get,never) : Null<String>;
 	function get_output_str() {
-		return switch Type.typeof(lastRunOuput) {
+		return switch Type.typeof(lastRunOutput) {
 			case TNull: null;
-			case TClass(String): lastRunOuput;
-			case _: Std.string(lastRunOuput);
+			case TClass(String): lastRunOutput;
+			case _: Std.string(lastRunOutput);
 		}
 	}
 
@@ -446,7 +456,7 @@ class Runner {
 
 
 	function init() {
-		lastRunOuput = null;
+		lastRunOutput = null;
 	}
 
 
