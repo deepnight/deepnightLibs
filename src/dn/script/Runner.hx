@@ -102,7 +102,11 @@ class Runner {
 
 
 	/**
-		Expose an existing class instance to the script, as a global var with the given name
+		Expose an existing class instance to the script, as a global var with the given name.
+		If `makeFieldsGlobals` is TRUE, then all fields from the instance will be directly available as globals in scripts.
+
+		For example, if `myApi.doSomething()` exists then, in scripts, `doSomething()` may be called directly, in addition of `<nameInScript>.doSomething()`.
+
 		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
 	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
@@ -147,6 +151,8 @@ class Runner {
 
 	/**
 		Register a class type for the check to work.
+		This might be needed if one your API method returns an instance of some other class B. Then B should be provided for checking purpose.
+		For example, if you have `var npc = myApi.createNpc()`, the npc variable is using a type (eg. Npc) that should be explictely exposed to the runner.
 		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
 	public function exposeClassForCheck<T>(cl:Class<T>) {
@@ -188,8 +194,8 @@ class Runner {
 	function convertProgramExpr(e:hscript.Expr) {}
 
 
-	// Return program Expr as a human-readable String
-	public function programExprToString(program:Expr) : String {
+	// Return program Expr as a human-readable String using Printer
+	function printerExprToString(program:Expr) : String {
 		var printer = new hscript.Printer();
 		return printer.exprToString(program);
 	}
