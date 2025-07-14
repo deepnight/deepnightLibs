@@ -164,7 +164,7 @@ class Runner {
 
 
 	function checkRtti<T>(cl:Class<T>) : Bool {
-		if( Reflect.hasField(cl, "__rtti") ) {
+		if( haxe.rtti.Rtti.hasRtti(cl) ) {
 			// Check @:keep presence
 			// var rtti = haxe.rtti.Rtti.getRtti(cl);
 			// var hasKeep = false;
