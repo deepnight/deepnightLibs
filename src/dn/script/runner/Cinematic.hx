@@ -36,6 +36,35 @@ class Cinematic extends dn.script.Runner {
 	}
 
 
+
+	// Create a script expression
+	inline function mkExpr(e:ExprDef, p:Expr) {
+		return hscript.Tools.mk(e,p);
+	}
+
+	// Create an identifier expression
+	inline function mkIdentExpr(ident:String, p:Expr) {
+		return hscript.Tools.mk(EIdent(ident),p);
+	}
+
+	// Create a function call expression
+	inline function mkCall(func:String, args:Array<Expr>, p:Expr) {
+		return mkExpr(
+			ECall(
+				mkIdentExpr(func,p),
+				args
+			),
+			p
+		);
+	}
+
+	// Create a sync anonymous function expression:  @sync function() {...body...}
+	function mkSyncAnonymousFunction(functionBody:Expr, parentExpr:Expr) {
+		var anonymousFuncExpr = mkExpr( EFunction([],functionBody), parentExpr );
+		return mkExpr( EMeta("sync", [], anonymousFuncExpr), parentExpr );
+	}
+
+
 	public dynamic function onScriptStopped(success:Bool) {}
 
 
@@ -110,7 +139,7 @@ class Cinematic extends dn.script.Runner {
 
 
 	/*
-		Convert a standard program Expr to support Runner features.
+		Convert a standard program Expr to support Cinematic runner features.
 
 		Transforms "custom waitUntil conditions" expressions to valid expressions.
 			customWaitUntil(...)
@@ -223,8 +252,8 @@ class Cinematic extends dn.script.Runner {
 								break;
 							}
 
-						case EFor(v, iterExpr, blockExpr):
-							throw new ScriptError('"for" loop is not supported yet', lastScript);
+						case EDoWhile(_), EWhile(_), EFor(_):
+							throw new ScriptError('Loop is not supported yet', lastScript);
 							// TODO support async transform of: for(...) {...}
 							// See implementation in Async.toCps (EFor)
 							/*

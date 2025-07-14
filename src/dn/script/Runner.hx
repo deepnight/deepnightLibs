@@ -162,46 +162,11 @@ class Runner {
 
 
 
-	// Create a script expression
-	inline function mkExpr(e:ExprDef, p:Expr) {
-		return hscript.Tools.mk(e,p);
-	}
-
-	inline function mkCall(func:String, args:Array<Expr>, p:Expr) {
-		return mkExpr(
-			ECall(
-				mkIdentExpr(func,p),
-				args
-			),
-			p
-		);
-	}
-
-	// Create an identifier expression
-	inline function mkIdentExpr(ident:String, p:Expr) {
-		return hscript.Tools.mk(EIdent(ident),p);
-	}
-
-	// Create a sync anonymous function expression:  @sync function() {...body...}
-	function mkSyncAnonymousFunction(functionBody:Expr, parentExpr:Expr) {
-		var anonymousFuncExpr = mkExpr( EFunction([],functionBody), parentExpr );
-		return mkExpr( EMeta("sync", [], anonymousFuncExpr), parentExpr );
-	}
-
 
 	/*
-		Convert a standard program Expr to support Runner features.
-
-		Transforms "custom waitUntil conditions" expressions to valid expressions.
-			customWaitUntil(...)
-			customWaitUntil
-			customWaitUntil >> {...}
-			customWaitUntil(...) >> {...}
-			0.5;				// pause for 0.5s
-			0.5 >> {...}		// async call block content in 0.5s
+		Convert a standard program Expr to support special Runner language features.
 	*/
-	function convertProgramExpr(e:hscript.Expr) {
-	}
+	function convertProgramExpr(e:hscript.Expr) {}
 
 
 	// Return program Expr as a human-readable String
