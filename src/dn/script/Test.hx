@@ -18,7 +18,21 @@ class Test {
 			x++;
 			trace(x);
 		";
+
+		// Check
 		CiAssert.noException( "scriptChecking", r.check(script) );
+		CiAssert.equals( r.check(script), true );
+
+		// Errors
+		CiAssert.throwsException( "Unknown identifier (variable)", r.run("x=1;") );
+		CiAssert.throwsException( "Unknown identifier (function)", r.run("unknown();") );
+		CiAssert.throwsException( "Unknown identifier (api call)", r.run("api.unknown();") );
+		CiAssert.throwsException( "Invalid characters", r.run("var x=1; ù$^!ù;") );
+		CiAssert.throwsException( "Incompatible types", r.run("var x=5; x='';") );
+		CiAssert.throwsException( "Incompatible arg types", r.run("var x=pow('a');") );
+		CiAssert.throwsException( "Undefined var", r.run("x=1") );
+
+		r.throwErrors = false;
 
 		// Function calls
 		CiAssert.equals( { Api.retValue=-1; r.run("reset();"); Api.retValue; },  0 );
@@ -27,34 +41,48 @@ class Test {
 		CiAssert.equals( { r.run("ret( pow(2) );"); Api.retValue; },  4 );
 		CiAssert.equals( { r.run("ret( api.pow(2) );"); Api.retValue; },  4 );
 
-		// Output
-		CiAssert.equals( { r.run(""); r.output; },  null );
-		CiAssert.equals( { r.run(""); r.output_int; },  0 );
-		CiAssert.equals( { r.run(""); r.output_float; },  0 );
-		CiAssert.equals( { r.run(""); r.output_bool; },  false );
-		CiAssert.equals( { r.run(""); r.output_str; },  null );
 
+		// Output: Dynamic
+		CiAssert.equals( { r.run(""); r.output; },  null );
+		CiAssert.equals( { r.run("null;"); r.output; },  null );
+		CiAssert.equals( { r.run("5"); r.output; },  5 );
+		CiAssert.equals( { r.run("5.3"); r.output; },  5.3 );
+		CiAssert.equals( { r.run("true"); r.output; },  true );
+		CiAssert.equals( { r.run("y=5; y;"); r.output; },  null );
+
+		// Output: Int
+		CiAssert.equals( { r.run(""); r.output_int; },  0 );
 		CiAssert.equals( { r.run("var x=5; x;"); r.output_int; },  5 );
 		CiAssert.equals( { r.run("var x=5; x++;"); r.output_int; },  5 );
 		CiAssert.equals( { r.run("var x=5; ++x;"); r.output_int; },  6 );
+		CiAssert.equals( { r.run("1.9;"); r.output_int; },  1 );
+		CiAssert.equals( { r.run("-1.9;"); r.output_int; },  -1 );
+		CiAssert.equals( { r.run("null;"); r.output_int; },  0 );
+		CiAssert.equals( { r.run("1/0;"); r.output_int; },  0 );
+		CiAssert.equals( { r.run("'hello';"); r.output_int; },  0 );
 
-		CiAssert.equals( { r.run("var x=5; x;"); r.output_float; },  5 );
+		// Output: Float
+		CiAssert.equals( { r.run(""); r.output_float; },  0 );
+		CiAssert.equals( { r.run("var x=5.2; x;"); r.output_float; },  5.2 );
+		CiAssert.equals( { r.run("null;"); r.output_float; },  0. );
+		CiAssert.equals( { r.run("1/0;"); r.output_float; },  0. );
+		CiAssert.equals( { r.run("'hello';"); r.output_float; },  0. );
 
+		// Output: Bool
+		CiAssert.equals( { r.run(""); r.output_bool; },  false );
 		CiAssert.equals( { r.run("var x=true; x;"); r.output_bool; },  true );
 		CiAssert.equals( { r.run("var x=5; x;"); r.output_bool; },  false);
 		CiAssert.equals( { r.run("var x='hello'; x;"); r.output_bool; },  false);
+		CiAssert.equals( { r.run("null;"); r.output_bool; },  false );
+		CiAssert.equals( { r.run("5;"); r.output_bool; },  false );
+		CiAssert.equals( { r.run("'hello';"); r.output_bool; },  false );
 
+		// Output: String
+		CiAssert.equals( { r.run(""); r.output_str; },  null );
 		CiAssert.equals( { r.run("var x=5; x;"); r.output_str; },  "5" );
 		CiAssert.equals( { r.run("var x=true; x;"); r.output_str; },  "true" );
 		CiAssert.equals( { r.run("var x='hello'; x;"); r.output_str; },  "hello" );
-
-		// Errors
-		CiAssert.throwsException( "Unknown identifier 1", r.run("unknown();") );
-		CiAssert.throwsException( "Unknown identifier 2", r.run("api.unknown();") );
-		CiAssert.throwsException( "Invalid characters", r.run("var x=1; ù$^!ù;") );
-		CiAssert.throwsException( "Incompatible types", r.run("var x=5; x='';") );
-		CiAssert.throwsException( "Incompatible arg types", r.run("var x=pow('a');") );
-		CiAssert.throwsException( "Undefined var", r.run("x=1") );
+		CiAssert.equals( { r.run("null;"); r.output_str; },  null );
 	}
 }
 
