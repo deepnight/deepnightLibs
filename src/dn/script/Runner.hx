@@ -15,11 +15,19 @@ private typedef ExposedClass = {
 
 /**
 	Runner: an HScript wrapper that easily supports running and checking text scripts.
+	It is highly recommended to use -D hscriptPos when debugging.
+
+	EXAMPLE:
+	```haxe
+	var runner = new Runner();
+	runner.exposeClassInstance("api", myApiClassInstance, MyApiClassInterface);
+	runner.run("var x=0; x++; x;");
+	trace(runner.output_int); // 1
+	```
 
 	USAGE:
 	 - Create a new instance of Runner
 	 - Provide Classes and Enums used in scripts using "exposeXXX()" methods.
-	 - Call the Runner `update()` loop
 	 - Use `run()` to execute a script text.
 	 - Use `check()` to verify a script text syntax.
 **/
@@ -33,7 +41,7 @@ class Runner {
 	var classes : Array<ExposedClass> = [];
 	var internalApiFunctions: Array<{ name:String, func:Dynamic }> = [];
 
-	// If TRUE, throw errors
+	// If TRUE, throw errors instead of intercepeting them
 	public var throwErrors = false;
 
 	// If TRUE, the script is not checked before running. This should only be used if check() is manually called before hand.
@@ -132,19 +140,19 @@ class Runner {
 
 	function checkRtti<T>(cl:Class<T>) : Bool {
 		if( Reflect.hasField(cl, "__rtti") ) {
-			return true;
-			// Check @:keep presence (not working)
+			// Check @:keep presence
 			// var rtti = haxe.rtti.Rtti.getRtti(cl);
 			// var hasKeep = false;
-			// for(m in rtti.meta) {
-			// 	trace('$cl => ${m.name}');
-			// 	if( m.name==":keep" )
+			// for(m in rtti.meta)
+			// 	if( m.name==":keep" ) {
 			// 		hasKeep = true;
-			// }
-
+			// 		break;
+			// 	}
 			// if( !hasKeep )
 			// 	emitError('Missing @:keep for $cl (this is required to prevent DCE from dumping functions used only through scripting)');
 			// return hasKeep;
+
+			return true; // a bug prevent checking the presence of @:keep (see https://github.com/HaxeFoundation/haxe/issues/12300)
 		}
 		else {
 			emitError('Missing @:rtti for $cl');
