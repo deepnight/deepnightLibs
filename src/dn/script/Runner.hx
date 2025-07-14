@@ -103,6 +103,7 @@ class Runner {
 
 	/**
 		Expose an existing class instance to the script, as a global var with the given name
+		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
 	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
 		switch Type.typeof(instance) {
@@ -134,6 +135,7 @@ class Runner {
 
 	/**)
 		Expose a class to the script
+		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
 	public function exposeClass<T>(cl:Class<T>) {
 		if( !checkRtti(cl) )
@@ -145,6 +147,7 @@ class Runner {
 
 	/**
 		Register a class type for the check to work.
+		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
 	public function exposeClassForCheck<T>(cl:Class<T>) {
 		if( !checkRtti(cl) )
