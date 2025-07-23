@@ -42,13 +42,16 @@ class Gc {
 		#end
 	}
 
+	#if hl
 	public static inline function setFlag(f:hl.Gc.GcFlag, v:Bool) {
 		var flags : haxe.EnumFlags<hl.Gc.GcFlag> = new haxe.EnumFlags();
 		if( v )
 			flags.set(f);
 		hl.Gc.flags = flags;
 	}
-
+	#else
+	public static inline function setFlag(f:Dynamic, v:Bool) {}
+	#end
 
 	/** Return currently "currently allocated memory" **/
 	public static inline function getCurrentMem() : Float {
