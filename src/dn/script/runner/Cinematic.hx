@@ -260,6 +260,12 @@ class Cinematic extends dn.script.Runner {
 								break;
 							}
 
+						case EIf(cond, e1, e2):
+							throw new ScriptError('Condition is not supported yet', lastScript);
+							// TODO
+							// var cond = mkSyncAnonymousFunction( e1, e );
+							// _replaceCurBlockExpr
+
 						case EDoWhile(_), EWhile(_), EFor(_):
 							throw new ScriptError('Loop is not supported yet', lastScript);
 							// TODO support async transform of: for(...) {...}
