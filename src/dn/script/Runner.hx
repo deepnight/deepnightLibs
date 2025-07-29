@@ -380,6 +380,21 @@ class Runner {
 			interp.variables.set(f.name, f.func);
 	}
 
+
+	#if heaps
+	public function runRes(r:hxd.res.Resource) {
+		var s = null;
+		tryCatch(()->{
+			s = r.entry.getText();
+		});
+
+		if( s!=null)
+			return run(s);
+		else
+			return false;
+	}
+	#end
+
 	/**
 		Execute a script
 	**/
