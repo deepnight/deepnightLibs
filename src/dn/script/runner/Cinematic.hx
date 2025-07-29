@@ -25,6 +25,14 @@ class Cinematic extends dn.script.Runner {
 	}
 
 
+	/** Shortcut to create a Cinematic runner with api instance **/
+	public static function createWithApi<T:Dynamic>(fps:Int, apiInstance:Dynamic, apiInterface:Class<T>) : Cinematic {
+		var runner = new Cinematic(fps);
+		runner.exposeClassInstance("api", apiInstance, apiInterface, true);
+		return runner;
+	}
+
+
 	/**
 		Destroy the runner and clean things up
 	**/
