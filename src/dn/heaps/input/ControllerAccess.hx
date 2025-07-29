@@ -427,7 +427,7 @@ class ControllerAccess<T:Int> {
 	}
 
 	/**
-		Check if a pad or keyboard button traditionally used to "Continue" is pressed (like in "Press a key to continue").
+		Check if a pad or keyboard button traditionally associated with "Continuing" is pressed (eg. for a "Press any key to continue").
 	**/
 	public inline function anyStandardContinuePressed() {
 		return anyPadButtonPressed()
@@ -436,8 +436,19 @@ class ControllerAccess<T:Int> {
 			|| isKeyboardPressed(Key.ESCAPE)
 			|| isKeyboardPressed(Key.SPACE)
 			|| isKeyboardPressed(Key.ENTER)
-			|| isKeyboardPressed(Key.NUMPAD_ENTER)
-			;
+			|| isKeyboardPressed(Key.NUMPAD_ENTER);
+	}
+	/**
+		Check if a pad or keyboard button traditionally associated with "Continuing" is down (eg. for a "Press any key to continue").
+	**/
+	public inline function anyStandardContinueDown() {
+		return anyPadButtonDown()
+			|| isKeyboardDown(Key.E)
+			|| isKeyboardDown(Key.F)
+			|| isKeyboardDown(Key.ESCAPE)
+			|| isKeyboardDown(Key.SPACE)
+			|| isKeyboardDown(Key.ENTER)
+			|| isKeyboardDown(Key.NUMPAD_ENTER);
 	}
 
 	/**
