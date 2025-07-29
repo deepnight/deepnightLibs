@@ -87,8 +87,8 @@ class TinyTween {
 		}
 		else
 			return false;
-
 	}
+
 
 
 	#if deepnightLibsTests
