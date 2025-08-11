@@ -336,6 +336,12 @@ class VelocityArray {
 			v.clear();
 	}
 
+	public inline function clearAllExcept(exceptId:Int) {
+		for(v in all)
+			if( v.id!=exceptId )
+				v.clear();
+	}
+
 	/** Remove "zero" velocities from array **/
 	public function removeZeros() {
 		var i = 0;
