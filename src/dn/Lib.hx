@@ -875,6 +875,19 @@ class Lib {
 		return out;
 	}
 
+
+	public static function getShortClassName(instance:Dynamic) : Null<String> {
+		if( instance==null )
+			return null;
+		var c = Type.getClass(instance);
+		if( c==null )
+			return null;
+		var name = Type.getClassName(c);
+		var idx = name.lastIndexOf(".");
+		return idx<0 ? name : name.substr(idx+1);
+	}
+
+
 	#if deepnightLibsTests
 	public static function test() {
 		CiAssert.equals( findMostFrequentValueInArray([0,0,1,0,1]), 0 );
@@ -998,6 +1011,10 @@ class Lib {
 
 		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[2].value, 3 );
 		CiAssert.equals( groupArrayCustom(arr, isEqual, outputValue)[2].count, 1 );
+
+		var pt = new dn.geom.GridPoint(0,0);
+		CiAssert.equals( getShortClassName(pt), "GridPoint" );
+		CiAssert.equals( getShortClassName(""), "String" );
 	}
 	#end
 
