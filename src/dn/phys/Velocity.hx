@@ -56,6 +56,7 @@ class Velocity {
 
 	inline function get_x() return _preMultX;
 	public inline function setX(v:Float) _preMultX = v * preMul;
+	public inline function clearX() _preMultX = 0;
 	public inline function addX(v:Float) _preMultX += v * preMul;
 	public inline function mulX(v:Float) _preMultX *= v;
 	public inline function setSignX(sign:Int) {
@@ -65,6 +66,7 @@ class Velocity {
 
 	inline function get_y() return _preMultY;
 	public inline function setY(v:Float) _preMultY = v * preMul;
+	public inline function clearY() _preMultY = 0;
 	public inline function addY(v:Float) _preMultY += v * preMul;
 	public inline function mulY(v:Float) _preMultY *= v;
 	public inline function setSignY(sign:Int) {
@@ -165,6 +167,7 @@ class Velocity {
 		setY( Math.sin(ang) * v );
 	}
 
+	/** Rotate current velocity by `angInc` radians **/
 	public inline function rotate(angInc:Float) {
 		var oldAng = ang;
 		var d = len;
