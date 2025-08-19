@@ -15,6 +15,7 @@ class Cinematic extends dn.script.Runner {
 
 	var waitUntilFunctions : Map<String, Bool> = new Map();
 	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
+	var uniqId = 0;
 
 	public function new(fps:Int) {
 		super();
@@ -22,6 +23,10 @@ class Cinematic extends dn.script.Runner {
 
 		bindInternalFunction("delayExecutionS", api_delayExecutionS);
 		bindInternalFunction("waitUntil", api_waitUntil);
+	}
+
+	inline function makeUniqId() {
+		return uniqId++;
 	}
 
 
@@ -66,9 +71,9 @@ class Cinematic extends dn.script.Runner {
 		);
 	}
 
-	// Create a sync anonymous function expression:  @sync function() {...body...}
-	function mkAnonymousFunction(functionBody:Expr, parentExpr:Expr) {
-		return mkExpr( EFunction([],functionBody), parentExpr );
+	// Create a function definition expression:  function() {...body...}
+	function mkFunctionExpr(?name:String, functionBody:Expr, parentExpr:Expr) {
+		return mkExpr( EFunction([], functionBody, name), parentExpr );
 	}
 
 
@@ -169,7 +174,12 @@ class Cinematic extends dn.script.Runner {
 					exprs[idx] = with;
 					#end
 				}
-				for(e in exprs) {
+				function _prependCurBlockExpr(with:Expr) {
+					exprs.insert(idx, with);
+					idx++;
+				}
+				while( idx<exprs.length ) {
+					var e = exprs[idx];
 					switch hscript.Tools.expr(e) {
 						// Pausing
 						case EConst(c):
@@ -183,7 +193,7 @@ class Cinematic extends dn.script.Runner {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								_replaceCurBlockExpr( ECall(
 									mkIdentExpr("delayExecutionS",e),
-									[ delayExpr, mkAnonymousFunction(followingExprsBlock,e) ]
+									[ delayExpr, mkFunctionExpr(followingExprsBlock,e) ]
 								));
 								break;
 							}
@@ -196,7 +206,7 @@ class Cinematic extends dn.script.Runner {
 									case EConst(CInt(_)), EConst(CFloat(_)):
 										_replaceCurBlockExpr( ECall(
 											mkIdentExpr("delayExecutionS", e),
-											[ leftExpr, mkAnonymousFunction(rightExpr,e) ]
+											[ leftExpr, mkFunctionExpr(rightExpr,e) ]
 										));
 
 									// TURNS: customWaitUntil >> { XXX }
@@ -204,8 +214,8 @@ class Cinematic extends dn.script.Runner {
 									case EIdent(id):
 										if( waitUntilFunctions.exists(id) ) {
 											var args = [
-												mkAnonymousFunction( mkCall(id,[],e), e ),
-												mkAnonymousFunction( rightExpr, e ),
+												mkFunctionExpr( mkCall(id,[],e), e ),
+												mkFunctionExpr( rightExpr, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
@@ -219,8 +229,8 @@ class Cinematic extends dn.script.Runner {
 									#end
 										if( waitUntilFunctions.exists(id) ) {
 											var args = [
-												mkAnonymousFunction( mkCall(id,params,e), e ),
-												mkAnonymousFunction( rightExpr, e ),
+												mkFunctionExpr( mkCall(id,params,e), e ),
+												mkFunctionExpr( rightExpr, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
@@ -235,8 +245,8 @@ class Cinematic extends dn.script.Runner {
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								var args = [
-									mkAnonymousFunction( mkCall(id,[],e), e ),
-									mkAnonymousFunction( followingExprsBlock, e ),
+									mkFunctionExpr( mkCall(id,[],e), e ),
+									mkFunctionExpr( followingExprsBlock, e ),
 								];
 								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
@@ -252,15 +262,41 @@ class Cinematic extends dn.script.Runner {
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								var args = [
-									mkAnonymousFunction( mkCall(id,params,e), e ),
-									mkAnonymousFunction( followingExprsBlock, e ),
+									mkFunctionExpr( mkCall(id,params,e), e ),
+									mkFunctionExpr( followingExprsBlock, e ),
 								];
 								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
 							}
 
-						case EIf(cond, eTrue, eFalse):
-							// throw new ScriptError('Condition is not supported yet', lastScriptStr);
+						case EIf(eCond, eTrue, eFalse):
+							// Extract all following expressions and move them to a temp function
+							var followingExprs = exprs.splice(idx+1,exprs.length);
+							if( followingExprs.length==0 )
+								break; // no need to change anything if there's nothing following the if
+
+							var funcName = "_afterIf"+makeUniqId();
+							var eAfterIfDecl = mkFunctionExpr(funcName, mkExpr(EBlock(followingExprs),e), e);
+							var eAfterIfCall = mkCall(funcName,[],e);
+
+							// Create "true" branch
+							var eTrue = switch hscript.Tools.expr(eTrue) {
+								case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
+								case _: mkExpr( EBlock([eTrue,eAfterIfCall]), e );
+							}
+
+							// Create "false" branch
+							var eFalse = eFalse==null
+								? eAfterIfCall
+								: switch hscript.Tools.expr(eFalse) {
+									case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
+									case _: mkExpr( EBlock([eFalse,eAfterIfCall]), e );
+								}
+
+							// Replace current block with the temp function declaration, followed by the new EIf
+							_prependCurBlockExpr(eAfterIfDecl);
+							_replaceCurBlockExpr( EIf(eCond,eTrue,eFalse) );
+							break;
 
 						case EDoWhile(_), EWhile(_), EFor(_):
 							throw new ScriptError('Loop is not supported yet', lastScriptStr);
