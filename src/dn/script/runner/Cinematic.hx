@@ -299,6 +299,8 @@ class Cinematic extends dn.script.Runner {
 								break;
 							}
 
+
+						// Make IF statements async
 						case EIf(eCond, eTrue, eFalse):
 							var uid = makeUniqId();
 
@@ -331,6 +333,7 @@ class Cinematic extends dn.script.Runner {
 							break;
 
 
+						// Make FOR loops async
 						case EFor(varName, eit, loopExpr):
 							var uid = makeUniqId();
 
