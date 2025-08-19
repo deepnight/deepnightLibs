@@ -259,7 +259,7 @@ class Cinematic extends dn.script.Runner {
 								break;
 							}
 
-						case EIf(cond, e1, e2):
+						case EIf(cond, eTrue, eFalse):
 							// throw new ScriptError('Condition is not supported yet', lastScriptStr);
 
 						case EDoWhile(_), EWhile(_), EFor(_):
