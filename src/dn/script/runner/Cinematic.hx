@@ -54,6 +54,10 @@ class Cinematic extends dn.script.Runner {
 	inline function mkExpr(e:ExprDef, p:Expr) {
 		return hscript.Tools.mk( e, p );
 	}
+	// Create a script expression
+	inline function mkBlock(arr:Array<Expr>, p:Expr) {
+		return hscript.Tools.mk( EBlock(arr), p );
+	}
 
 	// Create an identifier expression
 	inline function mkIdentExpr(ident:String, p:Expr) {
@@ -181,6 +185,12 @@ class Cinematic extends dn.script.Runner {
 					exprs.insert(idx, with);
 					idx++;
 				}
+				function _getBlockExprs(e:Expr) {
+					return switch hscript.Tools.expr(e) {
+						case EBlock(arr): arr;
+						case _: [e];
+					}
+				}
 				while( idx<exprs.length ) {
 					var e = exprs[idx];
 					switch hscript.Tools.expr(e) {
@@ -272,51 +282,93 @@ class Cinematic extends dn.script.Runner {
 								break;
 							}
 
-						case EIf(eCond, eTrue, eFalse):
-							// Extract all following expressions and move them to a temp function
-							var followingExprs = exprs.splice(idx+1,exprs.length);
-							if( followingExprs.length==0 )
-								break; // no need to change anything if there's nothing following the if
+						// case EIf(eCond, eTrue, eFalse):
+						// 	// Extract all following expressions and move them to a temp function
+						// 	var followingExprs = exprs.splice(idx+1,exprs.length);
+						// 	if( followingExprs.length==0 )
+						// 		break; // no need to change anything if there's nothing following the if
 
-							var funcName = "_afterIf"+makeUniqId();
-							var eAfterIfDecl = mkFunctionExpr(funcName, mkExpr(EBlock(followingExprs),e), e);
-							var eAfterIfCall = mkCallByName(funcName,[],e);
+						// 	var funcName = "_afterIf"+makeUniqId();
+						// 	var eAfterIfDecl = mkFunctionExpr(funcName, mkExpr(EBlock(followingExprs),e), e);
+						// 	var eAfterIfCall = mkCallByName(funcName,[],e);
 
-							// Create "true" branch
-							var eTrue = switch hscript.Tools.expr(eTrue) {
-								case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
-								case _: mkExpr( EBlock([eTrue,eAfterIfCall]), e );
-							}
+						// 	// Create "true" branch
+						// 	var eTrue = switch hscript.Tools.expr(eTrue) {
+						// 		case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
+						// 		case _: mkExpr( EBlock([eTrue,eAfterIfCall]), e );
+						// 	}
 
-							// Create "false" branch
-							var eFalse = eFalse==null
-								? eAfterIfCall
-								: switch hscript.Tools.expr(eFalse) {
-									case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
-									case _: mkExpr( EBlock([eFalse,eAfterIfCall]), e );
-								}
+						// 	// Create "false" branch
+						// 	var eFalse = eFalse==null
+						// 		? eAfterIfCall
+						// 		: switch hscript.Tools.expr(eFalse) {
+						// 			case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
+						// 			case _: mkExpr( EBlock([eFalse,eAfterIfCall]), e );
+						// 		}
 
-							// Replace current block with the temp function declaration, followed by the new EIf
-							_prependCurBlockExpr(eAfterIfDecl);
-							_replaceCurBlockExpr( EIf(eCond,eTrue,eFalse) );
-							break;
+						// 	// Replace current block with the temp function declaration, followed by the new EIf
+						// 	_prependCurBlockExpr(eAfterIfDecl);
+						// 	_replaceCurBlockExpr( EIf(eCond,eTrue,eFalse) );
+						// 	break;
 
-						case EDoWhile(_), EWhile(_), EFor(_):
+						case EFor(varName, eit, loopExpr):
+							var uid = makeUniqId();
+
+							var followingExprs = exprs.splice(idx+1,exprs.length); // BUG should not include returns/breaks
+							var funcName = "_afterLoop"+makeUniqId();
+							var eAfterDecl = mkFunctionExpr(funcName, mkExpr(EBlock(followingExprs),e), e);
+							var eAfterCall = mkCallByName(funcName,[],e);
+
+							var iterIdent = mkIdentExpr("_i"+uid, e);
+							var loopFuncExprs = [
+								// => "if( !_i.hasNext() ) { doFollowing(); return; }"
+								mkExpr( EIf(
+									mkExpr(EUnop(
+										"!",
+										true,
+										mkCallByIdent( mkFieldExpr(iterIdent,"hasNext",e), [], e )
+									), e),
+									mkBlock( followingExprs.length==0
+										? [mkExpr(EReturn(),e)]
+										: [eAfterCall, mkExpr(EReturn(),e)]
+									, e )
+								),e),
+
+								// => "var varName = _i.next()"
+								mkExpr( EVar(varName, mkCallByIdent( mkFieldExpr(iterIdent,"next",e), [], e )), e ),
+							];
+							for(e in _getBlockExprs(loopExpr))
+								loopFuncExprs.push(e);
+							loopFuncExprs.push( mkCallByName("_loop"+uid, [], e) );
+
+							var loopBodyExpr = mkExpr(EBlock(loopFuncExprs),e);
+
+							_replaceCurBlockExpr(EBlock([
+								// => "var _i = makeIterator"
+								eAfterDecl,
+								mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr("makeIterator",eit), [eit], e )), e ),
+
+								// Declare _loop var first, then set it to the function
+								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(loopBodyExpr,e) ), e ),
+
+								// => "_loop()"
+								mkCallByName("_loop"+uid, [], e),
+							]));
+
+
+							// for(i in v) block; loops are translated to the following:
+							//
+							// 	var _i = makeIterator(v);
+							// 	function _loop() {
+							// 		if( !_i.hasNext() )
+							// 			return;
+							// 		var v = _i.next();
+							// 		block(function(_) _loop());
+							// 	}
+							// 	_loop()
+						case EDoWhile(_), EWhile(_):
 							throw new ScriptError('Loop is not supported yet', lastScriptStr);
-							// TODO support async transform of: for(...) {...}
-							// See implementation in Async.toCps (EFor)
-							/*
-								for(i in v) block; loops are translated to the following:
-
-								var _i = makeIterator(v);
-								function _loop() {
-									if( !_i.hasNext() )
-										return;
-									var v = _i.next();
-									block(function(_) _loop());
-								}
-								_loop();
-							*/
 
 						case _:
 					}
