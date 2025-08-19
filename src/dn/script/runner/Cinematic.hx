@@ -95,7 +95,7 @@ class Cinematic extends dn.script.Runner {
 		runLoops.push(loopFunc);
 	}
 
-	function api_delayExecutionS( doNext:Void->Void, t:Float ) {
+	function api_delayExecutionS( t:Float, doNext:Void->Void ) {
 		var endS = runningTimeS + t;
 		addRunLoop((tmod)->{
 			if( runningTimeS>=endS )
@@ -183,7 +183,7 @@ class Cinematic extends dn.script.Runner {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								_replaceCurBlockExpr( ECall(
 									mkIdentExpr("delayExecutionS",e),
-									[ mkAnonymousFunction(followingExprsBlock,e), delayExpr ]
+									[ delayExpr, mkAnonymousFunction(followingExprsBlock,e) ]
 								));
 								break;
 							}
@@ -196,7 +196,7 @@ class Cinematic extends dn.script.Runner {
 									case EConst(CInt(_)), EConst(CFloat(_)):
 										_replaceCurBlockExpr( ECall(
 											mkIdentExpr("delayExecutionS", e),
-											[ mkAnonymousFunction(rightExpr,e), leftExpr ]
+											[ leftExpr, mkAnonymousFunction(rightExpr,e) ]
 										));
 
 									// TURNS: customWaitUntil >> { XXX }
