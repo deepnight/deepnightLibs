@@ -52,28 +52,31 @@ class Cinematic extends dn.script.Runner {
 
 	// Create a script expression
 	inline function mkExpr(e:ExprDef, p:Expr) {
-		return hscript.Tools.mk(e,p);
+		return hscript.Tools.mk( e, p );
 	}
 
 	// Create an identifier expression
 	inline function mkIdentExpr(ident:String, p:Expr) {
-		return hscript.Tools.mk(EIdent(ident),p);
+		return hscript.Tools.mk( EIdent(ident), p );
+	}
+
+	inline function mkFieldExpr(eObj, fieldName, p:Expr) {
+		return hscript.Tools.mk( EField(eObj,fieldName), p );
 	}
 
 	// Create a function call expression
-	inline function mkCall(func:String, args:Array<Expr>, p:Expr) {
-		return mkExpr(
-			ECall(
-				mkIdentExpr(func,p),
-				args
-			),
-			p
-		);
+	inline function mkCallByName(func:String, args:Array<Expr>, p:Expr) {
+		return mkExpr( ECall( mkIdentExpr(func,p), args ), p );
+	}
+
+	// Create a function call expression
+	inline function mkCallByIdent(ident:Expr, args:Array<Expr>, p:Expr) {
+		return mkExpr( ECall(ident,args), p);
 	}
 
 	// Create a function definition expression:  function() {...body...}
-	function mkFunctionExpr(?name:String, functionBody:Expr, parentExpr:Expr) {
-		return mkExpr( EFunction([], functionBody, name), parentExpr );
+	function mkFunctionExpr(?name:String, ?args:Array<Argument>, functionBody:Expr, parentExpr:Expr) {
+		return mkExpr( EFunction(args??[], functionBody, name), parentExpr );
 	}
 
 
@@ -214,7 +217,7 @@ class Cinematic extends dn.script.Runner {
 									case EIdent(id):
 										if( waitUntilFunctions.exists(id) ) {
 											var args = [
-												mkFunctionExpr( mkCall(id,[],e), e ),
+												mkFunctionExpr( mkCallByName(id,[],e), e ),
 												mkFunctionExpr( rightExpr, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
@@ -229,7 +232,7 @@ class Cinematic extends dn.script.Runner {
 									#end
 										if( waitUntilFunctions.exists(id) ) {
 											var args = [
-												mkFunctionExpr( mkCall(id,params,e), e ),
+												mkFunctionExpr( mkCallByName(id,params,e), e ),
 												mkFunctionExpr( rightExpr, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
@@ -245,7 +248,7 @@ class Cinematic extends dn.script.Runner {
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								var args = [
-									mkFunctionExpr( mkCall(id,[],e), e ),
+									mkFunctionExpr( mkCallByName(id,[],e), e ),
 									mkFunctionExpr( followingExprsBlock, e ),
 								];
 								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
@@ -262,7 +265,7 @@ class Cinematic extends dn.script.Runner {
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								var args = [
-									mkFunctionExpr( mkCall(id,params,e), e ),
+									mkFunctionExpr( mkCallByName(id,params,e), e ),
 									mkFunctionExpr( followingExprsBlock, e ),
 								];
 								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
@@ -277,7 +280,7 @@ class Cinematic extends dn.script.Runner {
 
 							var funcName = "_afterIf"+makeUniqId();
 							var eAfterIfDecl = mkFunctionExpr(funcName, mkExpr(EBlock(followingExprs),e), e);
-							var eAfterIfCall = mkCall(funcName,[],e);
+							var eAfterIfCall = mkCallByName(funcName,[],e);
 
 							// Create "true" branch
 							var eTrue = switch hscript.Tools.expr(eTrue) {
