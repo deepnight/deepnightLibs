@@ -425,8 +425,43 @@ class Cinematic extends dn.script.Runner {
 							]));
 
 
-						case EDoWhile(_):
-							throw new ScriptError('Loop is not supported yet', lastScriptStr);
+
+						// Make DO...WHILE loop async
+						case EDoWhile(condExpr, bodyExpr):
+							var uid = makeUniqId();
+
+							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
+							var onCompleteExpr = mkFunctionExpr("_onComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							_convertNewExpr(onCompleteExpr);
+
+							// Rebuild body with added _loop call
+							var exprs = [];
+							exprs = exprs.concat( _getBlockInnerExprs(bodyExpr) );
+							exprs.push( mkExpr( EIf(
+								// Loop condition
+								condExpr,
+
+								// Repeat the loop
+								mkCallByName("_loop"+uid, [], e),
+
+								// Exit the loop
+								mkCallByName("_onComplete"+uid, [], e)
+							), e ) );
+							var asyncLoopFuncBody = mkBlock(exprs,e);
+							_convertNewExpr(asyncLoopFuncBody);
+
+							_replaceCurBlockExpr(EBlock([
+								// Declare the onComplete function
+								onCompleteExpr,
+
+								// Declare _loop var first, then set it to the function
+								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+
+								// First call to the loop
+								mkCallByName("_loop"+uid, [], e),
+							]));
+
 
 						case _:
 							hscript.Tools.iter(e, convertProgramExpr);
