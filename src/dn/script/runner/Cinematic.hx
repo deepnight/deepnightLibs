@@ -260,11 +260,7 @@ class Cinematic extends dn.script.Runner {
 							}
 
 						case EIf(cond, e1, e2):
-							throw new ScriptError('Condition is not supported yet', lastScriptStr);
-							// TODO
-							// var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-							// var cond = mkAnonymousFunction( e1, e );
-							// _replaceCurBlockExpr
+							// throw new ScriptError('Condition is not supported yet', lastScriptStr);
 
 						case EDoWhile(_), EWhile(_), EFor(_):
 							throw new ScriptError('Loop is not supported yet', lastScriptStr);
