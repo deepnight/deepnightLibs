@@ -304,10 +304,9 @@ class Cinematic extends dn.script.Runner {
 
 							// Extract all following expressions and move them to a temp function
 							var followingExprs = exprs.splice(idx+1,exprs.length);
-							// if( followingExprs.length==0 )
-							// 	break; // no need to change anything if there's nothing following the if
 
 							var onCompleteExpr = mkFunctionExpr("_ifComplete"+uid, mkExpr(EBlock(followingExprs),e), e);
+							_convertNewExpr(onCompleteExpr);
 							var onCompleteCall = mkCallByName("_ifComplete"+uid,[],e);
 
 							// Create "true" branch
