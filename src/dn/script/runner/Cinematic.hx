@@ -300,7 +300,7 @@ class Cinematic extends dn.script.Runner {
 							}
 
 
-						// Make IF statements async
+						// Make IF statement async
 						case EIf(eCond, eTrue, eFalse):
 							var uid = makeUniqId();
 
@@ -333,8 +333,8 @@ class Cinematic extends dn.script.Runner {
 							break;
 
 
-						// Make FOR loops async
-						case EFor(varName, eit, loopExpr):
+						// Make FOR loop async
+						case EFor(varName, eit, bodyExpr):
 							var uid = makeUniqId();
 
 							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
@@ -362,27 +362,70 @@ class Cinematic extends dn.script.Runner {
 							];
 
 							// Build the loop body
-							var exprs = _getBlockInnerExprs(loopExpr);
+							var exprs = _getBlockInnerExprs(bodyExpr);
 							exprs.push( mkCallByName("_loop"+uid, [], e) );
 							var bodyExpr = mkBlock(exprs, e);
 							_convertNewExpr(bodyExpr);
 
-							var asyncLoopExpr = mkExpr(EBlock(asyncLoopExprs.concat([bodyExpr])),e);
+							var asyncLoopFuncBody = mkExpr(EBlock(asyncLoopExprs.concat([bodyExpr])),e);
 							_replaceCurBlockExpr(EBlock([
-								// => "var _i = makeIterator"
+								// Declare the onComplete function
 								onCompleteExpr,
+
+								// => "var _i = makeIterator"
 								mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr("makeIterator",eit), [eit], e )), e ),
 
 								// Declare _loop var first, then set it to the function
 								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopExpr,e) ), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
 
 								// => "_loop()"
 								mkCallByName("_loop"+uid, [], e),
 							]));
 
 
-						case EDoWhile(_), EWhile(_):
+						// Make WHILE loop async
+						case EWhile(condExpr, bodyExpr):
+							var uid = makeUniqId();
+
+							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
+							var onCompleteExpr = mkFunctionExpr("_onComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							_convertNewExpr(onCompleteExpr);
+
+							// Rebuild body with added _loop call
+							var exprs = _getBlockInnerExprs(bodyExpr);
+							exprs.push( mkCallByName("_loop"+uid, [], e) );
+							var bodyExpr = mkBlock(exprs,e);
+							_convertNewExpr(bodyExpr);
+
+							// Wrap the body with condition evaluation
+							var asyncLoopFuncBody = mkBlock([
+								mkExpr( EIf(
+									// Loop condition
+									condExpr,
+
+									// Proceed with the loop body
+									bodyExpr,
+
+									// Exit the loop
+									mkCallByName("_onComplete"+uid, [], e)
+								), e ),
+							],e);
+
+							_replaceCurBlockExpr(EBlock([
+								// Declare the onComplete function
+								onCompleteExpr,
+
+								// Declare _loop var first, then set it to the function
+								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+
+								// First call to the loop
+								mkCallByName("_loop"+uid, [], e),
+							]));
+
+
+						case EDoWhile(_):
 							throw new ScriptError('Loop is not supported yet', lastScriptStr);
 
 						case _:
