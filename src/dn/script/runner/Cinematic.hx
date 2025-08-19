@@ -260,14 +260,14 @@ class Cinematic extends dn.script.Runner {
 							}
 
 						case EIf(cond, e1, e2):
-							throw new ScriptError('Condition is not supported yet', lastScript);
+							throw new ScriptError('Condition is not supported yet', lastScriptStr);
 							// TODO
 							// var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 							// var cond = mkAnonymousFunction( e1, e );
 							// _replaceCurBlockExpr
 
 						case EDoWhile(_), EWhile(_), EFor(_):
-							throw new ScriptError('Loop is not supported yet', lastScript);
+							throw new ScriptError('Loop is not supported yet', lastScriptStr);
 							// TODO support async transform of: for(...) {...}
 							// See implementation in Async.toCps (EFor)
 							/*
@@ -301,15 +301,15 @@ class Cinematic extends dn.script.Runner {
 		// Check waitUntil functions
 		for(fn in waitUntilFunctions.keys()) {
 			if( !checker.getGlobals().exists(fn) )
-				throw new ScriptError('Unknown waitUntil function: $fn', lastScript);
+				throw new ScriptError('Unknown waitUntil function: $fn', lastScriptStr);
 			var tt = checker.getGlobals().get(fn);
 			switch tt {
 				case TFun(args, ret):
 					if( ret!=TBool )
-						throw new ScriptError('"$fn" function must return a Bool', lastScript);
+						throw new ScriptError('"$fn" function must return a Bool', lastScriptStr);
 
 				case _:
-					throw new ScriptError('"$fn" should be a function, found $tt', lastScript);
+					throw new ScriptError('"$fn" should be a function, found $tt', lastScriptStr);
 			}
 		}
 	}

@@ -34,7 +34,8 @@ private typedef ExposedClass = {
 class Runner {
 	var interp : hscript.Interp;
 	var checker : Null<hscript.Checker>;
-	var lastScript(default,null) : Null<String>;
+	public var lastScriptStr(default,null) : Null<String>;
+	public var lastScriptExpr(default,null) : Null<Expr>;
 	var lastRunOutput : Null<Dynamic>;
 
 	var enums : Array<Enum<Dynamic>> = [];
@@ -81,7 +82,8 @@ class Runner {
 		enums = null;
 		classes = null;
 
-		lastScript = null;
+		lastScriptStr = null;
+		lastScriptExpr = null;
 	}
 
 
@@ -198,6 +200,10 @@ class Runner {
 	function printerExprToString(program:Expr) : String {
 		var printer = new hscript.Printer();
 		return printer.exprToString(program);
+	}
+
+	public function getLastScriptExprAsString() : String {
+		return lastScriptExpr==null ? "" : printerExprToString(lastScriptExpr);
 	}
 
 
@@ -317,10 +323,11 @@ class Runner {
 	**/
 	public function check(script:String) : Bool {
 		init();
-		lastScript = script;
+		lastScriptStr = script;
 
 		return tryCatch(()->{
 			var program = scriptStringToExpr(script);
+			lastScriptExpr = program;
 			checkScriptExpr(program);
 		});
 	}
@@ -400,12 +407,13 @@ class Runner {
 	**/
 	public function run(script:String) : Bool {
 		init();
-		lastScript = script;
+		lastScriptStr = script;
 
 		var result = tryCatch(()->{
 			initInterpVariables();
 
 			var program = scriptStringToExpr(script);
+			lastScriptExpr = program;
 
 			// Check the script
 			if( !runWithoutCheck )
@@ -457,7 +465,7 @@ class Runner {
 			return true;
 		}
 		catch( err:hscript.Expr.Error ) {
-			var err = ScriptError.fromHScriptError(err, lastScript);
+			var err = ScriptError.fromHScriptError(err, lastScriptStr);
 			reportError(err);
 			if( throwErrors )
 				throw err;
@@ -473,7 +481,7 @@ class Runner {
 			if( throwErrors )
 				throw e;
 			else
-				reportError( ScriptError.fromGeneralException(e, lastScript) );
+				reportError( ScriptError.fromGeneralException(e, lastScriptStr) );
 			return false;
 		}
 	}
@@ -481,6 +489,8 @@ class Runner {
 
 	function init() {
 		lastRunOutput = null;
+		lastScriptStr = null;
+		lastScriptExpr = null;
 	}
 
 
