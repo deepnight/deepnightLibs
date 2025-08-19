@@ -171,6 +171,14 @@ class Cinematic extends dn.script.Runner {
 	override function convertProgramExpr(e:hscript.Expr) {
 		super.convertProgramExpr(e);
 
+		function _convertNewExpr(subExpr:Expr) {
+			switch hscript.Tools.expr(subExpr) {
+				case EBlock(_): convertProgramExpr(subExpr);
+				case EFunction(_): hscript.Tools.iter(subExpr, convertProgramExpr);
+				case _: throw 'Not a block: $subExpr';
+			}
+		}
+
 		switch hscript.Tools.expr(e) {
 			case EBlock(exprs):
 				var idx = 0;
@@ -185,9 +193,9 @@ class Cinematic extends dn.script.Runner {
 					exprs.insert(idx, with);
 					idx++;
 				}
-				function _getBlockExprs(e:Expr) {
+				function _getBlockInnerExprs(e:Expr) {
 					return switch hscript.Tools.expr(e) {
-						case EBlock(arr): arr;
+						case EBlock(arr): arr.copy();
 						case _: [e];
 					}
 				}
@@ -204,6 +212,7 @@ class Cinematic extends dn.script.Runner {
 							if( timerS>0 ) {
 								var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
+								_convertNewExpr(followingExprsBlock);
 								_replaceCurBlockExpr( ECall(
 									mkIdentExpr("delayExecutionS",e),
 									[ delayExpr, mkFunctionExpr(followingExprsBlock,e) ]
@@ -215,35 +224,41 @@ class Cinematic extends dn.script.Runner {
 						case EBinop(op, leftExpr, rightExpr):
 							if( op==">>" ) {
 								switch hscript.Tools.expr(leftExpr) {
-									// 0.5 >> {...}
 									case EConst(CInt(_)), EConst(CFloat(_)):
+										// 0.5 >> {...}
+										var asyncFunc = mkFunctionExpr(rightExpr,e);
+										_convertNewExpr(asyncFunc);
 										_replaceCurBlockExpr( ECall(
 											mkIdentExpr("delayExecutionS", e),
-											[ leftExpr, mkFunctionExpr(rightExpr,e) ]
+											[ leftExpr, asyncFunc ]
 										));
 
-									// TURNS: customWaitUntil >> { XXX }
-									// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
 									case EIdent(id):
+										// TURNS: customWaitUntil >> { XXX }
+										// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
 										if( waitUntilFunctions.exists(id) ) {
+											var asyncFunc = mkFunctionExpr(rightExpr,e);
+											_convertNewExpr(asyncFunc);
 											var args = [
 												mkFunctionExpr( mkCallByName(id,[],e), e ),
-												mkFunctionExpr( rightExpr, e ),
+												mkFunctionExpr( asyncFunc, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
 
-									// TURNS: customWaitUntil(...) >> { XXX }
-									// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
 									#if hscriptPos
 									case ECall({e:EIdent(id)}, params):
 									#else
 									case ECall(EIdent(id), params):
 									#end
+										// TURNS: customWaitUntil(...) >> { XXX }
+										// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
 										if( waitUntilFunctions.exists(id) ) {
+											var asyncFunc = mkFunctionExpr(rightExpr,e);
+											_convertNewExpr(asyncFunc);
 											var args = [
 												mkFunctionExpr( mkCallByName(id,params,e), e ),
-												mkFunctionExpr( rightExpr, e ),
+												mkFunctionExpr( asyncFunc, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
@@ -257,6 +272,7 @@ class Cinematic extends dn.script.Runner {
 						case EIdent(id):
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
+								_convertNewExpr(followingExprsBlock);
 								var args = [
 									mkFunctionExpr( mkCallByName(id,[],e), e ),
 									mkFunctionExpr( followingExprsBlock, e ),
@@ -274,6 +290,7 @@ class Cinematic extends dn.script.Runner {
 						#end
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
+								_convertNewExpr(followingExprsBlock);
 								var args = [
 									mkFunctionExpr( mkCallByName(id,params,e), e ),
 									mkFunctionExpr( followingExprsBlock, e ),
@@ -282,45 +299,49 @@ class Cinematic extends dn.script.Runner {
 								break;
 							}
 
-						// case EIf(eCond, eTrue, eFalse):
-						// 	// Extract all following expressions and move them to a temp function
-						// 	var followingExprs = exprs.splice(idx+1,exprs.length);
-						// 	if( followingExprs.length==0 )
-						// 		break; // no need to change anything if there's nothing following the if
+						case EIf(eCond, eTrue, eFalse):
+							var uid = makeUniqId();
 
-						// 	var funcName = "_afterIf"+makeUniqId();
-						// 	var eAfterIfDecl = mkFunctionExpr(funcName, mkExpr(EBlock(followingExprs),e), e);
-						// 	var eAfterIfCall = mkCallByName(funcName,[],e);
+							// Extract all following expressions and move them to a temp function
+							var followingExprs = exprs.splice(idx+1,exprs.length);
+							// if( followingExprs.length==0 )
+							// 	break; // no need to change anything if there's nothing following the if
 
-						// 	// Create "true" branch
-						// 	var eTrue = switch hscript.Tools.expr(eTrue) {
-						// 		case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
-						// 		case _: mkExpr( EBlock([eTrue,eAfterIfCall]), e );
-						// 	}
+							var onCompleteExpr = mkFunctionExpr("_ifComplete"+uid, mkExpr(EBlock(followingExprs),e), e);
+							var onCompleteCall = mkCallByName("_ifComplete"+uid,[],e);
 
-						// 	// Create "false" branch
-						// 	var eFalse = eFalse==null
-						// 		? eAfterIfCall
-						// 		: switch hscript.Tools.expr(eFalse) {
-						// 			case EBlock(arr): mkExpr( EBlock(arr.concat([eAfterIfCall]) ), e );
-						// 			case _: mkExpr( EBlock([eFalse,eAfterIfCall]), e );
-						// 		}
+							// Create "true" branch
+							var eTrueBlock = switch hscript.Tools.expr(eTrue) {
+								case EBlock(arr): mkExpr( EBlock(arr.concat([onCompleteCall]) ), e );
+								case _: mkExpr( EBlock([eTrue,onCompleteCall]), e );
+							}
+							_convertNewExpr(eTrueBlock);
 
-						// 	// Replace current block with the temp function declaration, followed by the new EIf
-						// 	_prependCurBlockExpr(eAfterIfDecl);
-						// 	_replaceCurBlockExpr( EIf(eCond,eTrue,eFalse) );
-						// 	break;
+							// Create "false" branch
+							var eFalseBlock = eFalse==null
+								? mkBlock( [onCompleteCall], e )
+								: switch hscript.Tools.expr(eFalse) {
+									case EBlock(arr): mkBlock( arr.concat([onCompleteCall]), e );
+									case _: mkBlock( [eFalse,onCompleteCall], e );
+								}
+							_convertNewExpr(eFalseBlock);
+
+							// Replace current block with the temp function declaration, followed by the new EIf
+							_prependCurBlockExpr(onCompleteExpr);
+							_replaceCurBlockExpr( EIf(eCond, eTrueBlock, eFalseBlock) );
+							break;
+
 
 						case EFor(varName, eit, loopExpr):
 							var uid = makeUniqId();
 
-							var followingExprs = exprs.splice(idx+1,exprs.length); // BUG should not include returns/breaks
-							var funcName = "_afterLoop"+makeUniqId();
-							var eAfterDecl = mkFunctionExpr(funcName, mkExpr(EBlock(followingExprs),e), e);
-							var eAfterCall = mkCallByName(funcName,[],e);
+							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
+							var onCompleteExpr = mkFunctionExpr("_onComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							_convertNewExpr(onCompleteExpr);
 
+							// Rebuild the loop using an async function
 							var iterIdent = mkIdentExpr("_i"+uid, e);
-							var loopFuncExprs = [
+							var asyncLoopExprs = [
 								// => "if( !_i.hasNext() ) { doFollowing(); return; }"
 								mkExpr( EIf(
 									mkExpr(EUnop(
@@ -328,56 +349,49 @@ class Cinematic extends dn.script.Runner {
 										true,
 										mkCallByIdent( mkFieldExpr(iterIdent,"hasNext",e), [], e )
 									), e),
-									mkBlock( followingExprs.length==0
-										? [mkExpr(EReturn(),e)]
-										: [eAfterCall, mkExpr(EReturn(),e)]
+									mkBlock( followingBlockExprs.length==0
+										? [ mkExpr(EReturn(),e) ]
+										: [ mkCallByName("_onComplete"+uid,[],e), mkExpr(EReturn(),e) ]
 									, e )
 								),e),
 
 								// => "var varName = _i.next()"
 								mkExpr( EVar(varName, mkCallByIdent( mkFieldExpr(iterIdent,"next",e), [], e )), e ),
 							];
-							for(e in _getBlockExprs(loopExpr))
-								loopFuncExprs.push(e);
-							loopFuncExprs.push( mkCallByName("_loop"+uid, [], e) );
 
-							var loopBodyExpr = mkExpr(EBlock(loopFuncExprs),e);
+							// Build the loop body
+							var exprs = _getBlockInnerExprs(loopExpr);
+							exprs.push( mkCallByName("_loop"+uid, [], e) );
+							var bodyExpr = mkBlock(exprs, e);
+							_convertNewExpr(bodyExpr);
 
+							var asyncLoopExpr = mkExpr(EBlock(asyncLoopExprs.concat([bodyExpr])),e);
 							_replaceCurBlockExpr(EBlock([
 								// => "var _i = makeIterator"
-								eAfterDecl,
+								onCompleteExpr,
 								mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr("makeIterator",eit), [eit], e )), e ),
 
 								// Declare _loop var first, then set it to the function
 								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(loopBodyExpr,e) ), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopExpr,e) ), e ),
 
 								// => "_loop()"
 								mkCallByName("_loop"+uid, [], e),
 							]));
 
 
-							// for(i in v) block; loops are translated to the following:
-							//
-							// 	var _i = makeIterator(v);
-							// 	function _loop() {
-							// 		if( !_i.hasNext() )
-							// 			return;
-							// 		var v = _i.next();
-							// 		block(function(_) _loop());
-							// 	}
-							// 	_loop()
 						case EDoWhile(_), EWhile(_):
 							throw new ScriptError('Loop is not supported yet', lastScriptStr);
 
 						case _:
+							hscript.Tools.iter(e, convertProgramExpr);
 					}
 					idx++;
 				}
 
 			case _:
+				hscript.Tools.iter(e, convertProgramExpr);
 		}
-		hscript.Tools.iter(e, convertProgramExpr);
 	}
 
 
@@ -405,6 +419,7 @@ class Cinematic extends dn.script.Runner {
 
 	override function init() {
 		super.init();
+		uniqId = 0;
 		running = false;
 		runningTimeS = 0;
 		runLoops = [];
