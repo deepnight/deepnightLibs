@@ -67,9 +67,8 @@ class Cinematic extends dn.script.Runner {
 	}
 
 	// Create a sync anonymous function expression:  @sync function() {...body...}
-	function mkSyncAnonymousFunction(functionBody:Expr, parentExpr:Expr) {
-		var anonymousFuncExpr = mkExpr( EFunction([],functionBody), parentExpr );
-		return mkExpr( EMeta("sync", [], anonymousFuncExpr), parentExpr );
+	function mkAnonymousFunction(functionBody:Expr, parentExpr:Expr) {
+		return mkExpr( EFunction([],functionBody), parentExpr );
 	}
 
 
@@ -184,7 +183,7 @@ class Cinematic extends dn.script.Runner {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								_replaceCurBlockExpr( ECall(
 									mkIdentExpr("delayExecutionS",e),
-									[ mkSyncAnonymousFunction(followingExprsBlock,e), delayExpr ]
+									[ mkAnonymousFunction(followingExprsBlock,e), delayExpr ]
 								));
 								break;
 							}
@@ -197,7 +196,7 @@ class Cinematic extends dn.script.Runner {
 									case EConst(CInt(_)), EConst(CFloat(_)):
 										_replaceCurBlockExpr( ECall(
 											mkIdentExpr("delayExecutionS", e),
-											[ mkSyncAnonymousFunction(rightExpr,e), leftExpr ]
+											[ mkAnonymousFunction(rightExpr,e), leftExpr ]
 										));
 
 									// TURNS: customWaitUntil >> { XXX }
@@ -205,8 +204,8 @@ class Cinematic extends dn.script.Runner {
 									case EIdent(id):
 										if( waitUntilFunctions.exists(id) ) {
 											var args = [
-												mkSyncAnonymousFunction( mkCall(id,[],e), e ),
-												mkSyncAnonymousFunction( rightExpr, e ),
+												mkAnonymousFunction( mkCall(id,[],e), e ),
+												mkAnonymousFunction( rightExpr, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
@@ -220,8 +219,8 @@ class Cinematic extends dn.script.Runner {
 									#end
 										if( waitUntilFunctions.exists(id) ) {
 											var args = [
-												mkSyncAnonymousFunction( mkCall(id,params,e), e ),
-												mkSyncAnonymousFunction( rightExpr, e ),
+												mkAnonymousFunction( mkCall(id,params,e), e ),
+												mkAnonymousFunction( rightExpr, e ),
 											];
 											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 										}
@@ -236,8 +235,8 @@ class Cinematic extends dn.script.Runner {
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								var args = [
-									mkSyncAnonymousFunction( mkCall(id,[],e), e ),
-									mkSyncAnonymousFunction( followingExprsBlock, e ),
+									mkAnonymousFunction( mkCall(id,[],e), e ),
+									mkAnonymousFunction( followingExprsBlock, e ),
 								];
 								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
@@ -253,8 +252,8 @@ class Cinematic extends dn.script.Runner {
 							if( waitUntilFunctions.exists(id) ) {
 								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
 								var args = [
-									mkSyncAnonymousFunction( mkCall(id,params,e), e ),
-									mkSyncAnonymousFunction( followingExprsBlock, e ),
+									mkAnonymousFunction( mkCall(id,params,e), e ),
+									mkAnonymousFunction( followingExprsBlock, e ),
 								];
 								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								break;
@@ -263,7 +262,8 @@ class Cinematic extends dn.script.Runner {
 						case EIf(cond, e1, e2):
 							throw new ScriptError('Condition is not supported yet', lastScript);
 							// TODO
-							// var cond = mkSyncAnonymousFunction( e1, e );
+							// var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
+							// var cond = mkAnonymousFunction( e1, e );
 							// _replaceCurBlockExpr
 
 						case EDoWhile(_), EWhile(_), EFor(_):
