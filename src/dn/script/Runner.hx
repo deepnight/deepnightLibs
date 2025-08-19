@@ -270,6 +270,9 @@ class Runner {
 		for(f in internalApiFunctions)
 			checker.setGlobal(f.name, TDynamic);
 
+		// Internal Runner stuff
+		checker.setGlobal("makeIterator", TDynamic);
+
 		// Register all enum values as globals
 		for(e in enums) {
 			var tt = checker.types.resolve( e.getName() );
@@ -385,6 +388,9 @@ class Runner {
 		// Internal API functions
 		for(f in internalApiFunctions)
 			interp.variables.set(f.name, f.func);
+
+		// Internal Runner stuff
+		interp.variables.set("makeIterator", @:privateAccess interp.makeIterator);
 	}
 
 
