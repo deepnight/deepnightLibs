@@ -11,7 +11,7 @@ import hscript.Tools;
 class Cinematic extends dn.script.Runner {
 	public var tmod(default,null) : Float = 1;
 	var fps : Int;
-	var runningTimeS = 0.;
+	public var runningTimeS(default,null) = 0.;
 	var running = false;
 
 	var waitUntilFunctions : Map<String, Bool> = new Map();
@@ -600,10 +600,11 @@ class Cinematic extends dn.script.Runner {
 
 	public function update(tmod:Float) {
 		this.tmod = tmod;
-		runningTimeS += tmod/fps;
 
-		if( running )
+		if( running ) {
+			runningTimeS += tmod/fps;
 			tryCatch(updateRunningScript);
+		}
 
 		// Script completion detection
 		if( running && runLoops.length==0 ) {
