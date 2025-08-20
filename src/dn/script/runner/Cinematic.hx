@@ -262,8 +262,8 @@ class Cinematic extends dn.script.Runner {
 									var asyncFunc = mkFunctionExpr(rightExpr,e);
 									_convertFunctionBodyExpr(asyncFunc);
 									var args = [
-										mkFunctionExpr( mkCallByName(id,[],e), e ),
-										mkFunctionExpr( asyncFunc, e ),
+										mkFunctionExpr( mkExpr( EReturn(mkCallByName(id,[],e)), e ), e ),
+										asyncFunc
 									];
 									_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								}
