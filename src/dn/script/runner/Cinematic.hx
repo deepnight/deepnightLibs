@@ -185,15 +185,15 @@ class Cinematic extends dn.script.Runner {
 
 	function convertExprsInArray(allExprs:Array<Expr>) {
 
-		function _convertNewExpr(subExpr:Expr) {
-			switch Tools.expr(subExpr) {
+		function _convertNewExpr(e:Expr) {
+			switch Tools.expr(e) {
 				case EBlock(exprs): convertExprsInArray(exprs);
 				case EFunction(args, body, _):
 					switch Tools.expr(body) {
 						case EBlock(exprs): convertExprsInArray(exprs);
 						case _: convertExprsInArray([body]);
 					}
-				case _: throw 'Unsupported new expression: ${Tools.expr(subExpr).getName()}';
+				case _: throw 'Unsupported new expression: ${Tools.expr(e).getName()}';
 			}
 		}
 
@@ -501,6 +501,8 @@ class Cinematic extends dn.script.Runner {
 						mkExpr( EReturn(null), e),
 					]) );
 					lastLoopCompleteFunc = null; // reset the last loop complete function
+
+				case EVar(_):
 
 				case _:
 					Tools.iter(e, convertProgramExpr);
