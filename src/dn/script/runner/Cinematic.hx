@@ -22,8 +22,8 @@ class Cinematic extends dn.script.Runner {
 		super();
 		this.fps = fps;
 
-		bindInternalFunction("delayExecutionS", api_delayExecutionS);
-		bindInternalFunction("waitUntil", api_waitUntil);
+		addInternalKeyword("delayExecutionS", api_delayExecutionS);
+		addInternalKeyword("waitUntil", api_waitUntil);
 	}
 
 	inline function makeUniqId() {

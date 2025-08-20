@@ -40,7 +40,7 @@ class Runner {
 
 	var enums : Array<Enum<Dynamic>> = [];
 	var classes : Array<ExposedClass> = [];
-	var internalApiFunctions: Array<{ name:String, func:Dynamic }> = [];
+	var internalKeywords: Array<{ name:String, type:hscript.Checker.TType, ?func:Dynamic }> = [];
 
 	// If TRUE, throw errors instead of intercepeting them
 	public var throwErrors = false;
@@ -70,6 +70,19 @@ class Runner {
 	#end
 	public function new() {
 		interp = new hscript.Interp();
+
+
+		function _makeIteratorType(iteratedType:hscript.Checker.TType) : hscript.Checker.TType {
+			return TFun(
+				[{ name:"it", opt:false, t:TDynamic }],
+				TAnon([
+					{ name : "next", opt : false, t : TFun([],iteratedType) },
+					{ name : "hasNext", opt : false, t : TFun([],TBool) }
+				])
+			);
+		}
+		addInternalKeyword("makeIterator_dynamic", _makeIteratorType(TDynamic));
+		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt));
 	}
 
 
@@ -87,11 +100,19 @@ class Runner {
 	}
 
 
-	function bindInternalFunction(name:String, func:Dynamic) {
-		internalApiFunctions.push({
+	function addInternalKeyword(name:String, ?type:hscript.Checker.TType, ?func:Dynamic) {
+		internalKeywords.push({
 			name: name,
+			type: type??TDynamic,
 			func: func,
 		});
+	}
+
+	function isKeyword(name:String) : Bool {
+		for( k in internalKeywords )
+			if( k.name==name )
+				return true;
+		return false;
 	}
 
 
@@ -266,33 +287,14 @@ class Runner {
 		checker.types.defineClass("Array");
 		checker.types.addXmlApi(fullXml);
 
-		// Internal API functions
-		for(f in internalApiFunctions)
-			checker.setGlobal(f.name, TDynamic);
-
-		// Internal Runner stuff
-		function _registerMakeIterator(globalName:String, type:hscript.Checker.TType) {
-			checker.setGlobal(
-				globalName,
-				TFun(
-					[{ name:"it", opt:false, t:TDynamic }],
-					TAnon([
-						{ name : "next", opt : false, t : TFun([],type) },
-						{ name : "hasNext", opt : false, t : TFun([],TBool) }
-					])
-				)
-			);
-		}
-		_registerMakeIterator("makeIterator_dynamic", TDynamic);
-		_registerMakeIterator("makeIterator_int", TInt);
-
 		// Register all enum values as globals
 		for(e in enums) {
 			var tt = checker.types.resolve( e.getName() );
-			for(k in e.getConstructors())
+			for( k in e.getConstructors() )
 				checker.setGlobal(k, tt);
 		}
 
+		// Classes
 		for(ac in classes) {
 			var name = Type.getClassName(ac.cl);
 			var tt = checker.types.resolve(name);
@@ -305,15 +307,21 @@ class Runner {
 				checker.setGlobal(ac.instance.scriptName, tt);
 
 				// Optionally: register this class instance fields as globals
-				if( ac.instance.globalFields ) {
+				if( ac.instance.globalFields )
 					switch tt {
 						case TInst(c, args): checker.setGlobals(c, args, true);
 						case _:
 					}
 			}
-
-			}
 		}
+
+		// Internal keywords
+		var globals = checker.getGlobals();
+		for(k in internalKeywords)
+			if( globals.exists(k.name) )
+				emitError('Script keyword "${k.name}" is used somewhere');
+			else
+				globals.set(k.name, k.type);
 	}
 
 
@@ -398,9 +406,10 @@ class Runner {
 		}
 
 
-		// Internal API functions
-		for(f in internalApiFunctions)
-			interp.variables.set(f.name, f.func);
+		// Bind internal keyword functions
+		for(k in internalKeywords)
+			if( k.func!=null )
+				interp.variables.set(k.name, k.func);
 
 		// Internal Runner stuff
 		interp.variables.set("makeIterator_int", @:privateAccess interp.makeIterator);
