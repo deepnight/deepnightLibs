@@ -421,7 +421,7 @@ class Runner {
 
 
 	#if heaps
-	public function runRes(r:hxd.res.Resource) {
+	public function loadAndRunRes(r:hxd.res.Resource) {
 		var s = null;
 		tryCatch(()->{
 			s = r.entry.getText();
@@ -432,7 +432,7 @@ class Runner {
 	#end
 
 	#if sys
-	public function runFile(filePath:String) {
+	public function loadAndRunFile(filePath:String) {
 		var s = null;
 		tryCatch(()->{
 			s = sys.io.File.getContent(filePath);
