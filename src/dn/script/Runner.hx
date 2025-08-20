@@ -193,7 +193,7 @@ class Runner {
 	/*
 		Convert a standard program Expr to support special Runner language features.
 	*/
-	function convertProgramExpr(e:hscript.Expr) {}
+	function convertProgramExpr(program:hscript.Expr) {}
 
 
 	// Return program Expr as a human-readable String using Printer

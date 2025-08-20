@@ -170,15 +170,15 @@ class Cinematic extends dn.script.Runner {
 			0.5 >> {...}		// async call block content in 0.5s
 	*/
 	var lastLoopCompleteFunc : Null<String>;
-	override function convertProgramExpr(e:hscript.Expr) {
-		super.convertProgramExpr(e);
+	override function convertProgramExpr(program:hscript.Expr) {
+		super.convertProgramExpr(program);
 
-		switch Tools.expr(e) {
+		switch Tools.expr(program) {
 			case EBlock(exprs):
 				convertExprsInBlock(exprs);
 
 			case _:
-				convertExprsInBlock([e]);
+				convertExprsInBlock([program]);
 		}
 	}
 
