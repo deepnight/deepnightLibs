@@ -19,8 +19,23 @@ class ScriptError extends haxe.Exception {
 		#end
 	}
 
+	public inline function overrideLine(line:Int) {
+		this.line = line;
+	}
+
 	public static inline function fromGeneralException(err:haxe.Exception, scriptStr:Null<String>) {
 		return new ScriptError(err.message, scriptStr);
+	}
+
+	@:keep public function getErrorOnly() {
+		var reg = ~/:[0-9]+:(.*)/i;
+		var err = toString();
+		if( reg.match(err) )
+			return reg.matched(1);
+		else if( err.indexOf(":")>0 )
+			return err.substring( err.indexOf(":")+1 );
+		else
+			return err;
 	}
 
 	@:keep override function toString() {

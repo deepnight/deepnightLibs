@@ -21,6 +21,7 @@ class Cinematic extends dn.script.Runner {
 	public function new(fps:Int) {
 		super();
 		this.fps = fps;
+		origin = "Cinematic";
 
 		addInternalKeyword("delayExecutionS", api_delayExecutionS);
 		addInternalKeyword("waitUntil", api_waitUntil);
@@ -196,7 +197,7 @@ class Cinematic extends dn.script.Runner {
 					}
 
 				case _:
-					throw new ScriptError('Not a function: ${Tools.expr(e).getName()}', lastScriptStr);
+					emitError('Not a function: ${Tools.expr(e).getName()}', e);
 			}
 		}
 
@@ -247,7 +248,7 @@ class Cinematic extends dn.script.Runner {
 					switch op {
 						case "=":
 							switch Tools.expr(leftExpr) {
-								case EBinop(">>", _): throw new ScriptError("Operators confusion with >> and =");
+								case EBinop(">>", _): emitError("Operators confusion (>> and =)", e);
 								case _:
 							}
 
@@ -512,7 +513,7 @@ class Cinematic extends dn.script.Runner {
 				case EBreak:
 					blockExprs.splice(idx+1,blockExprs.length); // remove all following expressions
 					if( lastLoopCompleteFunc==null )
-						throw new ScriptError('Break not in a loop', lastScriptStr);
+						emitError('Break not in a loop', e);
 
 					_replaceCurBlockExpr( EBlock([
 						mkCallByName(lastLoopCompleteFunc, [], e),
@@ -559,20 +560,13 @@ class Cinematic extends dn.script.Runner {
 				case ECheckType(e, t):
 				case EForGen(it, e):
 
-				case EContinue:
-					throwUnsupportedExpr(e);
-
-				case EThrow(_), ETry(_):
-					throwUnsupportedExpr(e);
+				case EContinue, EThrow(_), ETry(_):
+					emitError('Unsupported in Cinematic', e);
 			}
 			idx++;
 		}
 	}
 
-
-	inline function throwUnsupportedExpr(e:Expr) {
-		throw new ScriptError('Unsupported expression in Cinematic: ${Tools.expr(e).getName()}', lastScriptStr);
-	}
 
 
 	override function checkScriptExpr(scriptExpr:Expr) {
@@ -581,15 +575,15 @@ class Cinematic extends dn.script.Runner {
 		// Check waitUntil functions
 		for(fn in waitUntilFunctions.keys()) {
 			if( !checker.getGlobals().exists(fn) )
-				throw new ScriptError('Unknown waitUntil function: $fn', lastScriptStr);
+				emitError('Unknown waitUntil function: $fn');
 			var tt = checker.getGlobals().get(fn);
 			switch tt {
 				case TFun(args, ret):
 					if( ret!=TBool )
-						throw new ScriptError('"$fn" function must return a Bool', lastScriptStr);
+						emitError('"$fn" function must return a Bool');
 
 				case _:
-					throw new ScriptError('"$fn" should be a function, found $tt', lastScriptStr);
+					emitError('"$fn" should be a function, found $tt');
 			}
 		}
 	}

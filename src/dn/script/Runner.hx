@@ -37,13 +37,14 @@ class Runner {
 	public var lastScriptStr(default,null) : Null<String>;
 	public var lastScriptExpr(default,null) : Null<Expr>;
 	var lastRunOutput : Null<Dynamic>;
+	var origin : String = "Runner";
 
 	var enums : Array<Enum<Dynamic>> = [];
 	var classes : Array<ExposedClass> = [];
 	var internalKeywords: Array<{ name:String, type:hscript.Checker.TType, ?func:Dynamic }> = [];
 
 	// If TRUE, throw errors instead of intercepeting them
-	public var throwErrors = false;
+	public var rethrowErrors = false;
 
 	// If TRUE, the script is not checked before running. This should only be used if check() is manually called before hand.
 	public var runWithoutCheck = false;
@@ -336,7 +337,7 @@ class Runner {
 		parser.allowTypes = true;
 		parser.allowMetadata = true;
 
-		var program = parser.parseString(script);
+		var program = parser.parseString(script, origin);
 		convertProgramExpr(program);
 
 		return program;
@@ -424,12 +425,20 @@ class Runner {
 		var s = null;
 		tryCatch(()->{
 			s = r.entry.getText();
+			origin = r.entry.name;
 		});
+		return s!=null ? run(s) : false;
+	}
+	#end
 
-		if( s!=null)
-			return run(s);
-		else
-			return false;
+	#if sys
+	public function runFile(filePath:String) {
+		var s = null;
+		tryCatch(()->{
+			s = sys.io.File.getContent(filePath);
+			origin = FilePath.extractFileWithExt(filePath);
+		});
+		return s!=null ? run(s) : false;
 	}
 	#end
 
@@ -500,23 +509,23 @@ class Runner {
 				catch( err:hscript.Expr.Error ) {
 					var err = ScriptError.fromHScriptError(err, lastScriptStr);
 					reportError(err);
-					if( throwErrors )
+					if( rethrowErrors )
 						throw err;
 					return false;
 				}
 			}
 			catch( err:ScriptError ) {
 				reportError(err);
-				if( throwErrors )
+				if( rethrowErrors )
 					throw err;
 				return false;
 			}
 		}
-		catch( e:haxe.Exception ) {
-			if( throwErrors )
-				throw e;
+		catch( unknownException:haxe.Exception ) {
+			if( rethrowErrors )
+				throw unknownException;
 			else
-				reportError( ScriptError.fromGeneralException(e, lastScriptStr) );
+				reportError( ScriptError.fromGeneralException(unknownException, lastScriptStr) );
 			return false;
 		}
 	}
@@ -531,11 +540,15 @@ class Runner {
 
 	public dynamic function onError(err:ScriptError) {}
 
-	function emitError(msg:String) {
-		var err = new ScriptError(msg);
-		reportError(err);
-		if( throwErrors )
-			throw err;
+
+	// Throw a ScriptError exception with the given message.
+	public inline function emitError(msg:String, ?expr:Expr) {
+		var err = new ScriptError(msg, lastScriptStr);
+		#if hscriptPos
+		if( expr!=null )
+			err.overrideLine(expr.line);
+		#end
+		throw err;
 	}
 
 	function reportError(err:ScriptError) {
@@ -552,18 +565,17 @@ class Runner {
 
 
 	function printErrorInContext(err:ScriptError) {
-		log('-- START OF SCRIPT --', Cyan);
+		log('-- $origin --', Cyan);
 		var i = 1;
 		for(line in err.scriptStr.split("\n")) {
 			line = StringTools.replace(line, "\t", "  ");
-			if( err.line==i ) {
-				log( Lib.padRight(Std.string(i), 4) + line+"     <---- "+err.toString(), err.line==i ? Red : White);
-			}
+			if( err.line==i )
+				log( Lib.padRight(Std.string(i), 4) + line+"     <---- "+err.getErrorOnly(), err.line==i ? Red : White);
 			else
 				log( Lib.padRight(Std.string(i), 4) + line, err.line==i ? Red : White);
 			i++;
 		}
-		log('-- END OF SCRIPT --', Cyan);
+		log('-- EOF --', Cyan);
 	}
 
 
