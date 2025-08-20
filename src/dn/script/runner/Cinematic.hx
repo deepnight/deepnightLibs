@@ -53,20 +53,20 @@ class Cinematic extends dn.script.Runner {
 
 	// Create a script expression
 	inline function mkExpr(e:ExprDef, p:Expr) {
-		return hscript.Tools.mk( e, p );
+		return Tools.mk( e, p );
 	}
 	// Create a script expression
 	inline function mkBlock(arr:Array<Expr>, p:Expr) {
-		return hscript.Tools.mk( EBlock(arr), p );
+		return Tools.mk( EBlock(arr), p );
 	}
 
 	// Create an identifier expression
 	inline function mkIdentExpr(ident:String, p:Expr) {
-		return hscript.Tools.mk( EIdent(ident), p );
+		return Tools.mk( EIdent(ident), p );
 	}
 
 	inline function mkFieldExpr(eObj, fieldName, p:Expr) {
-		return hscript.Tools.mk( EField(eObj,fieldName), p );
+		return Tools.mk( EField(eObj,fieldName), p );
 	}
 
 	// Create a function call expression
@@ -174,14 +174,14 @@ class Cinematic extends dn.script.Runner {
 		super.convertProgramExpr(e);
 
 		function _convertNewExpr(subExpr:Expr) {
-			switch hscript.Tools.expr(subExpr) {
+			switch Tools.expr(subExpr) {
 				case EBlock(_): convertProgramExpr(subExpr);
-				case EFunction(_): hscript.Tools.iter(subExpr, convertProgramExpr);
+				case EFunction(_): Tools.iter(subExpr, convertProgramExpr);
 				case _: throw 'Not a block: $subExpr';
 			}
 		}
 
-		switch hscript.Tools.expr(e) {
+		switch Tools.expr(e) {
 			case EBlock(exprs):
 				var idx = 0;
 				function _replaceCurBlockExpr(with:ExprDef) {
@@ -196,14 +196,14 @@ class Cinematic extends dn.script.Runner {
 					idx++;
 				}
 				function _getBlockInnerExprs(e:Expr) {
-					return switch hscript.Tools.expr(e) {
+					return switch Tools.expr(e) {
 						case EBlock(arr): arr.copy();
 						case _: [e];
 					}
 				}
 				while( idx<exprs.length ) {
 					var e = exprs[idx];
-					switch hscript.Tools.expr(e) {
+					switch Tools.expr(e) {
 						// Pausing
 						case EConst(c):
 							var timerS : Float = switch c {
@@ -225,7 +225,7 @@ class Cinematic extends dn.script.Runner {
 						// Special ">>" usage
 						case EBinop(op, leftExpr, rightExpr):
 							if( op==">>" ) {
-								switch hscript.Tools.expr(leftExpr) {
+								switch Tools.expr(leftExpr) {
 									case EConst(CInt(_)), EConst(CFloat(_)):
 										// 0.5 >> {...}
 										var asyncFunc = mkFunctionExpr(rightExpr,e);
@@ -314,7 +314,7 @@ class Cinematic extends dn.script.Runner {
 							var afterIfCall = mkCallByName("_afterIf"+uid,[],e);
 
 							// Create "true" branch
-							var eTrueBlock = switch hscript.Tools.expr(eTrue) {
+							var eTrueBlock = switch Tools.expr(eTrue) {
 								case EBlock(arr): mkExpr( EBlock(arr.concat([afterIfCall]) ), e );
 								case _: mkExpr( EBlock([eTrue,afterIfCall]), e );
 							}
@@ -323,7 +323,7 @@ class Cinematic extends dn.script.Runner {
 							// Create "false" branch
 							var eFalseBlock = eFalse==null
 								? mkBlock( [afterIfCall], e )
-								: switch hscript.Tools.expr(eFalse) {
+								: switch Tools.expr(eFalse) {
 									case EBlock(arr): mkBlock( arr.concat([afterIfCall]), e );
 									case _: mkBlock( [eFalse,afterIfCall], e );
 								}
@@ -490,13 +490,13 @@ class Cinematic extends dn.script.Runner {
 							lastLoopCompleteFunc = null; // reset the last loop complete function
 
 						case _:
-							hscript.Tools.iter(e, convertProgramExpr);
+							Tools.iter(e, convertProgramExpr);
 					}
 					idx++;
 				}
 
 			case _:
-				hscript.Tools.iter(e, convertProgramExpr);
+				Tools.iter(e, convertProgramExpr);
 		}
 	}
 
