@@ -175,23 +175,23 @@ class Cinematic extends dn.script.Runner {
 
 		switch Tools.expr(e) {
 			case EBlock(exprs):
-				convertExprsInArray(exprs);
+				convertExprsInBlock(exprs);
 
 			case _:
-				convertExprsInArray([e]);
+				convertExprsInBlock([e]);
 		}
 	}
 
 
-	function convertExprsInArray(allExprs:Array<Expr>) {
+	function convertExprsInBlock(blockExprs:Array<Expr>) {
 
 		function _convertNewExpr(e:Expr) {
 			switch Tools.expr(e) {
-				case EBlock(exprs): convertExprsInArray(exprs);
+				case EBlock(exprs): convertExprsInBlock(exprs);
 				case EFunction(args, body, _):
 					switch Tools.expr(body) {
-						case EBlock(exprs): convertExprsInArray(exprs);
-						case _: convertExprsInArray([body]);
+						case EBlock(exprs): convertExprsInBlock(exprs);
+						case _: convertExprsInBlock([body]);
 					}
 				case _: throw 'Unsupported new expression: ${Tools.expr(e).getName()}';
 			}
@@ -200,13 +200,13 @@ class Cinematic extends dn.script.Runner {
 		var idx = 0;
 		function _replaceCurBlockExpr(with:ExprDef) {
 			#if hscriptPos
-			allExprs[idx].e = with;
+			blockExprs[idx].e = with;
 			#else
-			allExprs[idx] = with;
+			blockExprs[idx] = with;
 			#end
 		}
 		function _prependCurBlockExpr(with:Expr) {
-			allExprs.insert(idx, with);
+			blockExprs.insert(idx, with);
 			idx++;
 		}
 		function _getBlockInnerExprs(e:Expr) {
@@ -215,8 +215,8 @@ class Cinematic extends dn.script.Runner {
 				case _: [e];
 			}
 		}
-		while( idx<allExprs.length ) {
-			var e = allExprs[idx];
+		while( idx<blockExprs.length ) {
+			var e = blockExprs[idx];
 			switch Tools.expr(e) {
 				// Pausing
 				case EConst(c):
@@ -227,7 +227,7 @@ class Cinematic extends dn.script.Runner {
 					}
 					if( timerS>0 ) {
 						var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
-						var followingExprsBlock = mkExpr( EBlock( allExprs.splice(idx+1,allExprs.length) ), e );
+						var followingExprsBlock = mkExpr( EBlock( blockExprs.splice(idx+1,blockExprs.length) ), e );
 						_convertNewExpr(followingExprsBlock);
 						_replaceCurBlockExpr( ECall(
 							mkIdentExpr("delayExecutionS",e),
@@ -287,7 +287,7 @@ class Cinematic extends dn.script.Runner {
 				// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
 				case EIdent(id):
 					if( waitUntilFunctions.exists(id) ) {
-						var followingExprsBlock = mkExpr( EBlock( allExprs.splice(idx+1,allExprs.length) ), e );
+						var followingExprsBlock = mkExpr( EBlock( blockExprs.splice(idx+1,blockExprs.length) ), e );
 						_convertNewExpr(followingExprsBlock);
 						var args = [
 							mkFunctionExpr( mkCallByName(id,[],e), e ),
@@ -305,7 +305,7 @@ class Cinematic extends dn.script.Runner {
 				case ECall(EIdent(id), params):
 				#end
 					if( waitUntilFunctions.exists(id) ) {
-						var followingExprsBlock = mkExpr( EBlock( allExprs.splice(idx+1,allExprs.length) ), e );
+						var followingExprsBlock = mkExpr( EBlock( blockExprs.splice(idx+1,blockExprs.length) ), e );
 						_convertNewExpr(followingExprsBlock);
 						var args = [
 							mkFunctionExpr( mkCallByName(id,params,e), e ),
@@ -321,7 +321,7 @@ class Cinematic extends dn.script.Runner {
 					var uid = makeUniqId();
 
 					// Extract all following expressions and move them to a temp function
-					var followingExprs = allExprs.splice(idx+1,allExprs.length);
+					var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
 
 					var afterIfFunc = mkFunctionExpr("_afterIf"+uid, mkExpr(EBlock(followingExprs),e), e);
 					_convertNewExpr(afterIfFunc);
@@ -353,7 +353,7 @@ class Cinematic extends dn.script.Runner {
 				case EFor(varName, eit, bodyExpr):
 					var uid = makeUniqId();
 
-					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length);
+					var followingBlockExprs = blockExprs.splice(idx+1,blockExprs.length);
 					var onCompleteExpr = mkFunctionExpr("_forComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 					lastLoopCompleteFunc = "_forComplete"+uid;
 					_convertNewExpr(onCompleteExpr);
@@ -415,7 +415,7 @@ class Cinematic extends dn.script.Runner {
 				case EWhile(condExpr, bodyExpr):
 					var uid = makeUniqId();
 
-					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length);
+					var followingBlockExprs = blockExprs.splice(idx+1,blockExprs.length);
 					var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 					lastLoopCompleteFunc = "_whileComplete"+uid;
 					_convertNewExpr(onCompleteExpr);
@@ -457,7 +457,7 @@ class Cinematic extends dn.script.Runner {
 				case EDoWhile(condExpr, bodyExpr):
 					var uid = makeUniqId();
 
-					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length);
+					var followingBlockExprs = blockExprs.splice(idx+1,blockExprs.length);
 					var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 					lastLoopCompleteFunc = "_doWhileComplete"+uid;
 					_convertNewExpr(onCompleteExpr);
@@ -492,7 +492,7 @@ class Cinematic extends dn.script.Runner {
 
 
 				case EBreak:
-					allExprs.splice(idx+1,allExprs.length); // remove all following expressions
+					blockExprs.splice(idx+1,blockExprs.length); // remove all following expressions
 					if( lastLoopCompleteFunc==null )
 						throw new ScriptError('Break not in a loop', lastScriptStr);
 
@@ -502,15 +502,56 @@ class Cinematic extends dn.script.Runner {
 					]) );
 					lastLoopCompleteFunc = null; // reset the last loop complete function
 
-				case EVar(_):
+				case EVar(name, type, expr):
+					switch Tools.expr(expr) {
+						case EBlock(exprs): convertExprsInBlock(exprs);
+						case _:
+					}
 
-				case _:
-					Tools.iter(e, convertProgramExpr);
+				case EBlock(exprs):
+					convertExprsInBlock(exprs);
+
+				case EFunction(args, body, name, ret):
+					switch Tools.expr(body) {
+						case EBlock(exprs): convertExprsInBlock(exprs);
+						case _: convertExprsInBlock([body]);
+					}
+
+				case ESwitch(e, cases, defaultExpr):
+					for(c in cases)
+						switch Tools.expr(c.expr) {
+							case EBlock(exprs): convertExprsInBlock(exprs);
+							case _: convertExprsInBlock([c.expr]);
+						}
+
+				case EParent(e):
+				case EField(e, f):
+				case EUnop(op, prefix, e):
+				case ECall(e, params):
+				case EReturn(retExpr):
+				case EArray(e, index):
+				case EArrayDecl(e):
+				case ENew(cl, params):
+				case EObject(fl):
+				case ETernary(cond, e1, e2):
+				case EMeta(name, args, e):
+				case ECheckType(e, t):
+				case EForGen(it, e):
+
+				case EContinue:
+					throwUnsupportedExpr(e);
+
+				case EThrow(_), ETry(_):
+					throwUnsupportedExpr(e);
 			}
 			idx++;
 		}
 	}
 
+
+	inline function throwUnsupportedExpr(e:Expr) {
+		throw new ScriptError('Unsupported expression in Cinematic: ${Tools.expr(e).getName()}', lastScriptStr);
+	}
 
 
 	override function checkScriptExpr(scriptExpr:Expr) {
