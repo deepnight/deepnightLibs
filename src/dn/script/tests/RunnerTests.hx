@@ -1,10 +1,10 @@
-package dn.script;
+package dn.script.tests;
 
 // #if !deepnightLibsTests
 // #error "Only available for lib testing"
 // #end
 
-class Test {
+class RunnerTests {
 	public static function run() {
 		var api = new Api();
 		var r = new Runner();

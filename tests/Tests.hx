@@ -46,7 +46,7 @@ class Tests {
 		dn.TinyTween.test();
 
 		#if hscript
-		dn.script.Test.run();
+		dn.script.tests.RunnerTests.run();
 		#end
 
 
