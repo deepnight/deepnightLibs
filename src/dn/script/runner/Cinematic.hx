@@ -307,28 +307,28 @@ class Cinematic extends dn.script.Runner {
 							// Extract all following expressions and move them to a temp function
 							var followingExprs = exprs.splice(idx+1,exprs.length);
 
-							var onCompleteExpr = mkFunctionExpr("_ifComplete"+uid, mkExpr(EBlock(followingExprs),e), e);
-							_convertNewExpr(onCompleteExpr);
-							var onCompleteCall = mkCallByName("_ifComplete"+uid,[],e);
+							var afterIfFunc = mkFunctionExpr("_afterIf"+uid, mkExpr(EBlock(followingExprs),e), e);
+							_convertNewExpr(afterIfFunc);
+							var afterIfCall = mkCallByName("_afterIf"+uid,[],e);
 
 							// Create "true" branch
 							var eTrueBlock = switch hscript.Tools.expr(eTrue) {
-								case EBlock(arr): mkExpr( EBlock(arr.concat([onCompleteCall]) ), e );
-								case _: mkExpr( EBlock([eTrue,onCompleteCall]), e );
+								case EBlock(arr): mkExpr( EBlock(arr.concat([afterIfCall]) ), e );
+								case _: mkExpr( EBlock([eTrue,afterIfCall]), e );
 							}
 							_convertNewExpr(eTrueBlock);
 
 							// Create "false" branch
 							var eFalseBlock = eFalse==null
-								? mkBlock( [onCompleteCall], e )
+								? mkBlock( [afterIfCall], e )
 								: switch hscript.Tools.expr(eFalse) {
-									case EBlock(arr): mkBlock( arr.concat([onCompleteCall]), e );
-									case _: mkBlock( [eFalse,onCompleteCall], e );
+									case EBlock(arr): mkBlock( arr.concat([afterIfCall]), e );
+									case _: mkBlock( [eFalse,afterIfCall], e );
 								}
 							_convertNewExpr(eFalseBlock);
 
 							// Replace current block with the temp function declaration, followed by the new EIf
-							_prependCurBlockExpr(onCompleteExpr);
+							_prependCurBlockExpr(afterIfFunc);
 							_replaceCurBlockExpr( EIf(eCond, eTrueBlock, eFalseBlock) );
 							break;
 
