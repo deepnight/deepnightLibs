@@ -69,13 +69,13 @@ class Cinematic extends dn.script.Runner {
 	}
 
 	// Create a function call expression
-	inline function mkCallByName(func:String, args:Array<Expr>, p:Expr) {
-		return mkExpr( ECall( mkIdentExpr(func,p), args ), p );
+	inline function mkCallByName(func:String, ?args:Array<Expr>, p:Expr) {
+		return mkExpr( ECall( mkIdentExpr(func,p), args??[] ), p );
 	}
 
 	// Create a function call expression
-	inline function mkCallByIdent(ident:Expr, args:Array<Expr>, p:Expr) {
-		return mkExpr( ECall(ident,args), p);
+	inline function mkCallByIdent(ident:Expr, ?args:Array<Expr>, p:Expr) {
+		return mkExpr( ECall(ident,args??[]), p);
 	}
 
 	// Create a function definition expression:  function() {...body...}
