@@ -300,7 +300,7 @@ class Runner {
 				// Optionally: register this class instance fields as globals
 				if( ac.instance.globalFields )
 					switch tt {
-						case TInst(c, args): checker.setGlobals(c, args, true);
+						case TInst(c, args): checker.setGlobals(c, args, true); // TODO true means PRIVATES included, is this ok?
 						case _:
 					}
 			}
