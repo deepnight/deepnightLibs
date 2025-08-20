@@ -267,11 +267,7 @@ class Cinematic extends dn.script.Runner {
 									_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								}
 
-							#if hscriptPos
-							case ECall({e:EIdent(id)}, params):
-							#else
-							case ECall(EIdent(id), params):
-							#end
+							case ECall( #if hscriptPos {e:EIdent(id)} #else EIdent(id) #end, params ):
 								// TURNS: customWaitUntil(...) >> { XXX }
 								// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
 								if( waitUntilFunctions.exists(id) ) {
@@ -302,14 +298,19 @@ class Cinematic extends dn.script.Runner {
 						break;
 					}
 
-				// TURNS: customWaitUntil(...); XXX;
-				// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
-				#if hscriptPos
-				case ECall({e:EIdent(id)}, params):
-				#else
-				case ECall(EIdent(id), params):
-				#end
-					if( waitUntilFunctions.exists(id) ) {
+				case ECall( #if hscriptPos {e:EIdent(id)} #else EIdent(id) #end, params ):
+					if( id=="wait" ) {
+						// "wait(x);" keyword
+						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+						asyncExprsArray(followingExprs);
+						_replaceCurBlockExpr( ECall(
+							mkIdentExpr("delayExecutionS",e),
+							[ params[0], mkFunctionExpr( mkBlock(followingExprs,e), e ) ]
+						));
+					}
+					else if( waitUntilFunctions.exists(id) ) {
+						// TURNS: customWaitUntil(...); XXX;
+						// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
 						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
 						asyncExprsArray(followingExprs);
 						var args = [
@@ -319,6 +320,7 @@ class Cinematic extends dn.script.Runner {
 						_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 						break;
 					}
+
 
 
 				// Make IF statement async
@@ -414,6 +416,7 @@ class Cinematic extends dn.script.Runner {
 						// Call the loop for the first time
 						mkCallByName("_for"+uid, [], e),
 					]));
+					break;
 
 
 				// Make WHILE loop async
@@ -456,6 +459,7 @@ class Cinematic extends dn.script.Runner {
 						// Start the loop
 						mkCallByName("_while"+uid, [], e),
 					]));
+					break;
 
 
 				// Make DO...WHILE loop async
@@ -494,6 +498,7 @@ class Cinematic extends dn.script.Runner {
 						// First call to the loop
 						mkCallByName("_doWhile"+uid, [], e),
 					]));
+					break;
 
 
 				case EBreak:
@@ -506,6 +511,8 @@ class Cinematic extends dn.script.Runner {
 						mkExpr( EReturn(null), e),
 					]) );
 					lastLoopCompleteFunc = null; // reset the last loop complete function
+					break;
+
 
 				case EVar(name, type, expr):
 					switch Tools.expr(expr) {
@@ -529,10 +536,11 @@ class Cinematic extends dn.script.Runner {
 							case _: asyncExprsArray([c.expr]);
 						}
 
+
+				case ECall(_):
 				case EParent(e):
 				case EField(e, f):
 				case EUnop(op, prefix, e):
-				case ECall(e, params):
 				case EReturn(retExpr):
 				case EArray(e, index):
 				case EArrayDecl(e):
