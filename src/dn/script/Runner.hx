@@ -9,7 +9,7 @@ import dn.Col;
 
 private typedef ExposedClass = {
 	var cl : Class<Dynamic>;
-	var ?instance : { scriptName:String, ref:Dynamic, globalFields:Bool }
+	var ?instance : { scriptName:Null<String>, ref:Dynamic, globalFields:Bool }
 }
 
 
@@ -132,7 +132,7 @@ class Runner {
 
 		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
-	public function exposeClassInstance<T:Dynamic>(nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
+	public function exposeClassInstance<T:Dynamic>(?nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
 		switch Type.typeof(instance) {
 			case TClass(c):
 				if( interfaceInScript!=null && !Std.isOfType(instance,interfaceInScript) ) {
@@ -173,10 +173,11 @@ class Runner {
 
 
 	/**
-		Register a class type for the check to work.
-		This might be needed if one your API method returns an instance of some other class B. Then B should be provided for checking purpose.
-		For example, if you have `var npc = myApi.createNpc()`, the npc variable is using a type (eg. Npc) that should be explictely exposed to the runner.
-		IMPORTANT: the class should have both @:rtti and @:keep meta!
+		Register a class type for the script checking to work.
+
+		This might be needed if one your API method returns an instance of some other class X. Then X should be provided for checking purpose.
+		For example, if you have `var npc = myApi.createNpc()`, the npc variable is using some type (eg. Npc) that should be explictely exposed to the runner.
+		IMPORTANT: the class X should have both @:rtti and @:keep meta!
 	 **/
 	public function exposeClassForCheck<T>(cl:Class<T>) {
 		if( !checkRtti(cl) )
@@ -304,7 +305,8 @@ class Runner {
 				// Register class instance var as global
 				var name = Type.getClassName(ac.cl);
 				var tt = checker.types.resolve(name);
-				checker.setGlobal(ac.instance.scriptName, tt);
+				if( ac.instance.scriptName!=null )
+					checker.setGlobal(ac.instance.scriptName, tt);
 
 				// Optionally: register this class instance fields as globals
 				if( ac.instance.globalFields )
@@ -372,7 +374,7 @@ class Runner {
 		// Classes
 		for(c in classes) {
 			// Add class instance variable to script
-			if( c.instance!=null )
+			if( c.instance!=null && c.instance.scriptName!=null )
 				interp.variables.set(c.instance.scriptName, c.instance.ref);
 
 			// Add class name to script
