@@ -185,15 +185,16 @@ class Cinematic extends dn.script.Runner {
 
 	function convertExprsInBlock(blockExprs:Array<Expr>) {
 
-		function _convertNewExpr(e:Expr) {
+		function _convertFunctionBodyExpr(e:Expr) {
 			switch Tools.expr(e) {
-				case EBlock(exprs): convertExprsInBlock(exprs);
 				case EFunction(args, body, _):
 					switch Tools.expr(body) {
 						case EBlock(exprs): convertExprsInBlock(exprs);
 						case _: convertExprsInBlock([body]);
 					}
-				case _: throw 'Unsupported new expression: ${Tools.expr(e).getName()}';
+
+				case _:
+					throw new ScriptError('Not a function: ${Tools.expr(e).getName()}', lastScriptStr);
 			}
 		}
 
@@ -227,11 +228,11 @@ class Cinematic extends dn.script.Runner {
 					}
 					if( timerS>0 ) {
 						var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
-						var followingExprsBlock = mkExpr( EBlock( blockExprs.splice(idx+1,blockExprs.length) ), e );
-						_convertNewExpr(followingExprsBlock);
+						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+						convertExprsInBlock(followingExprs);
 						_replaceCurBlockExpr( ECall(
 							mkIdentExpr("delayExecutionS",e),
-							[ delayExpr, mkFunctionExpr(followingExprsBlock,e) ]
+							[ delayExpr, mkFunctionExpr( mkBlock(followingExprs,e), e ) ]
 						));
 						break;
 					}
@@ -243,7 +244,7 @@ class Cinematic extends dn.script.Runner {
 							case EConst(CInt(_)), EConst(CFloat(_)):
 								// 0.5 >> {...}
 								var asyncFunc = mkFunctionExpr(rightExpr,e);
-								_convertNewExpr(asyncFunc);
+								_convertFunctionBodyExpr(asyncFunc);
 								_replaceCurBlockExpr( ECall(
 									mkIdentExpr("delayExecutionS", e),
 									[ leftExpr, asyncFunc ]
@@ -254,7 +255,7 @@ class Cinematic extends dn.script.Runner {
 								// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
 								if( waitUntilFunctions.exists(id) ) {
 									var asyncFunc = mkFunctionExpr(rightExpr,e);
-									_convertNewExpr(asyncFunc);
+									_convertFunctionBodyExpr(asyncFunc);
 									var args = [
 										mkFunctionExpr( mkCallByName(id,[],e), e ),
 										mkFunctionExpr( asyncFunc, e ),
@@ -271,7 +272,7 @@ class Cinematic extends dn.script.Runner {
 								// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
 								if( waitUntilFunctions.exists(id) ) {
 									var asyncFunc = mkFunctionExpr(rightExpr,e);
-									_convertNewExpr(asyncFunc);
+									_convertFunctionBodyExpr(asyncFunc);
 									var args = [
 										mkFunctionExpr( mkCallByName(id,params,e), e ),
 										mkFunctionExpr( asyncFunc, e ),
@@ -287,11 +288,11 @@ class Cinematic extends dn.script.Runner {
 				// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
 				case EIdent(id):
 					if( waitUntilFunctions.exists(id) ) {
-						var followingExprsBlock = mkExpr( EBlock( blockExprs.splice(idx+1,blockExprs.length) ), e );
-						_convertNewExpr(followingExprsBlock);
+						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+						convertExprsInBlock(followingExprs);
 						var args = [
 							mkFunctionExpr( mkCallByName(id,[],e), e ),
-							mkFunctionExpr( followingExprsBlock, e ),
+							mkFunctionExpr( mkBlock(followingExprs,e), e ),
 						];
 						_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 						break;
@@ -305,11 +306,11 @@ class Cinematic extends dn.script.Runner {
 				case ECall(EIdent(id), params):
 				#end
 					if( waitUntilFunctions.exists(id) ) {
-						var followingExprsBlock = mkExpr( EBlock( blockExprs.splice(idx+1,blockExprs.length) ), e );
-						_convertNewExpr(followingExprsBlock);
+						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+						convertExprsInBlock(followingExprs);
 						var args = [
 							mkFunctionExpr( mkCallByName(id,params,e), e ),
-							mkFunctionExpr( followingExprsBlock, e ),
+							mkFunctionExpr( mkBlock(followingExprs,e), e ),
 						];
 						_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 						break;
@@ -322,30 +323,30 @@ class Cinematic extends dn.script.Runner {
 
 					// Extract all following expressions and move them to a temp function
 					var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+					convertExprsInBlock(followingExprs);
 
-					var afterIfFunc = mkFunctionExpr("_afterIf"+uid, mkExpr(EBlock(followingExprs),e), e);
-					_convertNewExpr(afterIfFunc);
+					var afterIfFunc = mkFunctionExpr("_afterIf"+uid, mkBlock(followingExprs,e), e);
 					var afterIfCall = mkCallByName("_afterIf"+uid,[],e);
 
 					// Create "true" branch
-					var eTrueBlock = switch Tools.expr(eTrue) {
-						case EBlock(arr): mkExpr( EBlock(arr.concat([afterIfCall]) ), e );
-						case _: mkExpr( EBlock([eTrue,afterIfCall]), e );
+					var trueBranchExprs = switch Tools.expr(eTrue) {
+						case EBlock(arr): arr.concat([ afterIfCall ]);
+						case _: [ eTrue, afterIfCall ];
 					}
-					_convertNewExpr(eTrueBlock);
+					convertExprsInBlock(trueBranchExprs);
 
 					// Create "false" branch
-					var eFalseBlock = eFalse==null
-						? mkBlock( [afterIfCall], e )
+					var falseBranchExprs = eFalse==null
+						? [ afterIfCall ]
 						: switch Tools.expr(eFalse) {
-							case EBlock(arr): mkBlock( arr.concat([afterIfCall]), e );
-							case _: mkBlock( [eFalse,afterIfCall], e );
+							case EBlock(arr): arr.concat([ afterIfCall ]);
+							case _: [ eFalse, afterIfCall ];
 						}
-					_convertNewExpr(eFalseBlock);
+					convertExprsInBlock(falseBranchExprs);
 
 					// Replace current block with the temp function declaration, followed by the new EIf
 					_prependCurBlockExpr(afterIfFunc);
-					_replaceCurBlockExpr( EIf(eCond, eTrueBlock, eFalseBlock) );
+					_replaceCurBlockExpr( EIf(eCond, mkBlock(trueBranchExprs,e), mkBlock(falseBranchExprs,e)) );
 					break;
 
 
@@ -353,10 +354,10 @@ class Cinematic extends dn.script.Runner {
 				case EFor(varName, eit, bodyExpr):
 					var uid = makeUniqId();
 
-					var followingBlockExprs = blockExprs.splice(idx+1,blockExprs.length);
-					var onCompleteExpr = mkFunctionExpr("_forComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+					var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+					convertExprsInBlock(followingExprs);
+					var onCompleteExpr = mkFunctionExpr("_forComplete"+uid, mkBlock(followingExprs,e), e);
 					lastLoopCompleteFunc = "_forComplete"+uid;
-					_convertNewExpr(onCompleteExpr);
 
 					// Rebuild the loop using an async function
 					var iterIdent = mkIdentExpr("_i"+uid, e);
@@ -368,7 +369,7 @@ class Cinematic extends dn.script.Runner {
 								true,
 								mkCallByIdent( mkFieldExpr(iterIdent,"hasNext",e), [], e )
 							), e),
-							mkBlock( followingBlockExprs.length==0
+							mkBlock( followingExprs.length==0
 								? [ mkExpr(EReturn(),e) ]
 								: [ mkCallByName("_forComplete"+uid,[],e), mkExpr(EReturn(),e) ]
 							, e )
@@ -381,8 +382,8 @@ class Cinematic extends dn.script.Runner {
 					// Build the loop body
 					var exprs = _getBlockInnerExprs(bodyExpr);
 					exprs.push( mkCallByName("_for"+uid, [], e) );
+					convertExprsInBlock(exprs);
 					var bodyExpr = mkBlock(exprs, e);
-					_convertNewExpr(bodyExpr);
 
 					// Try typing basic iterators
 					var makeIteratorName : String = switch Tools.expr(eit) {
@@ -415,16 +416,16 @@ class Cinematic extends dn.script.Runner {
 				case EWhile(condExpr, bodyExpr):
 					var uid = makeUniqId();
 
-					var followingBlockExprs = blockExprs.splice(idx+1,blockExprs.length);
-					var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+					var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+					convertExprsInBlock(followingExprs);
+					var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkBlock(followingExprs,e), e);
 					lastLoopCompleteFunc = "_whileComplete"+uid;
-					_convertNewExpr(onCompleteExpr);
 
 					// Rebuild body with added _while call
 					var exprs = _getBlockInnerExprs(bodyExpr);
 					exprs.push( mkCallByName("_while"+uid, [], e) );
+					convertExprsInBlock(exprs);
 					var bodyExpr = mkBlock(exprs,e);
-					_convertNewExpr(bodyExpr);
 
 					// Wrap the body with condition evaluation
 					var asyncLoopFuncBody = mkBlock([
@@ -457,10 +458,10 @@ class Cinematic extends dn.script.Runner {
 				case EDoWhile(condExpr, bodyExpr):
 					var uid = makeUniqId();
 
-					var followingBlockExprs = blockExprs.splice(idx+1,blockExprs.length);
-					var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+					var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+					convertExprsInBlock(followingExprs);
+					var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkBlock(followingExprs,e), e);
 					lastLoopCompleteFunc = "_doWhileComplete"+uid;
-					_convertNewExpr(onCompleteExpr);
 
 					// Rebuild body with added _doWhile call
 					var exprs = [];
@@ -475,8 +476,8 @@ class Cinematic extends dn.script.Runner {
 						// Exit the loop
 						mkCallByName("_doWhileComplete"+uid, [], e)
 					), e ) );
+					convertExprsInBlock(exprs);
 					var asyncLoopFuncBody = mkBlock(exprs,e);
-					_convertNewExpr(asyncLoopFuncBody);
 
 					_replaceCurBlockExpr(EBlock([
 						// Declare the onComplete function
