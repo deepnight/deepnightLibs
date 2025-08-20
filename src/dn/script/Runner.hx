@@ -492,21 +492,25 @@ class Runner {
 
 	function tryCatch(cb:Void->Void) : Bool {
 		try {
-			cb();
-			return true;
-		}
-		catch( err:hscript.Expr.Error ) {
-			var err = ScriptError.fromHScriptError(err, lastScriptStr);
-			reportError(err);
-			if( throwErrors )
-				throw err;
-			return false;
-		}
-		catch( err:ScriptError ) {
-			reportError(err);
-			if( throwErrors )
-				throw err;
-			return false;
+			try {
+				try {
+					cb();
+					return true;
+				}
+				catch( err:hscript.Expr.Error ) {
+					var err = ScriptError.fromHScriptError(err, lastScriptStr);
+					reportError(err);
+					if( throwErrors )
+						throw err;
+					return false;
+				}
+			}
+			catch( err:ScriptError ) {
+				reportError(err);
+				if( throwErrors )
+					throw err;
+				return false;
+			}
 		}
 		catch( e:haxe.Exception ) {
 			if( throwErrors )
