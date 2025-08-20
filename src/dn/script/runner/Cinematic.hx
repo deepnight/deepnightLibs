@@ -55,20 +55,24 @@ class Cinematic extends dn.script.Runner {
 
 	// Create a script expression
 	inline function mkExpr(e:ExprDef, p:Expr) {
-		return Tools.mk( e, p );
+		var outExpr = Tools.mk( e, p );
+		#if hscriptPos
+		outExpr.origin = "CinematicConvert";
+		#end
+		return outExpr;
 	}
 	// Create a script expression
 	inline function mkBlock(arr:Array<Expr>, p:Expr) {
-		return Tools.mk( EBlock(arr), p );
+		return mkExpr( EBlock(arr), p );
 	}
 
 	// Create an identifier expression
 	inline function mkIdentExpr(ident:String, p:Expr) {
-		return Tools.mk( EIdent(ident), p );
+		return mkExpr( EIdent(ident), p );
 	}
 
 	inline function mkFieldExpr(eObj, fieldName, p:Expr) {
-		return Tools.mk( EField(eObj,fieldName), p );
+		return mkExpr( EField(eObj,fieldName), p );
 	}
 
 	// Create a function call expression
