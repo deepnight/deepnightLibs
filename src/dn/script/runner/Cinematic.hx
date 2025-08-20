@@ -173,330 +173,335 @@ class Cinematic extends dn.script.Runner {
 	override function convertProgramExpr(e:hscript.Expr) {
 		super.convertProgramExpr(e);
 
+		switch Tools.expr(e) {
+			case EBlock(exprs):
+				convertExprsInBlock(exprs, e);
+
+			case _:
+				convertExprsInBlock([e], e);
+		}
+	}
+
+
+	function convertExprsInBlock(allExprs:Array<Expr>, parent:Expr) {
 		function _convertNewExpr(subExpr:Expr) {
 			switch Tools.expr(subExpr) {
-				case EBlock(_): convertProgramExpr(subExpr);
+				case EBlock(exprs): convertExprsInBlock(exprs, subExpr);
 				case EFunction(_): Tools.iter(subExpr, convertProgramExpr);
 				case _: throw 'Not a block: $subExpr';
 			}
 		}
 
-		switch Tools.expr(e) {
-			case EBlock(exprs):
-				var idx = 0;
-				function _replaceCurBlockExpr(with:ExprDef) {
-					#if hscriptPos
-					exprs[idx].e = with;
-					#else
-					exprs[idx] = with;
-					#end
-				}
-				function _prependCurBlockExpr(with:Expr) {
-					exprs.insert(idx, with);
-					idx++;
-				}
-				function _getBlockInnerExprs(e:Expr) {
-					return switch Tools.expr(e) {
-						case EBlock(arr): arr.copy();
-						case _: [e];
+		var idx = 0;
+		function _replaceCurBlockExpr(with:ExprDef) {
+			#if hscriptPos
+			allExprs[idx].e = with;
+			#else
+			allExprs[idx] = with;
+			#end
+		}
+		function _prependCurBlockExpr(with:Expr) {
+			allExprs.insert(idx, with);
+			idx++;
+		}
+		function _getBlockInnerExprs(e:Expr) {
+			return switch Tools.expr(e) {
+				case EBlock(arr): arr.copy();
+				case _: [e];
+			}
+		}
+		while( idx<allExprs.length ) {
+			var e = allExprs[idx];
+			switch Tools.expr(e) {
+				// Pausing
+				case EConst(c):
+					var timerS : Float = switch c {
+						case CInt(v): v;
+						case CFloat(v): v;
+						case CString(v): 0;
 					}
-				}
-				while( idx<exprs.length ) {
-					var e = exprs[idx];
-					switch Tools.expr(e) {
-						// Pausing
-						case EConst(c):
-							var timerS : Float = switch c {
-								case CInt(v): v;
-								case CFloat(v): v;
-								case CString(v): 0;
-							}
-							if( timerS>0 ) {
-								var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
-								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								_convertNewExpr(followingExprsBlock);
+					if( timerS>0 ) {
+						var delayExpr = mkExpr(EConst(CFloat(timerS)), e);
+						var followingExprsBlock = mkExpr( EBlock( allExprs.splice(idx+1,allExprs.length) ), e );
+						_convertNewExpr(followingExprsBlock);
+						_replaceCurBlockExpr( ECall(
+							mkIdentExpr("delayExecutionS",e),
+							[ delayExpr, mkFunctionExpr(followingExprsBlock,e) ]
+						));
+						break;
+					}
+
+				// Special ">>" usage
+				case EBinop(op, leftExpr, rightExpr):
+					if( op==">>" ) {
+						switch Tools.expr(leftExpr) {
+							case EConst(CInt(_)), EConst(CFloat(_)):
+								// 0.5 >> {...}
+								var asyncFunc = mkFunctionExpr(rightExpr,e);
+								_convertNewExpr(asyncFunc);
 								_replaceCurBlockExpr( ECall(
-									mkIdentExpr("delayExecutionS",e),
-									[ delayExpr, mkFunctionExpr(followingExprsBlock,e) ]
+									mkIdentExpr("delayExecutionS", e),
+									[ leftExpr, asyncFunc ]
 								));
-								break;
-							}
 
-						// Special ">>" usage
-						case EBinop(op, leftExpr, rightExpr):
-							if( op==">>" ) {
-								switch Tools.expr(leftExpr) {
-									case EConst(CInt(_)), EConst(CFloat(_)):
-										// 0.5 >> {...}
-										var asyncFunc = mkFunctionExpr(rightExpr,e);
-										_convertNewExpr(asyncFunc);
-										_replaceCurBlockExpr( ECall(
-											mkIdentExpr("delayExecutionS", e),
-											[ leftExpr, asyncFunc ]
-										));
-
-									case EIdent(id):
-										// TURNS: customWaitUntil >> { XXX }
-										// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
-										if( waitUntilFunctions.exists(id) ) {
-											var asyncFunc = mkFunctionExpr(rightExpr,e);
-											_convertNewExpr(asyncFunc);
-											var args = [
-												mkFunctionExpr( mkCallByName(id,[],e), e ),
-												mkFunctionExpr( asyncFunc, e ),
-											];
-											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-										}
-
-									#if hscriptPos
-									case ECall({e:EIdent(id)}, params):
-									#else
-									case ECall(EIdent(id), params):
-									#end
-										// TURNS: customWaitUntil(...) >> { XXX }
-										// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
-										if( waitUntilFunctions.exists(id) ) {
-											var asyncFunc = mkFunctionExpr(rightExpr,e);
-											_convertNewExpr(asyncFunc);
-											var args = [
-												mkFunctionExpr( mkCallByName(id,params,e), e ),
-												mkFunctionExpr( asyncFunc, e ),
-											];
-											_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-										}
-
-									case _:
+							case EIdent(id):
+								// TURNS: customWaitUntil >> { XXX }
+								// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
+								if( waitUntilFunctions.exists(id) ) {
+									var asyncFunc = mkFunctionExpr(rightExpr,e);
+									_convertNewExpr(asyncFunc);
+									var args = [
+										mkFunctionExpr( mkCallByName(id,[],e), e ),
+										mkFunctionExpr( asyncFunc, e ),
+									];
+									_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								}
-							}
 
-						// TURNS: customWaitUntil; XXX;
-						// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
-						case EIdent(id):
-							if( waitUntilFunctions.exists(id) ) {
-								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								_convertNewExpr(followingExprsBlock);
-								var args = [
-									mkFunctionExpr( mkCallByName(id,[],e), e ),
-									mkFunctionExpr( followingExprsBlock, e ),
-								];
-								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-								break;
-							}
-
-						// TURNS: customWaitUntil(...); XXX;
-						// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
-						#if hscriptPos
-						case ECall({e:EIdent(id)}, params):
-						#else
-						case ECall(EIdent(id), params):
-						#end
-							if( waitUntilFunctions.exists(id) ) {
-								var followingExprsBlock = mkExpr( EBlock( exprs.splice(idx+1,exprs.length) ), e );
-								_convertNewExpr(followingExprsBlock);
-								var args = [
-									mkFunctionExpr( mkCallByName(id,params,e), e ),
-									mkFunctionExpr( followingExprsBlock, e ),
-								];
-								_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-								break;
-							}
-
-
-						// Make IF statement async
-						case EIf(eCond, eTrue, eFalse):
-							var uid = makeUniqId();
-
-							// Extract all following expressions and move them to a temp function
-							var followingExprs = exprs.splice(idx+1,exprs.length);
-
-							var afterIfFunc = mkFunctionExpr("_afterIf"+uid, mkExpr(EBlock(followingExprs),e), e);
-							_convertNewExpr(afterIfFunc);
-							var afterIfCall = mkCallByName("_afterIf"+uid,[],e);
-
-							// Create "true" branch
-							var eTrueBlock = switch Tools.expr(eTrue) {
-								case EBlock(arr): mkExpr( EBlock(arr.concat([afterIfCall]) ), e );
-								case _: mkExpr( EBlock([eTrue,afterIfCall]), e );
-							}
-							_convertNewExpr(eTrueBlock);
-
-							// Create "false" branch
-							var eFalseBlock = eFalse==null
-								? mkBlock( [afterIfCall], e )
-								: switch Tools.expr(eFalse) {
-									case EBlock(arr): mkBlock( arr.concat([afterIfCall]), e );
-									case _: mkBlock( [eFalse,afterIfCall], e );
+							#if hscriptPos
+							case ECall({e:EIdent(id)}, params):
+							#else
+							case ECall(EIdent(id), params):
+							#end
+								// TURNS: customWaitUntil(...) >> { XXX }
+								// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
+								if( waitUntilFunctions.exists(id) ) {
+									var asyncFunc = mkFunctionExpr(rightExpr,e);
+									_convertNewExpr(asyncFunc);
+									var args = [
+										mkFunctionExpr( mkCallByName(id,params,e), e ),
+										mkFunctionExpr( asyncFunc, e ),
+									];
+									_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
 								}
-							_convertNewExpr(eFalseBlock);
 
-							// Replace current block with the temp function declaration, followed by the new EIf
-							_prependCurBlockExpr(afterIfFunc);
-							_replaceCurBlockExpr( EIf(eCond, eTrueBlock, eFalseBlock) );
-							break;
-
-
-						// Make FOR loop async
-						case EFor(varName, eit, bodyExpr):
-							var uid = makeUniqId();
-
-							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
-							var onCompleteExpr = mkFunctionExpr("_forComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
-							lastLoopCompleteFunc = "_forComplete"+uid;
-							_convertNewExpr(onCompleteExpr);
-
-							// Rebuild the loop using an async function
-							var iterIdent = mkIdentExpr("_i"+uid, e);
-							var asyncLoopExprs = [
-								// => "if( !_i.hasNext() ) { doFollowing(); return; }"
-								mkExpr( EIf(
-									mkExpr(EUnop(
-										"!",
-										true,
-										mkCallByIdent( mkFieldExpr(iterIdent,"hasNext",e), [], e )
-									), e),
-									mkBlock( followingBlockExprs.length==0
-										? [ mkExpr(EReturn(),e) ]
-										: [ mkCallByName("_forComplete"+uid,[],e), mkExpr(EReturn(),e) ]
-									, e )
-								),e),
-
-								// => "var varName = _i.next()"
-								mkExpr( EVar(varName, mkCallByIdent( mkFieldExpr(iterIdent,"next",e), [], e )), e ),
-							];
-
-							// Build the loop body
-							var exprs = _getBlockInnerExprs(bodyExpr);
-							exprs.push( mkCallByName("_for"+uid, [], e) );
-							var bodyExpr = mkBlock(exprs, e);
-							_convertNewExpr(bodyExpr);
-
-							// Try typing basic iterators
-							var makeIteratorName : String = switch Tools.expr(eit) {
-								case EBinop("...", e1, e2):
-									Tools.expr(e1).match(EConst(CInt(_))) || Tools.expr(e2).match(EConst(CInt(_)))
-										? "makeIterator_int"
-										: "makeIterator_dynamic";
-
-								case _: "makeIterator_dynamic";
-							}
-
-							var asyncLoopFuncBody = mkExpr(EBlock(asyncLoopExprs.concat([bodyExpr])),e);
-							_replaceCurBlockExpr(EBlock([
-								// Declare the onComplete function
-								onCompleteExpr,
-
-								// => "var _i = makeIterator"
-								mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr(makeIteratorName,eit), [eit], e )), e ),
-
-								// Declare _for var first, then set it to the function
-								mkExpr( EVar("_for"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_for"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
-
-								// Call the loop for the first time
-								mkCallByName("_for"+uid, [], e),
-							]));
-
-
-						// Make WHILE loop async
-						case EWhile(condExpr, bodyExpr):
-							var uid = makeUniqId();
-
-							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
-							var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
-							lastLoopCompleteFunc = "_whileComplete"+uid;
-							_convertNewExpr(onCompleteExpr);
-
-							// Rebuild body with added _while call
-							var exprs = _getBlockInnerExprs(bodyExpr);
-							exprs.push( mkCallByName("_while"+uid, [], e) );
-							var bodyExpr = mkBlock(exprs,e);
-							_convertNewExpr(bodyExpr);
-
-							// Wrap the body with condition evaluation
-							var asyncLoopFuncBody = mkBlock([
-								mkExpr( EIf(
-									// Loop condition
-									condExpr,
-
-									// Proceed with the loop body
-									bodyExpr,
-
-									// Exit the loop
-									mkCallByName("_whileComplete"+uid, [], e)
-								), e ),
-							],e);
-
-							_replaceCurBlockExpr(EBlock([
-								// Declare the onComplete function
-								onCompleteExpr,
-
-								// Declare _while var first, then set it to the function
-								mkExpr( EVar("_while"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_while"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
-
-								// Start the loop
-								mkCallByName("_while"+uid, [], e),
-							]));
-
-
-
-						// Make DO...WHILE loop async
-						case EDoWhile(condExpr, bodyExpr):
-							var uid = makeUniqId();
-
-							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
-							var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
-							lastLoopCompleteFunc = "_doWhileComplete"+uid;
-							_convertNewExpr(onCompleteExpr);
-
-							// Rebuild body with added _doWhile call
-							var exprs = [];
-							exprs = exprs.concat( _getBlockInnerExprs(bodyExpr) );
-							exprs.push( mkExpr( EIf(
-								// Loop condition
-								condExpr,
-
-								// Repeat the loop
-								mkCallByName("_doWhile"+uid, [], e),
-
-								// Exit the loop
-								mkCallByName("_doWhileComplete"+uid, [], e)
-							), e ) );
-							var asyncLoopFuncBody = mkBlock(exprs,e);
-							_convertNewExpr(asyncLoopFuncBody);
-
-							_replaceCurBlockExpr(EBlock([
-								// Declare the onComplete function
-								onCompleteExpr,
-
-								// Declare _doWhile var first, then set it to the function
-								mkExpr( EVar("_doWhile"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_doWhile"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
-
-								// First call to the loop
-								mkCallByName("_doWhile"+uid, [], e),
-							]));
-
-
-						case EBreak:
-							var followingBlockExprs = exprs.splice(idx+1,exprs.length); // remove all following expressions
-							if( lastLoopCompleteFunc==null )
-								throw new ScriptError('Break not in a loop', lastScriptStr);
-
-							_replaceCurBlockExpr( EBlock([
-								mkCallByName(lastLoopCompleteFunc, [], e),
-								mkExpr( EReturn(null), e),
-							]) );
-							lastLoopCompleteFunc = null; // reset the last loop complete function
-
-						case _:
-							Tools.iter(e, convertProgramExpr);
+							case _:
+						}
 					}
-					idx++;
-				}
 
-			case _:
-				Tools.iter(e, convertProgramExpr);
+				// TURNS: customWaitUntil; XXX;
+				// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
+				case EIdent(id):
+					if( waitUntilFunctions.exists(id) ) {
+						var followingExprsBlock = mkExpr( EBlock( allExprs.splice(idx+1,allExprs.length) ), e );
+						_convertNewExpr(followingExprsBlock);
+						var args = [
+							mkFunctionExpr( mkCallByName(id,[],e), e ),
+							mkFunctionExpr( followingExprsBlock, e ),
+						];
+						_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+						break;
+					}
+
+				// TURNS: customWaitUntil(...); XXX;
+				// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
+				#if hscriptPos
+				case ECall({e:EIdent(id)}, params):
+				#else
+				case ECall(EIdent(id), params):
+				#end
+					if( waitUntilFunctions.exists(id) ) {
+						var followingExprsBlock = mkExpr( EBlock( allExprs.splice(idx+1,allExprs.length) ), e );
+						_convertNewExpr(followingExprsBlock);
+						var args = [
+							mkFunctionExpr( mkCallByName(id,params,e), e ),
+							mkFunctionExpr( followingExprsBlock, e ),
+						];
+						_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+						break;
+					}
+
+
+				// Make IF statement async
+				case EIf(eCond, eTrue, eFalse):
+					var uid = makeUniqId();
+
+					// Extract all following expressions and move them to a temp function
+					var followingExprs = allExprs.splice(idx+1,allExprs.length);
+
+					var afterIfFunc = mkFunctionExpr("_afterIf"+uid, mkExpr(EBlock(followingExprs),e), e);
+					_convertNewExpr(afterIfFunc);
+					var afterIfCall = mkCallByName("_afterIf"+uid,[],e);
+
+					// Create "true" branch
+					var eTrueBlock = switch Tools.expr(eTrue) {
+						case EBlock(arr): mkExpr( EBlock(arr.concat([afterIfCall]) ), e );
+						case _: mkExpr( EBlock([eTrue,afterIfCall]), e );
+					}
+					_convertNewExpr(eTrueBlock);
+
+					// Create "false" branch
+					var eFalseBlock = eFalse==null
+						? mkBlock( [afterIfCall], e )
+						: switch Tools.expr(eFalse) {
+							case EBlock(arr): mkBlock( arr.concat([afterIfCall]), e );
+							case _: mkBlock( [eFalse,afterIfCall], e );
+						}
+					_convertNewExpr(eFalseBlock);
+
+					// Replace current block with the temp function declaration, followed by the new EIf
+					_prependCurBlockExpr(afterIfFunc);
+					_replaceCurBlockExpr( EIf(eCond, eTrueBlock, eFalseBlock) );
+					break;
+
+
+				// Make FOR loop async
+				case EFor(varName, eit, bodyExpr):
+					var uid = makeUniqId();
+
+					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length);
+					var onCompleteExpr = mkFunctionExpr("_forComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+					lastLoopCompleteFunc = "_forComplete"+uid;
+					_convertNewExpr(onCompleteExpr);
+
+					// Rebuild the loop using an async function
+					var iterIdent = mkIdentExpr("_i"+uid, e);
+					var asyncLoopExprs = [
+						// => "if( !_i.hasNext() ) { doFollowing(); return; }"
+						mkExpr( EIf(
+							mkExpr(EUnop(
+								"!",
+								true,
+								mkCallByIdent( mkFieldExpr(iterIdent,"hasNext",e), [], e )
+							), e),
+							mkBlock( followingBlockExprs.length==0
+								? [ mkExpr(EReturn(),e) ]
+								: [ mkCallByName("_forComplete"+uid,[],e), mkExpr(EReturn(),e) ]
+							, e )
+						),e),
+
+						// => "var varName = _i.next()"
+						mkExpr( EVar(varName, mkCallByIdent( mkFieldExpr(iterIdent,"next",e), [], e )), e ),
+					];
+
+					// Build the loop body
+					var exprs = _getBlockInnerExprs(bodyExpr);
+					exprs.push( mkCallByName("_for"+uid, [], e) );
+					var bodyExpr = mkBlock(exprs, e);
+					_convertNewExpr(bodyExpr);
+
+					// Try typing basic iterators
+					var makeIteratorName : String = switch Tools.expr(eit) {
+						case EBinop("...", e1, e2):
+							Tools.expr(e1).match(EConst(CInt(_))) || Tools.expr(e2).match(EConst(CInt(_)))
+								? "makeIterator_int"
+								: "makeIterator_dynamic";
+
+						case _: "makeIterator_dynamic";
+					}
+
+					var asyncLoopFuncBody = mkExpr(EBlock(asyncLoopExprs.concat([bodyExpr])),e);
+					_replaceCurBlockExpr(EBlock([
+						// Declare the onComplete function
+						onCompleteExpr,
+
+						// => "var _i = makeIterator"
+						mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr(makeIteratorName,eit), [eit], e )), e ),
+
+						// Declare _for var first, then set it to the function
+						mkExpr( EVar("_for"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+						mkExpr( EBinop( "=", mkIdentExpr("_for"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+
+						// Call the loop for the first time
+						mkCallByName("_for"+uid, [], e),
+					]));
+
+
+				// Make WHILE loop async
+				case EWhile(condExpr, bodyExpr):
+					var uid = makeUniqId();
+
+					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length);
+					var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+					lastLoopCompleteFunc = "_whileComplete"+uid;
+					_convertNewExpr(onCompleteExpr);
+
+					// Rebuild body with added _while call
+					var exprs = _getBlockInnerExprs(bodyExpr);
+					exprs.push( mkCallByName("_while"+uid, [], e) );
+					var bodyExpr = mkBlock(exprs,e);
+					_convertNewExpr(bodyExpr);
+
+					// Wrap the body with condition evaluation
+					var asyncLoopFuncBody = mkBlock([
+						mkExpr( EIf(
+							// Loop condition
+							condExpr,
+
+							// Proceed with the loop body
+							bodyExpr,
+
+							// Exit the loop
+							mkCallByName("_whileComplete"+uid, [], e)
+						), e ),
+					],e);
+
+					_replaceCurBlockExpr(EBlock([
+						// Declare the onComplete function
+						onCompleteExpr,
+
+						// Declare _while var first, then set it to the function
+						mkExpr( EVar("_while"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+						mkExpr( EBinop( "=", mkIdentExpr("_while"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+
+						// Start the loop
+						mkCallByName("_while"+uid, [], e),
+					]));
+
+
+
+				// Make DO...WHILE loop async
+				case EDoWhile(condExpr, bodyExpr):
+					var uid = makeUniqId();
+
+					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length);
+					var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+					lastLoopCompleteFunc = "_doWhileComplete"+uid;
+					_convertNewExpr(onCompleteExpr);
+
+					// Rebuild body with added _doWhile call
+					var exprs = [];
+					exprs = exprs.concat( _getBlockInnerExprs(bodyExpr) );
+					exprs.push( mkExpr( EIf(
+						// Loop condition
+						condExpr,
+
+						// Repeat the loop
+						mkCallByName("_doWhile"+uid, [], e),
+
+						// Exit the loop
+						mkCallByName("_doWhileComplete"+uid, [], e)
+					), e ) );
+					var asyncLoopFuncBody = mkBlock(exprs,e);
+					_convertNewExpr(asyncLoopFuncBody);
+
+					_replaceCurBlockExpr(EBlock([
+						// Declare the onComplete function
+						onCompleteExpr,
+
+						// Declare _doWhile var first, then set it to the function
+						mkExpr( EVar("_doWhile"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+						mkExpr( EBinop( "=", mkIdentExpr("_doWhile"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+
+						// First call to the loop
+						mkCallByName("_doWhile"+uid, [], e),
+					]));
+
+
+				case EBreak:
+					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length); // remove all following expressions
+					if( lastLoopCompleteFunc==null )
+						throw new ScriptError('Break not in a loop', lastScriptStr);
+
+					_replaceCurBlockExpr( EBlock([
+						mkCallByName(lastLoopCompleteFunc, [], e),
+						mkExpr( EReturn(null), e),
+					]) );
+					lastLoopCompleteFunc = null; // reset the last loop complete function
+
+				case _:
+					Tools.iter(e, convertProgramExpr);
+			}
+			idx++;
 		}
 	}
 
