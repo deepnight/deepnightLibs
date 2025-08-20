@@ -244,45 +244,52 @@ class Cinematic extends dn.script.Runner {
 
 				// Special ">>" usage
 				case EBinop(op, leftExpr, rightExpr):
-					if( op==">>" ) {
-						switch Tools.expr(leftExpr) {
-							case EConst(CInt(_)), EConst(CFloat(_)):
-								// 0.5 >> {...}
-								var asyncFunc = mkFunctionExpr(rightExpr,e);
-								_convertFunctionBodyExpr(asyncFunc);
-								_replaceCurBlockExpr( ECall(
-									mkIdentExpr("delayExecutionS", e),
-									[ leftExpr, asyncFunc ]
-								));
+					switch op {
+						case "=":
+							switch Tools.expr(leftExpr) {
+								case EBinop(">>", _): throw new ScriptError("Operators confusion with >> and =");
+								case _:
+							}
 
-							case EIdent(id):
-								// TURNS: customWaitUntil >> { XXX }
-								// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
-								if( waitUntilFunctions.exists(id) ) {
+						case ">>":
+							switch Tools.expr(leftExpr) {
+								case EConst(CInt(_)), EConst(CFloat(_)):
+									// 0.5 >> {...}
 									var asyncFunc = mkFunctionExpr(rightExpr,e);
 									_convertFunctionBodyExpr(asyncFunc);
-									var args = [
-										mkFunctionExpr( mkExpr( EReturn(mkCallByName(id,[],e)), e ), e ),
-										asyncFunc
-									];
-									_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-								}
+									_replaceCurBlockExpr( ECall(
+										mkIdentExpr("delayExecutionS", e),
+										[ leftExpr, asyncFunc ]
+									));
 
-							case ECall( #if hscriptPos {e:EIdent(id)} #else EIdent(id) #end, params ):
-								// TURNS: customWaitUntil(...) >> { XXX }
-								// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
-								if( waitUntilFunctions.exists(id) ) {
-									var asyncFunc = mkFunctionExpr(rightExpr,e);
-									_convertFunctionBodyExpr(asyncFunc);
-									var args = [
-										mkFunctionExpr( mkCallByName(id,params,e), e ),
-										mkFunctionExpr( asyncFunc, e ),
-									];
-									_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
-								}
+								case EIdent(id):
+									// TURNS: customWaitUntil >> { XXX }
+									// INTO: waitUntil( ()->customWaitUntil(), ()->XXX );
+									if( waitUntilFunctions.exists(id) ) {
+										var asyncFunc = mkFunctionExpr(rightExpr,e);
+										_convertFunctionBodyExpr(asyncFunc);
+										var args = [
+											mkFunctionExpr( mkExpr( EReturn(mkCallByName(id,[],e)), e ), e ),
+											asyncFunc
+										];
+										_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+									}
 
-							case _:
-						}
+								case ECall( #if hscriptPos {e:EIdent(id)} #else EIdent(id) #end, params ):
+									// TURNS: customWaitUntil(...) >> { XXX }
+									// INTO: waitUntil( ()->customWaitUntil(...), ()->XXX );
+									if( waitUntilFunctions.exists(id) ) {
+										var asyncFunc = mkFunctionExpr(rightExpr,e);
+										_convertFunctionBodyExpr(asyncFunc);
+										var args = [
+											mkFunctionExpr( mkCallByName(id,params,e), e ),
+											mkFunctionExpr( asyncFunc, e ),
+										];
+										_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
+									}
+
+								case _:
+							}
 					}
 
 				// TURNS: customWaitUntil; XXX;
@@ -515,8 +522,8 @@ class Cinematic extends dn.script.Runner {
 					break;
 
 
-				case EVar(name, type, expr):
-					switch Tools.expr(expr) {
+				case EVar(name, type, valueExpr):
+					switch Tools.expr(valueExpr) {
 						case EBlock(exprs): asyncExprsArray(exprs);
 						case _:
 					}
