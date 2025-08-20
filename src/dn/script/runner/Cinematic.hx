@@ -175,20 +175,25 @@ class Cinematic extends dn.script.Runner {
 
 		switch Tools.expr(e) {
 			case EBlock(exprs):
-				convertExprsInBlock(exprs, e);
+				convertExprsInArray(exprs);
 
 			case _:
-				convertExprsInBlock([e], e);
+				convertExprsInArray([e]);
 		}
 	}
 
 
-	function convertExprsInBlock(allExprs:Array<Expr>, parent:Expr) {
+	function convertExprsInArray(allExprs:Array<Expr>) {
+
 		function _convertNewExpr(subExpr:Expr) {
 			switch Tools.expr(subExpr) {
-				case EBlock(exprs): convertExprsInBlock(exprs, subExpr);
-				case EFunction(_): Tools.iter(subExpr, convertProgramExpr);
-				case _: throw 'Not a block: $subExpr';
+				case EBlock(exprs): convertExprsInArray(exprs);
+				case EFunction(args, body, _):
+					switch Tools.expr(body) {
+						case EBlock(exprs): convertExprsInArray(exprs);
+						case _: convertExprsInArray([body]);
+					}
+				case _: throw 'Unsupported new expression: ${Tools.expr(subExpr).getName()}';
 			}
 		}
 
@@ -488,7 +493,7 @@ class Cinematic extends dn.script.Runner {
 
 
 				case EBreak:
-					var followingBlockExprs = allExprs.splice(idx+1,allExprs.length); // remove all following expressions
+					allExprs.splice(idx+1,allExprs.length); // remove all following expressions
 					if( lastLoopCompleteFunc==null )
 						throw new ScriptError('Break not in a loop', lastScriptStr);
 
