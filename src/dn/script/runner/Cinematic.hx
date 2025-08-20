@@ -363,7 +363,7 @@ class Cinematic extends dn.script.Runner {
 
 							// Build the loop body
 							var exprs = _getBlockInnerExprs(bodyExpr);
-							exprs.push( mkCallByName("_loop"+uid, [], e) );
+							exprs.push( mkCallByName("_for"+uid, [], e) );
 							var bodyExpr = mkBlock(exprs, e);
 							_convertNewExpr(bodyExpr);
 
@@ -375,12 +375,12 @@ class Cinematic extends dn.script.Runner {
 								// => "var _i = makeIterator"
 								mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr("makeIterator",eit), [eit], e )), e ),
 
-								// Declare _loop var first, then set it to the function
-								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+								// Declare _for var first, then set it to the function
+								mkExpr( EVar("_for"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_for"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
 
-								// => "_loop()"
-								mkCallByName("_loop"+uid, [], e),
+								// Call the loop for the first time
+								mkCallByName("_for"+uid, [], e),
 							]));
 
 
@@ -392,9 +392,9 @@ class Cinematic extends dn.script.Runner {
 							var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 							_convertNewExpr(onCompleteExpr);
 
-							// Rebuild body with added _loop call
+							// Rebuild body with added _while call
 							var exprs = _getBlockInnerExprs(bodyExpr);
-							exprs.push( mkCallByName("_loop"+uid, [], e) );
+							exprs.push( mkCallByName("_while"+uid, [], e) );
 							var bodyExpr = mkBlock(exprs,e);
 							_convertNewExpr(bodyExpr);
 
@@ -416,12 +416,12 @@ class Cinematic extends dn.script.Runner {
 								// Declare the onComplete function
 								onCompleteExpr,
 
-								// Declare _loop var first, then set it to the function
-								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+								// Declare _while var first, then set it to the function
+								mkExpr( EVar("_while"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_while"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
 
-								// First call to the loop
-								mkCallByName("_loop"+uid, [], e),
+								// Start the loop
+								mkCallByName("_while"+uid, [], e),
 							]));
 
 
@@ -434,7 +434,7 @@ class Cinematic extends dn.script.Runner {
 							var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 							_convertNewExpr(onCompleteExpr);
 
-							// Rebuild body with added _loop call
+							// Rebuild body with added _doWhile call
 							var exprs = [];
 							exprs = exprs.concat( _getBlockInnerExprs(bodyExpr) );
 							exprs.push( mkExpr( EIf(
@@ -442,7 +442,7 @@ class Cinematic extends dn.script.Runner {
 								condExpr,
 
 								// Repeat the loop
-								mkCallByName("_loop"+uid, [], e),
+								mkCallByName("_doWhile"+uid, [], e),
 
 								// Exit the loop
 								mkCallByName("_doWhileComplete"+uid, [], e)
@@ -454,12 +454,12 @@ class Cinematic extends dn.script.Runner {
 								// Declare the onComplete function
 								onCompleteExpr,
 
-								// Declare _loop var first, then set it to the function
-								mkExpr( EVar("_loop"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
-								mkExpr( EBinop( "=", mkIdentExpr("_loop"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
+								// Declare _doWhile var first, then set it to the function
+								mkExpr( EVar("_doWhile"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),
+								mkExpr( EBinop( "=", mkIdentExpr("_doWhile"+uid,e), mkFunctionExpr(asyncLoopFuncBody,e) ), e ),
 
 								// First call to the loop
-								mkCallByName("_loop"+uid, [], e),
+								mkCallByName("_doWhile"+uid, [], e),
 							]));
 
 
