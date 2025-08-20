@@ -338,7 +338,7 @@ class Cinematic extends dn.script.Runner {
 							var uid = makeUniqId();
 
 							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
-							var onCompleteExpr = mkFunctionExpr("_onComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							var onCompleteExpr = mkFunctionExpr("_forComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 							_convertNewExpr(onCompleteExpr);
 
 							// Rebuild the loop using an async function
@@ -353,7 +353,7 @@ class Cinematic extends dn.script.Runner {
 									), e),
 									mkBlock( followingBlockExprs.length==0
 										? [ mkExpr(EReturn(),e) ]
-										: [ mkCallByName("_onComplete"+uid,[],e), mkExpr(EReturn(),e) ]
+										: [ mkCallByName("_forComplete"+uid,[],e), mkExpr(EReturn(),e) ]
 									, e )
 								),e),
 
@@ -389,7 +389,7 @@ class Cinematic extends dn.script.Runner {
 							var uid = makeUniqId();
 
 							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
-							var onCompleteExpr = mkFunctionExpr("_onComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 							_convertNewExpr(onCompleteExpr);
 
 							// Rebuild body with added _loop call
@@ -408,7 +408,7 @@ class Cinematic extends dn.script.Runner {
 									bodyExpr,
 
 									// Exit the loop
-									mkCallByName("_onComplete"+uid, [], e)
+									mkCallByName("_whileComplete"+uid, [], e)
 								), e ),
 							],e);
 
@@ -431,7 +431,7 @@ class Cinematic extends dn.script.Runner {
 							var uid = makeUniqId();
 
 							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
-							var onCompleteExpr = mkFunctionExpr("_onComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
 							_convertNewExpr(onCompleteExpr);
 
 							// Rebuild body with added _loop call
@@ -445,7 +445,7 @@ class Cinematic extends dn.script.Runner {
 								mkCallByName("_loop"+uid, [], e),
 
 								// Exit the loop
-								mkCallByName("_onComplete"+uid, [], e)
+								mkCallByName("_doWhileComplete"+uid, [], e)
 							), e ) );
 							var asyncLoopFuncBody = mkBlock(exprs,e);
 							_convertNewExpr(asyncLoopFuncBody);
