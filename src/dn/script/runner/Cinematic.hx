@@ -1,6 +1,7 @@
 package dn.script.runner;
 
 import hscript.Expr;
+import hscript.Tools;
 
 /**
 	Cinematic: a specialized script runner that supports cinematic oriented features (pausing, async calls, waitUntil etc)
@@ -369,13 +370,23 @@ class Cinematic extends dn.script.Runner {
 							var bodyExpr = mkBlock(exprs, e);
 							_convertNewExpr(bodyExpr);
 
+							// Try typing basic iterators
+							var makeIteratorName : String = switch Tools.expr(eit) {
+								case EBinop("...", e1, e2):
+									Tools.expr(e1).match(EConst(CInt(_))) || Tools.expr(e2).match(EConst(CInt(_)))
+										? "makeIterator_int"
+										: "makeIterator_dynamic";
+
+								case _: "makeIterator_dynamic";
+							}
+
 							var asyncLoopFuncBody = mkExpr(EBlock(asyncLoopExprs.concat([bodyExpr])),e);
 							_replaceCurBlockExpr(EBlock([
 								// Declare the onComplete function
 								onCompleteExpr,
 
 								// => "var _i = makeIterator"
-								mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr("makeIterator",eit), [eit], e )), e ),
+								mkExpr( EVar("_i"+uid, mkCallByIdent( mkIdentExpr(makeIteratorName,eit), [eit], e )), e ),
 
 								// Declare _for var first, then set it to the function
 								mkExpr( EVar("_for"+uid, mkFunctionExpr(mkBlock([],e),e)), e ),

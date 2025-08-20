@@ -271,16 +271,20 @@ class Runner {
 			checker.setGlobal(f.name, TDynamic);
 
 		// Internal Runner stuff
-		function _makeIteratorType(iterType:hscript.Checker.TType) : hscript.Checker.TType {
-			return TAnon([
-				{ name : "next", opt : false, t : TFun([],iterType) },
-				{ name : "hasNext", opt : false, t : TFun([],TBool) }
-			]);
+		function _registerMakeIterator(globalName:String, type:hscript.Checker.TType) {
+			checker.setGlobal(
+				globalName,
+				TFun(
+					[{ name:"it", opt:false, t:TDynamic }],
+					TAnon([
+						{ name : "next", opt : false, t : TFun([],type) },
+						{ name : "hasNext", opt : false, t : TFun([],TBool) }
+					])
+				)
+			);
 		}
-		checker.setGlobal("makeIterator", TFun(
-			[{ name:"it", opt:false, t:TDynamic }],
-			_makeIteratorType(TDynamic)
-		));
+		_registerMakeIterator("makeIterator_dynamic", TDynamic);
+		_registerMakeIterator("makeIterator_int", TInt);
 
 		// Register all enum values as globals
 		for(e in enums) {
@@ -399,7 +403,8 @@ class Runner {
 			interp.variables.set(f.name, f.func);
 
 		// Internal Runner stuff
-		interp.variables.set("makeIterator", @:privateAccess interp.makeIterator);
+		interp.variables.set("makeIterator_int", @:privateAccess interp.makeIterator);
+		interp.variables.set("makeIterator_dynamic", @:privateAccess interp.makeIterator);
 	}
 
 
