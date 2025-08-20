@@ -168,6 +168,7 @@ class Cinematic extends dn.script.Runner {
 			0.5;				// pause for 0.5s
 			0.5 >> {...}		// async call block content in 0.5s
 	*/
+	var lastLoopCompleteFunc : Null<String>;
 	override function convertProgramExpr(e:hscript.Expr) {
 		super.convertProgramExpr(e);
 
@@ -339,6 +340,7 @@ class Cinematic extends dn.script.Runner {
 
 							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
 							var onCompleteExpr = mkFunctionExpr("_forComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							lastLoopCompleteFunc = "_forComplete"+uid;
 							_convertNewExpr(onCompleteExpr);
 
 							// Rebuild the loop using an async function
@@ -390,6 +392,7 @@ class Cinematic extends dn.script.Runner {
 
 							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
 							var onCompleteExpr = mkFunctionExpr("_whileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							lastLoopCompleteFunc = "_whileComplete"+uid;
 							_convertNewExpr(onCompleteExpr);
 
 							// Rebuild body with added _while call
@@ -432,6 +435,7 @@ class Cinematic extends dn.script.Runner {
 
 							var followingBlockExprs = exprs.splice(idx+1,exprs.length);
 							var onCompleteExpr = mkFunctionExpr("_doWhileComplete"+uid, mkExpr(EBlock(followingBlockExprs),e), e);
+							lastLoopCompleteFunc = "_doWhileComplete"+uid;
 							_convertNewExpr(onCompleteExpr);
 
 							// Rebuild body with added _doWhile call
@@ -462,6 +466,17 @@ class Cinematic extends dn.script.Runner {
 								mkCallByName("_doWhile"+uid, [], e),
 							]));
 
+
+						case EBreak:
+							var followingBlockExprs = exprs.splice(idx+1,exprs.length); // remove all following expressions
+							if( lastLoopCompleteFunc==null )
+								throw new ScriptError('Break not in a loop', lastScriptStr);
+
+							_replaceCurBlockExpr( EBlock([
+								mkCallByName(lastLoopCompleteFunc, [], e),
+								mkExpr( EReturn(null), e),
+							]) );
+							lastLoopCompleteFunc = null; // reset the last loop complete function
 
 						case _:
 							hscript.Tools.iter(e, convertProgramExpr);
@@ -503,6 +518,7 @@ class Cinematic extends dn.script.Runner {
 		running = false;
 		runningTimeS = 0;
 		runLoops = [];
+		lastLoopCompleteFunc = null;
 	}
 
 
