@@ -161,26 +161,14 @@ class Runner {
 	}
 
 
-	/**)
-		Expose a class to the script
-		IMPORTANT: the class should have both @:rtti and @:keep meta!
-	 **/
-	public function exposeClass<T>(cl:Class<T>) {
-		if( !checkRtti(cl) )
-			return;
-
-		classes.push({ cl: cl });
-	}
-
-
 	/**
-		Register a class type for the script checking to work.
+		Register a class type for the script checking.
+		IMPORTANT: the class X should have both @:rtti and @:keep meta!
 
 		This might be needed if one your API method returns an instance of some other class X. Then X should be provided for checking purpose.
 		For example, if you have `var npc = myApi.createNpc()`, the npc variable is using some type (eg. Npc) that should be explictely exposed to the runner.
-		IMPORTANT: the class X should have both @:rtti and @:keep meta!
 	 **/
-	public function exposeClassForCheck<T>(cl:Class<T>) {
+	public function exposeClassDefinition<T>(cl:Class<T>) {
 		if( !checkRtti(cl) )
 			return;
 
