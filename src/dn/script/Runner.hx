@@ -134,6 +134,7 @@ class Runner {
 		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
 	public function exposeClassInstance<T:Dynamic>(?nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
+		// Check instance validity
 		switch Type.typeof(instance) {
 			case TClass(c):
 				if( interfaceInScript!=null && !Std.isOfType(instance,interfaceInScript) ) {
@@ -145,11 +146,10 @@ class Runner {
 				return;
 		}
 
+		// Register
 		var cl = interfaceInScript ?? Type.getClass(instance);
 		if( !checkRtti(cl) )
 			return;
-
-		// Register for check
 		classes.push({
 			cl: cl,
 			instance: {
@@ -162,7 +162,7 @@ class Runner {
 
 
 	/**
-		Register a class type for the script checking.
+		Register a class definition for the script checking.
 		IMPORTANT: the class X should have both @:rtti and @:keep meta!
 
 		This might be needed if one your API method returns an instance of some other class X. Then X should be provided for checking purpose.
