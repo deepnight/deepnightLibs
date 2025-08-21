@@ -3,22 +3,16 @@ package dn.script;
 import hscript.Expr;
 import dn.Col;
 
-enum TypeCategory {
+enum ExposedTypeCategory {
 	T_Enum;
 	T_ClassInst;
 	T_ClassDef;
 }
 
-enum ValueCategory {
-	V_Var;
-	V_UnresolvedVar;
-	V_Function;
-	V_Unknown;
-}
-
 typedef ExposedType = {
-	var category : TypeCategory;
-	var values : Array<{ category:Null<ValueCategory>, name:String, details:Null<String> }>;
+	var name : String;
+	var category : ExposedTypeCategory;
+	var values : Array<{ desc:String, col:Col }>;
 }
 
 class TypesExplorer extends dn.Process {
@@ -103,41 +97,22 @@ class TypesExplorer extends dn.Process {
 			return bt;
 		}
 
-
 		// Exposed types
 		var allTypes = getAllExposedTypes();
-		for(e in allTypes.keyValueIterator()) {
-			var catLabel = switch e.value.category {
+		for(t in allTypes) {
+			var catLabel = switch t.category {
 				case T_Enum: 'Enum';
 				case T_ClassInst: 'Class Instance';
 				case T_ClassDef: 'Class Definition';
 			}
-			_makeButton(e.key, catLabel, ()->{
-				toggleTypeSelection(e.key);
+			_makeButton(t.name, catLabel, ()->{
+				toggleTypeSelection(t.name);
 			});
-			if( selectedTypes.exists(e.key) ) {
-				var allLabels = [];
-				for(v in e.value.values) {
-					var col = switch v.category {
-						case null: White;
-						case V_Var: White;
-						case V_UnresolvedVar: Orange;
-						case V_Function: Cyan;
-						case V_Unknown: Red;
-					}
-					var label = switch v.category {
-						case null: v.name;
-						case V_Var: 'var ${v.name} : ${v.details}';
-						case V_UnresolvedVar: 'var ${v.name} : (unresolved)';
-						case V_Function: 'function ${v.name}${v.details}';
-						case V_Unknown: 'Unknown ${v.name} (${v.details})';
-					}
-					allLabels.push({ label:label, col:col });
-				}
 
-				allLabels.sort((a,b)->Reflect.compare(a.label.toLowerCase(), b.label.toLowerCase()));
-				for(l in allLabels)
-					_makeText(l.label, l.col, true);
+			// Expand fields
+			if( selectedTypes.exists(t.name) ) {
+				for(v in t.values)
+					_makeText(v.desc, v.col, true);
 
 				typesFlow.addSpacing(gap);
 			}
@@ -149,58 +124,64 @@ class TypesExplorer extends dn.Process {
 			toggleTypeSelection(k);
 		});
 		if( selectedTypes.exists(k) ) {
-			var allLabels = [];
+			var allDescs = [];
 
 			@:privateAccess
-			for( g in runner.checker.getGlobals().keyValueIterator() ) {
-				allLabels.push({
-					label: switch g.value {
-						case TInt, TFloat, TBool: 'var ${g.key} : ${g.value.getName()}';
-						case TInst(c, args): 'var ${g.key} : ${c.name}';
-						case TEnum(e, args): 'enum ${e.name}.${g.key}';
-						case TFun(args, ret): 'function ${g.key}(${args.map(a->a.name).join(', ')}): ${ret.getName()}';
-						case TUnresolved(name): '?${g.key} : (unresolved)';
-						// case TAbstract(a, args):
-						case _: '? ${g.key} : ${g.value.getName()}';
-					},
-					col: switch g.value {
-						case TInt, TFloat, TBool: White;
-						case TFun(_): Cyan;
-						case TEnum(e, args): Pink;
-						case TInst(_): Yellow;
-						case TUnresolved(_): Orange;
-						case _: Red; // Unknown type
-					}
+			for( g in runner.checker.getGlobals().keyValueIterator() )
+				allDescs.push({
+					desc: getDescFromTType(g.key, g.value),
+					col: getColorFromTType(g.value),
 				});
-			}
 
-			allLabels.sort((a,b)->Reflect.compare(a.label.toLowerCase(), b.label.toLowerCase()));
-			for(l in allLabels)
-				_makeText(l.label, l.col, true);
-
+			allDescs.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
+			for(d in allDescs)
+				_makeText(d.desc, d.col, true);
 		}
-
 
 		emitResizeAtEndOfFrame();
 	}
 
 
-	public function getAllExposedTypes() : Map<String, ExposedType> {
+	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
+		return switch ttype {
+			case TInt, TFloat, TBool: 'var $name : ${ttype.getName()}';
+			case TInst(c, args): 'var $name : ${c.name}';
+			case TEnum(e, args): 'enum ${e.name}.$name';
+			case TFun(args, ret): 'function $name(${args.map(a->a.name).join(', ')}): ${ret.getName()}';
+			case TUnresolved(name): '?$name : (unresolved)';
+			// case TAbstract(a, args):
+			case _: '? $name : ${ttype.getName()}';
+		}
+	}
+
+	function getColorFromTType(ttype:hscript.Checker.TType) : Col {
+		return switch ttype {
+			case TInt, TFloat, TBool: White;
+			case TFun(_): Cyan;
+			case TEnum(e, args): Pink;
+			case TInst(_): Yellow;
+			case TUnresolved(_): Orange;
+			case _: Red; // Unknown type
+		}
+	}
+
+
+	function getAllExposedTypes() : Array<ExposedType> {
 		@:privateAccess
 		if( runner.checker==null )
 			runner.initChecker();
 
-		var allTypes : Map<String, ExposedType> = new Map();
+		var allTypes : Array<ExposedType> = [];
 
 		// Enums
 		@:privateAccess
 		for(e in runner.enums) {
-			allTypes.set(e.getName(), {
+			allTypes.push({
+				name: e.getName(),
 				category : T_Enum,
-				values : e.getConstructors().map( k->{
-					name: k,
-					details: null,
-					category: null,
+				values: e.getConstructors().map( k->{
+					desc: k,
+					col: Pink,
 				}),
 			});
 		}
@@ -210,29 +191,20 @@ class TypesExplorer extends dn.Process {
 		for(c in runner.classes) {
 			var name = Type.getClassName(c.cl);
 			var t : ExposedType = {
+				name: name,
 				category: c.instance!=null ? T_ClassInst : T_ClassDef,
 				values: [],
 			}
-			var classTType = runner.checker.types.resolve(name);
-			for(f in runner.checker.getFields(classTType) ) {
-				var name = f.name;
-				var field = switch f.t {
-					case TInt: t.values.push({ name:name, category:V_Var, details:'Int' });
-					case TUnresolved(_): t.values.push({ name:name, category:V_UnresolvedVar, details:null });
-					case TFloat: t.values.push({ name:name, category:V_Var, details:'Float' });
-					case TBool: t.values.push({ name:name, category:V_Var, details:'Bool' });
+			allTypes.push(t);
 
-					case TFun(args, ret):
-						t.values.push({
-							name:name,
-							category:V_Function,
-							details:'(${args.map(a->a.name).join(', ')}): ${ret.getName()}'
-						});
+			// List all class fields
+			for( f in runner.checker.getFields( runner.checker.types.resolve(name) ) )
+				t.values.push({
+					desc: getDescFromTType(f.name, f.t),
+					col: getColorFromTType(f.t),
+				});
 
-					case _: t.values.push({ name:name, category:V_Unknown, details:f.t.getName() });
-				}
-			}
-			allTypes.set(name, t);
+			t.values.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
 		}
 
 		return allTypes;
