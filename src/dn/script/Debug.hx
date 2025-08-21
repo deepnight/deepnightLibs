@@ -3,6 +3,7 @@ package dn.script;
 import hscript.Expr;
 import dn.Col;
 
+
 enum ExposedTypeCategory {
 	T_Enum;
 	T_ClassInst;
@@ -15,12 +16,17 @@ typedef ExposedType = {
 	var values : Array<{ desc:String, col:Col }>;
 }
 
-class TypesExplorer extends dn.Process {
+
+class Debug extends dn.Process {
 	var runner : Runner;
 
+	var minWidth : Int = 400;
 	var font : h2d.Font;
+	var wrapper : h2d.Flow;
+	var scriptFlow : h2d.Flow;
 	var typesFlow : h2d.Flow;
-	var selectedTypes : Map<String,Bool> = new Map();
+
+	var expands : Map<String,Bool> = new Map();
 
 	public function new(r:Runner, process:dn.Process) {
 		super(process);
@@ -33,19 +39,26 @@ class TypesExplorer extends dn.Process {
 
 		font = hxd.res.DefaultFont.get();
 
-		typesFlow = new h2d.Flow(root);
+		wrapper = new h2d.Flow(root);
+		wrapper.layout = Vertical;
+		wrapper.verticalSpacing = 1;
+		wrapper.minWidth = minWidth;
+
+		scriptFlow = new h2d.Flow(wrapper);
+		scriptFlow.layout = Vertical;
+
+		typesFlow = new h2d.Flow(wrapper);
 		typesFlow.layout = Vertical;
 		typesFlow.verticalSpacing = 1;
-		typesFlow.minWidth = 300;
 
 		render();
 	}
 
 	function toggleTypeSelection(type:String) {
-		if( selectedTypes.exists(type) )
-			selectedTypes.remove(type);
+		if( expands.exists(type) )
+			expands.remove(type);
 		else
-			selectedTypes.set(type, true);
+			expands.set(type, true);
 		render();
 	}
 
@@ -65,7 +78,7 @@ class TypesExplorer extends dn.Process {
 		function _makeButton(label:String, ?subLabel:String, cb:Void->Void) {
 			var col = new Col(0x1e1936).withAlpha(1);
 			var bt = new h2d.Flow(typesFlow);
-			bt.minWidth = typesFlow.minWidth;
+			bt.minWidth = minWidth;
 			bt.layout = Horizontal;
 			bt.horizontalSpacing = Std.int( gap*0.5 );
 			bt.verticalAlign = Middle;
@@ -110,7 +123,7 @@ class TypesExplorer extends dn.Process {
 			});
 
 			// Expand fields
-			if( selectedTypes.exists(t.name) ) {
+			if( expands.exists(t.name) ) {
 				for(v in t.values)
 					_makeText(v.desc, v.col, true);
 
@@ -121,7 +134,7 @@ class TypesExplorer extends dn.Process {
 		// Globals
 		var k = "<Globals>";
 		_makeButton(k, ()->toggleTypeSelection(k));
-		if( selectedTypes.exists(k) ) {
+		if( expands.exists(k) ) {
 			var all = [];
 
 			@:privateAccess
@@ -260,11 +273,12 @@ class TypesExplorer extends dn.Process {
 
 	override function onResize() {
 		super.onResize();
-		typesFlow.setScale( M.fmin(
-			dn.heaps.Scaler.bestFit_smart(640,480),
-			dn.heaps.Scaler.bestFit_smart(typesFlow.outerWidth, typesFlow.outerHeight)
+
+		wrapper.setScale( M.fmin(
+			dn.heaps.Scaler.bestFit_smart(800,600),
+			dn.heaps.Scaler.bestFit_smart(wrapper.outerWidth, wrapper.outerHeight)
 		));
-		typesFlow.x = stageWid - typesFlow.outerWidth * typesFlow.scaleX;
+		wrapper.x = stageWid - wrapper.outerWidth * wrapper.scaleX;
 	}
 }
 

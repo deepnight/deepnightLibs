@@ -225,8 +225,8 @@ class Runner {
 	}
 
 	#if heaps
-	public function createTypesExplorer(process:dn.Process) {
-		var te = new dn.script.TypesExplorer(this, process);
+	public function createDebug(process:dn.Process) {
+		var te = new dn.script.Debug(this, process);
 		return te;
 	}
 	#end
