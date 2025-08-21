@@ -45,7 +45,7 @@ class Runner {
 	public var lastRunUid(default,null) = 0;
 	public var lastError(default,null) : Null<ScriptError>;
 	var lastRunOutput : Null<Dynamic>;
-	public var origin(default,null) : String = "Runner";
+	public var origin : String = "Runner";
 
 	var enums : Array<Enum<Dynamic>> = [];
 	var classes : Array<ExposedClass> = [];
