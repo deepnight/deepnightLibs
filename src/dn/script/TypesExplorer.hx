@@ -18,12 +18,13 @@ enum ValueCategory {
 
 typedef ExposedType = {
 	var category : TypeCategory;
-	var values : Array<{ category:Null<ValueCategory>, name:String, type:Null<String> }>;
+	var values : Array<{ category:Null<ValueCategory>, name:String, details:Null<String> }>;
 }
 
 class TypesExplorer extends dn.Process {
 	var runner : Runner;
 
+	var font : h2d.Font;
 	var typesFlow : h2d.Flow;
 	var selectedTypes : Map<String,Bool> = new Map();
 
@@ -36,10 +37,12 @@ class TypesExplorer extends dn.Process {
 
 		runner = r;
 
+		font = hxd.res.DefaultFont.get();
+
 		typesFlow = new h2d.Flow(root);
 		typesFlow.layout = Vertical;
 		typesFlow.verticalSpacing = 1;
-		typesFlow.minWidth = 200;
+		typesFlow.minWidth = 300;
 
 		render();
 	}
@@ -57,7 +60,7 @@ class TypesExplorer extends dn.Process {
 		typesFlow.removeChildren();
 
 		function _makeText(v:Dynamic, col:Col=ColdLightGray, indent=false) {
-			var tf = new h2d.Text(hxd.res.DefaultFont.get(), typesFlow);
+			var tf = new h2d.Text(font, typesFlow);
 			tf.text = Std.string(v);
 			tf.textColor = col;
 			if( indent )
@@ -78,12 +81,12 @@ class TypesExplorer extends dn.Process {
 			bt.interactive.cursor = Button;
 			bt.interactive.backgroundColor = col;
 
-			var tf = new h2d.Text(hxd.res.DefaultFont.get(), bt);
+			var tf = new h2d.Text(font, bt);
 			tf.text = label;
 			tf.textColor = Yellow;
 
 			if( subLabel!=null) {
-				var subTf = new h2d.Text(hxd.res.DefaultFont.get(), bt);
+				var subTf = new h2d.Text(font, bt);
 				subTf.text = '($subLabel)';
 				subTf.textColor = WarmLightGray;
 			}
@@ -101,6 +104,7 @@ class TypesExplorer extends dn.Process {
 		}
 
 
+		// Exposed types
 		var allTypes = getAllExposedTypes();
 		for(e in allTypes.keyValueIterator()) {
 			var catLabel = switch e.value.category {
@@ -123,21 +127,59 @@ class TypesExplorer extends dn.Process {
 					}
 					var label = switch v.category {
 						case null: v.name;
-						case V_Var: 'var ${v.name} : ${v.type}';
+						case V_Var: 'var ${v.name} : ${v.details}';
 						case V_UnresolvedVar: 'var ${v.name} : (unresolved)';
-						case V_Function: 'function ${v.name}';
-						case V_Unknown: 'Unknown ${v.name} (${v.type})';
+						case V_Function: 'function ${v.name}${v.details}';
+						case V_Unknown: 'Unknown ${v.name} (${v.details})';
 					}
 					allLabels.push({ label:label, col:col });
 				}
 
-				allLabels.sort((a,b)->Reflect.compare(a.label,b.label));
+				allLabels.sort((a,b)->Reflect.compare(a.label.toLowerCase(), b.label.toLowerCase()));
 				for(l in allLabels)
 					_makeText(l.label, l.col, true);
 
 				typesFlow.addSpacing(gap);
 			}
 		}
+
+		// Globals
+		var k = "<Globals>";
+		_makeButton(k, ()->{
+			toggleTypeSelection(k);
+		});
+		if( selectedTypes.exists(k) ) {
+			var allLabels = [];
+
+			@:privateAccess
+			for( g in runner.checker.getGlobals().keyValueIterator() ) {
+				allLabels.push({
+					label: switch g.value {
+						case TInt, TFloat, TBool: 'var ${g.key} : ${g.value.getName()}';
+						case TInst(c, args): 'var ${g.key} : ${c.name}';
+						case TEnum(e, args): 'enum ${e.name}.${g.key}';
+						case TFun(args, ret): 'function ${g.key}(${args.map(a->a.name).join(', ')}): ${ret.getName()}';
+						case TUnresolved(name): '?${g.key} : (unresolved)';
+						// case TAbstract(a, args):
+						case _: '? ${g.key} : ${g.value.getName()}';
+					},
+					col: switch g.value {
+						case TInt, TFloat, TBool: White;
+						case TFun(_): Cyan;
+						case TEnum(e, args): Pink;
+						case TInst(_): Yellow;
+						case TUnresolved(_): Orange;
+						case _: Red; // Unknown type
+					}
+				});
+			}
+
+			allLabels.sort((a,b)->Reflect.compare(a.label.toLowerCase(), b.label.toLowerCase()));
+			for(l in allLabels)
+				_makeText(l.label, l.col, true);
+
+		}
+
 
 		emitResizeAtEndOfFrame();
 	}
@@ -157,7 +199,7 @@ class TypesExplorer extends dn.Process {
 				category : T_Enum,
 				values : e.getConstructors().map( k->{
 					name: k,
-					type: null,
+					details: null,
 					category: null,
 				}),
 			});
@@ -175,19 +217,19 @@ class TypesExplorer extends dn.Process {
 			for(f in runner.checker.getFields(classTType) ) {
 				var name = f.name;
 				var field = switch f.t {
-					case TInt: t.values.push({ name:name, category:V_Var, type:'Int' });
-					case TUnresolved(_): t.values.push({ name:name, category:V_UnresolvedVar, type:null });
-					case TFloat: t.values.push({ name:name, category:V_Var, type:'Float' });
-					case TBool: t.values.push({ name:name, category:V_Var, type:'Bool' });
+					case TInt: t.values.push({ name:name, category:V_Var, details:'Int' });
+					case TUnresolved(_): t.values.push({ name:name, category:V_UnresolvedVar, details:null });
+					case TFloat: t.values.push({ name:name, category:V_Var, details:'Float' });
+					case TBool: t.values.push({ name:name, category:V_Var, details:'Bool' });
 
 					case TFun(args, ret):
 						t.values.push({
 							name:name,
 							category:V_Function,
-							type:'(${args.map(a->a.name).join(', ')}): ${ret.getName()}'
+							details:'(${args.map(a->a.name).join(', ')}): ${ret.getName()}'
 						});
 
-					case _: t.values.push({ name:name, category:V_Unknown, type:f.t.getName() });
+					case _: t.values.push({ name:name, category:V_Unknown, details:f.t.getName() });
 				}
 			}
 			allTypes.set(name, t);
@@ -197,13 +239,14 @@ class TypesExplorer extends dn.Process {
 	}
 
 
+
 	override function onResize() {
 		super.onResize();
 		typesFlow.setScale( M.fmin(
 			dn.heaps.Scaler.bestFit_smart(640,480),
 			dn.heaps.Scaler.bestFit_smart(typesFlow.outerWidth, typesFlow.outerHeight)
 		));
-
+		typesFlow.x = stageWid - typesFlow.outerWidth * typesFlow.scaleX;
 	}
 }
 
