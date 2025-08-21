@@ -301,7 +301,7 @@ class Debug extends dn.Process {
 			case TFloat: 'Float';
 			case TBool: 'Bool';
 			case TDynamic: 'Dynamic';
-			case TUnresolved(name): name;
+			case TUnresolved(name): '?$name';
 			case TInst(c, args): c.name;
 			case TEnum(e, args): e.name;
 			case TAbstract(a, args): a.name;
