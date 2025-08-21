@@ -27,6 +27,8 @@ class Debug extends dn.Process {
 	var wrapper : h2d.Flow;
 	var scriptFlow : h2d.Flow;
 	var typesFlow : h2d.Flow;
+	var timerTf : h2d.Text;
+	var originTf : h2d.Text;
 
 	var expands : Map<String,Bool> = new Map();
 
@@ -46,6 +48,9 @@ class Debug extends dn.Process {
 		wrapper.verticalSpacing = gap;
 		wrapper.minWidth = minWidth;
 
+		timerTf = createText("", wrapper);
+		originTf = createText(runner.origin, wrapper);
+
 		scriptFlow = new h2d.Flow(wrapper);
 		scriptFlow.layout = Vertical;
 
@@ -55,11 +60,22 @@ class Debug extends dn.Process {
 		render();
 	}
 
-
+	inline function isCinematic() return runner is dn.script.runner.Cinematic;
+	inline function asCinematic() return Std.downcast(runner, dn.script.runner.Cinematic);
 
 	function render() {
 		renderScript();
 		renderTypes();
+		updateTimer();
+	}
+
+	function updateTimer() {
+		if( isCinematic() ) {
+			timerTf.text = M.pretty(asCinematic().runningTimeS, 2) + "s";
+			timerTf.visible = true;
+		}
+		else
+			timerTf.visible = false;
 	}
 
 
@@ -85,6 +101,10 @@ class Debug extends dn.Process {
 			if( runner.lastScriptExpr==null )
 				return;
 
+			createButton("Copy", ()->{
+				hxd.System.setClipboardText( runner.getLastScriptExprAsString() );
+			},p);
+
 			var raw = runner.getLastScriptExprAsString();
 			raw = StringTools.replace(raw, "\t", "   ");
 			raw = StringTools.replace(raw, "\r", "");
@@ -94,9 +114,6 @@ class Debug extends dn.Process {
 				else
 					createText(line, White, true, p);
 			}
-			createButton("Copy", ()->{
-				hxd.System.setClipboardText( runner.getLastScriptExprAsString() );
-			},p);
 		}, scriptFlow);
 	}
 
@@ -338,14 +355,20 @@ class Debug extends dn.Process {
 
 		wrapper.setScale( M.fmin(
 			dn.heaps.Scaler.bestFit_smart(800,600),
-			dn.heaps.Scaler.bestFit_smart(wrapper.outerWidth, wrapper.outerHeight)
+			dn.heaps.Scaler.bestFit_f(wrapper.outerWidth, wrapper.outerHeight)
 		));
 		wrapper.x = stageWid - wrapper.outerWidth * wrapper.scaleX;
 	}
 
+
 	var lastRunUid = -1;
 	override function update() {
 		super.update();
+
+		if( isCinematic() && asCinematic().hasScriptRunning() ) {
+			originTf.text = runner.origin;
+			updateTimer();
+		}
 
 		if( lastRunUid != runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
