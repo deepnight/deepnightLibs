@@ -153,6 +153,23 @@ class TypesExplorer extends dn.Process {
 		emitResizeAtEndOfFrame();
 	}
 
+	function getTTypeShortName(ttype:hscript.Checker.TType) : String {
+		return switch ttype {
+			case TInt: 'Int';
+			case TFloat: 'Float';
+			case TBool: 'Bool';
+			case TDynamic: 'Dynamic';
+			case TUnresolved(name): name;
+			case TInst(c, args): c.name;
+			case TEnum(e, args): e.name;
+			case TAbstract(a, args): a.name;
+			case TFun(args, ret): 'Callback';
+			case TVoid: 'Void';
+			case TNull(t): 'Null<${getTTypeShortName(t)}>';
+			case TAnon(fields): '{${fields.map(f->f.name).join(",")}}';
+			case _: '?';
+		}
+	}
 
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
@@ -160,8 +177,14 @@ class TypesExplorer extends dn.Process {
 			case TDynamic: 'instance "$name" => ${ttype.getName()}';
 			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
-			case TFun(args, ret): 'function $name( ${args.map(a->(a.opt?"?":"")+a.name+":"+a.t.getName()).join(', ')} ) : ${ret.getName()}';
 			case TUnresolved(typeName): 'var $name : ?$typeName (unresolved)';
+
+			case TFun(args, ret):
+				var argsStr = args.map(
+					a -> (a.opt?"?":"") + a.name + ":" + getTTypeShortName(a.t)
+				);
+				'function $name( ${argsStr.join(', ')} ) : ${ret.getName()}';
+
 			case _: '? $name : ${ttype.getName()}';
 		}
 	}
