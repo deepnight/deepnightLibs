@@ -125,11 +125,25 @@ class TypesExplorer extends dn.Process {
 			var all = [];
 
 			@:privateAccess
-			for( g in runner.checker.getGlobals().keyValueIterator() )
-				all.push({
-					desc: getDescFromTType(g.key, g.value),
-					col: getColorFromTType(g.value),
-				});
+			for( g in runner.checker.getGlobals().keyValueIterator() ) {
+				if( runner.isKeyword(g.key) ) {
+					// Keyword
+					all.push({
+						desc: switch g.value {
+							case TFun(args, ret): '< ${g.key}(...) >';
+							case _: '< ${g.key} >';
+						},
+						col: Col.coldMidGray(),
+					});
+				}
+				else {
+					// User-defined global
+					all.push({
+						desc: getDescFromTType(g.key, g.value),
+						col: getColorFromTType(g.value),
+					});
+				}
+			}
 
 			all.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
 			for(g in all)
@@ -142,12 +156,12 @@ class TypesExplorer extends dn.Process {
 
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
-			case TInt, TFloat, TBool, TDynamic: 'var $name : ${ttype.getName()}';
-			case TInst(c, args): 'var $name : ${c.name}';
+			case TInt, TFloat, TBool: 'var $name : ${ttype.getName()}';
+			case TDynamic: 'instance "$name" => ${ttype.getName()}';
+			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
 			case TFun(args, ret): 'function $name(${args.map(a->a.name+":"+a.t.getName()).join(', ')}) : ${ret.getName()}';
 			case TUnresolved(name): '?$name : (unresolved)';
-			// case TAbstract(a, args):
 			case _: '? $name : ${ttype.getName()}';
 		}
 	}

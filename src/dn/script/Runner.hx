@@ -115,7 +115,7 @@ class Runner {
 		});
 	}
 
-	function isKeyword(name:String) : Bool {
+	public function isKeyword(name:String) : Bool {
 		for( k in internalKeywords )
 			if( k.name==name )
 				return true;
