@@ -92,6 +92,7 @@ class Cinematic extends dn.script.Runner {
 
 	override function reportError(err:ScriptError) {
 		super.reportError(err);
+		running = false;
 		onScriptStopped(false);
 	}
 
