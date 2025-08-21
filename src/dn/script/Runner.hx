@@ -18,6 +18,11 @@ private typedef ExposedClass = {
 	var ?instance : { scriptName:Null<String>, ref:Dynamic, globalAccess:ScriptGlobalAccess };
 }
 
+private typedef ExposedFunction = {
+	var cl : Class<Dynamic>;
+	var f : { name:String, ref:Dynamic };
+}
+
 
 /**
 	Runner: an HScript wrapper that easily supports running and checking text scripts.
@@ -49,6 +54,7 @@ class Runner {
 
 	var enums : Array<Enum<Dynamic>> = [];
 	var classes : Array<ExposedClass> = [];
+	var functions : Array<ExposedFunction> = [];
 	var internalKeywords: Array<{ name:String, type:hscript.Checker.TType, ?instanceRef:Dynamic }> = [];
 
 	// If TRUE, throw errors instead of intercepeting them
@@ -107,9 +113,19 @@ class Runner {
 
 		enums = null;
 		classes = null;
+		functions = null;
+		internalKeywords = null;
 
 		lastScriptStr = null;
 		lastScriptExpr = null;
+		lastError = null;
+		lastRunOutput = null;
+		#if heaps
+		if( debug!=null ) {
+			debug.destroy();
+			debug = null;
+		}
+		#end
 	}
 
 
@@ -122,7 +138,7 @@ class Runner {
 	}
 
 
-	public function isKeyword(name:String) : Bool {
+	function isKeyword(name:String) : Bool {
 		for( k in internalKeywords )
 			if( k.name==name )
 				return true;
@@ -189,6 +205,38 @@ class Runner {
 	}
 
 
+	public function exposeFunction<T:Dynamic>(classOrInst:T, func:Dynamic, name:String) {
+		// Check class
+		var cl = switch Type.typeof(classOrInst) {
+			case TClass(c): c;
+			case _: Type.getClass(classOrInst);
+		}
+		if( cl==null ) {
+			emitError('Not a class or a class instance: $classOrInst');
+			return;
+		}
+
+		// Check method
+		switch Type.typeof(func) {
+			case TFunction:
+			case _:
+				emitError('Not a function: $func');
+				return;
+		}
+
+		if( !checkRtti(cl) )
+			return;
+
+		functions.push({
+			cl: cl,
+			f: {
+				name: name,
+				ref: func,
+			},
+		});
+	}
+
+
 	function checkRtti<T>(cl:Class<T>) : Bool {
 		if( haxe.rtti.Rtti.hasRtti(cl) ) {
 			// Check @:keep presence
@@ -242,7 +290,12 @@ class Runner {
 
 		var allXmls = [];
 
+		var doneClasses = new Map();
 		function _addClassRttiXml<T>(c:Class<T>) {
+			var id = Type.getClassName(c);
+			if( doneClasses.exists(id) )
+				return;
+			doneClasses.set(id, true);
 			var rtti = Reflect.field(c, "__rtti");
 			allXmls.push( Xml.parse(rtti) );
 		}
@@ -277,6 +330,9 @@ class Runner {
 			if( name.indexOf(".")>=0 )
 				_addTypeAliasXml(name.split(".").pop(), name);
 		}
+
+		for(f in functions)
+			_addClassRttiXml(f.cl);
 
 		_addTypeAliasXml("dn.Col", "Int");
 
@@ -326,6 +382,28 @@ class Runner {
 						}
 					case _:
 				}
+			}
+		}
+
+		for(fn in functions) {
+			var found = false;
+			var classTType = checker.types.resolve(Type.getClassName(fn.cl));
+			switch classTType {
+				case TInst(c, args):
+					for( field in c.fields ) {
+						if( field.name==fn.f.name) {
+							found = true;
+							checker.setGlobal(field.name, field.t);
+							break;
+						}
+					}
+
+				case _:
+					emitError('Not a class: ${fn.cl}');
+			}
+			if( !found ) {
+				emitError('Function "${fn.f.name}" not found in class ${Type.getClassName(fn.cl)}');
+				continue;
 			}
 		}
 
@@ -411,6 +489,12 @@ class Runner {
 						}
 				}
 			}
+		}
+
+		// Functions
+		for(fn in functions) {
+			var fields = Type.getInstanceFields(fn.cl);
+			interp.variables.set(fn.f.name, fn.f.ref);
 		}
 
 		// Enums
