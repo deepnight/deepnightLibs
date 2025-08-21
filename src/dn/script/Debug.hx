@@ -25,6 +25,7 @@ class Debug extends dn.Process {
 
 	var font : h2d.Font;
 	var wrapper : h2d.Flow;
+	var header : h2d.Flow;
 	var scriptFlow : h2d.Flow;
 	var typesFlow : h2d.Flow;
 	var timerTf : h2d.Text;
@@ -48,8 +49,19 @@ class Debug extends dn.Process {
 		wrapper.verticalSpacing = gap;
 		wrapper.minWidth = minWidth;
 
-		timerTf = createText("", wrapper);
-		originTf = createText(runner.origin, wrapper);
+		header = new h2d.Flow(wrapper);
+		header.layout = Horizontal;
+		header.horizontalSpacing = gap;
+		header.verticalAlign = Middle;
+
+		timerTf = createText("", header);
+		header.getProperties(timerTf).minWidth = 50;
+
+		originTf = createText(runner.origin, header);
+
+		var closeBt = createButton("x", destroy, header);
+		closeBt.scale(2);
+		header.getProperties(closeBt).horizontalAlign = Right;
 
 		scriptFlow = new h2d.Flow(wrapper);
 		scriptFlow.layout = Vertical;
@@ -58,6 +70,18 @@ class Debug extends dn.Process {
 		typesFlow.layout = Vertical;
 
 		render();
+	}
+
+	override function onDispose() {
+		super.onDispose();
+
+		@:privateAccess
+		if( runner.debug==this )
+			runner.debug = null;
+
+		runner = null;
+		expands = null;
+		font = null;
 	}
 
 	inline function isCinematic() return runner is dn.script.runner.Cinematic;
@@ -82,21 +106,31 @@ class Debug extends dn.Process {
 	function renderScript() {
 		scriptFlow.removeChildren();
 
-		createCollapsable("Script (original)", (p)->{
+		// Original script string
+		createCollapsable("Script (original)", runner.lastError!=null, (p)->{
 			if( runner.lastScriptStr==null )
 				return;
 
 			var raw = runner.lastScriptStr;
 			raw = StringTools.replace(raw, "\t", "   ");
 			raw = StringTools.replace(raw, "\r", "");
+
+			var i = 1;
 			for(line in raw.split("\n")) {
 				if( line.length==0 )
 					p.addSpacing(8);
-				else
-					createText(line, White, true, p);
+				else {
+					var lineWithNumber = Lib.padRight(Std.string(i), 4) + line;
+					if( runner.lastError!=null && runner.lastError.line==i )
+						createText( lineWithNumber+"    <--- "+runner.lastError.getErrorOnly(), Red, true, p);
+					else
+						createText( lineWithNumber, White, true, p);
+				}
+				i++;
 			}
 		}, scriptFlow);
 
+		// Converted script expr
 		createCollapsable("Script (converted)", (p)->{
 			if( runner.lastScriptExpr==null )
 				return;
@@ -169,8 +203,10 @@ class Debug extends dn.Process {
 		emitResizeAtEndOfFrame();
 	}
 
-	function createCollapsable(label:String, ?subLabel:String, renderContent:h2d.Flow->Void, p:h2d.Flow) {
+	function createCollapsable(label:String, ?subLabel:String, forceOpen=false, renderContent:h2d.Flow->Void, p:h2d.Flow) {
 		var id = label;
+		if( forceOpen )
+			expands.set(id, true);
 
 		var expandedWrapper = new h2d.Flow();
 		expandedWrapper.layout = Vertical;
@@ -361,7 +397,14 @@ class Debug extends dn.Process {
 	}
 
 
+	override function finalUpdate() {
+		super.finalUpdate();
+		header.minWidth = 0;
+		header.minWidth = wrapper.outerWidth;
+	}
+
 	var lastRunUid = -1;
+	var lastErrorUid = -1;
 	override function update() {
 		super.update();
 
@@ -370,8 +413,13 @@ class Debug extends dn.Process {
 			updateTimer();
 		}
 
-		if( lastRunUid != runner.lastRunUid ) {
+		if( lastRunUid!=runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
+			renderScript();
+		}
+
+		if( runner.lastError!=null && lastErrorUid!=runner.lastRunUid ) {
+			lastErrorUid = runner.lastRunUid;
 			renderScript();
 		}
 	}

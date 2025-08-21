@@ -43,6 +43,7 @@ class Runner {
 	public var lastScriptStr(default,null) : Null<String>;
 	public var lastScriptExpr(default,null) : Null<Expr>;
 	public var lastRunUid(default,null) = 0;
+	public var lastError(default,null) : Null<ScriptError>;
 	var lastRunOutput : Null<Dynamic>;
 	public var origin(default,null) : String = "Runner";
 
@@ -71,6 +72,10 @@ class Runner {
 	/** Last script output value typed as Bool. If the output isn't a valid Bool, this equals to FALSE. **/
 	public var output_bool(get,never) : Bool;
 
+
+	#if heaps
+	var debug : Null<dn.script.Debug>;
+	#end
 
 
 	#if( debug && !hscriptPos )
@@ -226,9 +231,10 @@ class Runner {
 	}
 
 	#if heaps
-	public function createDebug(process:dn.Process) {
-		var te = new dn.script.Debug(this, process);
-		return te;
+	public function openDebug(process:dn.Process) {
+		if( debug!=null )
+			return;
+		debug = new dn.script.Debug(this, process);
 	}
 	#end
 
@@ -539,6 +545,7 @@ class Runner {
 
 	function init() {
 		lastRunUid++;
+		lastError = null;
 		lastRunOutput = null;
 		lastScriptStr = null;
 		lastScriptExpr = null;
@@ -559,15 +566,18 @@ class Runner {
 	}
 
 	function reportError(err:ScriptError) {
-		#if hscriptPos
-			if( err.scriptStr!=null && err.line>0 )
-				printErrorInContext(err);
-			else
-				log(err.toString(), Red);
-		#else
-			log(err.toString(), Red);
-		#end
+		lastError = err;
 		onError(err);
+		if( debug==null ) {
+			#if hscriptPos
+				if( err.scriptStr!=null && err.line>0 )
+					printErrorInContext(err);
+				else
+					log(err.toString(), Red);
+			#else
+				log(err.toString(), Red);
+			#end
+		}
 	}
 
 
@@ -577,9 +587,9 @@ class Runner {
 		for(line in err.scriptStr.split("\n")) {
 			line = StringTools.replace(line, "\t", "  ");
 			if( err.line==i )
-				log( Lib.padRight(Std.string(i), 4) + line+"     <---- "+err.getErrorOnly(), err.line==i ? Red : White);
+				log( Lib.padRight(Std.string(i), 4) + line+"     <---- "+err.getErrorOnly(), Red);
 			else
-				log( Lib.padRight(Std.string(i), 4) + line, err.line==i ? Red : White);
+				log( Lib.padRight(Std.string(i), 4) + line, White);
 			i++;
 		}
 		log('-- EOF --', Cyan);
