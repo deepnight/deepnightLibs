@@ -2,6 +2,7 @@ package dn.script;
 
 import hscript.Expr;
 import dn.Col;
+import dn.script.TypesExplorer;
 
 #if !hscript
 #error "hscript lib is required"
@@ -217,40 +218,10 @@ class Runner {
 		return lastScriptExpr==null ? "" : printerExprToString(lastScriptExpr);
 	}
 
-	public function getAllExposedTypes() : Map<String, {category:String, values:Array<String>}> {
-		if( checker==null )
-			initChecker();
 
-		var allTypes = new Map();
-
-		// Enums
-		for(e in enums)
-			allTypes.set(e.getName(), { category:"enum", values:e.getConstructors() });
-
-		// Classes
-		for(c in classes) {
-			var fields = [];
-			var name = Type.getClassName(c.cl);
-			allTypes.set(name, {
-				category: c.instance!=null ? "class instance" : "class def",
-				values: fields,
-			});
-			var classTType = checker.types.resolve(name);
-			for(f in checker.getFields(classTType) ) {
-				var name = f.name;
-				var field = switch f.t {
-					case TInt: 'var $name : Int';
-					case TFloat: 'var $name : Float';
-					case TBool: 'var $name : Bool';
-					case TFun(args, ret): 'function $name';
-					case _: '(?${f.t.getName()}) $name';
-				}
-				fields.push(field);
-			}
-			fields.sort((a,b)->Reflect.compare(a,b));
-		}
-
-		return allTypes;
+	public function createTypesExplorer(process:dn.Process) {
+		var te = new TypesExplorer(this, process);
+		return te;
 	}
 
 
