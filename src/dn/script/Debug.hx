@@ -47,13 +47,16 @@ class Debug extends dn.Process {
 
 		wrapper = new h2d.Flow(root);
 		wrapper.layout = Vertical;
-		wrapper.verticalSpacing = gap;
+		wrapper.verticalSpacing = 1;
 		wrapper.minWidth = minWidth;
+		wrapper.backgroundTile = h2d.Tile.fromColor(baseColor.toBlack(0.5).withAlpha(0.85));
 
 		header = new h2d.Flow(wrapper);
+		header.paddingLeft = 4;
 		header.layout = Horizontal;
 		header.horizontalSpacing = gap;
 		header.verticalAlign = Middle;
+		header.backgroundTile = h2d.Tile.fromColor(baseColor.toWhite(0.25));
 
 		timerTf = createText("", header);
 		header.getProperties(timerTf).minWidth = 50;
@@ -61,7 +64,6 @@ class Debug extends dn.Process {
 		originTf = createText(runner.origin, header);
 
 		var closeBt = createButton("x", destroy, header);
-		closeBt.scale(2);
 		header.getProperties(closeBt).horizontalAlign = Right;
 
 		scriptFlow = new h2d.Flow(wrapper);
@@ -214,7 +216,6 @@ class Debug extends dn.Process {
 		expandedWrapper.layout = Vertical;
 		expandedWrapper.verticalSpacing = 1;
 		expandedWrapper.paddingBottom = gap;
-		expandedWrapper.backgroundTile = h2d.Tile.fromColor(baseColor.toBlack(0.5).withAlpha(0.85));
 
 		var bt : h2d.Flow;
 		function _renderCollapsable() {
