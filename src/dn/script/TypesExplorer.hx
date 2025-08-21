@@ -18,7 +18,7 @@ enum ValueCategory {
 
 typedef ExposedType = {
 	var category : TypeCategory;
-	var values : Array<{ category:ValueCategory, name:String, ?type:String }>;
+	var values : Array<{ category:Null<ValueCategory>, name:String, type:Null<String> }>;
 }
 
 class TypesExplorer extends dn.Process {
@@ -38,6 +38,8 @@ class TypesExplorer extends dn.Process {
 
 		typesFlow = new h2d.Flow(root);
 		typesFlow.layout = Vertical;
+		typesFlow.verticalSpacing = 1;
+		typesFlow.minWidth = 200;
 
 		render();
 	}
@@ -64,13 +66,17 @@ class TypesExplorer extends dn.Process {
 		}
 
 		function _makeButton(label:String, ?subLabel:String, cb:Void->Void) {
+			var col = new Col(0x1e1936).withAlpha(1);
 			var bt = new h2d.Flow(typesFlow);
+			bt.minWidth = typesFlow.minWidth;
 			bt.layout = Horizontal;
 			bt.horizontalSpacing = Std.int( gap*0.5 );
 			bt.verticalAlign = Middle;
 			bt.padding = 4;
+
 			bt.enableInteractive = true;
-			bt.interactive.backgroundColor = ColdDarkGray;
+			bt.interactive.cursor = Button;
+			bt.interactive.backgroundColor = col;
 
 			var tf = new h2d.Text(hxd.res.DefaultFont.get(), bt);
 			tf.text = label;
@@ -83,8 +89,14 @@ class TypesExplorer extends dn.Process {
 			}
 
 			bt.interactive.onClick = ev->cb();
-			bt.interactive.onOver = _->tf.textColor = White;
-			bt.interactive.onOut = _->tf.textColor = Yellow;
+			bt.interactive.onOver = _->{
+				bt.interactive.backgroundColor = col.toWhite(0.25);
+				tf.textColor = White;
+			}
+			bt.interactive.onOut = _->{
+				bt.interactive.backgroundColor = col;
+				tf.textColor = Yellow;
+			}
 			return bt;
 		}
 
@@ -103,12 +115,14 @@ class TypesExplorer extends dn.Process {
 				var allLabels = [];
 				for(v in e.value.values) {
 					var col = switch v.category {
+						case null: White;
 						case V_Var: White;
 						case V_UnresolvedVar: Orange;
 						case V_Function: Cyan;
 						case V_Unknown: Red;
 					}
 					var label = switch v.category {
+						case null: v.name;
 						case V_Var: 'var ${v.name} : ${v.type}';
 						case V_UnresolvedVar: 'var ${v.name} : (unresolved)';
 						case V_Function: 'function ${v.name}';
@@ -144,7 +158,7 @@ class TypesExplorer extends dn.Process {
 				values : e.getConstructors().map( k->{
 					name: k,
 					type: null,
-					category: V_Var,
+					category: null,
 				}),
 			});
 		}
