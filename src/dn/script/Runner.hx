@@ -218,12 +218,12 @@ class Runner {
 		return lastScriptExpr==null ? "" : printerExprToString(lastScriptExpr);
 	}
 
-
+	#if heaps
 	public function createTypesExplorer(process:dn.Process) {
 		var te = new TypesExplorer(this, process);
 		return te;
 	}
-
+	#end
 
 	function initChecker() {
 		checker = new hscript.Checker();
