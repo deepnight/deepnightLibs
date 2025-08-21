@@ -120,22 +120,20 @@ class TypesExplorer extends dn.Process {
 
 		// Globals
 		var k = "<Globals>";
-		_makeButton(k, ()->{
-			toggleTypeSelection(k);
-		});
+		_makeButton(k, ()->toggleTypeSelection(k));
 		if( selectedTypes.exists(k) ) {
-			var allDescs = [];
+			var all = [];
 
 			@:privateAccess
 			for( g in runner.checker.getGlobals().keyValueIterator() )
-				allDescs.push({
+				all.push({
 					desc: getDescFromTType(g.key, g.value),
 					col: getColorFromTType(g.value),
 				});
 
-			allDescs.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
-			for(d in allDescs)
-				_makeText(d.desc, d.col, true);
+			all.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
+			for(g in all)
+				_makeText(g.desc, g.col, true);
 		}
 
 		emitResizeAtEndOfFrame();
