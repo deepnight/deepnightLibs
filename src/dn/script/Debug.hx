@@ -30,6 +30,7 @@ class Debug extends dn.Process {
 	var scriptFlow : h2d.Flow;
 	var typesFlow : h2d.Flow;
 	var timerTf : h2d.Text;
+	var outputTf : h2d.Text;
 	var originTf : h2d.Text;
 
 	var expands : Map<String,Bool> = new Map();
@@ -54,12 +55,15 @@ class Debug extends dn.Process {
 		header = new h2d.Flow(wrapper);
 		header.paddingLeft = 4;
 		header.layout = Horizontal;
-		header.horizontalSpacing = gap;
 		header.verticalAlign = Middle;
 		header.backgroundTile = h2d.Tile.fromColor(baseColor.toWhite(0.25));
 
 		timerTf = createText("", header);
 		header.getProperties(timerTf).minWidth = 50;
+
+		createText("out=", header);
+		outputTf = createText(runner.origin, header);
+		header.getProperties(outputTf).minWidth = 50;
 
 		originTf = createText(runner.origin, header);
 
@@ -420,6 +424,9 @@ class Debug extends dn.Process {
 
 		if( originTf.text!=runner.origin )
 			originTf.text = runner.origin;
+
+		if( outputTf.text!=runner.output )
+			outputTf.text = Std.string(runner.output);
 
 		if( isCinematic() && asCinematic().hasScriptRunning() )
 			updateTimer();
