@@ -142,10 +142,10 @@ class TypesExplorer extends dn.Process {
 
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
-			case TInt, TFloat, TBool: 'var $name : ${ttype.getName()}';
+			case TInt, TFloat, TBool, TDynamic: 'var $name : ${ttype.getName()}';
 			case TInst(c, args): 'var $name : ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
-			case TFun(args, ret): 'function $name(${args.map(a->a.name).join(', ')}): ${ret.getName()}';
+			case TFun(args, ret): 'function $name(${args.map(a->a.name+":"+a.t.getName()).join(', ')}) : ${ret.getName()}';
 			case TUnresolved(name): '?$name : (unresolved)';
 			// case TAbstract(a, args):
 			case _: '? $name : ${ttype.getName()}';
@@ -155,10 +155,20 @@ class TypesExplorer extends dn.Process {
 	function getColorFromTType(ttype:hscript.Checker.TType) : Col {
 		return switch ttype {
 			case TInt, TFloat, TBool: White;
-			case TFun(_): Cyan;
 			case TEnum(e, args): Pink;
 			case TInst(_): Yellow;
-			case TUnresolved(_): Orange;
+			case TUnresolved(_): Red;
+			case TDynamic: Orange;
+
+			case TFun(args, ret):
+				var col = Cyan;
+				for(a in args)
+					switch a.t {
+						case TUnresolved(name): col = Red; // override color for unresolved args
+						case _:
+					}
+				col;
+
 			case _: Red; // Unknown type
 		}
 	}
