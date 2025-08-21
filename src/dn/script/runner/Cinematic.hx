@@ -25,7 +25,7 @@ class Cinematic extends dn.script.Runner {
 
 		addInternalKeyword("delayExecutionS", TDynamic, api_delayExecutionS);
 		addInternalKeyword("waitUntil", TDynamic, api_waitUntil);
-		addInternalKeyword("wait", TFun([],TVoid)); // turned into a delayExecutionS() call at conversion time
+		addInternalKeyword("wait", TDynamic); // turned into a delayExecutionS() call at conversion time
 	}
 
 	inline function makeUniqId() {

@@ -167,7 +167,8 @@ class TypesExplorer extends dn.Process {
 			case TVoid: 'Void';
 			case TNull(t): 'Null<${getTTypeShortName(t)}>';
 			case TAnon(fields): '{${fields.map(f->f.name).join(",")}}';
-			case _: '?';
+			case TType(t, args): t.name;
+			case _: '?${ttype.getName()}';
 		}
 	}
 
@@ -183,7 +184,7 @@ class TypesExplorer extends dn.Process {
 				var argsStr = args.map(
 					a -> (a.opt?"?":"") + a.name + ":" + getTTypeShortName(a.t)
 				);
-				'function $name( ${argsStr.join(', ')} ) : ${ret.getName()}';
+				'function $name( ${argsStr.join(', ')} ) : ${getTTypeShortName(ret)}';
 
 			case _: '? $name : ${ttype.getName()}';
 		}
