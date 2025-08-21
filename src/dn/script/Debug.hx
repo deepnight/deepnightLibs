@@ -21,6 +21,8 @@ class Debug extends dn.Process {
 	var runner : Runner;
 
 	var minWidth : Int = 400;
+	var gap = 8;
+
 	var font : h2d.Font;
 	var wrapper : h2d.Flow;
 	var scriptFlow : h2d.Flow;
@@ -41,7 +43,7 @@ class Debug extends dn.Process {
 
 		wrapper = new h2d.Flow(root);
 		wrapper.layout = Vertical;
-		wrapper.verticalSpacing = 1;
+		wrapper.verticalSpacing = gap;
 		wrapper.minWidth = minWidth;
 
 		scriptFlow = new h2d.Flow(wrapper);
@@ -49,66 +51,58 @@ class Debug extends dn.Process {
 
 		typesFlow = new h2d.Flow(wrapper);
 		typesFlow.layout = Vertical;
-		typesFlow.verticalSpacing = 1;
 
 		render();
 	}
 
-	function toggleTypeSelection(type:String) {
-		if( expands.exists(type) )
-			expands.remove(type);
-		else
-			expands.set(type, true);
-		render();
-	}
+
 
 	function render() {
-		var gap = 8;
+		renderScript();
+		renderTypes();
+	}
+
+
+	function renderScript() {
+		scriptFlow.removeChildren();
+
+		createCollapsable("Script (original)", (p)->{
+			if( runner.lastScriptStr==null )
+				return;
+
+			var raw = runner.lastScriptStr;
+			raw = StringTools.replace(raw, "\t", "   ");
+			raw = StringTools.replace(raw, "\r", "");
+			for(line in raw.split("\n")) {
+				if( line.length==0 )
+					p.addSpacing(8);
+				else
+					createText(line, White, true, p);
+			}
+		}, scriptFlow);
+
+		createCollapsable("Script (converted)", (p)->{
+			if( runner.lastScriptExpr==null )
+				return;
+
+			var raw = runner.getLastScriptExprAsString();
+			raw = StringTools.replace(raw, "\t", "   ");
+			raw = StringTools.replace(raw, "\r", "");
+			for(line in raw.split("\n")) {
+				if( line.length==0 )
+					p.addSpacing(8);
+				else
+					createText(line, White, true, p);
+			}
+			createButton("Copy", ()->{
+				hxd.System.setClipboardText( runner.getLastScriptExprAsString() );
+			},p);
+		}, scriptFlow);
+	}
+
+
+	function renderTypes() {
 		typesFlow.removeChildren();
-
-		function _makeText(v:Dynamic, col:Col=ColdLightGray, indent=false) {
-			var tf = new h2d.Text(font, typesFlow);
-			tf.text = Std.string(v);
-			tf.textColor = col;
-			if( indent )
-				typesFlow.getProperties(tf).paddingLeft = gap;
-			return tf;
-		}
-
-		function _makeButton(label:String, ?subLabel:String, cb:Void->Void) {
-			var col = new Col(0x1e1936).withAlpha(1);
-			var bt = new h2d.Flow(typesFlow);
-			bt.minWidth = minWidth;
-			bt.layout = Horizontal;
-			bt.horizontalSpacing = Std.int( gap*0.5 );
-			bt.verticalAlign = Middle;
-			bt.padding = 4;
-
-			bt.enableInteractive = true;
-			bt.interactive.cursor = Button;
-			bt.interactive.backgroundColor = col;
-
-			var tf = new h2d.Text(font, bt);
-			tf.text = label;
-			tf.textColor = Yellow;
-
-			if( subLabel!=null) {
-				var subTf = new h2d.Text(font, bt);
-				subTf.text = '($subLabel)';
-				subTf.textColor = WarmLightGray;
-			}
-
-			bt.interactive.onClick = ev->cb();
-			bt.interactive.onOver = _->{
-				bt.interactive.backgroundColor = col.toWhite(0.25);
-				tf.textColor = White;
-			}
-			bt.interactive.onOut = _->{
-				bt.interactive.backgroundColor = col;
-				tf.textColor = Yellow;
-			}
-			return bt;
-		}
 
 		// Exposed types
 		var allTypes = getAllExposedTypes();
@@ -118,23 +112,15 @@ class Debug extends dn.Process {
 				case T_ClassInst: 'Class Instance';
 				case T_ClassDef: 'Class Definition';
 			}
-			_makeButton(t.name, catLabel, ()->{
-				toggleTypeSelection(t.name);
-			});
-
-			// Expand fields
-			if( expands.exists(t.name) ) {
+			createCollapsable(t.name, catLabel, (p)->{
 				for(v in t.values)
-					_makeText(v.desc, v.col, true);
-
-				typesFlow.addSpacing(gap);
-			}
+					createText(v.desc, v.col, true, p);
+			}, typesFlow);
 		}
 
 		// Globals
 		var k = "<Globals>";
-		_makeButton(k, ()->toggleTypeSelection(k));
-		if( expands.exists(k) ) {
+		createCollapsable(k, (p)->{
 			var all = [];
 
 			@:privateAccess
@@ -160,10 +146,86 @@ class Debug extends dn.Process {
 
 			all.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
 			for(g in all)
-				_makeText(g.desc, g.col, true);
-		}
+				createText(g.desc, g.col, true, p);
+		}, typesFlow);
 
 		emitResizeAtEndOfFrame();
+	}
+
+	function createCollapsable(label:String, ?subLabel:String, renderContent:h2d.Flow->Void, p:h2d.Flow) {
+		var id = label;
+
+		var expandedWrapper = new h2d.Flow();
+		expandedWrapper.layout = Vertical;
+		expandedWrapper.verticalSpacing = 1;
+		expandedWrapper.paddingBottom = gap;
+
+		function _renderCollapsable() {
+			expandedWrapper.visible = expands.exists(id);
+			if( expands.exists(id) )
+				renderContent(expandedWrapper);
+			else
+				expandedWrapper.removeChildren();
+			emitResizeAtEndOfFrame();
+		}
+
+		var bt = createButton(label, subLabel, 0x1e1936, ()->{
+			if( expands.exists(id) )
+				expands.remove(id);
+			else
+				expands.set(id, true);
+			_renderCollapsable();
+		}, p);
+		bt.minWidth = minWidth;
+		p.addChild(expandedWrapper);
+
+		_renderCollapsable();
+		return bt;
+	}
+
+	function createText(v:Dynamic, col:Col=ColdLightGray, indent=false, p:h2d.Flow) {
+		var tf = new h2d.Text(font, p);
+		tf.text = Std.string(v);
+		tf.textColor = col;
+		if( indent )
+			p.getProperties(tf).paddingLeft = gap;
+		return tf;
+	}
+
+
+	function createButton(label:String, ?subLabel:String, col:Col=0xd90c24, cb:Void->Void, p:h2d.Flow) {
+		var col = col.withAlpha(1);
+		var bt = new h2d.Flow(p);
+		bt.layout = Horizontal;
+		bt.horizontalSpacing = Std.int( gap*0.5 );
+		bt.verticalAlign = Middle;
+		bt.padding = 4;
+		bt.paddingTop = 2;
+		bt.paddingBottom = 6;
+
+		bt.enableInteractive = true;
+		bt.interactive.cursor = Button;
+		bt.interactive.backgroundColor = col;
+
+		var tf = new h2d.Text(font, bt);
+		tf.text = label;
+		tf.textColor = White;
+
+		if( subLabel!=null) {
+			var subTf = new h2d.Text(font, bt);
+			subTf.text = '($subLabel)';
+			subTf.textColor = White;
+			subTf.alpha = 0.6;
+		}
+
+		bt.interactive.onClick = ev->cb();
+		bt.interactive.onOver = _->{
+			bt.interactive.backgroundColor = col.toWhite(0.25);
+		}
+		bt.interactive.onOut = _->{
+			bt.interactive.backgroundColor = col;
+		}
+		return bt;
 	}
 
 	function getTTypeShortName(ttype:hscript.Checker.TType) : String {
@@ -279,6 +341,16 @@ class Debug extends dn.Process {
 			dn.heaps.Scaler.bestFit_smart(wrapper.outerWidth, wrapper.outerHeight)
 		));
 		wrapper.x = stageWid - wrapper.outerWidth * wrapper.scaleX;
+	}
+
+	var lastRunUid = -1;
+	override function update() {
+		super.update();
+
+		if( lastRunUid != runner.lastRunUid ) {
+			lastRunUid = runner.lastRunUid;
+			renderScript();
+		}
 	}
 }
 

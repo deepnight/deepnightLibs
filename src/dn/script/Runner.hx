@@ -42,6 +42,7 @@ class Runner {
 	var checker : Null<hscript.Checker>;
 	public var lastScriptStr(default,null) : Null<String>;
 	public var lastScriptExpr(default,null) : Null<Expr>;
+	public var lastRunUid(default,null) = 0;
 	var lastRunOutput : Null<Dynamic>;
 	var origin : String = "Runner";
 
@@ -537,6 +538,7 @@ class Runner {
 
 
 	function init() {
+		lastRunUid++;
 		lastRunOutput = null;
 		lastScriptStr = null;
 		lastScriptExpr = null;
