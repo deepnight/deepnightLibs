@@ -22,6 +22,7 @@ class Debug extends dn.Process {
 
 	var minWidth : Int = 400;
 	var gap = 8;
+	var baseColor : Col = 0x1e1936;
 
 	var font : h2d.Font;
 	var wrapper : h2d.Flow;
@@ -209,20 +210,28 @@ class Debug extends dn.Process {
 			expands.set(id, true);
 
 		var expandedWrapper = new h2d.Flow();
+		expandedWrapper.minWidth = minWidth;
 		expandedWrapper.layout = Vertical;
 		expandedWrapper.verticalSpacing = 1;
 		expandedWrapper.paddingBottom = gap;
+		expandedWrapper.backgroundTile = h2d.Tile.fromColor(baseColor.toBlack(0.5).withAlpha(0.85));
 
+		var bt : h2d.Flow;
 		function _renderCollapsable() {
 			expandedWrapper.visible = expands.exists(id);
-			if( expands.exists(id) )
+			if( expands.exists(id) ) {
 				renderContent(expandedWrapper);
-			else
+				bt.minWidth = M.imax(minWidth, expandedWrapper.outerWidth);
+
+			}
+			else {
 				expandedWrapper.removeChildren();
+				bt.minWidth = minWidth;
+			}
 			emitResizeAtEndOfFrame();
 		}
 
-		var bt = createButton(label, subLabel, 0x1e1936, ()->{
+		bt = createButton(label, subLabel, baseColor, ()->{
 			if( expands.exists(id) )
 				expands.remove(id);
 			else
