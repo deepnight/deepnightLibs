@@ -2,7 +2,6 @@ package dn.script;
 
 import hscript.Expr;
 import dn.Col;
-import dn.script.TypesExplorer;
 
 #if !hscript
 #error "hscript lib is required"
@@ -220,7 +219,7 @@ class Runner {
 
 	#if heaps
 	public function createTypesExplorer(process:dn.Process) {
-		var te = new TypesExplorer(this, process);
+		var te = new dn.script.TypesExplorer(this, process);
 		return te;
 	}
 	#end
