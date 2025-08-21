@@ -50,7 +50,7 @@ class TypesExplorer extends dn.Process {
 	}
 
 	function render() {
-		var gap = 16;
+		var gap = 8;
 		typesFlow.removeChildren();
 
 		function _makeText(v:Dynamic, col:Col=ColdLightGray, indent=false) {
@@ -160,7 +160,7 @@ class TypesExplorer extends dn.Process {
 			case TDynamic: 'instance "$name" => ${ttype.getName()}';
 			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
-			case TFun(args, ret): 'function $name(${args.map(a->a.name+":"+a.t.getName()).join(', ')}) : ${ret.getName()}';
+			case TFun(args, ret): 'function $name( ${args.map(a->(a.opt?"?":"")+a.name+":"+a.t.getName()).join(', ')} ) : ${ret.getName()}';
 			case TUnresolved(typeName): 'var $name : ?$typeName (unresolved)';
 			case _: '? $name : ${ttype.getName()}';
 		}
