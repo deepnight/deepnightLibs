@@ -7,9 +7,15 @@ import dn.Col;
 #error "hscript lib is required"
 #end
 
+enum ScriptGlobalAccess {
+	None;
+	PublicFields;
+	PublicAndPrivateFields;
+}
+
 private typedef ExposedClass = {
 	var cl : Class<Dynamic>;
-	var ?instance : { scriptName:Null<String>, ref:Dynamic, globalFields:Bool }
+	var ?instance : { scriptName:Null<String>, ref:Dynamic, globalAccess:ScriptGlobalAccess };
 }
 
 
@@ -133,7 +139,7 @@ class Runner {
 
 		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
-	public function exposeClassInstance<T:Dynamic>(?nameInScript:String, instance:Dynamic, ?interfaceInScript:Class<T>, makeFieldsGlobals=false) {
+	public function exposeClassInstance<T:Dynamic>(instance:Dynamic, ?interfaceInScript:Class<T>, ?nameInScript:String,globalAccess:ScriptGlobalAccess=None) {
 		// Check instance validity
 		switch Type.typeof(instance) {
 			case TClass(c):
@@ -155,7 +161,7 @@ class Runner {
 			instance: {
 				scriptName: nameInScript,
 				ref: instance,
-				globalFields: makeFieldsGlobals,
+				globalAccess: globalAccess,
 			},
 		});
 	}
@@ -304,11 +310,15 @@ class Runner {
 					checker.setGlobal(ac.instance.scriptName, tt);
 
 				// Optionally: register this class instance fields as globals
-				if( ac.instance.globalFields )
-					switch tt {
-						case TInst(c, args): checker.setGlobals(c, args, true); // TODO true means PRIVATES included, is this ok?
-						case _:
-					}
+				switch tt {
+					case TInst(c, args):
+						switch ac.instance.globalAccess {
+							case None:
+							case PublicFields: checker.setGlobals(c, args, false);
+							case PublicAndPrivateFields: checker.setGlobals(c, args, true);
+						}
+					case _:
+				}
 			}
 		}
 
@@ -378,16 +388,20 @@ class Runner {
 			interp.variables.set(className.split(".").pop(), c.cl); // expose class name alone (wthout package)
 
 			// Copy all instance fields as globals in script
-			if( c.instance!=null && c.instance.globalFields ) {
-				var fields = Type.getInstanceFields( Type.getClass(c.instance.ref));
-				for( f in fields ) {
-					if( f.substr(0,4)=="set_" )
-						continue;
+			if( c.instance!=null ) {
+				switch c.instance.globalAccess {
+					case None:
+					case PublicFields, PublicAndPrivateFields:
+						var fields = Type.getInstanceFields( Type.getClass(c.instance.ref));
+						for( f in fields ) {
+							if( f.substr(0,4)=="set_" )
+								continue;
 
-					if( f.substr(0,4)=="get_" )
-						f = f.substr(4);
+							if( f.substr(0,4)=="get_" )
+								f = f.substr(4);
 
-					interp.variables.set(f, Reflect.getProperty(c.instance.ref, f));
+							interp.variables.set(f, Reflect.getProperty(c.instance.ref, f));
+						}
 				}
 			}
 		}
