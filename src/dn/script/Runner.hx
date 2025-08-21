@@ -279,9 +279,9 @@ class Runner {
 
 		// Register all enum values as globals
 		for(e in enums) {
-			var tt = checker.types.resolve( e.getName() );
+			var enumTType = checker.types.resolve( e.getName() );
 			for( k in e.getConstructors() )
-				checker.setGlobal(k, tt);
+				checker.setGlobal(k, enumTType);
 		}
 
 		// Classes
