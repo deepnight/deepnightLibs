@@ -217,7 +217,7 @@ class Debug extends dn.Process {
 		expandedWrapper.verticalSpacing = 1;
 		expandedWrapper.paddingBottom = gap;
 
-		var bt : h2d.Flow;
+		var bt : h2d.Flow = null;
 		function _renderCollapsable() {
 			expandedWrapper.visible = expands.exists(id);
 			if( expands.exists(id) ) {
@@ -418,10 +418,11 @@ class Debug extends dn.Process {
 	override function update() {
 		super.update();
 
-		if( isCinematic() && asCinematic().hasScriptRunning() ) {
+		if( originTf.text!=runner.origin )
 			originTf.text = runner.origin;
+
+		if( isCinematic() && asCinematic().hasScriptRunning() )
 			updateTimer();
-		}
 
 		if( lastRunUid!=runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
