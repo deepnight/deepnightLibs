@@ -205,7 +205,7 @@ class Runner {
 	}
 
 
-	public function exposeFunction<T:Dynamic>(classOrInst:T, func:Dynamic, name:String) {
+	public function exposeFunction<T:Dynamic>(classOrInst:T, func:Dynamic) {
 		// Check class
 		var cl = switch Type.typeof(classOrInst) {
 			case TClass(c): c;
@@ -227,6 +227,19 @@ class Runner {
 		if( !checkRtti(cl) )
 			return;
 
+		// Resolve function name
+		var name : String = null;
+		for(f in Type.getInstanceFields(cl) )
+			if( Reflect.getProperty(classOrInst,f)==func ) {
+				name = f;
+				break;
+			}
+		if( name==null ) {
+			emitError('Cannot resolve function name for $func in class $cl');
+			return;
+		}
+
+		// Register
 		functions.push({
 			cl: cl,
 			f: {
@@ -402,7 +415,7 @@ class Runner {
 					emitError('Not a class: ${fn.cl}');
 			}
 			if( !found ) {
-				emitError('Function "${fn.f.name}" not found in class ${Type.getClassName(fn.cl)}');
+				emitError('Function "${fn.f.name}" cannot be typed in ${Type.getClassName(fn.cl)} (inherited maybe?)');
 				continue;
 			}
 		}
