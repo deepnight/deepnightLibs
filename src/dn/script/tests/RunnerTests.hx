@@ -10,7 +10,7 @@ class RunnerTests {
 		var r = new Runner();
 		r.log = (str,?col)->{}
 		r.rethrowErrors = true;
-		r.exposeClassInstance("api", api, true);
+		r.exposeClassInstance(api, "api", PublicFields);
 
 		var script = "
 			var x = 0;
