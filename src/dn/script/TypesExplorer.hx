@@ -131,7 +131,7 @@ class TypesExplorer extends dn.Process {
 					all.push({
 						desc: switch g.value {
 							case TFun(args, ret): '< ${g.key}(...) >';
-							case _: '< ${g.key} >';
+							case _: '< ${g.key} : ${g.value} >';
 						},
 						col: Col.coldMidGray(),
 					});
@@ -161,7 +161,7 @@ class TypesExplorer extends dn.Process {
 			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
 			case TFun(args, ret): 'function $name(${args.map(a->a.name+":"+a.t.getName()).join(', ')}) : ${ret.getName()}';
-			case TUnresolved(name): '?$name : (unresolved)';
+			case TUnresolved(typeName): 'var $name : ?$typeName (unresolved)';
 			case _: '? $name : ${ttype.getName()}';
 		}
 	}

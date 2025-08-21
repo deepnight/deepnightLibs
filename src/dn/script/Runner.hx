@@ -47,7 +47,7 @@ class Runner {
 
 	var enums : Array<Enum<Dynamic>> = [];
 	var classes : Array<ExposedClass> = [];
-	var internalKeywords: Array<{ name:String, type:hscript.Checker.TType, ?func:Dynamic }> = [];
+	var internalKeywords: Array<{ name:String, type:hscript.Checker.TType, ?instanceRef:Dynamic }> = [];
 
 	// If TRUE, throw errors instead of intercepeting them
 	public var rethrowErrors = false;
@@ -107,11 +107,25 @@ class Runner {
 	}
 
 
-	function addInternalKeyword(name:String, ?type:hscript.Checker.TType, ?func:Dynamic) {
+	function addInternalKeyword(name:String, ?type:hscript.Checker.TType, ?instance:Dynamic) {
+		// Guess type if not provided
+		if( type==null && instance!=null )
+			type = switch Type.typeof(instance) {
+				case TNull: TNull(TDynamic);
+				case TInt: TInt;
+				case TFloat: TFloat;
+				case TBool: TBool;
+				case TObject: TDynamic;
+				case TFunction: TFun([],TVoid);
+				case TClass(c): TDynamic;
+				case TEnum(e): TDynamic;
+				case TUnknown: TUnresolved("UnknownType");
+			}
+
 		internalKeywords.push({
 			name: name,
-			type: type??TDynamic,
-			func: func,
+			type: type,
+			instanceRef: instance,
 		});
 	}
 
@@ -417,10 +431,10 @@ class Runner {
 		}
 
 
-		// Bind internal keyword functions
+		// Bind internal keyword references to instances
 		for(k in internalKeywords)
-			if( k.func!=null )
-				interp.variables.set(k.name, k.func);
+			if( k.instanceRef!=null )
+				interp.variables.set(k.name, k.instanceRef);
 
 		// Internal Runner stuff
 		interp.variables.set("makeIterator_int", @:privateAccess interp.makeIterator);
