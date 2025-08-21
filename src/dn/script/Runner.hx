@@ -231,10 +231,9 @@ class Runner {
 	}
 
 	#if heaps
-	public function openDebug(process:dn.Process) {
-		if( debug!=null )
-			return;
-		debug = new dn.script.Debug(this, process);
+	public function openDebug(ctx:h2d.Object, process:dn.Process) {
+		if( debug==null )
+			debug = new dn.script.Debug(this, ctx, process);
 	}
 	#end
 

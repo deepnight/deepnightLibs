@@ -35,12 +35,10 @@ class Debug extends dn.Process {
 
 	var expands : Map<String,Bool> = new Map();
 
-	public function new(r:Runner, process:dn.Process) {
+	public function new(r:Runner, ctx:h2d.Object, process:dn.Process) {
 		super(process);
 
-		if( process.root==null )
-			throw "Parent process has no root!";
-		createRootInLayers(process.root, 99999);
+		createRoot(ctx);
 
 		runner = r;
 
