@@ -23,8 +23,8 @@ class Cinematic extends dn.script.Runner {
 		this.fps = fps;
 		origin = "Cinematic";
 
-		addInternalKeyword("delayExecutionS", api_delayExecutionS);
-		addInternalKeyword("waitUntil", api_waitUntil);
+		addInternalKeyword("delayExecutionS", TDynamic, api_delayExecutionS);
+		addInternalKeyword("waitUntil", TDynamic, api_waitUntil);
 		addInternalKeyword("wait", TFun([],TVoid)); // turned into a delayExecutionS() call at conversion time
 	}
 
@@ -296,7 +296,7 @@ class Cinematic extends dn.script.Runner {
 						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
 						asyncExprsArray(followingExprs);
 						var args = [
-							mkFunctionExpr( mkCallByName(id,[],e), e ),
+							mkFunctionExpr( mkExpr(EReturn(mkCallByName(id,[],e)),e), e ),
 							mkFunctionExpr( mkBlock(followingExprs,e), e ),
 						];
 						_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );

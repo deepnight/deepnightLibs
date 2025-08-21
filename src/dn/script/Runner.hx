@@ -78,7 +78,7 @@ class Runner {
 	public function new() {
 		interp = new hscript.Interp();
 
-
+		// Init iterator creators
 		function _makeIteratorType(iteratedType:hscript.Checker.TType) : hscript.Checker.TType {
 			return TFun(
 				[{ name:"it", opt:false, t:TDynamic }],
@@ -88,8 +88,8 @@ class Runner {
 				])
 			);
 		}
-		addInternalKeyword("makeIterator_dynamic", _makeIteratorType(TDynamic));
-		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt));
+		addInternalKeyword("makeIterator_dynamic", _makeIteratorType(TDynamic), @:privateAccess interp.makeIterator);
+		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt), @:privateAccess interp.makeIterator);
 	}
 
 
@@ -107,27 +107,14 @@ class Runner {
 	}
 
 
-	function addInternalKeyword(name:String, ?type:hscript.Checker.TType, ?instance:Dynamic) {
-		// Guess type if not provided
-		if( type==null && instance!=null )
-			type = switch Type.typeof(instance) {
-				case TNull: TNull(TDynamic);
-				case TInt: TInt;
-				case TFloat: TFloat;
-				case TBool: TBool;
-				case TObject: TDynamic;
-				case TFunction: TFun([],TVoid);
-				case TClass(c): TDynamic;
-				case TEnum(e): TDynamic;
-				case TUnknown: TUnresolved("UnknownType");
-			}
-
+	function addInternalKeyword(name:String, type:hscript.Checker.TType, ?instance:Dynamic) {
 		internalKeywords.push({
 			name: name,
 			type: type,
 			instanceRef: instance,
 		});
 	}
+
 
 	public function isKeyword(name:String) : Bool {
 		for( k in internalKeywords )
@@ -435,10 +422,6 @@ class Runner {
 		for(k in internalKeywords)
 			if( k.instanceRef!=null )
 				interp.variables.set(k.name, k.instanceRef);
-
-		// Internal Runner stuff
-		interp.variables.set("makeIterator_int", @:privateAccess interp.makeIterator);
-		interp.variables.set("makeIterator_dynamic", @:privateAccess interp.makeIterator);
 	}
 
 
