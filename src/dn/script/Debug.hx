@@ -35,11 +35,10 @@ class Debug extends dn.Process {
 
 	var expands : Map<String,Bool> = new Map();
 
-	public function new(r:Runner, ctx:h2d.Object, process:dn.Process) {
-		super(process);
+	public function new(r:Runner, ctx:h2d.Object) {
+		super();
 
 		createRoot(ctx);
-
 		runner = r;
 
 		font = hxd.res.DefaultFont.get();
@@ -80,10 +79,6 @@ class Debug extends dn.Process {
 		typesFlow.layout = Vertical;
 
 		render();
-	}
-
-	override function isPaused():Bool {
-		return false;
 	}
 
 	override function onDispose() {
@@ -424,6 +419,7 @@ class Debug extends dn.Process {
 		header.minWidth = 0;
 		header.minWidth = wrapper.outerWidth;
 	}
+
 
 	var lastRunUid = -1;
 	var lastErrorUid = -1;
