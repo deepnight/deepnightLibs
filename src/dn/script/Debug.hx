@@ -121,19 +121,18 @@ class Debug extends dn.Process {
 
 	function renderError() {
 		errorFlow.removeChildren();
-		if( runner.lastError==null ) {
+		if( runner.lastException==null ) {
 			errorFlow.visible = false;
 		}
 		else {
 			errorFlow.visible = true;
-			createCollapsable(runner.lastError.message, Red, (p)->{
-				createCopyButton(runner.lastError.stack.toString(), p);
-				createText(runner.lastError.toString(), Red, p);
-				var scriptErr = Std.downcast(runner.lastError, ScriptError);
-				if( scriptErr!=null && scriptErr.line>=0 )
-					createScript(scriptErr.scriptStr, Orange, p);
+			createCollapsable(runner.lastException.message, Red, (p)->{
+				createCopyButton(runner.lastException.stack.toString(), p);
+				createText(runner.lastException.toString(), Red, p);
+				if( runner.lastScriptError!=null && runner.lastScriptError.line>=0 )
+					createScript(runner.lastScriptError.scriptStr, Orange, p);
 				else
-					createText(runner.lastError.stack.toString(), Orange, p);
+					createText(runner.lastException.stack.toString(), Orange, p);
 			}, errorFlow);
 		}
 	}
@@ -175,14 +174,13 @@ class Debug extends dn.Process {
 		raw = StringTools.replace(raw, "\r", "");
 
 		var i = 1;
-		var scriptErr = Std.downcast(runner.lastError, ScriptError);
 		for(line in raw.split("\n")) {
 			if( line.length==0 )
 				p.addSpacing(8);
 			else {
 				var lineWithNumber = Lib.padRight(Std.string(i), 4) + line;
-				if( scriptErr!=null && scriptErr.line==i )
-					createText( lineWithNumber+"    <--- "+scriptErr.getErrorOnly(), Red, p);
+				if( runner.lastScriptError!=null && runner.lastScriptError.line==i )
+					createText( lineWithNumber+"    <--- "+runner.lastScriptError.getErrorOnly(), Red, p);
 				else
 					createText( lineWithNumber, col, p);
 			}
@@ -503,7 +501,7 @@ class Debug extends dn.Process {
 		}
 
 		// Error
-		if( runner.lastError!=null && lastErrorUid!=runner.lastRunUid ) {
+		if( runner.lastException!=null && lastErrorUid!=runner.lastRunUid ) {
 			lastErrorUid = runner.lastRunUid;
 			renderError();
 			renderScript();

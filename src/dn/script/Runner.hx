@@ -48,10 +48,13 @@ class Runner {
 	public var lastScriptStr(default,null) : Null<String>;
 	public var lastScriptExpr(default,null) : Null<Expr>;
 	public var lastRunUid(default,null) = 0;
-	public var lastError(default,null) : Null<haxe.Exception>;
 	var lastRunOutput : Null<Dynamic>;
 	var customRunOutput : Null<Dynamic>;
 	public var origin : String = "Runner";
+
+	public var lastException(default,null) : Null<haxe.Exception>;
+	public var lastScriptError(get,never) : Null<ScriptError>;
+		inline function get_lastScriptError() return Std.downcast(lastException,ScriptError);
 
 	var enums : Array<Enum<Dynamic>> = [];
 	var classes : Array<ExposedClass> = [];
@@ -120,7 +123,7 @@ class Runner {
 
 		lastScriptStr = null;
 		lastScriptExpr = null;
-		lastError = null;
+		lastException = null;
 		lastRunOutput = null;
 		customRunOutput = null;
 		#if heaps
@@ -662,7 +665,7 @@ class Runner {
 
 	function init() {
 		lastRunUid++;
-		lastError = null;
+		lastException = null;
 		lastRunOutput = null;
 		customRunOutput = null;
 		lastScriptStr = null;
@@ -683,18 +686,17 @@ class Runner {
 		throw err;
 	}
 
-	function reportError(err:haxe.Exception) {
-		lastError = err;
-		onError(err);
-		if( debug==null && Std.isOfType(err,ScriptError) ) {
-			var err = Std.downcast(err,ScriptError);
+	function reportError(exception:haxe.Exception) {
+		lastException = exception;
+		onError(exception);
+		if( debug==null && Std.isOfType(exception,ScriptError) ) {
 			#if hscriptPos
-				if( err.scriptStr!=null && err.line>0 )
-					printErrorInContext(err);
+				if( lastScriptError.scriptStr!=null && lastScriptError.line>0 )
+					printErrorInContext(lastScriptError);
 				else
-					log(err.toString(), Red);
+					log(lastScriptError.toString(), Red);
 			#else
-				log(err.toString(), Red);
+				log(lastScriptError.toString(), Red);
 			#end
 		}
 	}
