@@ -50,6 +50,7 @@ class Runner {
 	public var lastRunUid(default,null) = 0;
 	public var lastError(default,null) : Null<ScriptError>;
 	var lastRunOutput : Null<Dynamic>;
+	var customRunOutput : Null<Dynamic>;
 	public var origin : String = "Runner";
 
 	var enums : Array<Enum<Dynamic>> = [];
@@ -102,6 +103,7 @@ class Runner {
 		}
 		addInternalKeyword("makeIterator_dynamic", _makeIteratorType(TDynamic), @:privateAccess interp.makeIterator);
 		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt), @:privateAccess interp.makeIterator);
+		addInternalKeyword("out", TFun([{ name:"v", opt:false, t:TDynamic }], TVoid), forceOutput);
 	}
 
 
@@ -120,6 +122,7 @@ class Runner {
 		lastScriptExpr = null;
 		lastError = null;
 		lastRunOutput = null;
+		customRunOutput = null;
 		#if heaps
 		if( debug!=null ) {
 			debug.destroy();
@@ -575,34 +578,38 @@ class Runner {
 	}
 
 
-	inline function get_output() return lastRunOutput;
+	function forceOutput(v:Dynamic) {
+		customRunOutput = v;
+	}
+
+	inline function get_output() return customRunOutput ?? lastRunOutput;
 
 	function get_output_int() {
-		return switch Type.typeof(lastRunOutput) {
-			case TInt, TFloat: M.isValidNumber(lastRunOutput) ? Std.int(lastRunOutput) : 0;
+		return switch Type.typeof(output) {
+			case TInt, TFloat: M.isValidNumber(output) ? Std.int(output) : 0;
 			case _: 0;
 		}
 	}
 
 	function get_output_float() {
-		return switch Type.typeof(lastRunOutput) {
-			case TInt, TFloat: M.isValidNumber(lastRunOutput) ? lastRunOutput : 0;
+		return switch Type.typeof(output) {
+			case TInt, TFloat: M.isValidNumber(output) ? output : 0;
 			case _: 0;
 		}
 	}
 
 	function get_output_bool() {
-		return switch Type.typeof(lastRunOutput) {
-			case TBool: lastRunOutput;
+		return switch Type.typeof(output) {
+			case TBool: output;
 			case _: false;
 		}
 	}
 
 	function get_output_str() {
-		return switch Type.typeof(lastRunOutput) {
+		return switch Type.typeof(output) {
 			case TNull: null;
-			case TClass(String): lastRunOutput;
-			case _: Std.string(lastRunOutput);
+			case TClass(String): output;
+			case _: Std.string(output);
 		}
 	}
 
@@ -643,6 +650,7 @@ class Runner {
 		lastRunUid++;
 		lastError = null;
 		lastRunOutput = null;
+		customRunOutput = null;
 		lastScriptStr = null;
 		lastScriptExpr = null;
 	}
