@@ -81,6 +81,9 @@ class Debug extends dn.Process {
 		render();
 	}
 
+	/** Replace this and return TRUE when the Debug panel should self-destroy (eg. if some attached context is lost)**/
+	public dynamic function shouldSelfDestroy() return false;
+
 	override function onDispose() {
 		super.onDispose();
 
@@ -420,11 +423,28 @@ class Debug extends dn.Process {
 		header.minWidth = wrapper.outerWidth;
 	}
 
+	override function preUpdate() {
+		super.preUpdate();
+		if( shouldSelfDestroy() )
+			destroy();
+	}
+
+	override function postUpdate() {
+		super.postUpdate();
+		if( shouldSelfDestroy() )
+			destroy();
+	}
+
 
 	var lastRunUid = -1;
 	var lastErrorUid = -1;
 	override function update() {
 		super.update();
+
+		if( shouldSelfDestroy() ) {
+			destroy();
+			return;
+		}
 
 		if( originTf.text!=runner.origin )
 			originTf.text = runner.origin;

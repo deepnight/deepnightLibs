@@ -298,6 +298,7 @@ class Runner {
 	public function openDebug(ctx:h2d.Object) {
 		if( debug==null )
 			debug = new dn.script.Debug(this, ctx);
+		return debug;
 	}
 	#end
 
