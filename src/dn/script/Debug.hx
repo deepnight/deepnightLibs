@@ -65,7 +65,7 @@ class Debug extends dn.Process {
 		f.layout = Horizontal;
 		f.verticalAlign = Middle;
 		createText("out=", f);
-		outputTf = createText(runner.origin, White, f);
+		outputTf = createText("", White, f);
 		header.getProperties(f).minWidth = 50;
 
 		originTf = createText(runner.origin, White, header);
