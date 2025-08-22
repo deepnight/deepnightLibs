@@ -135,9 +135,9 @@ class Debug extends dn.Process {
 				createCopyButton(runner.lastException.stack.toString(), p);
 				createText(runner.lastException.toString(), Red, p);
 				if( runner.lastScriptError!=null && runner.lastScriptError.line>=0 )
-					createScript(runner.lastScriptError.scriptStr, Orange, p);
+					createScript(runner.lastScriptError.scriptStr, p);
 				else
-					createText(runner.lastException.stack.toString(), Orange, p);
+					createText(runner.lastException.stack.toString(), p);
 			}, errorFlow);
 		}
 	}
@@ -150,7 +150,7 @@ class Debug extends dn.Process {
 			if( runner.lastScriptStr==null )
 				return;
 
-			createScript(runner.lastScriptStr, White, p);
+			createScript(runner.lastScriptStr, p);
 		}, scriptFlow);
 
 		// Converted script expr
@@ -173,7 +173,8 @@ class Debug extends dn.Process {
 	}
 
 
-	function createScript(script:String, col:Col, p:h2d.Flow) {
+	function createScript(script:String, p:h2d.Flow) {
+		var col : Col = White;
 		var raw = script;
 		raw = StringTools.replace(raw, "\t", "   ");
 		raw = StringTools.replace(raw, "\r", "");
