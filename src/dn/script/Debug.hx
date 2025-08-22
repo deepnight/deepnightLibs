@@ -82,6 +82,10 @@ class Debug extends dn.Process {
 		render();
 	}
 
+	override function isPaused():Bool {
+		return false;
+	}
+
 	override function onDispose() {
 		super.onDispose();
 
