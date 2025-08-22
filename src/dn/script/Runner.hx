@@ -138,6 +138,7 @@ class Runner {
 			type: type,
 			instanceRef: instance,
 		});
+		invalidateChecker();
 	}
 
 
@@ -154,6 +155,7 @@ class Runner {
 	**/
 	public function exposeEnum<T>(e:Enum<T>) {
 		enums.push(e);
+		invalidateChecker();
 	}
 
 
@@ -190,6 +192,8 @@ class Runner {
 				globalAccess: globalAccess,
 			},
 		});
+
+		invalidateChecker();
 	}
 
 
@@ -205,10 +209,11 @@ class Runner {
 			return;
 
 		classes.push({ cl: cl });
+		invalidateChecker();
 	}
 
 
-	public function exposeFunction<T:Dynamic>(classOrInst:T, func:Dynamic) {
+	public function exposeFunction<T:Dynamic>(classOrInst:T, func:Dynamic, ?customScriptName:String) {
 		// Check class
 		var cl = switch Type.typeof(classOrInst) {
 			case TClass(c): c;
@@ -231,15 +236,17 @@ class Runner {
 			return;
 
 		// Resolve function name
-		var name : String = null;
-		for(f in Type.getInstanceFields(cl) )
-			if( Reflect.getProperty(classOrInst,f)==func ) {
-				name = f;
-				break;
-			}
+		var name = customScriptName;
 		if( name==null ) {
-			emitError('Cannot resolve function name for $func in class $cl');
-			return;
+			for(f in Type.getInstanceFields(cl) )
+				if( Reflect.getProperty(classOrInst,f)==func ) {
+					name = f;
+					break;
+				}
+			if( name==null ) {
+				emitError('Cannot resolve function name for $func in class $cl');
+				return;
+			}
 		}
 
 		// Register
@@ -250,6 +257,8 @@ class Runner {
 				ref: func,
 			},
 		});
+
+		invalidateChecker();
 	}
 
 
@@ -301,6 +310,11 @@ class Runner {
 		return debug;
 	}
 	#end
+
+
+	function invalidateChecker() {
+		checker = null;
+	}
 
 	function initChecker() {
 		checker = new hscript.Checker();
