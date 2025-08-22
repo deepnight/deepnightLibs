@@ -338,6 +338,13 @@ class Runner {
 			debug = new dn.script.Debug(this, ctx);
 		return debug;
 	}
+
+	public function closeDebug() {
+		if( debug!=null ) {
+			debug.destroy();
+			debug = null;
+		}
+	}
 	#end
 
 
