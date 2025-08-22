@@ -4,8 +4,8 @@ class ScriptError extends haxe.Exception {
 	public var line(default,null) = -1;
 	public var scriptStr(default,null) : Null<String>;
 
-	public function new(msg:String, ?scriptStr:String) {
-		super( msg );
+	public function new(msg:String, ?previous:haxe.Exception, ?scriptStr:String) {
+		super(msg, previous);
 		this.scriptStr = scriptStr;
 	}
 
@@ -24,7 +24,7 @@ class ScriptError extends haxe.Exception {
 	}
 
 	public static inline function fromGeneralException(err:haxe.Exception, scriptStr:Null<String>) {
-		return new ScriptError(err.message, scriptStr);
+		return new ScriptError(err.message, err, scriptStr);
 	}
 
 	@:keep public function getErrorOnly() {

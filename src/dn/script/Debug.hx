@@ -27,6 +27,7 @@ class Debug extends dn.Process {
 	var font : h2d.Font;
 	var wrapper : h2d.Flow;
 	var header : h2d.Flow;
+	var errorFlow : h2d.Flow;
 	var scriptFlow : h2d.Flow;
 	var typesFlow : h2d.Flow;
 	var timerTf : h2d.Text;
@@ -72,6 +73,9 @@ class Debug extends dn.Process {
 		var closeBt = createButton("x", destroy, header);
 		header.getProperties(closeBt).horizontalAlign = Right;
 
+		errorFlow = new h2d.Flow(wrapper);
+		errorFlow.layout = Vertical;
+
 		scriptFlow = new h2d.Flow(wrapper);
 		scriptFlow.layout = Vertical;
 
@@ -115,31 +119,33 @@ class Debug extends dn.Process {
 	}
 
 
+	function renderError() {
+		errorFlow.removeChildren();
+		if( runner.lastError==null ) {
+			errorFlow.visible = false;
+		}
+		else {
+			errorFlow.visible = true;
+			createCollapsable(runner.lastError.getErrorOnly(), Red, (p)->{
+				createCopyButton(runner.lastError.stack.toString(), p);
+				createText(runner.lastError.toString(), Red, p);
+				if( runner.lastError.line>=0 )
+					createScript(runner.lastScriptStr, p);
+				else
+					createText(runner.lastError.stack.toString(), Orange, p);
+			}, errorFlow);
+		}
+	}
+
 	function renderScript() {
 		scriptFlow.removeChildren();
 
 		// Original script string
-		createCollapsable("Script (original)", runner.lastError!=null, (p)->{
+		createCollapsable("Script (original)", runner.lastError!=null && runner.lastError.line>=0, (p)->{
 			if( runner.lastScriptStr==null )
 				return;
 
-			var raw = runner.lastScriptStr;
-			raw = StringTools.replace(raw, "\t", "   ");
-			raw = StringTools.replace(raw, "\r", "");
-
-			var i = 1;
-			for(line in raw.split("\n")) {
-				if( line.length==0 )
-					p.addSpacing(8);
-				else {
-					var lineWithNumber = Lib.padRight(Std.string(i), 4) + line;
-					if( runner.lastError!=null && runner.lastError.line==i )
-						createText( lineWithNumber+"    <--- "+runner.lastError.getErrorOnly(), Red, p);
-					else
-						createText( lineWithNumber, White, p);
-				}
-				i++;
-			}
+			createScript(runner.lastScriptStr, p);
 		}, scriptFlow);
 
 		// Converted script expr
@@ -147,9 +153,7 @@ class Debug extends dn.Process {
 			if( runner.lastScriptExpr==null )
 				return;
 
-			createButton("Copy", ()->{
-				hxd.System.setClipboardText( runner.getLastScriptExprAsString() );
-			},p);
+			createCopyButton( runner.getLastScriptExprAsString(), p );
 
 			var raw = runner.getLastScriptExprAsString();
 			raw = StringTools.replace(raw, "\t", "   ");
@@ -161,6 +165,27 @@ class Debug extends dn.Process {
 					createText(line, White, p);
 			}
 		}, scriptFlow);
+	}
+
+
+	function createScript(script:String, p) {
+		var raw = script;
+		raw = StringTools.replace(raw, "\t", "   ");
+		raw = StringTools.replace(raw, "\r", "");
+
+		var i = 1;
+		for(line in raw.split("\n")) {
+			if( line.length==0 )
+				p.addSpacing(8);
+			else {
+				var lineWithNumber = Lib.padRight(Std.string(i), 4) + line;
+				if( runner.lastError!=null && runner.lastError.line==i )
+					createText( lineWithNumber+"    <--- "+runner.lastError.getErrorOnly(), Red, p);
+				else
+					createText( lineWithNumber, White, p);
+			}
+			i++;
+		}
 	}
 
 
@@ -215,7 +240,7 @@ class Debug extends dn.Process {
 		emitResizeAtEndOfFrame();
 	}
 
-	function createCollapsable(label:String, ?subLabel:String, forceOpen=false, renderContent:h2d.Flow->Void, ?onHide:Void->Void, p:h2d.Flow) {
+	function createCollapsable(label:String, ?subLabel:String, col:Col=0, forceOpen=false, renderContent:h2d.Flow->Void, ?onHide:Void->Void, p:h2d.Flow) {
 		var id = label;
 		if( forceOpen )
 			expands.set(id, true);
@@ -244,7 +269,7 @@ class Debug extends dn.Process {
 			emitResizeAtEndOfFrame();
 		}
 
-		bt = createButton(label, subLabel, baseColor, ()->{
+		bt = createButton(label, subLabel, col!=0?col:baseColor, ()->{
 			if( expands.exists(id) )
 				expands.remove(id);
 			else
@@ -299,6 +324,10 @@ class Debug extends dn.Process {
 			bt.interactive.backgroundColor = col;
 		}
 		return bt;
+	}
+
+	function createCopyButton(value:String, p) {
+		return createButton("Copy", ()->hxd.System.setClipboardText(value), p);
 	}
 
 	function getTTypeShortName(ttype:hscript.Checker.TType) : String {
@@ -452,23 +481,29 @@ class Debug extends dn.Process {
 			return;
 		}
 
+		// Update header info
 		if( originTf.text!=runner.origin )
 			originTf.text = runner.origin;
 
 		if( outputTf.text!=runner.output )
 			outputTf.text = Std.string(runner.output);
 
+		// Refresh timer
 		if( isAsync() && asAsync().hasScriptRunning() )
 			updateTimer();
 
+		// Start a new script
 		if( lastRunUid!=runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
+			renderError();
 			renderScript();
 			renderTypes();
 		}
 
+		// Error
 		if( runner.lastError!=null && lastErrorUid!=runner.lastRunUid ) {
 			lastErrorUid = runner.lastRunUid;
+			renderError();
 			renderScript();
 			renderTypes();
 		}
