@@ -28,6 +28,7 @@ class Process {
 	/** If TRUE, each Process.onResize() will be called *once* at the end of the frame **/
 	static var RESIZE_REQUESTED = true;
 
+	public var creationTimeStamp(default,null) : Float;
 	public var uniqId : Int;
 	/** Elapsed frames from the client start **/
 	public var ftime(default, null) : Float; // elapsed frames
@@ -115,6 +116,7 @@ class Process {
 		else
 			parent.addChild(this);
 
+		creationTimeStamp = haxe.Timer.stamp();
 		emitResizeAtEndOfFrame();
 	}
 
