@@ -28,6 +28,8 @@ class Debug extends dn.Process {
 	var wrapper : h2d.Flow;
 	var header : h2d.Flow;
 	var scriptFlow : h2d.Flow;
+	var variablesFlow : h2d.Flow;
+	var variablesRefreshWrapper : h2d.Flow;
 	var typesFlow : h2d.Flow;
 	var timerTf : h2d.Text;
 	var outputTf : h2d.Text;
@@ -71,6 +73,9 @@ class Debug extends dn.Process {
 		scriptFlow = new h2d.Flow(wrapper);
 		scriptFlow.layout = Vertical;
 
+		variablesFlow = new h2d.Flow(wrapper);
+		variablesFlow.layout = Vertical;
+
 		typesFlow = new h2d.Flow(wrapper);
 		typesFlow.layout = Vertical;
 
@@ -94,6 +99,7 @@ class Debug extends dn.Process {
 
 	function render() {
 		renderScript();
+		renderVariables();
 		renderTypes();
 		updateTimer();
 	}
@@ -105,6 +111,57 @@ class Debug extends dn.Process {
 		}
 		else
 			timerTf.visible = false;
+	}
+
+
+	function renderVariables() {
+		variablesFlow.removeChildren();
+		variablesRefreshWrapper = null;
+
+		createCollapsable("Variables",
+			(p)->{
+				variablesRefreshWrapper = new h2d.Flow(p);
+				variablesRefreshWrapper.layout = Vertical;
+				refreshVariables();
+			}, ()->{
+				variablesRefreshWrapper = null;
+			},
+			variablesFlow
+		);
+	}
+
+	function refreshVariables() {
+		if( variablesRefreshWrapper==null )
+			return;
+
+		trace("refresh "+stime+"...");
+		variablesRefreshWrapper.removeChildren();
+		var interp = @:privateAccess runner.interp;
+		var all = [];
+		for(v in interp.variables.keyValueIterator()) {
+			var type = Type.typeof(v.value);
+			switch type {
+				case TInt, TFloat, TBool:
+					all.push('${Std.string(type).substr(1)} ${v.key} = ${v.value}');
+
+				case TEnum(e):
+					all.push('enum ${e.getName()}.${v.key} = ${v.value}');
+
+				case TClass(String):
+					all.push('${Std.string(type).substr(1)} ${v.key} = "${v.value}"');
+
+				case TUnknown:
+					all.push('?${v.key} = ${v.value}');
+
+				case TNull:
+					all.push('${v.key} = null');
+
+				case _:
+			}
+		}
+		all.sort( (a,b)->Reflect.compare(a.toLowerCase(), b.toLowerCase()) );
+		for(s in all)
+			createText(s, ColdLightGray, variablesRefreshWrapper);
 	}
 
 
@@ -127,9 +184,9 @@ class Debug extends dn.Process {
 				else {
 					var lineWithNumber = Lib.padRight(Std.string(i), 4) + line;
 					if( runner.lastError!=null && runner.lastError.line==i )
-						createText( lineWithNumber+"    <--- "+runner.lastError.getErrorOnly(), Red, true, p);
+						createText( lineWithNumber+"    <--- "+runner.lastError.getErrorOnly(), Red, p);
 					else
-						createText( lineWithNumber, White, true, p);
+						createText( lineWithNumber, White, p);
 				}
 				i++;
 			}
@@ -151,7 +208,7 @@ class Debug extends dn.Process {
 				if( line.length==0 )
 					p.addSpacing(8);
 				else
-					createText(line, White, true, p);
+					createText(line, White, p);
 			}
 		}, scriptFlow);
 	}
@@ -170,7 +227,7 @@ class Debug extends dn.Process {
 			}
 			createCollapsable(t.name, catLabel, (p)->{
 				for(v in t.values)
-					createText(v.desc, v.col, true, p);
+					createText(v.desc, v.col, p);
 			}, typesFlow);
 		}
 
@@ -202,13 +259,13 @@ class Debug extends dn.Process {
 
 			all.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
 			for(g in all)
-				createText(g.desc, g.col, true, p);
+				createText(g.desc, g.col, p);
 		}, typesFlow);
 
 		emitResizeAtEndOfFrame();
 	}
 
-	function createCollapsable(label:String, ?subLabel:String, forceOpen=false, renderContent:h2d.Flow->Void, p:h2d.Flow) {
+	function createCollapsable(label:String, ?subLabel:String, forceOpen=false, renderContent:h2d.Flow->Void, ?onHide:Void->Void, p:h2d.Flow) {
 		var id = label;
 		if( forceOpen )
 			expands.set(id, true);
@@ -217,6 +274,7 @@ class Debug extends dn.Process {
 		expandedWrapper.minWidth = minWidth;
 		expandedWrapper.layout = Vertical;
 		expandedWrapper.verticalSpacing = 1;
+		expandedWrapper.paddingLeft = gap;
 		expandedWrapper.paddingBottom = gap;
 
 		var bt : h2d.Flow = null;
@@ -230,6 +288,8 @@ class Debug extends dn.Process {
 			else {
 				expandedWrapper.removeChildren();
 				bt.minWidth = minWidth;
+				if( onHide!=null )
+					onHide();
 			}
 			emitResizeAtEndOfFrame();
 		}
@@ -248,12 +308,10 @@ class Debug extends dn.Process {
 		return bt;
 	}
 
-	function createText(v:Dynamic, col:Col=ColdLightGray, indent=false, p:h2d.Flow) {
+	function createText(v:Dynamic, col:Col=ColdLightGray, p:h2d.Flow) {
 		var tf = new h2d.Text(font, p);
 		tf.text = Std.string(v);
 		tf.textColor = col;
-		if( indent )
-			p.getProperties(tf).paddingLeft = gap;
 		return tf;
 	}
 
@@ -426,16 +484,21 @@ class Debug extends dn.Process {
 		if( outputTf.text!=runner.output )
 			outputTf.text = Std.string(runner.output);
 
-		if( isCinematic() && asCinematic().hasScriptRunning() )
+		if( isCinematic() && asCinematic().hasScriptRunning() ) {
 			updateTimer();
+			if( !cd.hasSetS("variablesLimit",0.05) )
+				refreshVariables();
+		}
 
 		if( lastRunUid!=runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
+			renderVariables();
 			renderScript();
 		}
 
 		if( runner.lastError!=null && lastErrorUid!=runner.lastRunUid ) {
 			lastErrorUid = runner.lastRunUid;
+			renderVariables();
 			renderScript();
 		}
 	}
