@@ -333,18 +333,20 @@ class Runner {
 	}
 
 	#if heaps
-	public function openDebug(ctx:h2d.Object) {
+	public function openDebugger(ctx:h2d.Object) {
 		if( debug==null )
 			debug = new dn.script.Debug(this, ctx);
 		return debug;
 	}
 
-	public function closeDebug() {
+	public function closeDebugger() {
 		if( debug!=null ) {
 			debug.destroy();
 			debug = null;
 		}
 	}
+
+	public inline function isDebuggerOpen() return debug!=null && !debug.destroyed;
 	#end
 
 
