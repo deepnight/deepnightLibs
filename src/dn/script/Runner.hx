@@ -20,7 +20,7 @@ private typedef ExposedClass = {
 
 private typedef ExposedFunction = {
 	var cl : Class<Dynamic>;
-	var f : { name:String, ref:Dynamic };
+	var f : { realName:String, scriptName:String, ref:Dynamic };
 }
 
 
@@ -236,24 +236,23 @@ class Runner {
 			return;
 
 		// Resolve function name
-		var name = customScriptName;
-		if( name==null ) {
-			for(f in Type.getInstanceFields(cl) )
-				if( Reflect.getProperty(classOrInst,f)==func ) {
-					name = f;
-					break;
-				}
-			if( name==null ) {
-				emitError('Cannot resolve function name for $func in class $cl');
-				return;
+		var name : String = null;
+		for(f in Type.getInstanceFields(cl) )
+			if( Reflect.getProperty(classOrInst,f)==func ) {
+				name = f;
+				break;
 			}
+		if( name==null ) {
+			emitError('Cannot resolve function name for $func in class $cl');
+			return;
 		}
 
 		// Register
 		functions.push({
 			cl: cl,
 			f: {
-				name: name,
+				realName: name,
+				scriptName: customScriptName ?? name,
 				ref: func,
 			},
 		});
@@ -422,9 +421,9 @@ class Runner {
 			switch classTType {
 				case TInst(c, args):
 					for( field in c.fields ) {
-						if( field.name==fn.f.name) {
+						if( field.name==fn.f.realName) {
 							found = true;
-							checker.setGlobal(field.name, field.t);
+							checker.setGlobal(fn.f.scriptName, field.t);
 							break;
 						}
 					}
@@ -433,7 +432,7 @@ class Runner {
 					emitError('Not a class: ${fn.cl}');
 			}
 			if( !found ) {
-				emitError('Function "${fn.f.name}" cannot be typed in ${Type.getClassName(fn.cl)} (inherited maybe?)');
+				emitError('Function "${fn.f.realName}" cannot be typed in ${Type.getClassName(fn.cl)} (inherited maybe?)');
 				continue;
 			}
 		}
@@ -525,7 +524,7 @@ class Runner {
 		// Functions
 		for(fn in functions) {
 			var fields = Type.getInstanceFields(fn.cl);
-			interp.variables.set(fn.f.name, fn.f.ref);
+			interp.variables.set(fn.f.scriptName, fn.f.ref);
 		}
 
 		// Enums
