@@ -108,6 +108,11 @@ class Runner {
 		addInternalKeyword("makeIterator_dynamic", _makeIteratorType(TDynamic), @:privateAccess interp.makeIterator);
 		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt), @:privateAccess interp.makeIterator);
 		addInternalKeyword("out", TFun([{ name:"v", opt:false, t:TDynamic }], TVoid), forceOutput);
+
+		// Register Int based named-colors (Red, Green, Blue, etc)
+		var values = MacroTools.getAbstractEnumValues(Col.ColorEnum);
+		for(v in values)
+			addConst(v.name, v.value);
 	}
 
 
