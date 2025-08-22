@@ -134,34 +134,34 @@ class Debug extends dn.Process {
 		if( variablesRefreshWrapper==null )
 			return;
 
-		trace("refresh "+stime+"...");
 		variablesRefreshWrapper.removeChildren();
 		var interp = @:privateAccess runner.interp;
+
 		var all = [];
 		for(v in interp.variables.keyValueIterator()) {
 			var type = Type.typeof(v.value);
 			switch type {
 				case TInt, TFloat, TBool:
-					all.push('${Std.string(type).substr(1)} ${v.key} = ${v.value}');
+					all.push({ s:'${Std.string(type).substr(1)} ${v.key} = ${v.value}', col:White });
 
 				case TEnum(e):
-					all.push('enum ${e.getName()}.${v.key} = ${v.value}');
+					all.push({ s:'enum ${e.getName()}.${v.key} = ${v.value}', col:Pink });
 
 				case TClass(String):
-					all.push('${Std.string(type).substr(1)} ${v.key} = "${v.value}"');
+					all.push({ s:'${Std.string(type).substr(1)} ${v.key} = "${v.value}"', col:Yellow });
 
 				case TUnknown:
-					all.push('?${v.key} = ${v.value}');
+					all.push({ s:'?${v.key} = ${v.value}', col:Red });
 
 				case TNull:
-					all.push('${v.key} = null');
+					all.push({ s:'${v.key} = null', col:ColdMidGray });
 
 				case _:
 			}
 		}
-		all.sort( (a,b)->Reflect.compare(a.toLowerCase(), b.toLowerCase()) );
-		for(s in all)
-			createText(s, ColdLightGray, variablesRefreshWrapper);
+		all.sort( (a,b)->Reflect.compare(a.s.toLowerCase(), b.s.toLowerCase()) );
+		for(e in all)
+			createText(e.s, e.col, variablesRefreshWrapper);
 	}
 
 
