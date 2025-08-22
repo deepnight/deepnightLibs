@@ -70,7 +70,12 @@ class Debug extends dn.Process {
 
 		originTf = createText(runner.origin, White, header);
 
-		var closeBt = createButton("x", destroy, header);
+		var closeBt = createButton("x", ()->{
+			if( destroyed )
+				return;
+			onClose();
+			destroy();
+		}, header);
 		header.getProperties(closeBt).horizontalAlign = Right;
 
 		errorFlow = new h2d.Flow(wrapper);
@@ -439,6 +444,9 @@ class Debug extends dn.Process {
 		return allTypes;
 	}
 
+
+
+	public dynamic function onClose() {}
 
 
 	override function onResize() {
