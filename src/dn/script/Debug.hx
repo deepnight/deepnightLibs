@@ -27,9 +27,12 @@ class Debug extends dn.Process {
 	var font : h2d.Font;
 	var wrapper : h2d.Flow;
 	var header : h2d.Flow;
+
 	var errorFlow : h2d.Flow;
 	var scriptFlow : h2d.Flow;
 	var typesFlow : h2d.Flow;
+	var globalsFlow : h2d.Flow;
+
 	var timerTf : h2d.Text;
 	var outputTf : h2d.Text;
 	var originTf : h2d.Text;
@@ -87,7 +90,10 @@ class Debug extends dn.Process {
 		typesFlow = new h2d.Flow(wrapper);
 		typesFlow.layout = Vertical;
 
-		render();
+		globalsFlow = new h2d.Flow(wrapper);
+		globalsFlow.layout = Vertical;
+
+		renderAll();
 	}
 
 	/** Replace this and return TRUE when the Debug panel should self-destroy (eg. if some attached context is lost)**/
@@ -108,9 +114,12 @@ class Debug extends dn.Process {
 	inline function isAsync() return runner is dn.script.AsyncRunner;
 	inline function asAsync() return Std.downcast(runner, dn.script.AsyncRunner);
 
-	function render() {
+	function renderAll() {
+		renderError();
 		renderScript();
 		renderTypes();
+		renderGlobals();
+
 		updateTimer();
 	}
 
@@ -211,6 +220,18 @@ class Debug extends dn.Process {
 					createText(v.desc, v.col, p);
 			}, typesFlow);
 		}
+	}
+
+
+	function renderGlobals() {
+		globalsFlow.removeChildren();
+
+		function isFunction(ttype:hscript.Checker.TType) : Bool {
+			return switch ttype {
+				case TFun(_): true;
+				case _: false;
+			}
+		}
 
 		// Keywords & consts
 		var k = "Keywords & consts";
@@ -218,15 +239,23 @@ class Debug extends dn.Process {
 			var all = getGlobals( (n,t)->runner.hasConst(n) || runner.isKeyword(n) );
 			for(g in all)
 				createText(g.desc, g.col, p);
-		}, typesFlow);
+		}, globalsFlow);
 
 		// Globals values
 		var k = "Globals values";
 		createCollapsable(k, (p)->{
-			var all = getGlobals( (n,t)->!runner.hasConst(n) && !runner.isKeyword(n) );
+			var all = getGlobals( (n,t)->!runner.hasConst(n) && !runner.isKeyword(n) && !isFunction(t) );
 			for(g in all)
 				createText(g.desc, g.col, p);
-		}, typesFlow);
+		}, globalsFlow);
+
+		// Globals functions
+		var k = "Globals functions";
+		createCollapsable(k, (p)->{
+			var all = getGlobals( (n,t)->isFunction(t) && !runner.isKeyword(n) );
+			for(g in all)
+				createText(g.desc, g.col, p);
+		}, globalsFlow);
 
 		emitResizeAtEndOfFrame();
 	}
@@ -524,17 +553,13 @@ class Debug extends dn.Process {
 		// Start a new script
 		if( lastRunUid!=runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
-			renderError();
-			renderScript();
-			renderTypes();
+			renderAll();
 		}
 
 		// Error
 		if( runner.lastException!=null && lastErrorUid!=runner.lastRunUid ) {
 			lastErrorUid = runner.lastRunUid;
-			renderError();
-			renderScript();
-			renderTypes();
+			renderAll();
 		}
 	}
 }
