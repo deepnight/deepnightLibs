@@ -48,7 +48,7 @@ class Runner {
 	public var lastScriptStr(default,null) : Null<String>;
 	public var lastScriptExpr(default,null) : Null<Expr>;
 	public var lastRunUid(default,null) = 0;
-	public var lastError(default,null) : Null<ScriptError>;
+	public var lastError(default,null) : Null<haxe.Exception>;
 	var lastRunOutput : Null<Dynamic>;
 	var customRunOutput : Null<Dynamic>;
 	public var origin : String = "Runner";
@@ -654,7 +654,7 @@ class Runner {
 			if( rethrowErrors )
 				throw unknownException;
 			else
-				reportError( ScriptError.fromGeneralException(unknownException, lastScriptStr) );
+				reportError(unknownException);
 			return false;
 		}
 	}
@@ -670,7 +670,7 @@ class Runner {
 	}
 
 
-	public dynamic function onError(err:ScriptError) {}
+	public dynamic function onError(err:haxe.Exception) {}
 
 
 	// Throw a ScriptError exception with the given message.
@@ -683,10 +683,11 @@ class Runner {
 		throw err;
 	}
 
-	function reportError(err:ScriptError) {
+	function reportError(err:haxe.Exception) {
 		lastError = err;
 		onError(err);
-		if( debug==null ) {
+		if( debug==null && Std.isOfType(err,ScriptError) ) {
+			var err = Std.downcast(err,ScriptError);
 			#if hscriptPos
 				if( err.scriptStr!=null && err.line>0 )
 					printErrorInContext(err);

@@ -90,7 +90,7 @@ class AsyncRunner extends dn.script.Runner {
 		return running = super.run(script);
 	}
 
-	override function reportError(err:ScriptError) {
+	override function reportError(err:haxe.Exception) {
 		super.reportError(err);
 		running = false;
 		onScriptStopped(false);

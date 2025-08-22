@@ -126,11 +126,12 @@ class Debug extends dn.Process {
 		}
 		else {
 			errorFlow.visible = true;
-			createCollapsable(runner.lastError.getErrorOnly(), Red, (p)->{
+			createCollapsable(runner.lastError.message, Red, (p)->{
 				createCopyButton(runner.lastError.stack.toString(), p);
 				createText(runner.lastError.toString(), Red, p);
-				if( runner.lastError.line>=0 )
-					createScript(runner.lastScriptStr, p);
+				var scriptErr = Std.downcast(runner.lastError, ScriptError);
+				if( scriptErr!=null && scriptErr.line>=0 )
+					createScript(scriptErr.scriptStr, Orange, p);
 				else
 					createText(runner.lastError.stack.toString(), Orange, p);
 			}, errorFlow);
@@ -141,11 +142,11 @@ class Debug extends dn.Process {
 		scriptFlow.removeChildren();
 
 		// Original script string
-		createCollapsable("Script (original)", runner.lastError!=null && runner.lastError.line>=0, (p)->{
+		createCollapsable("Script (original)", (p)->{
 			if( runner.lastScriptStr==null )
 				return;
 
-			createScript(runner.lastScriptStr, p);
+			createScript(runner.lastScriptStr, White, p);
 		}, scriptFlow);
 
 		// Converted script expr
@@ -168,21 +169,22 @@ class Debug extends dn.Process {
 	}
 
 
-	function createScript(script:String, p) {
+	function createScript(script:String, col:Col, p:h2d.Flow) {
 		var raw = script;
 		raw = StringTools.replace(raw, "\t", "   ");
 		raw = StringTools.replace(raw, "\r", "");
 
 		var i = 1;
+		var scriptErr = Std.downcast(runner.lastError, ScriptError);
 		for(line in raw.split("\n")) {
 			if( line.length==0 )
 				p.addSpacing(8);
 			else {
 				var lineWithNumber = Lib.padRight(Std.string(i), 4) + line;
-				if( runner.lastError!=null && runner.lastError.line==i )
-					createText( lineWithNumber+"    <--- "+runner.lastError.getErrorOnly(), Red, p);
+				if( scriptErr!=null && scriptErr.line==i )
+					createText( lineWithNumber+"    <--- "+scriptErr.getErrorOnly(), Red, p);
 				else
-					createText( lineWithNumber, White, p);
+					createText( lineWithNumber, col, p);
 			}
 			i++;
 		}
