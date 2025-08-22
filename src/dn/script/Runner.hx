@@ -277,11 +277,10 @@ class Runner {
 			emitError('Cannot add const "$name": this name is already used as an internal keyword');
 			return;
 		}
-		for( c in consts )
-			if( c.name==name ) {
-				emitError('Cannot add const "$name": this name is already used as a const');
-				return;
-			}
+		if( hasConst(name) ) {
+			emitError('Cannot add const "$name": this name is already used as a const');
+			return;
+		}
 
 		// Check value type
 		var ttype : hscript.Checker.TType = switch Type.typeof(value) {
@@ -298,6 +297,14 @@ class Runner {
 		// Register
 		consts.push({ name:name, value:value, ttype:ttype });
 		invalidateChecker();
+	}
+
+
+	public function hasConst(name:String) : Bool {
+		for( c in consts )
+			if( c.name==name )
+				return true;
+		return false;
 	}
 
 

@@ -233,7 +233,7 @@ class Debug extends dn.Process {
 					// User-defined global
 					all.push({
 						desc: getDescFromTType(g.key, g.value),
-						col: getColorFromTType(g.value),
+						col: getColorFromTType(g.key, g.value),
 					});
 				}
 			}
@@ -358,7 +358,8 @@ class Debug extends dn.Process {
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
 			case TInt, TFloat, TBool:
-				var out = 'var $name : ${ttype.getName()}';
+				var varType = runner.hasConst(name) ? "const" : "var";
+				var out = '$varType $name : ${ttype.getName()}';
 				@:privateAccess if( runner.interp.variables.exists(name) ) {
 					out += ' = ' + runner.interp.variables.get(name);
 
@@ -379,25 +380,27 @@ class Debug extends dn.Process {
 		}
 	}
 
-	function getColorFromTType(ttype:hscript.Checker.TType) : Col {
-		return switch ttype {
-			case TInt, TFloat, TBool: White;
-			case TEnum(e, args): Pink;
-			case TInst(_): Yellow;
-			case TUnresolved(_): Red;
-			case TDynamic: Orange;
+	function getColorFromTType(name:String, ttype:hscript.Checker.TType) : Col {
+		return runner.hasConst(name)
+			? ColdMidGray
+			: switch ttype {
+				case TInt, TFloat, TBool: White;
+				case TEnum(e, args): Pink;
+				case TInst(_): Yellow;
+				case TUnresolved(_): Red;
+				case TDynamic: Orange;
 
-			case TFun(args, ret):
-				var col = Cyan;
-				for(a in args)
-					switch a.t {
-						case TUnresolved(name): col = Red; // override color for unresolved args
-						case _:
-					}
-				col;
+				case TFun(args, ret):
+					var col = Cyan;
+					for(a in args)
+						switch a.t {
+							case TUnresolved(name): col = Red; // override color for unresolved args
+							case _:
+						}
+					col;
 
-			case _: Red; // Unknown type
-		}
+				case _: Red; // Unknown type
+			}
 	}
 
 
@@ -436,7 +439,7 @@ class Debug extends dn.Process {
 			for( f in runner.checker.getFields( runner.checker.types.resolve(name) ) )
 				t.values.push({
 					desc: getDescFromTType(f.name, f.t),
-					col: getColorFromTType(f.t),
+					col: getColorFromTType(f.name, f.t),
 				});
 
 			t.values.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
