@@ -264,6 +264,27 @@ class Runner {
 	}
 
 
+	public function exposeFunctionsByPrefix(classOrInst:Dynamic, prefix:String, keepPrefix:Bool) {
+		// Check class
+		var cl = switch Type.typeof(classOrInst) {
+			case TClass(c): c;
+			case _: Type.getClass(classOrInst);
+		}
+		if( cl==null ) {
+			emitError('Not a class or a class instance: $classOrInst');
+			return;
+		}
+
+		if( !checkRtti(cl) )
+			return;
+
+		// Register all functions with the given prefix
+		for(f in Type.getInstanceFields(cl))
+			if( f.indexOf(prefix)==0 )
+				exposeFunction(classOrInst, Reflect.getProperty(classOrInst,f), keepPrefix ? f : f.substr(prefix.length) );
+	}
+
+
 	function checkRtti<T>(cl:Class<T>) : Bool {
 		if( haxe.rtti.Rtti.hasRtti(cl) ) {
 			// Check @:keep presence

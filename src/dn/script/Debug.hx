@@ -249,7 +249,7 @@ class Debug extends dn.Process {
 		expandedWrapper.minWidth = minWidth;
 		expandedWrapper.layout = Vertical;
 		expandedWrapper.verticalSpacing = 1;
-		expandedWrapper.paddingLeft = gap;
+		expandedWrapper.paddingHorizontal= gap;
 		expandedWrapper.paddingBottom = gap;
 
 		var bt : h2d.Flow = null;
