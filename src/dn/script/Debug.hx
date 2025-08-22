@@ -46,7 +46,7 @@ class Debug extends dn.Process {
 
 		wrapper = new h2d.Flow(root);
 		wrapper.layout = Vertical;
-		wrapper.verticalSpacing = 1;
+		wrapper.verticalSpacing = gap;
 		wrapper.minWidth = minWidth;
 		wrapper.backgroundTile = h2d.Tile.fromColor(baseColor.toBlack(0.5).withAlpha(0.85));
 
