@@ -175,14 +175,14 @@ class Debug extends dn.Process {
 				case T_ClassInst: 'Class Instance';
 				case T_ClassDef: 'Class Definition';
 			}
-			createCollapsable(t.name, catLabel, (p)->{
+			createCollapsable('"${t.name}"', catLabel, (p)->{
 				for(v in t.values)
 					createText(v.desc, v.col, p);
 			}, typesFlow);
 		}
 
 		// Globals
-		var k = "<Globals>";
+		var k = "Globals";
 		createCollapsable(k, (p)->{
 			var all = [];
 
@@ -322,7 +322,13 @@ class Debug extends dn.Process {
 
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
-			case TInt, TFloat, TBool: 'var $name : ${ttype.getName()}';
+			case TInt, TFloat, TBool:
+				var out = 'var $name : ${ttype.getName()}';
+				@:privateAccess if( runner.interp.variables.exists(name) ) {
+					out += ' = ' + runner.interp.variables.get(name);
+
+				}
+				out;
 			case TDynamic: 'instance "$name" => ${ttype.getName()}';
 			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
