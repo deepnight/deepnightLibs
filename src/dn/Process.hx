@@ -215,6 +215,29 @@ class Process {
 	}
 
 
+	function rprintChildrenToArray() : Array<{ str:String, p:dn.Process }> {
+
+		function _crawl(p:dn.Process, depth=0) {
+			var out = [];
+			var indent = depth>0 ? " |--- " : "";
+			indent = dn.Lib.repeatChar(" ",6*(depth-1)) + indent;
+			out.push({ str:indent + p.toString(), p:p });
+			for( cp in p.children )
+				out = out.concat( _crawl(cp, depth+1) );
+			return out;
+		}
+
+		return _crawl(this);
+	}
+
+	public static function rprintAllToArray() : Array<{ str:String, p:dn.Process }> {
+		var all = [];
+		for( p in ROOTS )
+			all = all.concat( p.rprintChildrenToArray() );
+		return all;
+	}
+
+
 	public static function destroyAllExcept(excepts:Array<Process>) {
 		for(p in ROOTS) {
 			if( p.destroyed )
