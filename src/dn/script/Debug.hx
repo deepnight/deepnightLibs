@@ -212,39 +212,56 @@ class Debug extends dn.Process {
 			}, typesFlow);
 		}
 
-		// Globals
-		var k = "Globals";
+		// Keywords & consts
+		var k = "Keywords & consts";
 		createCollapsable(k, (p)->{
-			var all = [];
+			var all = getGlobals( (n,t)->runner.hasConst(n) || runner.isKeyword(n) );
+			for(g in all)
+				createText(g.desc, g.col, p);
+		}, typesFlow);
 
-			@:privateAccess
-			for( g in runner.checker.getGlobals().keyValueIterator() ) {
-				if( runner.isKeyword(g.key) ) {
-					// Keyword
-					all.push({
-						desc: switch g.value {
-							case TFun(args, ret): '< ${g.key}(...) >';
-							case _: '< ${g.key} : ${g.value} >';
-						},
-						col: Col.coldMidGray(),
-					});
-				}
-				else {
-					// User-defined global
-					all.push({
-						desc: getDescFromTType(g.key, g.value),
-						col: getColorFromTType(g.key, g.value),
-					});
-				}
-			}
-
-			all.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
+		// Globals values
+		var k = "Globals values";
+		createCollapsable(k, (p)->{
+			var all = getGlobals( (n,t)->!runner.hasConst(n) && !runner.isKeyword(n) );
 			for(g in all)
 				createText(g.desc, g.col, p);
 		}, typesFlow);
 
 		emitResizeAtEndOfFrame();
 	}
+
+	function getGlobals(?filter:(name:String,ttype:hscript.Checker.TType)->Bool) {
+		var all = [];
+
+		@:privateAccess
+		for( g in runner.checker.getGlobals().keyValueIterator() ) {
+			if( filter!=null && !filter(g.key, g.value) )
+				continue;
+
+			if( runner.isKeyword(g.key) ) {
+				// Keyword
+				all.push({
+					desc: switch g.value {
+						case TFun(args, ret): '< ${g.key}(...) >';
+						case _: '< ${g.key} : ${g.value} >';
+					},
+					col: Col.coldMidGray(),
+				});
+			}
+			else {
+				// User-defined global
+				all.push({
+					desc: getDescFromTType(g.key, g.value),
+					col: getColorFromTType(g.key, g.value),
+				});
+			}
+		}
+
+		all.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
+		return all;
+	}
+
 
 	function createCollapsable(label:String, ?subLabel:String, col:Col=0, forceOpen=false, renderContent:h2d.Flow->Void, ?onHide:Void->Void, p:h2d.Flow) {
 		var id = label;
@@ -382,7 +399,7 @@ class Debug extends dn.Process {
 
 	function getColorFromTType(name:String, ttype:hscript.Checker.TType) : Col {
 		return runner.hasConst(name)
-			? ColdMidGray
+			? ColdLightGray
 			: switch ttype {
 				case TInt, TFloat, TBool: White;
 				case TEnum(e, args): Pink;
