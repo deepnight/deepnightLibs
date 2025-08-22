@@ -38,10 +38,6 @@ class Process {
 	/** Elapsed seconds from the client start **/
 	public var stime(get, never) : Float;
 
-	@:noCompletion
-	@:deprecated("Use isPaused() here")
-	public var paused(get,never) : Bool; inline function get_paused() return _manuallyPaused;
-
 	/** TRUE if this process was directly manually paused **/
 	var _manuallyPaused: Bool;
 
