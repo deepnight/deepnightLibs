@@ -53,17 +53,22 @@ class Debug extends dn.Process {
 		header = new h2d.Flow(wrapper);
 		header.paddingLeft = 4;
 		header.layout = Horizontal;
+		header.horizontalSpacing = gap;
 		header.verticalAlign = Middle;
-		header.backgroundTile = h2d.Tile.fromColor(baseColor.toWhite(0.25));
+		header.backgroundTile = h2d.Tile.fromColor(isAsync() ? 0x044c1e : 0x062e52);
 
-		timerTf = createText("", header);
+		createText(isAsync() ? "ASYNC" : "SYNC", isAsync() ? 0x1dd862 : 0x2780ce, header);
+		timerTf = createText("", White, header);
 		header.getProperties(timerTf).minWidth = 50;
 
-		createText("out=", header);
-		outputTf = createText(runner.origin, header);
-		header.getProperties(outputTf).minWidth = 50;
+		var f = new h2d.Flow(header);
+		f.layout = Horizontal;
+		f.verticalAlign = Middle;
+		createText("out=", f);
+		outputTf = createText(runner.origin, White, f);
+		header.getProperties(f).minWidth = 50;
 
-		originTf = createText(runner.origin, header);
+		originTf = createText(runner.origin, White, header);
 
 		var closeBt = createButton("x", destroy, header);
 		header.getProperties(closeBt).horizontalAlign = Right;
@@ -89,8 +94,8 @@ class Debug extends dn.Process {
 		font = null;
 	}
 
-	inline function isCinematic() return runner is dn.script.runner.Cinematic;
-	inline function asCinematic() return Std.downcast(runner, dn.script.runner.Cinematic);
+	inline function isAsync() return runner is dn.script.AsyncRunner;
+	inline function asAsync() return Std.downcast(runner, dn.script.AsyncRunner);
 
 	function render() {
 		renderScript();
@@ -99,8 +104,8 @@ class Debug extends dn.Process {
 	}
 
 	function updateTimer() {
-		if( isCinematic() ) {
-			timerTf.text = M.pretty(asCinematic().runningTimeS, 2) + "s";
+		if( isAsync() ) {
+			timerTf.text = M.pretty(asAsync().runningTimeS, 2) + "s";
 			timerTf.visible = true;
 		}
 		else
@@ -427,7 +432,7 @@ class Debug extends dn.Process {
 		if( outputTf.text!=runner.output )
 			outputTf.text = Std.string(runner.output);
 
-		if( isCinematic() && asCinematic().hasScriptRunning() )
+		if( isAsync() && asAsync().hasScriptRunning() )
 			updateTimer();
 
 		if( lastRunUid!=runner.lastRunUid ) {

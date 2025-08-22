@@ -1,14 +1,14 @@
-package dn.script.runner;
+package dn.script;
 
 import hscript.Expr;
 import hscript.Tools;
 
 /**
-	Cinematic: a specialized script runner that supports cinematic oriented features (pausing, async calls, waitUntil etc)
+	AsyncRunner: a specialized script runner that supports asynchronous execution (delays, async calls, waitUntil etc)
 
-	IMPORTANT: `update()` must be called to support async features!
+	IMPORTANT: `update()` must be called on every frame!
 **/
-class Cinematic extends dn.script.Runner {
+class AsyncRunner extends dn.script.Runner {
 	public var tmod(default,null) : Float = 1;
 	var fps : Int;
 	public var runningTimeS(default,null) = 0.;
@@ -21,7 +21,7 @@ class Cinematic extends dn.script.Runner {
 	public function new(fps:Int) {
 		super();
 		this.fps = fps;
-		origin = "Cinematic";
+		origin = "AsyncRunner";
 
 		addInternalKeyword("delayExecutionS", TDynamic, api_delayExecutionS);
 		addInternalKeyword("waitUntil", TDynamic, api_waitUntil);
@@ -49,7 +49,7 @@ class Cinematic extends dn.script.Runner {
 	inline function mkExpr(e:ExprDef, p:Expr) {
 		var outExpr = Tools.mk( e, p );
 		#if hscriptPos
-		outExpr.origin = "CinematicConvert";
+		outExpr.origin = "AsyncConvert";
 		#end
 		return outExpr;
 	}
@@ -158,7 +158,7 @@ class Cinematic extends dn.script.Runner {
 
 
 	/*
-		Convert a standard program Expr to support Cinematic runner features.
+		Convert a standard program Expr to support AsyncRunner features.
 
 		Transforms "custom waitUntil conditions" expressions to valid expressions.
 			customWaitUntil(...)
@@ -548,6 +548,8 @@ class Cinematic extends dn.script.Runner {
 				case EField(e, f):
 				case EUnop(op, prefix, e):
 				case EReturn(retExpr):
+					emitError('Unsupported in AsyncRunner', e);
+
 				case EArray(e, index):
 				case EArrayDecl(e):
 				case ENew(cl, params):
@@ -558,7 +560,7 @@ class Cinematic extends dn.script.Runner {
 				case EForGen(it, e):
 
 				case EContinue, EThrow(_), ETry(_):
-					emitError('Unsupported in Cinematic', e);
+					emitError('Unsupported in AsyncRunner', e);
 			}
 			idx++;
 		}
