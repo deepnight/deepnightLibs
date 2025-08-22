@@ -279,9 +279,15 @@ class Runner {
 			return;
 
 		// Register all functions with the given prefix
+		var count = 0;
 		for(f in Type.getInstanceFields(cl))
-			if( f.indexOf(prefix)==0 )
+			if( f.indexOf(prefix)==0 ) {
 				exposeFunction(classOrInst, Reflect.getProperty(classOrInst,f), keepPrefix ? f : f.substr(prefix.length) );
+				count++;
+			}
+
+		if( count==0 )
+			emitError('No function found with prefix "$prefix" in class $cl');
 	}
 
 
