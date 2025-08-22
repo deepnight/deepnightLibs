@@ -464,11 +464,13 @@ class Debug extends dn.Process {
 		if( lastRunUid!=runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
 			renderScript();
+			renderTypes();
 		}
 
 		if( runner.lastError!=null && lastErrorUid!=runner.lastRunUid ) {
 			lastErrorUid = runner.lastRunUid;
 			renderScript();
+			renderTypes();
 		}
 	}
 }
