@@ -484,6 +484,16 @@ class Runner {
 			var tt = checker.types.resolve(name);
 			checker.setGlobal(name.split(".").pop(), tt);
 
+			// Check that all super classes are known
+			var superCl = Type.getSuperClass(ac.cl);
+			while( superCl!=null ) {
+				var name = Type.getClassName(superCl);
+				var tt = checker.types.resolve(name);
+				if( tt==null )
+					emitError('Unknown superclass "$name" (from ${Type.getClassName(ac.cl)}). Use exposeClassDefinition maybe?');
+				superCl = Type.getSuperClass(superCl);
+			}
+
 			if( ac.instance!=null ) {
 				// Register class instance var as global
 				var name = Type.getClassName(ac.cl);
