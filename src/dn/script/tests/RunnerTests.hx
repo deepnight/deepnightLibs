@@ -9,7 +9,7 @@ class RunnerTests {
 		var api = new Api();
 		var r = new Runner();
 		r.log = (str,?col)->{}
-		r.rethrowErrors = true;
+		r.rethrowLevel = AllExceptions;
 		r.exposeClassInstance(api, "api", PublicFields);
 
 		var script = "
@@ -32,7 +32,7 @@ class RunnerTests {
 		CiAssert.throwsException( "Incompatible arg types", r.run("var x=pow2('a');") );
 		CiAssert.throwsException( "Undefined var", r.run("x=1") );
 
-		r.rethrowErrors = false;
+		r.rethrowLevel = Nothing;
 
 		// API calls
 		CiAssert.equals( { r.run("var x=pow2(5); x;"); r.output_int; },  25 );
