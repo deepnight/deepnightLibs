@@ -280,7 +280,7 @@ class AsyncRunner extends dn.script.Runner {
 										var asyncFunc = mkFunctionExpr(rightExpr,e);
 										_convertFunctionBodyExpr(asyncFunc);
 										var args = [
-											mkFunctionExpr( mkCallByName(id,params,e), e ),
+											mkFunctionExpr( mkExpr( EReturn(mkCallByName(id,params,e)), e ), e ),
 											mkFunctionExpr( asyncFunc, e ),
 										];
 										_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
@@ -320,7 +320,7 @@ class AsyncRunner extends dn.script.Runner {
 						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
 						asyncExprsArray(followingExprs);
 						var args = [
-							mkFunctionExpr( mkCallByName(id,params,e), e ),
+							mkFunctionExpr( mkExpr( EReturn(mkCallByName(id,params,e)), e), e ),
 							mkFunctionExpr( mkBlock(followingExprs,e), e ),
 						];
 						_replaceCurBlockExpr( ECall( mkIdentExpr("waitUntil",e), args ) );
