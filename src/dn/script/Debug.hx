@@ -204,8 +204,70 @@ class Debug extends dn.Process {
 	}
 
 
+
+	function initChecker() {
+		@:privateAccess
+		if( runner.checker==null )
+			runner.initChecker();
+	}
+
+	function getAllExposedTypes() : Array<ExposedType> {
+		var allTypes : Array<ExposedType> = [];
+
+		// Enums
+		@:privateAccess
+		for(e in runner.enums) {
+			allTypes.push({
+				name: e.getName(),
+				category : T_Enum,
+				values: e.getConstructors().map( k->{
+					desc: k,
+					col: Pink,
+				}),
+			});
+		}
+
+		// Classes
+		@:privateAccess
+		for(c in runner.classes) {
+			var name = Type.getClassName(c.cl);
+			var t : ExposedType = {
+				name: name,
+				category: c.instance!=null ? T_ClassInst : T_ClassDef,
+				values: [],
+			}
+			allTypes.push(t);
+
+			// List all class fields
+			for( f in runner.checker.getFields( runner.checker.types.resolve(name) ) )
+				t.values.push({
+					desc: getDescFromTType(f.name, f.t),
+					col: getColorFromTType(f.name, f.t),
+				});
+
+			t.values.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
+		}
+
+		return allTypes;
+	}
+
+
 	function renderTypes() {
 		typesFlow.removeChildren();
+
+		initChecker();
+
+		// Unresolved types
+		var unresolveds = getAllUnresolvedTypes();
+		if( unresolveds.length>0 )
+			createCollapsable("Unresolved types", 0x6b0836, (p)->{
+				for(ug in unresolveds) {
+					createText(ug.context+":", Yellow, p);
+					for(u in ug.unresolveds)
+						createText("   "+u, Red, p);
+					p.addSpacing(gap);
+				}
+			}, typesFlow);
 
 		// Exposed types
 		var allTypes = getAllExposedTypes();
@@ -220,6 +282,68 @@ class Debug extends dn.Process {
 					createText(v.desc, v.col, p);
 			}, typesFlow);
 		}
+	}
+
+
+	function getAllUnresolvedTypes() {
+		var unresolveds : Array<{ context:String, unresolveds:Array<String> }> = [];
+
+		function _addUnresolved(context:String, name:String, ttype:hscript.Checker.TType) {
+			for(u in unresolveds)
+				if( u.context==context ) {
+					u.unresolveds.push( getDescFromTType(name,ttype) );
+					return;
+				}
+			unresolveds.push({ context:context, unresolveds:[ getDescFromTType(name,ttype) ] });
+		}
+
+		function _checkFunction(context:String, functionName:String, functionTType:hscript.Checker.TType) {
+			switch functionTType {
+				case TFun(args, ret):
+					for(a in args)
+						switch a.t {
+							case TUnresolved(_):
+								_addUnresolved(context, functionName, functionTType);
+								return;
+
+							case _:
+						}
+					switch ret {
+						case TUnresolved(_):
+							_addUnresolved(context, functionName, functionTType);
+							return;
+
+						case _:
+					}
+
+				case _:
+			}
+		}
+
+
+		// Globals
+		@:privateAccess
+		for(g in runner.checker.getGlobals().keyValueIterator()) {
+			switch g.value {
+				case TUnresolved(name): _addUnresolved("Globals", name, g.value);
+				case _:
+			}
+		}
+
+		// Class fields
+		@:privateAccess
+		for(c in runner.classes) {
+			var className = Type.getClassName(c.cl);
+			for( f in runner.checker.getFields( runner.checker.types.resolve(className) ) ) {
+				switch f.t {
+					case TUnresolved(name): _addUnresolved(className, f.name, f.t);
+					case TFun(args, ret): _checkFunction(className, f.name, f.t);
+					case _:
+				}
+			}
+		}
+
+		return unresolveds;
 	}
 
 
@@ -377,7 +501,7 @@ class Debug extends dn.Process {
 			case TFloat: 'Float';
 			case TBool: 'Bool';
 			case TDynamic: 'Dynamic';
-			case TUnresolved(name): '?$name';
+			case TUnresolved(name): '<$name?>';
 			case TInst(c, args): c.name;
 			case TEnum(e, args): e.name;
 			case TAbstract(a, args): a.name;
@@ -403,7 +527,7 @@ class Debug extends dn.Process {
 			case TDynamic: 'instance "$name" => ${ttype.getName()}';
 			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
-			case TUnresolved(typeName): 'var $name : ?$typeName (unresolved)';
+			case TUnresolved(typeName): 'var $name : <$typeName?>';
 
 			case TFun(args, ret):
 				var argsStr = args.map(
@@ -432,57 +556,15 @@ class Debug extends dn.Process {
 							case TUnresolved(name): col = Red; // override color for unresolved args
 							case _:
 						}
+					switch ret {
+						case TUnresolved(_): col = Red; // override color for unresolved return type
+						case _:
+					}
 					col;
 
 				case _: Red; // Unknown type
 			}
 	}
-
-
-	function getAllExposedTypes() : Array<ExposedType> {
-		@:privateAccess
-		if( runner.checker==null )
-			runner.initChecker();
-
-		var allTypes : Array<ExposedType> = [];
-
-		// Enums
-		@:privateAccess
-		for(e in runner.enums) {
-			allTypes.push({
-				name: e.getName(),
-				category : T_Enum,
-				values: e.getConstructors().map( k->{
-					desc: k,
-					col: Pink,
-				}),
-			});
-		}
-
-		// Classes
-		@:privateAccess
-		for(c in runner.classes) {
-			var name = Type.getClassName(c.cl);
-			var t : ExposedType = {
-				name: name,
-				category: c.instance!=null ? T_ClassInst : T_ClassDef,
-				values: [],
-			}
-			allTypes.push(t);
-
-			// List all class fields
-			for( f in runner.checker.getFields( runner.checker.types.resolve(name) ) )
-				t.values.push({
-					desc: getDescFromTType(f.name, f.t),
-					col: getColorFromTType(f.name, f.t),
-				});
-
-			t.values.sort((a,b)->Reflect.compare(a.desc.toLowerCase(), b.desc.toLowerCase()));
-		}
-
-		return allTypes;
-	}
-
 
 
 	public dynamic function onClose() {}
