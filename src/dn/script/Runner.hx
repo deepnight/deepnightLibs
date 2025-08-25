@@ -13,6 +13,12 @@ enum ScriptGlobalAccess {
 	PublicAndPrivateFields;
 }
 
+enum ScriptRethrowLevel {
+	Nothing;
+	HaxeExceptions;
+	AllExceptions;
+}
+
 private typedef ExposedClass = {
 	var cl : Class<Dynamic>;
 	var ?instance : { scriptName:Null<String>, ref:Dynamic, globalAccess:ScriptGlobalAccess };
@@ -63,7 +69,7 @@ class Runner {
 	var internalKeywords: Array<{ name:String, type:hscript.Checker.TType, ?instanceRef:Dynamic }> = [];
 
 	// If TRUE, throw errors instead of intercepeting them
-	public var rethrowErrors = false;
+	public var rethrowLevel : ScriptRethrowLevel = Nothing;
 
 	// If TRUE, the script is not checked before running. This should only be used if check() is manually called before hand.
 	public var runWithoutCheck = false;
@@ -729,23 +735,33 @@ class Runner {
 				catch( err:hscript.Expr.Error ) {
 					var err = ScriptError.fromHScriptError(err, lastScriptStr);
 					reportError(err);
-					if( rethrowErrors )
-						throw err;
+					switch rethrowLevel {
+						case Nothing:
+						case HaxeExceptions:
+						case AllExceptions:
+							throw err;
+					}
 					return false;
 				}
 			}
 			catch( err:ScriptError ) {
 				reportError(err);
-				if( rethrowErrors )
-					throw err;
+				switch rethrowLevel {
+					case Nothing:
+					case HaxeExceptions:
+					case AllExceptions:
+						throw err;
+				}
 				return false;
 			}
 		}
 		catch( unknownException:haxe.Exception ) {
-			if( rethrowErrors )
-				throw unknownException;
-			else
-				reportError(unknownException);
+			reportError(unknownException);
+			switch rethrowLevel {
+				case Nothing:
+				case HaxeExceptions, AllExceptions:
+					throw unknownException;
+			}
 			return false;
 		}
 	}
