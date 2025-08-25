@@ -490,7 +490,7 @@ class Runner {
 				var name = Type.getClassName(superCl);
 				var tt = checker.types.resolve(name);
 				if( tt==null )
-					emitError('Unknown superclass "$name" (from ${Type.getClassName(ac.cl)}). Use exposeClassDefinition maybe?');
+					emitError('Unknown superclass "$name" (from ${Type.getClassName(ac.cl)}). Use `exposeClassDefinition($name)` maybe?');
 				superCl = Type.getSuperClass(superCl);
 			}
 
