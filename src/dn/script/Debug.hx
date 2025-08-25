@@ -241,16 +241,9 @@ class Debug extends dn.Process {
 			}, globalsFlow);
 		}
 
-		// Keywords
 		_createFilteredGlobalsGroup("Keywords", (n,t)->runner.isKeyword(n) );
-
-		// Consts
 		_createFilteredGlobalsGroup("Consts", (n,t)->runner.hasConst(n) );
-
-		// Globals values
 		_createFilteredGlobalsGroup("Globals values", (n,t)->!runner.hasConst(n) && !runner.isKeyword(n) && !_isFunction(t) );
-
-		// Globals functions
 		_createFilteredGlobalsGroup("Globals functions", (n,t)->_isFunction(t) && !runner.isKeyword(n) );
 
 		emitResizeAtEndOfFrame();
