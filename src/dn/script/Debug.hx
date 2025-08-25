@@ -226,36 +226,32 @@ class Debug extends dn.Process {
 	function renderGlobals() {
 		globalsFlow.removeChildren();
 
-		function isFunction(ttype:hscript.Checker.TType) : Bool {
+		function _isFunction(ttype:hscript.Checker.TType) : Bool {
 			return switch ttype {
 				case TFun(_): true;
 				case _: false;
 			}
 		}
 
-		// Keywords & consts
-		var k = "Keywords & consts";
-		createCollapsable(k, (p)->{
-			var all = getGlobals( (n,t)->runner.hasConst(n) || runner.isKeyword(n) );
-			for(g in all)
-				createText(g.desc, g.col, p);
-		}, globalsFlow);
+		function _createFilteredGlobalsGroup(label:String, filter) {
+			createCollapsable(label, (p)->{
+				var all = getGlobals( (n,t)->filter(n,t) );
+				for(g in all)
+					createText(g.desc, g.col, p);
+			}, globalsFlow);
+		}
+
+		// Keywords
+		_createFilteredGlobalsGroup("Keywords", (n,t)->runner.isKeyword(n) );
+
+		// Consts
+		_createFilteredGlobalsGroup("Consts", (n,t)->runner.hasConst(n) );
 
 		// Globals values
-		var k = "Globals values";
-		createCollapsable(k, (p)->{
-			var all = getGlobals( (n,t)->!runner.hasConst(n) && !runner.isKeyword(n) && !isFunction(t) );
-			for(g in all)
-				createText(g.desc, g.col, p);
-		}, globalsFlow);
+		_createFilteredGlobalsGroup("Globals values", (n,t)->!runner.hasConst(n) && !runner.isKeyword(n) && !_isFunction(t) );
 
 		// Globals functions
-		var k = "Globals functions";
-		createCollapsable(k, (p)->{
-			var all = getGlobals( (n,t)->isFunction(t) && !runner.isKeyword(n) );
-			for(g in all)
-				createText(g.desc, g.col, p);
-		}, globalsFlow);
+		_createFilteredGlobalsGroup("Globals functions", (n,t)->_isFunction(t) && !runner.isKeyword(n) );
 
 		emitResizeAtEndOfFrame();
 	}
