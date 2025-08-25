@@ -777,7 +777,7 @@ class Runner {
 	function reportError(exception:haxe.Exception) {
 		lastException = exception;
 		onError(exception);
-		if( debug==null && Std.isOfType(exception,ScriptError) ) {
+		if( #if heaps debug==null && #end Std.isOfType(exception,ScriptError) ) {
 			#if hscriptPos
 				if( lastScriptError.scriptStr!=null && lastScriptError.line>0 )
 					printErrorInContext(lastScriptError);
