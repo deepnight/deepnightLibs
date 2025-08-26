@@ -36,6 +36,8 @@ class Rope {
 		var i = 0;
 		for(pt in points) {
 			pt.setPos(x, y+i*maxSegmentLength);
+			pt.lastX = pt.curX;
+			pt.lastY = pt.curY;
 			i++;
 		}
 	}
