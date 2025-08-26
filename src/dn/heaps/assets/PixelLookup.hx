@@ -1,37 +1,33 @@
 package dn.heaps.assets;
 
 class PixelLookup extends dn.Process {
-	public static function fromSlib(slib:dn.heaps.slib.SpriteLib, ?slibPixels:hxd.Pixels, color:dn.Col) : Map<Int,PixelCoord> {
-		if( slibPixels==null )
-			slibPixels = slib.tile.getTexture().capturePixels();
+	public static function fromSlib(slib:dn.heaps.slib.SpriteLib, ?slibPixels:hxd.Pixels, lookupColor:dn.Col) : Map<Int,PixelPoint> {
+		var pixels = slibPixels ?? slib.tile.getTexture().capturePixels();
 
-		var pixelCoords : Map<Int, PixelCoord> = new Map();
-		var output = new PixelCoord(0,0);
+		var col = lookupColor.withAlphaIfMissing();
+		var points : Map<Int, PixelPoint> = new Map();
 		for(group in slib.getGroups())
-		for(fd in group.frames)
-			if( lookupPixelSub(slibPixels, fd.x, fd.y, fd.wid, fd.hei, color, output) )
-				pixelCoords.set(fd.uid, output.clone());
+		for(frame in group.frames) {
+			var pt = lookupSubPixels(pixels, frame.x, frame.y, frame.wid, frame.hei, col);
+			if( pt!=null )
+				points.set(frame.uid, pt);
+		}
 
-		return pixelCoords;
+		return points;
 	}
 
-	static function lookupPixelSub(slibPixels:hxd.Pixels, x:Int, y:Int, w:Int, h:Int, col:Col, output:PixelCoord) {
-		col = col.withAlphaIfMissing();
+	static function lookupSubPixels(pixels:hxd.Pixels, x:Int, y:Int, w:Int, h:Int, col:Col) : Null<PixelPoint> {
 		for(px in x...x+w)
 		for(py in y...y+h)
-			if( slibPixels.getPixel(px,py)==col ) {
-				output.x = px-x;
-				output.y = py-y;
-				return true;
-			}
+			if( pixels.getPixel(px,py)==col )
+				return new PixelPoint(px-x, py-y);
 
-		output.x = output.y = -1;
-		return false;
+		return null;
 	}
 }
 
 
-class PixelCoord {
+class PixelPoint {
 	public var x : Int;
 	public var y : Int;
 
@@ -40,11 +36,8 @@ class PixelCoord {
 		this.y = y;
 	}
 
-	@:keep public function tostring() {
-		return 'PixelCoord($x,$y)';
-	}
-
-	public inline function clone() {
-		return new PixelCoord(x,y);
+	@:keep
+	public function tostring() {
+		return 'PixelPoint($x,$y)';
 	}
 }
