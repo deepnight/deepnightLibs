@@ -31,13 +31,12 @@ class Rope {
 		}
 	}
 
-	/** Init all points vertically at a specific position */
+	/** Align all points at a specific position */
 	public function initAllPoints(x:Float, y:Float, ang=M.PIHALF) {
 		var i = 0;
 		for(pt in points) {
-			pt.setPos(x, y+i*maxSegmentLength);
-			pt.lastX = pt.curX;
-			pt.lastY = pt.curY;
+			pt.curX = pt.lastX = pt._lastPhysX = x + Math.cos(ang)*i*maxSegmentLength;
+			pt.curY = pt.lastY = pt._lastPhysY = y + Math.sin(ang)*i*maxSegmentLength;
 			i++;
 		}
 	}
