@@ -16,6 +16,20 @@ class PixelLookup extends dn.Process {
 		return points;
 	}
 
+	public static function replaceColor(slib:dn.heaps.slib.SpriteLib, lookupColor:dn.Col, newColor:dn.Col) {
+		var pixels = slib.tile.getTexture().capturePixels();
+
+		lookupColor = lookupColor.withAlphaIfMissing();
+		for(x in 0...pixels.width)
+		for(y in 0...pixels.height) {
+			var c : Col = pixels.getPixel(x,y);
+			if( c==lookupColor )
+				pixels.setPixel(x,y, newColor.withAlphaIfMissing(c.af));
+		}
+		var newTile = h2d.Tile.fromPixels(pixels);
+		slib.tile.switchTexture(newTile);
+	}
+
 	static function lookupSubPixels(pixels:hxd.Pixels, x:Int, y:Int, w:Int, h:Int, col:Col) : Null<PixelPoint> {
 		for(px in x...x+w)
 		for(py in y...y+h)
