@@ -50,7 +50,12 @@ private class AnimInstance {
 		plays = LOOP_PLAYS;
 	}
 
+	public dynamic function onComplete() {}
+
+	@:deprecated("Not working as intended, use onComplete() instead")
+	@:noCompletion
 	public dynamic function onEnd() {}
+
 	public dynamic function onEachFrame() {}
 	public dynamic function onEachLoop() {}
 }
@@ -320,6 +325,15 @@ class AnimManager {
 		return this;
 	}
 
+	// Callback when the animation ends (after all loops)
+	public function onComplete(cb:Void->Void) {
+		if( hasAnim() )
+			getLastAnim().onComplete = cb;
+		return this;
+	}
+
+	@:deprecated("Broken: use onComplete() instead")
+	@:noCompletion
 	public function onEnd(cb:Void->Void) {
 		if( hasAnim() )
 			getLastAnim().onEnd = cb;
@@ -636,9 +650,8 @@ class AnimManager {
 					stopWithoutStateAnims();
 
 				// No loop
-				a.onEnd();
-
 				if( a.killAfterPlay ) {
+					a.onComplete();
 					spr.remove();
 					break;
 				}
@@ -646,12 +659,18 @@ class AnimManager {
 				// Next anim
 				if( hasAnim() ) {
 					stack.shift();
-					if( stack.length==0 )
+					if( stack.length==0 ) {
 						stopWithStateAnims();
-					else
+						a.onComplete();
+					}
+					else {
+						a.onComplete();
 						initCurrentAnim();
+					}
 					a = getCurrentAnim();
 				}
+				else
+					a.onComplete();
 
 				if( !hasAnim() )
 					break;
@@ -677,7 +696,7 @@ class AnimManager {
 					}
 					else {
 						// End
-						overlap.onEnd();
+						overlap.onComplete();
 						clearOverlapAnim();
 						if( getCurrentAnim()!=null )
 							getCurrentAnim().applyFrame();
