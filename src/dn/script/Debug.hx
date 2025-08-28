@@ -366,8 +366,8 @@ class Debug extends dn.Process {
 		}
 
 		_createFilteredGlobalsGroup("Keywords", (n,t)->runner.isKeyword(n) );
-		_createFilteredGlobalsGroup("Consts", (n,t)->runner.hasConst(n) );
-		_createFilteredGlobalsGroup("Global values", (n,t)->!runner.hasConst(n) && !runner.isKeyword(n) && !_isFunction(t) );
+		_createFilteredGlobalsGroup("Global vars", (n,t)->runner.hasGlobalVar(n) );
+		_createFilteredGlobalsGroup("Global values", (n,t)->!runner.hasGlobalVar(n) && !runner.isKeyword(n) && !_isFunction(t) );
 		_createFilteredGlobalsGroup("Global functions", (n,t)->_isFunction(t) && !runner.isKeyword(n) );
 
 		emitResizeAtEndOfFrame();
@@ -517,7 +517,7 @@ class Debug extends dn.Process {
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
 			case TInt, TFloat, TBool:
-				var varType = runner.hasConst(name) ? "const" : "var";
+				var varType = runner.hasGlobalVar(name) ? "const" : "var";
 				var out = '$varType $name : ${ttype.getName()}';
 				@:privateAccess if( runner.interp.variables.exists(name) ) {
 					out += ' = ' + runner.interp.variables.get(name);
@@ -540,7 +540,7 @@ class Debug extends dn.Process {
 	}
 
 	function getColorFromTType(name:String, ttype:hscript.Checker.TType) : Col {
-		return runner.hasConst(name)
+		return runner.hasGlobalVar(name)
 			? ColdLightGray
 			: switch ttype {
 				case TInt, TFloat, TBool: White;
