@@ -39,7 +39,7 @@ class PixelLookup extends dn.Process {
 		for(y in 0...pixels.height) {
 			c = pixels.getPixel(x,y);
 			if( remap.exists(c.withoutAlpha()) )
-				pixels.setPixel( x,y, remap.get( c.withoutAlpha() ).withAlpha(c.af) );
+				pixels.setPixel( x,y, remap.get( c.withoutAlpha() ).withAlphaIfMissing(c.af) );
 		}
 		var newTile = h2d.Tile.fromPixels(pixels);
 		slib.tile.switchTexture(newTile);
