@@ -291,6 +291,7 @@ class Runner {
 			case TFloat: TFloat;
 			case TBool: TBool;
 			case TNull: TNull(TDynamic);
+			case TFunction: TFun([], TVoid);
 			case _: null;
 		}
 		if( ttype==null ) {
