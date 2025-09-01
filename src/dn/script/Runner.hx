@@ -292,11 +292,11 @@ class Runner {
 			case TBool: TBool;
 			case TNull: TNull(TDynamic);
 			case TFunction: TFun([], TVoid);
+			case TClass(c): TUnresolved(Type.getClassName(c)); // try to resolve that later in initChecker()
+			case TEnum(e): TUnresolved(e.getName()); // try to resolve that later in initChecker()
 			case _: null;
-		}
-		if( ttype==null ) {
-			emitError('Global var "$name" has unsupported type: $runtimeType');
-			return;
+				emitError('Global var "$name" has unsupported type: $runtimeType');
+				return;
 		}
 
 		// Register
@@ -548,8 +548,16 @@ class Runner {
 		}
 
 		// Global vars
-		for(g in globalVars)
-			checker.setGlobal(g.name, g.ttype);
+		for(g in globalVars) {
+			switch g.ttype {
+				case TUnresolved(name):
+					var ttype = checker.types.resolve(name);
+					checker.setGlobal(g.name, ttype);
+
+				case _:
+					checker.setGlobal(g.name, g.ttype);
+			}
+		}
 
 		// Internal keywords
 		var globals = checker.getGlobals();
