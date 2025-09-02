@@ -17,14 +17,15 @@ class PixelLookup extends dn.Process {
 	}
 
 
-	public static function replaceColor(slib:dn.heaps.slib.SpriteLib, lookupColor:dn.Col, newColor:dn.Col) {
+	public static function replaceColor(slib:dn.heaps.slib.SpriteLib, lookupColor:dn.Col, newColorWithAlpha:dn.Col, ignoreSourceAlpha:Bool) {
 		var pixels = slib.tile.getTexture().capturePixels();
 
+		var c : Col = 0;
 		for(x in 0...pixels.width)
 		for(y in 0...pixels.height) {
-			var c : Col = pixels.getPixel(x,y);
-			if( c.withoutAlpha()==lookupColor )
-				pixels.setPixel(x,y, newColor.withAlphaIfMissing(c.af));
+			c = pixels.getPixel(x,y);
+			if( ignoreSourceAlpha && c.withoutAlpha()==lookupColor || !ignoreSourceAlpha && c==lookupColor )
+				pixels.setPixel(x,y, newColorWithAlpha);
 		}
 		var newTile = h2d.Tile.fromPixels(pixels);
 		slib.tile.switchTexture(newTile);
