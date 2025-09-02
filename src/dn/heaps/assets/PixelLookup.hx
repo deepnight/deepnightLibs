@@ -31,15 +31,24 @@ class PixelLookup extends dn.Process {
 	}
 
 
-	public static function replaceColors(slib:dn.heaps.slib.SpriteLib, remap:Map<dn.Col, dn.Col>) {
+	/**
+	 * Replace multiple colors at once.
+	 *
+	 * @param remap A map from source color to target color.
+	 * @param ignoreSourceAlpha If true, the alpha channel of the source pixel is ignored when matching (only RGB is matched).
+	 *                          Otherwise, the alpha channel is considered when matching colors.
+	 */
+	public static function replaceColors(slib:dn.heaps.slib.SpriteLib, remap:Map<dn.Col, dn.Col>, ignoreSourceAlpha:Bool) {
 		var pixels = slib.tile.getTexture().capturePixels();
 
 		var c : Col = 0;
 		for(x in 0...pixels.width)
 		for(y in 0...pixels.height) {
 			c = pixels.getPixel(x,y);
-			if( remap.exists(c.withoutAlpha()) )
-				pixels.setPixel( x,y, remap.get( c.withoutAlpha() ).withAlphaIfMissing(c.af) );
+			if( remap.exists( ignoreSourceAlpha ? c.withoutAlpha() : c ) ) {
+				var newCol = remap.get( ignoreSourceAlpha ? c.withoutAlpha() : c );
+				pixels.setPixel( x,y, newCol );
+			}
 		}
 		var newTile = h2d.Tile.fromPixels(pixels);
 		slib.tile.switchTexture(newTile);
