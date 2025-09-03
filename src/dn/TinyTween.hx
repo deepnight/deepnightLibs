@@ -81,12 +81,15 @@ class TinyTween {
 	}
 
 	public dynamic function applyValue(v:Float) {}
+	public dynamic function onComplete() {}
 
 	/** Advance the tween, return TRUE if the tween is running and curValue changed **/
 	public inline function update(tmod:Float) : Bool {
 		if( hasAnyValue() && !isComplete() ) {
 			elapsedS = M.fmin( elapsedS + tmod/fps, durationS );
 			applyValue(curValue);
+			if( isComplete() )
+				onComplete();
 			return true;
 		}
 		else
