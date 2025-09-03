@@ -72,6 +72,7 @@ class TinyTween {
 		this.durationS = durationS;
 		this.elapsedS = 0;
 		this.interp = interp;
+		applyValue(curValue);
 	}
 
 	public function restartFrom(from:Float) {
@@ -79,10 +80,13 @@ class TinyTween {
 		fromValue = from;
 	}
 
+	public dynamic function applyValue(v:Float) {}
+
 	/** Advance the tween, return TRUE if the tween is running and curValue changed **/
 	public inline function update(tmod:Float) : Bool {
 		if( hasAnyValue() && !isComplete() ) {
-			elapsedS = M.fmin( durationS, elapsedS + tmod/fps );
+			elapsedS = M.fmin( elapsedS + tmod/fps, durationS );
+			applyValue(curValue);
 			return true;
 		}
 		else
