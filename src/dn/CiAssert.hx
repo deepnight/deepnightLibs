@@ -33,7 +33,7 @@ class CiAssert {
 					$v{getFilePos()},
 					$v{getCodeStr(eCheck)},
 					"These 2 expressions should be EQUAL",
-					[ $codeA+" != "+$codeB ]
+					[ '"'+$codeA+'"!="'+$codeB+'"' ]
 				);
 			}
 		};
