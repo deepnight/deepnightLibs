@@ -114,6 +114,7 @@ class Runner {
 		addInternalKeyword("makeIterator_dynamic", _makeIteratorType(TDynamic), @:privateAccess interp.makeIterator);
 		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt), @:privateAccess interp.makeIterator);
 		addInternalKeyword("out", TFun([{ name:"v", opt:false, t:TDynamic }], TVoid), forceOutput);
+		exposeClassDefinition(dn.script.ScriptPromise);
 
 		// Register Int based named-colors (Red, Green, Blue, etc)
 		var values = MacroTools.getAbstractEnumValues(Col.ColorEnum);
@@ -465,7 +466,7 @@ class Runner {
 			_addClassRttiXml(f.cl);
 
 		_addTypeAliasXml("dn.Col", "Int");
-		_addTypeAliasXml("dn.Handle", "haxe.Int64");
+		// _addTypeAliasXml("dn.script.ScriptPromise", "Dynamic");
 
 
 		// Aggregate XMLs into a single large XML

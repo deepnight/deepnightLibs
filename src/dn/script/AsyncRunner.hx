@@ -2,6 +2,7 @@ package dn.script;
 
 import hscript.Expr;
 import hscript.Tools;
+import dn.script.ScriptPromise;
 
 /**
 	AsyncRunner: a specialized script runner that supports asynchronous execution (delays, async calls, waitUntil etc)
@@ -25,7 +26,8 @@ class AsyncRunner extends dn.script.Runner {
 
 		addInternalKeyword("delayExecutionS", TDynamic, api_delayExecutionS);
 		addInternalKeyword("waitUntil", TDynamic, api_waitUntil);
-		addInternalKeyword("wait", TDynamic); // turned into a delayExecutionS() call at conversion time
+		addInternalKeyword("waitPromise", TDynamic, api_listenPromise);
+		addInternalKeyword("waitS", TDynamic); // turned into a delayExecutionS() call at conversion time
 	}
 
 	inline function makeUniqId() {
@@ -125,6 +127,9 @@ class AsyncRunner extends dn.script.Runner {
 		});
 	}
 
+	function api_listenPromise(p:ScriptPromise, onComplete:Void->Void) {
+		p.addListener(onComplete);
+	}
 
 
 	/**
@@ -305,12 +310,21 @@ class AsyncRunner extends dn.script.Runner {
 					}
 
 				case ECall( #if hscriptPos {e:EIdent(id)} #else EIdent(id) #end, params ):
-					if( id=="wait" ) {
-						// "wait(x);" keyword
+					if( id=="waitS" ) {
+						// "waitS(x);" keyword
 						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
 						asyncExprsArray(followingExprs);
 						_replaceCurBlockExpr( ECall(
 							mkIdentExpr("delayExecutionS",e),
+							[ params[0], mkFunctionExpr( mkBlock(followingExprs,e), e ) ]
+						));
+					}
+					else if( id=="waitPromise" ) {
+						// "waitPromise(x);" keyword
+						var followingExprs = blockExprs.splice(idx+1,blockExprs.length);
+						asyncExprsArray(followingExprs);
+						_replaceCurBlockExpr( ECall(
+							mkIdentExpr("waitPromise",e),
 							[ params[0], mkFunctionExpr( mkBlock(followingExprs,e), e ) ]
 						));
 					}
