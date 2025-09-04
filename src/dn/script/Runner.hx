@@ -465,6 +465,7 @@ class Runner {
 			_addClassRttiXml(f.cl);
 
 		_addTypeAliasXml("dn.Col", "Int");
+		_addTypeAliasXml("dn.Handle", "haxe.Int64");
 
 
 		// Aggregate XMLs into a single large XML
