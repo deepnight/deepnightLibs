@@ -17,6 +17,7 @@ class AsyncRunner extends dn.script.Runner {
 
 	var waitUntilFunctions : Map<String, Bool> = new Map();
 	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
+	var listenedPromises : Array<ScriptPromise> = [];
 	var uniqId = 0;
 
 	public function new(fps:Int) {
@@ -129,6 +130,8 @@ class AsyncRunner extends dn.script.Runner {
 
 	function api_listenPromise(p:ScriptPromise, onComplete:Void->Void) {
 		p.addListener(onComplete);
+		if( !listenedPromises.contains(p) )
+			listenedPromises.push(p);
 	}
 
 
@@ -609,6 +612,7 @@ class AsyncRunner extends dn.script.Runner {
 		running = false;
 		runningTimeS = 0;
 		runLoops = [];
+		listenedPromises = [];
 		lastLoopCompleteFunc = null;
 	}
 
@@ -634,7 +638,13 @@ class AsyncRunner extends dn.script.Runner {
 		}
 
 		// Script completion detection
-		if( running && runLoops.length==0 ) {
+		var allPromisesCompleted = true;
+		for(p in listenedPromises)
+			if( !p.completed ) {
+				allPromisesCompleted = false;
+				break;
+			}
+		if( running && runLoops.length==0 && allPromisesCompleted ) {
 			running = false;
 			onScriptStopped(true);
 		}

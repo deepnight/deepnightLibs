@@ -29,6 +29,7 @@ class ScriptPromise {
 		if( listeners==null || completed )
 			return;
 
+		completed = true;
 		for(cb in listeners)
 			cb();
 
