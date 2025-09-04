@@ -2,7 +2,7 @@ package dn.script;
 
 import hscript.Expr;
 import hscript.Tools;
-import dn.script.ScriptPromise;
+import dn.script.Promise;
 
 /**
 	AsyncRunner: a specialized script runner that supports asynchronous execution (delays, async calls, waitUntil etc)
@@ -17,7 +17,7 @@ class AsyncRunner extends dn.script.Runner {
 
 	var waitUntilFunctions : Map<String, Bool> = new Map();
 	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
-	var listenedPromises : Array<ScriptPromise> = [];
+	var listenedPromises : Array<Promise> = [];
 	var uniqId = 0;
 
 	public function new(fps:Int) {
@@ -128,7 +128,7 @@ class AsyncRunner extends dn.script.Runner {
 		});
 	}
 
-	function api_listenPromise(p:ScriptPromise, onComplete:Void->Void) {
+	function api_listenPromise(p:Promise, onComplete:Void->Void) {
 		p.addListener(onComplete);
 		if( !listenedPromises.contains(p) )
 			listenedPromises.push(p);

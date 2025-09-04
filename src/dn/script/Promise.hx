@@ -1,7 +1,7 @@
 package dn.script;
 
 @:keep @:rtti
-class ScriptPromise {
+class Promise {
 	static var UID = 0;
 
 	public var name : Null<String>;
@@ -15,7 +15,7 @@ class ScriptPromise {
 	}
 
 	@:keep public function toString() {
-		return '${name!=null?name:"ScriptPromise"}#$uid '
+		return '${name!=null?name:"Promise"}#$uid '
 			+ "(" + ( completed ? "COMPLETED" : listeners!=null ? listeners.length+" listeners" : "No listener" ) +")";
 	}
 
