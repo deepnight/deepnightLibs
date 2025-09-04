@@ -9,7 +9,7 @@ abstract Handle(Int64) from Int64 to Int64 {
 	static var flakeId : uuid.FlakeId = null;
 	#end
 
-	public inline function new(sourceUid:Int32, subUid:Int32) {
+	public inline function new(sourceUid:Int32=0, subUid:Int32=0) {
 		this = Int64.make(sourceUid, subUid);
 	}
 
