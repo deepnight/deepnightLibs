@@ -11,37 +11,37 @@ class M {
 	/**
 	 * Min value, signed byte.
 	 */
-	inline public static var T_INT8_MIN =-0x80;
+	public static inline var T_INT8_MIN =-0x80;
 
 	/**
 	 * Max value, signed byte.
 	 */
-	inline public static var T_INT8_MAX = 0x7F;
+	public static inline var T_INT8_MAX = 0x7F;
 
 	/**
 	 * Max value, unsigned byte.
 	 */
-	inline public static var T_UINT8_MAX = 0xFF;
+	public static inline var T_UINT8_MAX = 0xFF;
 
 	/**
 	 * Min value, signed short.
 	 */
-	inline public static var T_INT16_MIN =-0x8000;
+	public static inline var T_INT16_MIN =-0x8000;
 
 	/**
 	 * Max value, signed short.
 	 */
-	inline public static var T_INT16_MAX = 0x7FFF;
+	public static inline var T_INT16_MAX = 0x7FFF;
 
 	/**
 	 * Max value, unsigned short.
 	 */
-	inline public static var T_UINT16_MAX = 0xFFFF;
+	public static inline var T_UINT16_MAX = 0xFFFF;
 
 	/**
 	 * Min value, signed integer.
 	 */
-	inline public static var T_INT32_MIN =
+	public static inline var T_INT32_MIN =
 	#if cpp
 	//warning: this decimal constant is unsigned only in ISO C90
 	-0x7fffffff;
@@ -54,17 +54,17 @@ class M {
 	/**
 	 * Max value, signed integer.
 	 */
-	inline public static var T_INT32_MAX = #if(neko && !neko_v2) 0x3fffffff #else 0x7fffffff#end;
+	public static inline var T_INT32_MAX = #if(neko && !neko_v2) 0x3fffffff #else 0x7fffffff#end;
 
 	/**
 	 * Max value, unsigned integer.
 	 */
-	inline public static var T_UINT32_MAX =  #if(neko && !neko_v2) 0x3fffffff #else 0xffffffff#end;
+	public static inline var T_UINT32_MAX =  #if(neko && !neko_v2) 0x3fffffff #else 0xffffffff#end;
 
 	/**
 	 * Number of bits using for representing integers.
 	 */
-	inline public static var T_INT_BITS =	#if (neko && neko_v2)
+	public static inline var T_INT_BITS =	#if (neko && neko_v2)
 											32;
 										#elseif(neko)
 											31;
@@ -75,92 +75,93 @@ class M {
 	/**
 	 * The largest representable number (single-precision IEEE-754).
 	 */
-	inline public static var T_FLOAT_MAX = 3.4028234663852886e+38;
+	public static inline var T_FLOAT_MAX = 3.4028234663852886e+38;
 
 	/**
 	 * The smallest representable number (single-precision IEEE-754).
 	 */
-	inline public static var T_FLOAT_MIN = -3.4028234663852886e+38;
+	public static inline var T_FLOAT_MIN = -3.4028234663852886e+38;
 
 	/**
 	 * The largest representable number (double-precision IEEE-754).
 	 */
-	inline public static var T_DOUBLE_MAX = 1.7976931348623157e+308;
+	public static inline var T_DOUBLE_MAX = 1.7976931348623157e+308;
 
 	/**
 	 * The smallest representable number (double-precision IEEE-754).
 	 */
-	inline public static var T_DOUBLE_MIN = -1.7976931348623157e+308;
+	public static inline var T_DOUBLE_MIN = -1.7976931348623157e+308;
 
 	/**
 	 * IEEE 754 NAN.
 	 */
 	#if !flash
-	inline public static function NaN() { return Math.NaN; }
+	public static inline function NaN() { return Math.NaN; }
 	#else
-	inline public static function NaN() { return .0 / .0; }
+	public static inline function NaN() { return .0 / .0; }
 	#end
 	/**
 	 * IEEE 754 positive infinity.
 	 */
 	#if !flash
-	inline public static function POSITIVE_INFINITY() { return Math.POSITIVE_INFINITY; }
+	public static inline function POSITIVE_INFINITY() { return Math.POSITIVE_INFINITY; }
 	#else
-	inline public static function POSITIVE_INFINITY() { return  1. / .0; }
+	public static inline function POSITIVE_INFINITY() { return  1. / .0; }
 	#end
 	/**
 	 * IEEE 754 negative infinity.
 	 */
 	#if !flash
-	inline public static function NEGATIVE_INFINITY() { return Math.NEGATIVE_INFINITY; }
+	public static inline function NEGATIVE_INFINITY() { return Math.NEGATIVE_INFINITY; }
 	#else
-	inline public static function NEGATIVE_INFINITY() { return -1. / .0; }
+	public static inline function NEGATIVE_INFINITY() { return -1. / .0; }
 	#end
 
 	/**
 	 * Multiply value by this constant to convert from radians to degrees.
 	 */
-	inline public static var RAD_DEG = 180 / PI;
+	public static inline var RAD_DEG = 180 / PI;
 
 	/**
 	 * Multiply value by this constant to convert from degrees to radians.
 	 */
-	inline public static var DEG_RAD = PI / 180;
+	public static inline var DEG_RAD = PI / 180;
 
 	/**
 	 * The natural logarithm of 2.
 	 */
-	inline public static var LN2 = 0.6931471805599453;
+	public static inline var LN2 = 0.6931471805599453;
 
 	/* Math.PI/2 */
-	inline public static var PIHALF = 1.5707963267948966;
+	public static inline var PIHALF = 1.5707963267948966;
 
 	/* Math.PI */
-	inline public static var PI = 3.141592653589793;
+	public static inline var PI = 3.141592653589793;
 
 	/* Math.PI*2 */
-	inline public static var PI2 = 6.283185307179586;
+	public static inline var PI2 = 6.283185307179586;
 
 	/* Math.PI*2 */
-	inline public static var A360 = PI2;
+	public static inline var A360 = PI2;
 
 	/* Math.PI */
-	inline public static var A180 = PI;
+	public static inline var A180 = PI;
 
 	/* Math.PI/2 */
-	inline public static var A90 = PIHALF;
+	public static inline var A90 = PIHALF;
 
 	/* Math.PI/4 */
-	inline public static var A45 = 0.785398163397448;
+	public static inline var A45 = 0.785398163397448;
 
 	/**
 	 * Default system epsilon.
 	 */
-	inline public static var EPS = 1e-6;
+	public static inline var EPS = 1e-6;
 
 	/**
 	 * The square root of 2.
 	 */
+	public static inline var SQRT2 = 1.414213562373095;
 
 
 	public static var ONE64 : Int64 = 1;
@@ -169,7 +170,7 @@ class M {
 	/**
 	 * Converts deg to radians.
 	 */
-	inline public static function toRad(deg:Float):Float
+	public static inline function toRad(deg:Float):Float
 	{
 		return deg * M.DEG_RAD;
 	}
@@ -177,7 +178,7 @@ class M {
 	/**
 	 * Converts rad to degrees.
 	 */
-	inline public static function toDeg(rad:Float):Float
+	public static inline function toDeg(rad:Float):Float
 	{
 		return rad * M.RAD_DEG;
 	}
@@ -185,7 +186,7 @@ class M {
 	/**
 	 * Returns min(x, y).
 	 */
-	inline public static function imin(x:Int, y:Int):Int
+	public static inline function imin(x:Int, y:Int):Int
 	{
 		return x < y ? x : y;
 	}
@@ -193,7 +194,7 @@ class M {
 	/**
 	 * Returns max(x, y).
 	 */
-	inline public static function imax(x:Int, y:Int):Int
+	public static inline function imax(x:Int, y:Int):Int
 	{
 		return x > y ? x : y;
 	}
@@ -201,7 +202,7 @@ class M {
 	/**
 	 * Returns the absolute value of x.
 	 */
-	inline public static function iabs(x:Int):Int
+	public static inline function iabs(x:Int):Int
 	{
 		return x < 0 ? -x : x;
 	}
@@ -210,10 +211,10 @@ class M {
 	 * Returns the sign of x.
 	 * sgn(0) = 0.
 	 */
-	inline public static function sign(x:Float):Int {
+	public static inline function sign(x:Float):Int {
 		return (x > 0) ? 1 : (x < 0 ? -1 : 0);
 	}
-	inline public static function signEq(x:Float,y:Float):Bool {
+	public static inline function signEq(x:Float,y:Float):Bool {
 		return M.sign(x)==M.sign(y);
 	}
 
@@ -227,7 +228,7 @@ class M {
 	/**
 	 * Clamps x to the interval so min <= x <= max.
 	 */
-	inline public static function iclamp(x:Int, min:Int, max:Int):Int
+	public static inline function iclamp(x:Int, min:Int, max:Int):Int
 	{
 		return (x < min) ? min : (x > max) ? max : x;
 	}
@@ -235,7 +236,7 @@ class M {
 	/**
 	 * Clamps x to the interval so -i <= x <= i.
 	 */
-	inline public static function clampSym(x:Int, i:Int):Int
+	public static inline function clampSym(x:Int, i:Int):Int
 	{
 		return (x < -i) ? -i : (x > i) ? i : x;
 	}
@@ -243,7 +244,7 @@ class M {
 	/**
 	 * Wraps x to the interval so min <= x <= max.
 	 */
-	inline public static function wrap(x:Int, min:Int, max:Int):Int
+	public static inline function wrap(x:Int, min:Int, max:Int):Int
 	{
 		return x < min ? (x - min) + max + 1: ((x > max) ? (x - max) + min - 1: x);
 	}
@@ -251,7 +252,7 @@ class M {
 	/**
 	 * Fast replacement for Math.min(x, y).
 	 */
-	inline public static function fmin(x:Float, y:Float):Float
+	public static inline function fmin(x:Float, y:Float):Float
 	{
 		return x < y ? x : y;
 	}
@@ -259,7 +260,7 @@ class M {
 	/**
 	 * Fast replacement for Math.max(x, y).
 	 */
-	inline public static function fmax(x:Float, y:Float):Float
+	public static inline function fmax(x:Float, y:Float):Float
 	{
 		return x > y ? x : y;
 	}
@@ -267,7 +268,7 @@ class M {
 	/**
 	 * Fast replacement for Math.abs(x).
 	 */
-	inline public static function fabs(x:Float):Float
+	public static inline function fabs(x:Float):Float
 	{
 		return x < 0 ? -x : x;
 	}
@@ -276,7 +277,7 @@ class M {
 	 * Extracts the sign of x.
 	 * fsgn(0) = 0.
 	 */
-	inline public static function fsgn(x:Float):Int
+	public static inline function fsgn(x:Float):Int
 	{
 		return (x > 0.) ? 1 : (x < 0. ? -1 : 0);
 	}
@@ -284,7 +285,7 @@ class M {
 	/**
 	 * Clamps x to the interval so min <= x <= max.
 	 */
-	inline public static function fclamp(x:Float, min:Float, max:Float):Float
+	public static inline function fclamp(x:Float, min:Float, max:Float):Float
 	{
 		return (x < min) ? min : (x > max) ? max : x;
 	}
@@ -292,7 +293,7 @@ class M {
 	/**
 	 * Clamps x to the interval so -i <= x <= i.
 	 */
-	inline public static function fclampSym(x:Float, i:Float):Float
+	public static inline function fclampSym(x:Float, i:Float):Float
 	{
 		return (x < -i) ? -i : (x > i) ? i : x;
 	}
@@ -300,7 +301,7 @@ class M {
 	/**
 	 * Wraps x to the interval so min <= x <= max.
 	 */
-	inline public static function fwrap(value:Float, lower:Float, upper:Float):Float
+	public static inline function fwrap(value:Float, lower:Float, upper:Float):Float
 	{
 		return value - (Std.int((value - lower) / (upper - lower)) * (upper - lower));
 	}
@@ -308,7 +309,7 @@ class M {
 	/**
 	 * Returns true if the sign of x and y is equal.
 	 */
-	inline public static function eqSgn(x:Int, y:Int):Bool
+	public static inline function eqSgn(x:Int, y:Int):Bool
 	{
 		return (x ^ y) >= 0;
 	}
@@ -316,7 +317,7 @@ class M {
 	/**
 	 * Returns true if the sign of x and y is equal.
 	 */
-	inline public static function feqSgn(x:Float, y:Float):Bool
+	public static inline function feqSgn(x:Float, y:Float):Bool
 	{
 		return x*y >= 0;
 	}
@@ -324,7 +325,7 @@ class M {
 	/**
 	 * Returns true if x is even.
 	 */
-	inline public static function isEven(x:Int):Bool
+	public static inline function isEven(x:Int):Bool
 	{
 		return (x & 1) == 0;
 	}
@@ -332,7 +333,7 @@ class M {
 	/**
 	 * Returns true if x is a power of two.
 	 */
-	inline public static function isPow2(x:Int):Bool
+	public static inline function isPow2(x:Int):Bool
 	{
 		return x > 0 && (x & (x - 1)) == 0;
 	}
@@ -359,7 +360,7 @@ class M {
 	 * Spherically interpolates between two angles.
 	 * See <a href="http://www.paradeofrain.com/2009/07/interpolating-2d-rotations/" target="_blank">http://www.paradeofrain.com/2009/07/interpolating-2d-rotations/</a>.
 	 */
-	inline public static function slerp(a:Float, b:Float, t:Float)
+	public static inline function slerp(a:Float, b:Float, t:Float)
 	{
 		var m = Math;
 
@@ -409,7 +410,7 @@ class M {
 	/**
 	 * Calculates the next highest power of 2 of x.
 	 */
-	inline public static function nextPow2(x:Int):Int
+	public static inline function nextPow2(x:Int):Int
 	{
 		var t = x;
 		t |= (t >> 0x01);
@@ -423,7 +424,7 @@ class M {
 	/**
 	 * Fast integer exponentiation for base a and exponent n.
 	 */
-	inline public static function exp(a:Int, n:Int):Int
+	public static inline function exp(a:Int, n:Int):Int
 	{
 		var t = 1;
 		var r = 0;
@@ -443,14 +444,14 @@ class M {
 	}
 
 	/* Return decimals of given float */
-	inline public static function decimals(x:Float):Float {
+	public static inline function decimals(x:Float):Float {
 		return fabs( x - Std.int(x) );
 	}
 
 	/**
 	 * Rounds x to the interval y.
 	 */
-	inline public static function roundTo(x:Float, y:Int):Int {
+	public static inline function roundTo(x:Float, y:Int):Int {
 		return round(x / y) * y;
 	}
 
@@ -481,7 +482,7 @@ class M {
 	/**
 	 * Computes the 'quake-style' fast inverse square root of x.
 	 */
-	inline public static function invSqrt(x:Float):Float
+	public static inline function invSqrt(x:Float):Float
 	{
 		/*
 		#if( flash10 && !no_alchemy)
@@ -501,7 +502,7 @@ class M {
 	/**
 	 * Compares x and y using an absolute tolerance of eps.
 	 */
-	inline public static function cmpAbs(x:Float, y:Float, eps:Float):Bool
+	public static inline function cmpAbs(x:Float, y:Float, eps:Float):Bool
 	{
 		var d = x - y;
 		return d > 0 ? d < eps : -d < eps;
@@ -510,7 +511,7 @@ class M {
 	/**
 	 * Compares x to zero using an absolute tolerance of eps.
 	 */
-	inline public static function cmpZero(x:Float, eps:Float):Bool
+	public static inline function cmpZero(x:Float, eps:Float):Bool
 	{
 		return x > 0 ? x < eps : -x < eps;
 	}
@@ -518,14 +519,14 @@ class M {
 	/**
 	 * Snaps x to the grid y.
 	 */
-	// inline public static function snap(x:Float, y:Float):Float {
+	// public static inline function snap(x:Float, y:Float):Float {
 	// 	return floor((x + y * .5) / y);
 	// }
 
 	/**
 	 * Returns true if min <= x <= max.
 	 */
-	inline public static function inRange(x:Float, min:Float, max:Float):Bool
+	public static inline function inRange(x:Float, min:Float, max:Float):Bool
 	{
 		return x >= min && x <= max;
 	}
@@ -543,7 +544,7 @@ class M {
 	/**
 	 * Returns a pseudo-random integral value x, where 0 <= x < 0x7fffffff  0 <= x < 0x3FFFFFFF on Neko1
 	 */
-	inline public static function rand(?max:Int=#if neko 0x3FFFFFFF #else 0x7fffffff #end, ?rnd:Void->Float):Int
+	public static inline function rand(?max:Int=#if neko 0x3FFFFFFF #else 0x7fffffff #end, ?rnd:Void->Float):Int
 	{
 		return Std.int(frand(rnd) * max);
 	}
@@ -551,7 +552,7 @@ class M {
 	/**
 	 * Returns a pseudo-random integral value x, where min <= x <= max.
 	 */
-	inline public static function randRange(min:Int, max:Int, ?rnd:Void->Float):Int
+	public static inline function randRange(min:Int, max:Int, ?rnd:Void->Float):Int
 	{
 		var l = min - .4999;
 		var h = max + .4999;
@@ -561,7 +562,7 @@ class M {
 	/**
 	 * Returns a pseudo-random double value x, where -range <= x <= range.
 	 */
-	inline public static function randRangeSym(range:Int, ?rnd:Void->Float):Int
+	public static inline function randRangeSym(range:Int, ?rnd:Void->Float):Int
 	{
 		return randRange(-range, range, rnd);
 	}
@@ -569,7 +570,7 @@ class M {
 	/**
 	 * Returns a pseudo-random double value x, where 0 <= x < 1.
 	 */
-	inline public static function frand(?rnd:Void->Float):Float
+	public static inline function frand(?rnd:Void->Float):Float
 	{
 		return
 			if ( rnd == null )
@@ -581,7 +582,7 @@ class M {
 	/**
 	 * Returns a pseudo-random double value x, where min <= x < max.
 	 */
-	inline public static function frandRange(min:Float, max:Float, ?rnd:Void->Float):Float
+	public static inline function frandRange(min:Float, max:Float, ?rnd:Void->Float):Float
 	{
 		return min + (max - min) * frand(rnd);
 	}
@@ -589,7 +590,7 @@ class M {
 	/**
 	 * Returns a pseudo-random double value x, where -range <= x < range.
 	 */
-	inline public static function frandRangeSym(range:Float, ?rnd:Void->Float):Float
+	public static inline function frandRangeSym(range:Float, ?rnd:Void->Float):Float
 	{
 		return frandRange(-range, range, rnd);
 	}
@@ -597,7 +598,7 @@ class M {
 	/**
 	 * Wraps an angle x to the range -PI...PI by adding the correct multiple of 2 PI.
 	 */
-	inline public static function wrapToPi(x:Float):Float
+	public static inline function wrapToPi(x:Float):Float
 	{
 		var t = round(x / PI2);
 		return (x < -PI) ? (x - t * PI2) : (x > PI ? x - t * PI2 : x);
@@ -607,7 +608,7 @@ class M {
 	 * Wraps a number to the range -mod...mod
 	 * Donne des résultats différents de budum9.Num.hMod mais devrait fonctionner en gros de la meme façon.
 	 */
-	inline public static function wrapTo(n:Float, mod:Float)
+	public static inline function wrapTo(n:Float, mod:Float)
 	{
 		var t = round(n / mod);
 		return (n < -2*mod) ? (n - t * mod) : (n > 2*mod ? n - t * mod : n);
@@ -640,7 +641,7 @@ class M {
 	 * Computes the greatest common divisor of x and y.
 	 * See <a href="http://www.merriampark.com/gcd.htm" target="_blank">http://www.merriampark.com/gcd.htm</a>.
 	 */
-	inline public static function gcd(x:Int, y:Int):Int
+	public static inline function gcd(x:Int, y:Int):Int
 	{
 		var d = 0;
 		var r = 0;
@@ -666,7 +667,7 @@ class M {
 	/**
 	 * Removes excess floating point decimal precision from x.
 	 */
-	inline public static function maxPrecision(x:Float, precision:Int):Float
+	public static inline function maxPrecision(x:Float, precision:Int):Float
 	{
 		if( x == 0)
 			return x;
@@ -682,7 +683,7 @@ class M {
 	 * Converts the boolean expression x to an integer.
 	 * @return 1 if x is true and zero if x is false.
 	 */
-	inline public static function ofBool(x:Bool):Int
+	public static inline function ofBool(x:Bool):Int
 	{
 		return x ? 1 : 0;
 	}
