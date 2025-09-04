@@ -5,6 +5,7 @@
 package dn;
 
 import haxe.macro.Expr;
+import haxe.Int64;
 
 class M {
 	/**
@@ -160,7 +161,10 @@ class M {
 	/**
 	 * The square root of 2.
 	 */
-	inline public static var SQRT2 = 1.414213562373095;
+
+
+	public static var ONE64 : Int64 = 1;
+
 
 	/**
 	 * Converts deg to radians.
@@ -899,38 +903,67 @@ class M {
 	/**
 		Print a signed Integer as binary
 	**/
-	public static function intToBitString(v:Int, ?pad=8) {
+	public static function int32ToBitString(v:Int, addSpaces=true) {
 		var out = "";
-		var i : Int = 0;
-		while( setBit(0, i)<=v && i<31)
-			out = ( hasBit(v, i++) ? "1" : "0" ) + out;
+		for(bit in 0...32) {
+			if( hasBit(v, 31-bit) )
+				out += "1";
+			else
+				out += "0";
 
-		while( out.length<pad )
-			out = "0"+out;
-
+			if( addSpaces && (bit+1)%8==0 && bit<31 )
+				out += " ";
+		}
 		return out;
 	}
 
 	/**
 		Print an unsigned Integer as binary
 	**/
-	public static function uIntToBitString(v:UInt, ?pad=8) {
+	public static function uIntToBitString(v:UInt, addSpaces=true) {
 		var out = "";
-		var i : UInt = 0;
-		while( setUnsignedBit(0, i)<=v && i<=31)
-			out = ( hasUnsignedBit(v, i++) ? "1" : "0" ) + out;
+		for(bit in 0...32) {
+			if( hasUnsignedBit(v, 31-bit) )
+				out += "1";
+			else
+				out += "0";
 
-		while( out.length<pad )
-			out = "0"+out;
-
+			if( addSpaces && (bit+1)%8==0 && bit<31 )
+				out += " ";
+		}
 		return out;
 	}
+
+	/**
+		Print a signed Integer as binary
+	**/
+	public static function int64ToBitString(v:Int64, addSpaces=true) {
+		var out = "";
+		for(bit in 0...64) {
+			if( hasBit64(v, 63-bit) )
+				out += "1";
+			else
+				out += "0";
+
+			if( addSpaces && (bit+1)%8==0 && bit<63 )
+				out += " ";
+		}
+		return out;
+	}
+
 
 	/**
 		Set a SIGNED integer bit to 1 (bit index starts from 0)
 	**/
 	public static inline function setBit(baseValue:Int, bitIdx:Int) : Int {
 		return baseValue | ( 1<<bitIdx );
+	}
+
+	/**
+		Set a SIGNED integer bit to 1 (bit index starts from 0)
+	**/
+	public static inline function setBit64(baseValue:Int64, bitIdx:Int) : Int64 {
+		return baseValue | ( ONE64<<bitIdx );
 	}
 
 	/**
@@ -979,6 +1012,13 @@ class M {
 	**/
 	public static inline function hasBit(v:Int, bitIdx:Int) : Bool{
 		return v & ( 1<<bitIdx ) != 0;
+	}
+
+	/**
+		Check for bit presence in a SIGNED 64bits integer (index starts from 0)
+	**/
+	public static inline function hasBit64(v:Int64, bitIdx:Int) : Bool{
+		return v & ( ONE64<<bitIdx ) != 0;
 	}
 
 	/**
@@ -1141,12 +1181,20 @@ class M {
 		var uIntWithBit31 = M.setUnsignedBit(0,31);
 		CiAssert.isTrue( M.hasUnsignedBit(uIntWithBit31,31) );
 		CiAssert.isTrue( uIntWithBit31>0 );
+
 		var intWithBit31 = M.setBit(0,31);
 		CiAssert.isTrue( M.hasUnsignedBit(intWithBit31,31) );
 		CiAssert.isTrue( intWithBit31<0 );
-		CiAssert.equals( intToBitString(17,8), "00010001" );
-		CiAssert.equals( uIntToBitString( M.setUnsignedBit(0,31) ), "10000000000000000000000000000000" );
-		CiAssert.equals( intToBitString( M.setUnsignedBit(0,31), 0 ), "" );
+
+		CiAssert.equals( int32ToBitString(1), "00000000 00000000 00000000 00000001" );
+		CiAssert.equals( int32ToBitString(1,false), "00000000000000000000000000000001" );
+		CiAssert.equals( int32ToBitString(17), "00000000 00000000 00000000 00010001" );
+		CiAssert.equals( uIntToBitString(uIntWithBit31), "10000000 00000000 00000000 00000000" );
+		CiAssert.equals( int32ToBitString(uIntWithBit31), "10000000 00000000 00000000 00000000" );
+		CiAssert.equals( int64ToBitString(1), "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001" );
+		CiAssert.equals( int64ToBitString( haxe.Int64.make(1,1) ), "00000000 00000000 00000000 00000001 00000000 00000000 00000000 00000001" );
+		CiAssert.equals( int64ToBitString( haxe.Int64.make(255,0) ), "00000000 00000000 00000000 11111111 00000000 00000000 00000000 00000000" );
+		CiAssert.equals( int64ToBitString( haxe.Int64.make(255,0), false ), "0000000000000000000000001111111100000000000000000000000000000000" );
 
 		CiAssert.equals( makeBitsFromBools(), 0 );
 		CiAssert.equals( makeBitsFromBools(true), 1 );
