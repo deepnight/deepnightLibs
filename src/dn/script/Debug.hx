@@ -30,6 +30,7 @@ class Debug extends dn.Process {
 
 	var errorFlow : h2d.Flow;
 	var scriptFlow : h2d.Flow;
+	var runtimeFlow : h2d.Flow;
 	var typesFlow : h2d.Flow;
 	var globalsFlow : h2d.Flow;
 
@@ -84,6 +85,9 @@ class Debug extends dn.Process {
 		errorFlow = new h2d.Flow(wrapper);
 		errorFlow.layout = Vertical;
 
+		runtimeFlow = new h2d.Flow(wrapper);
+		runtimeFlow.layout = Vertical;
+
 		scriptFlow = new h2d.Flow(wrapper);
 		scriptFlow.layout = Vertical;
 
@@ -116,6 +120,7 @@ class Debug extends dn.Process {
 
 	function renderAll() {
 		renderError();
+		renderRuntime();
 		renderScript();
 		renderTypes();
 		renderGlobals();
@@ -204,6 +209,29 @@ class Debug extends dn.Process {
 	}
 
 
+	function renderRuntime() {
+		if( !isAsync() )
+			return;
+
+		runtimeFlow.removeChildren();
+
+		var async = asAsync();
+
+		function _renderPromiseList(f:h2d.Flow) {
+			f.removeChildren();
+			createText("PROMISES:", White, f);
+			@:privateAccess
+			for(prom in async.listenedPromises)
+				createText(prom.toString(), prom.completed ? Lime : Yellow, f);
+		}
+		createCollapsable("Promises", (f:h2d.Flow)->{
+			_renderPromiseList(f);
+			@:privateAccess
+			for(prom in async.listenedPromises)
+				if( !prom.completed )
+					prom.addListener( ()->_renderPromiseList(f) );
+		}, runtimeFlow);
+	}
 
 	function initChecker() {
 		@:privateAccess
@@ -602,6 +630,7 @@ class Debug extends dn.Process {
 
 	var lastRunUid = -1;
 	var lastErrorUid = -1;
+	var wasRunning = false;
 	override function update() {
 		super.update();
 
@@ -621,6 +650,12 @@ class Debug extends dn.Process {
 		if( isAsync() && asAsync().hasScriptRunning() )
 			updateTimer();
 
+		// Refresh runtime
+		// if( isAsync() && !cd.hasSetS("runtimeRefresh",0.1) && asAsync().hasScriptRunning() )
+			// renderRuntime();
+		if( isAsync() && wasRunning && !asAsync().hasScriptRunning() )
+			renderRuntime();
+
 		// Start a new script
 		if( lastRunUid!=runner.lastRunUid ) {
 			lastRunUid = runner.lastRunUid;
@@ -632,6 +667,8 @@ class Debug extends dn.Process {
 			lastErrorUid = runner.lastRunUid;
 			renderAll();
 		}
+
+		wasRunning = isAsync() && asAsync().hasScriptRunning();
 	}
 }
 

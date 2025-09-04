@@ -4,16 +4,19 @@ package dn.script;
 class ScriptPromise {
 	static var UID = 0;
 
+	public var name : Null<String>;
 	public var uid(default,null) : Int;
 	public var completed(default,null) = false;
 	var listeners : Null< Array<Void->Void> > = [];
 
-	public inline function new() {
+	public inline function new(?name:String) {
 		uid = UID++;
+		this.name = name;
 	}
 
 	@:keep public function toString() {
-		return 'ScriptPromise#$uid($completed)';
+		return '${name!=null?name:"ScriptPromise"}#$uid '
+			+ "(" + ( completed ? "COMPLETED" : listeners!=null ? listeners.length+" listeners" : "No listener" ) +")";
 	}
 
 	public function addListener(cb:Void->Void) {
