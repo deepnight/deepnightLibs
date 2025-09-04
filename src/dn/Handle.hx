@@ -21,7 +21,7 @@ abstract Handle(Int64) from Int64 to Int64 {
 
 
 	@:to public static inline function toString(h:Handle) : String {
-		return 'Handle($sourceUid:$subUid)';
+		return 'Handle(${h.sourceUid}:${h.subUid})';
 	}
 
 
