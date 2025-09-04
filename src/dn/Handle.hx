@@ -20,8 +20,8 @@ abstract Handle(Int64) from Int64 to Int64 {
 		inline function get_subUid() return this.low;
 
 
-	@:to public static inline function toString(h:Handle) : String {
-		return 'Handle(${h.sourceUid}:${h.subUid})';
+	public inline function toString() : String {
+		return 'Handle($sourceUid:$subUid)';
 	}
 
 
