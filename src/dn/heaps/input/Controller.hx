@@ -1052,12 +1052,24 @@ class InputBinding<T:Int> {
 		// Right stick Y
 		else if( isRStick && padNeg==null && kbNeg<0 && !isX && pad.ryAxis!=0 )
 			return applySignLimit( pad.ryAxis * (invert?-1:1) );
-		// Negative button
-		else if( Key.isDown(kbNeg) && kbPos!=kbNeg || pad.isDown( input.getPadButtonId(padNeg) ) )
-			return invert ? 1 : -1;
-		// Positive button
-		else if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
-			return invert ? -1 : 1;
+		// Keyboard+Gamepad negative/positive button
+		else if (Key.isDown(kbNeg) ||
+			Key.isDown(kbPos) ||
+			pad.isDown(input.getPadButtonId(padNeg)) ||
+			pad.isDown(input.getPadButtonId(padPos))) {
+
+			var res = 0;
+
+			// Negative button
+		   	if( Key.isDown(kbNeg) && kbPos!=kbNeg || pad.isDown( input.getPadButtonId(padNeg) ) )
+				res -= 1;
+			// Positive button
+			if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
+				res += 1;
+
+			if (invert) return -res;
+			return res;
+	   	}
 		// Regular button
 		else if( padButton!=null && pad.isDown( input.getPadButtonId(padButton) ) )
 			return invert ? -1 : 1;
