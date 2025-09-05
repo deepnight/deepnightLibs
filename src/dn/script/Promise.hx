@@ -1,7 +1,14 @@
 package dn.script;
 
+
+interface IPromisable {
+	public var promise : Promise;
+}
+
+
+
 @:keep @:rtti
-class Promise {
+class Promise implements IPromisable {
 	static var UID = 0;
 
 	public var name : Null<String>;
@@ -9,11 +16,17 @@ class Promise {
 	public var completed(default,null) = false;
 	var listeners : Null< Array<Void->Void> > = [];
 
+	/** For usage comfort, a Promise is also considered as a Promisable object. **/
+	@:noCompletion
+	public var promise : Promise;
+
 	public var onSkip : Null< Void->Void >;
+
 
 	public inline function new(?name:String) {
 		uid = UID++;
 		this.name = name;
+		promise = this;
 	}
 
 	@:keep public function toString() {

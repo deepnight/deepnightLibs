@@ -4,6 +4,7 @@ import hscript.Expr;
 import hscript.Tools;
 import dn.script.Promise;
 
+
 /**
 	AsyncRunner: a specialized script runner that supports asynchronous execution (delays, async calls, waitUntil etc)
 
@@ -128,13 +129,24 @@ class AsyncRunner extends dn.script.Runner {
 		});
 	}
 
-	function api_waitPromise(p:Promise, onComplete:Void->Void) {
-		if( p.completed )
+	function api_waitPromise<T:IPromisable>(c:T, onComplete:Void->Void) {
+		if( c==null ) {
+			onComplete();
+			return;
+		}
+
+		if( c.promise==null ) {
+			emitError('waitPromise: the given object has no promise field');
+			onComplete();
+			return;
+		}
+
+		if( c.promise.completed )
 			onComplete();
 		else {
-			p.addOnCompleteListener(onComplete);
-			if( !waitedPromises.contains(p) )
-				waitedPromises.push(p);
+			c.promise.addOnCompleteListener(onComplete);
+			if( !waitedPromises.contains(c.promise) )
+				waitedPromises.push(c.promise);
 		}
 	}
 
