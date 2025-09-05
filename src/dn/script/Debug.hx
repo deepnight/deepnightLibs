@@ -83,20 +83,26 @@ class Debug extends dn.Process {
 		}, header);
 		header.getProperties(closeBt).horizontalAlign = Right;
 
+		var spacing = 1;
 		errorFlow = new h2d.Flow(wrapper);
 		errorFlow.layout = Vertical;
+		errorFlow.verticalSpacing = spacing;
 
 		runtimeFlow = new h2d.Flow(wrapper);
 		runtimeFlow.layout = Vertical;
+		runtimeFlow.verticalSpacing = spacing;
 
 		scriptFlow = new h2d.Flow(wrapper);
 		scriptFlow.layout = Vertical;
+		scriptFlow.verticalSpacing = spacing;
 
 		typesFlow = new h2d.Flow(wrapper);
 		typesFlow.layout = Vertical;
+		typesFlow.verticalSpacing = spacing;
 
 		globalsFlow = new h2d.Flow(wrapper);
 		globalsFlow.layout = Vertical;
+		globalsFlow.verticalSpacing = spacing;
 
 		renderAll();
 	}
@@ -445,6 +451,9 @@ class Debug extends dn.Process {
 
 
 	function createCollapsable(label:String, ?subLabel:String, col:Col=0, forceOpen=false, renderContent:h2d.Flow->Void, ?onHide:Void->Void, p:h2d.Flow) {
+		var wrapper = new h2d.Flow(p);
+		wrapper.layout = Vertical;
+
 		var id = label;
 		if( forceOpen )
 			expands.set(id, true);
@@ -455,6 +464,7 @@ class Debug extends dn.Process {
 		expandedWrapper.verticalSpacing = 1;
 		expandedWrapper.paddingHorizontal= gap;
 		expandedWrapper.paddingBottom = gap;
+		expandedWrapper.backgroundTile = col.toBlack(0.5).toTile();
 
 		var bt : h2d.Flow = null;
 		function _renderCollapsable() {
@@ -462,13 +472,14 @@ class Debug extends dn.Process {
 			if( expands.exists(id) ) {
 				renderContent(expandedWrapper);
 				bt.minWidth = M.imax(minWidth, expandedWrapper.outerWidth);
-
+				wrapper.filter = new dn.heaps.filter.PixelOutline(White);
 			}
 			else {
 				expandedWrapper.removeChildren();
 				bt.minWidth = minWidth;
 				if( onHide!=null )
 					onHide();
+				wrapper.filter = null;
 			}
 			emitResizeAtEndOfFrame();
 		}
@@ -479,9 +490,9 @@ class Debug extends dn.Process {
 			else
 				expands.set(id, true);
 			_renderCollapsable();
-		}, p);
+		}, wrapper);
 		bt.minWidth = minWidth;
-		p.addChild(expandedWrapper);
+		wrapper.addChild(expandedWrapper);
 
 		_renderCollapsable();
 		return bt;
@@ -515,7 +526,8 @@ class Debug extends dn.Process {
 
 		if( subLabel!=null) {
 			var subTf = new h2d.Text(font, bt);
-			subTf.text = '($subLabel)';
+			bt.getProperties(subTf).horizontalAlign = Right;
+			subTf.text = '<$subLabel>';
 			subTf.textColor = White;
 			subTf.alpha = 0.6;
 		}
@@ -583,13 +595,14 @@ class Debug extends dn.Process {
 	}
 
 	function getColorFromTType(name:String, ttype:hscript.Checker.TType) : Col {
+		var bad = Col.red().toWhite(0.3); // brighter than badColor
 		return runner.hasGlobalVar(name)
 			? ColdLightGray
 			: switch ttype {
 				case TInt, TFloat, TBool: White;
 				case TEnum(e, args): Pink;
 				case TInst(_): Yellow;
-				case TUnresolved(_): badColor.toWhite(0.3);
+				case TUnresolved(_): bad;
 				case TDynamic: Orange;
 				case TNull(t): Orange;
 
@@ -597,11 +610,11 @@ class Debug extends dn.Process {
 					var col : Col = Cyan;
 					for(a in args)
 						switch a.t {
-							case TUnresolved(name): col = badColor.toWhite(0.3); // override color for unresolved args
+							case TUnresolved(name): col = bad; // override color for unresolved args
 							case _:
 						}
 					switch ret {
-						case TUnresolved(_): col = badColor.toWhite(0.3); // override color for unresolved return type
+						case TUnresolved(_): col = bad; // override color for unresolved return type
 						case _:
 					}
 					col;
