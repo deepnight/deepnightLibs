@@ -23,6 +23,7 @@ class Debug extends dn.Process {
 	var minWidth : Int = 400;
 	var gap = 8;
 	var baseColor : Col = 0x1e1936;
+	var badColor : Col = 0xA71837;
 
 	var font : h2d.Font;
 	var wrapper : h2d.Flow;
@@ -200,7 +201,7 @@ class Debug extends dn.Process {
 			else {
 				var lineWithNumber = Lib.padRight(Std.string(i), 4) + line;
 				if( runner.lastScriptError!=null && runner.lastScriptError.line==i )
-					createText( lineWithNumber+"    <--- "+runner.lastScriptError.getErrorOnly(), Red, p);
+					createText( lineWithNumber+"    <--- "+runner.lastScriptError.getErrorOnly(), badColor, p);
 				else
 					createText( lineWithNumber, col, p);
 			}
@@ -285,16 +286,19 @@ class Debug extends dn.Process {
 
 		initChecker();
 
-		// Unresolved types
+		// List unresolved types
 		var unresolveds = getAllUnresolvedTypes();
-		if( unresolveds.length>0 )
-			createCollapsable("Unresolved types", 0x6b0836, (p)->{
-				for(ug in unresolveds) {
-					createText(ug.context+":", Yellow, p);
-					for(u in ug.unresolveds)
-						createText("   "+u, Red, p);
-					p.addSpacing(gap);
-				}
+		function _getUnresolveds(className:Null<String>) {
+			var filter = unresolveds.filter( u->u.className==className );
+			return filter.length>0 ? filter[0].unresolveds : [];
+		}
+
+		// Unresolved globals
+		var unresolverGlobals = _getUnresolveds(null);
+		if( unresolverGlobals.length>0 )
+			createCollapsable("Unresolved globals", badColor, (p)->{
+				for(u in unresolverGlobals)
+					createText("   "+u, badColor, p);
 			}, typesFlow);
 
 		// Exposed types
@@ -305,40 +309,47 @@ class Debug extends dn.Process {
 				case T_ClassInst: 'Class Instance';
 				case T_ClassDef: 'Class Definition';
 			}
-			createCollapsable('"${t.name}"', catLabel, (p)->{
-				for(v in t.values)
-					createText(v.desc, v.col, p);
-			}, typesFlow);
+			var unresolvedCount = _getUnresolveds(t.name).length;
+			createCollapsable(
+				'"${t.name}"' + (unresolvedCount>0?' ($unresolvedCount)':''),
+				catLabel,
+				unresolvedCount>0 ? badColor : 0,
+				(p)->{
+					for(v in t.values)
+						createText(v.desc, v.col, p);
+				},
+				typesFlow
+			);
 		}
 	}
 
 
 	function getAllUnresolvedTypes() {
-		var unresolveds : Array<{ context:String, unresolveds:Array<String> }> = [];
+		var unresolveds : Array<{ className:Null<String>, unresolveds:Array<String> }> = [];
 
-		function _addUnresolved(context:String, name:String, ttype:hscript.Checker.TType) {
+		function _addUnresolved(className:Null<String>, name:String, ttype:hscript.Checker.TType) {
 			for(u in unresolveds)
-				if( u.context==context ) {
+				if( u.className==className ) {
 					u.unresolveds.push( getDescFromTType(name,ttype) );
 					return;
 				}
-			unresolveds.push({ context:context, unresolveds:[ getDescFromTType(name,ttype) ] });
+			unresolveds.push({ className:className, unresolveds:[ getDescFromTType(name,ttype) ] });
 		}
 
-		function _checkFunction(context:String, functionName:String, functionTType:hscript.Checker.TType) {
+		function _checkFunction(className:String, functionName:String, functionTType:hscript.Checker.TType) {
 			switch functionTType {
 				case TFun(args, ret):
 					for(a in args)
 						switch a.t {
 							case TUnresolved(_):
-								_addUnresolved(context, functionName, functionTType);
+								_addUnresolved(className, functionName, functionTType);
 								return;
 
 							case _:
 						}
 					switch ret {
 						case TUnresolved(_):
-							_addUnresolved(context, functionName, functionTType);
+							_addUnresolved(className, functionName, functionTType);
 							return;
 
 						case _:
@@ -353,7 +364,7 @@ class Debug extends dn.Process {
 		@:privateAccess
 		for(g in runner.checker.getGlobals().keyValueIterator()) {
 			switch g.value {
-				case TUnresolved(name): _addUnresolved("Globals", name, g.value);
+				case TUnresolved(name): _addUnresolved(null, name, g.value);
 				case _:
 			}
 		}
@@ -545,13 +556,17 @@ class Debug extends dn.Process {
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
 			case TInt, TFloat, TBool:
-				var varType = runner.hasGlobalVar(name) ? "const" : "var";
-				var out = '$varType $name : ${ttype.getName()}';
-				@:privateAccess if( runner.interp.variables.exists(name) ) {
+				var out = 'var $name : ${ttype.getName()}';
+				@:privateAccess if( runner.interp.variables.exists(name) )
 					out += ' = ' + runner.interp.variables.get(name);
-
-				}
 				out;
+
+			case TNull(t):
+				var out = 'var $name : ${getTTypeShortName(ttype)}';
+				@:privateAccess if( runner.interp.variables.exists(name) )
+					out += ' = ' + runner.interp.variables.get(name);
+				out;
+
 			case TDynamic: 'instance "$name" => ${ttype.getName()}';
 			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
@@ -574,23 +589,24 @@ class Debug extends dn.Process {
 				case TInt, TFloat, TBool: White;
 				case TEnum(e, args): Pink;
 				case TInst(_): Yellow;
-				case TUnresolved(_): Red;
+				case TUnresolved(_): badColor.toWhite(0.3);
 				case TDynamic: Orange;
+				case TNull(t): Orange;
 
 				case TFun(args, ret):
-					var col = Cyan;
+					var col : Col = Cyan;
 					for(a in args)
 						switch a.t {
-							case TUnresolved(name): col = Red; // override color for unresolved args
+							case TUnresolved(name): col = badColor.toWhite(0.3); // override color for unresolved args
 							case _:
 						}
 					switch ret {
-						case TUnresolved(_): col = Red; // override color for unresolved return type
+						case TUnresolved(_): col = badColor.toWhite(0.3); // override color for unresolved return type
 						case _:
 					}
 					col;
 
-				case _: Red; // Unknown type
+				case _: badColor; // Unknown type
 			}
 	}
 
