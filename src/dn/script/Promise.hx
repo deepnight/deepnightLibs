@@ -8,6 +8,7 @@ class Promise {
 	public var uid(default,null) : Int;
 	public var completed(default,null) = false;
 	var listeners : Null< Array<Void->Void> > = [];
+
 	public var onSkip : Null< Void->Void >;
 
 	public inline function new(?name:String) {
@@ -41,12 +42,17 @@ class Promise {
 	}
 
 
-	public function skip() {
-		if( completed || onSkip==null )
-			return;
+	public function canBeSkipped() : Bool {
+		return !completed && onSkip!=null;
+	}
+
+	public function tryToSkip() {
+		if( !canBeSkipped() )
+			return false;
 
 		var cb = onSkip;
 		onSkip = null;
 		cb();
+		return true;
 	}
 }
