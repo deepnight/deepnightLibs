@@ -221,15 +221,15 @@ class Debug extends dn.Process {
 			f.removeChildren();
 			createText("PROMISES:", White, f);
 			@:privateAccess
-			for(prom in async.listenedPromises)
+			for(prom in async.waitedPromises)
 				createText(prom.toString(), prom.completed ? Lime : Yellow, f);
 		}
 		createCollapsable("Promises", (f:h2d.Flow)->{
 			_renderPromiseList(f);
 			@:privateAccess
-			for(prom in async.listenedPromises)
+			for(prom in async.waitedPromises)
 				if( !prom.completed )
-					prom.addListener( ()->_renderPromiseList(f) );
+					prom.addOnCompleteListener( ()->_renderPromiseList(f) );
 		}, runtimeFlow);
 	}
 

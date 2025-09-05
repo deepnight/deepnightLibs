@@ -21,7 +21,7 @@ class Promise {
 			+ "(" + ( completed ? "COMPLETED" : listeners!=null ? listeners.length+" listeners" : "No listener" ) +")";
 	}
 
-	public function addListener(cb:Void->Void) {
+	public function addOnCompleteListener(cb:Void->Void) {
 		if( completed )
 			cb();
 		else if( listeners==null )

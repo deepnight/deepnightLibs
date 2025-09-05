@@ -17,7 +17,7 @@ class AsyncRunner extends dn.script.Runner {
 
 	var waitUntilFunctions : Map<String, Bool> = new Map();
 	var runLoops : Array<(tmod:Float)->Bool> = []; // A custom loop is removed from the array if it returns TRUE
-	var listenedPromises : Array<Promise> = [];
+	var waitedPromises : Array<Promise> = [];
 	var uniqId = 0;
 
 	public function new(fps:Int) {
@@ -27,7 +27,7 @@ class AsyncRunner extends dn.script.Runner {
 
 		addInternalKeyword("delayExecutionS", TDynamic, api_delayExecutionS);
 		addInternalKeyword("waitUntil", TDynamic, api_waitUntil);
-		addInternalKeyword("waitPromise", TDynamic, api_listenPromise);
+		addInternalKeyword("waitPromise", TDynamic, api_waitPromise);
 		addInternalKeyword("waitS", TDynamic); // turned into a delayExecutionS() call at conversion time
 	}
 
@@ -128,10 +128,14 @@ class AsyncRunner extends dn.script.Runner {
 		});
 	}
 
-	function api_listenPromise(p:Promise, onComplete:Void->Void) {
-		p.addListener(onComplete);
-		if( !listenedPromises.contains(p) )
-			listenedPromises.push(p);
+	function api_waitPromise(p:Promise, onComplete:Void->Void) {
+		if( p.completed )
+			onComplete();
+		else {
+			p.addOnCompleteListener(onComplete);
+			if( !waitedPromises.contains(p) )
+				waitedPromises.push(p);
+		}
 	}
 
 
@@ -612,7 +616,7 @@ class AsyncRunner extends dn.script.Runner {
 		running = false;
 		runningTimeS = 0;
 		runLoops = [];
-		listenedPromises = [];
+		waitedPromises = [];
 		lastLoopCompleteFunc = null;
 	}
 
@@ -639,7 +643,7 @@ class AsyncRunner extends dn.script.Runner {
 
 		// Script completion detection
 		var allPromisesCompleted = true;
-		for(p in listenedPromises)
+		for(p in waitedPromises)
 			if( !p.completed ) {
 				allPromisesCompleted = false;
 				break;
