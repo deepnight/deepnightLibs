@@ -630,10 +630,9 @@ class Debug extends dn.Process {
 	override function onResize() {
 		super.onResize();
 
-		wrapper.setScale( M.fmin(
-			dn.heaps.Scaler.bestFit_smart(800,600),
-			dn.heaps.Scaler.bestFit_f(wrapper.outerWidth, wrapper.outerHeight)
-		));
+		wrapper.setScale( dn.heaps.Scaler.bestFit_smart(800,600) );
+		wrapper.maxHeight = Std.int( stageHei/wrapper.scaleY );
+		wrapper.overflow = Scroll;
 		wrapper.x = stageWid - wrapper.outerWidth * wrapper.scaleX;
 	}
 
