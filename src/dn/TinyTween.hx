@@ -66,7 +66,16 @@ class TinyTween {
 		return !hasAnyValue() ? 0 : isComplete() ? 1 : elapsedS/durationS;
 	}
 
-	public inline function start(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation = EaseInOut) {
+	public inline function start(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation = EaseInOut, continueExisting=true) {
+		if( continueExisting && isCurrentlyRunning() ) {
+			interp = switch this.interp {
+				case Linear: interp;
+				case EaseIn: Linear;
+				case EaseOut: interp;
+				case EaseInOut: EaseOut;
+				case BackForth: interp;
+			}
+		}
 		this.fromValue = from;
 		this.toValue = to;
 		this.durationS = durationS;
