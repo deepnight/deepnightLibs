@@ -206,7 +206,6 @@ class GetText {
 	}
 
 
-	@:noCompletion
 	public inline function get(msgId:String, ?vars:Dynamic) : LocaleString {
 		// Strip notes from msgid (but keep Disambiguation Context)
 		msgId = TRANSLATOR_NOTE_REG.replace(msgId,"$3");
