@@ -28,7 +28,13 @@ class Process {
 	/** If TRUE, each Process.onResize() will be called *once* at the end of the frame **/
 	static var RESIZE_REQUESTED = true;
 
+	/** Timestamp of the process creation **/
 	public var creationTimeStamp(default,null) : Float;
+
+	/** Process age in seconds **/
+	public var ageS(get,never) : Float; inline function get_ageS() return haxe.Timer.stamp() - creationTimeStamp;
+
+	/** Unique process ID **/
 	public var uniqId : Int;
 	/** Elapsed frames from the client start **/
 	public var ftime(default, null) : Float; // elapsed frames
