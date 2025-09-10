@@ -178,9 +178,7 @@ class Runner {
 
 	/**
 		Expose an existing class instance to the script, as a global var with the given name.
-		If `makeFieldsGlobals` is TRUE, then all fields from the instance will be directly available as globals in scripts.
-
-		For example, if `myApi.doSomething()` exists then, in scripts, `doSomething()` may be called directly, in addition of `<nameInScript>.doSomething()`.
+		If `globalAccess` is different from None, then some fields from the instance will be directly available as globals in scripts.
 
 		IMPORTANT: the class should have both @:rtti and @:keep meta!
 	 **/
