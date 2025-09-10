@@ -112,21 +112,29 @@ class AsyncRunner extends dn.script.Runner {
 	}
 
 	function api_delayExecutionS( t:Float, doNext:Void->Void ) {
-		var endS = runningTimeS + t;
-		addRunLoop((tmod)->{
-			if( runningTimeS>=endS )
-				doNext();
-			return runningTimeS>=endS;
-		});
+		if( t<=0 )
+			doNext();
+		else {
+			var endS = runningTimeS + t;
+			addRunLoop((tmod)->{
+				if( runningTimeS>=endS )
+					doNext();
+				return runningTimeS>=endS;
+			});
+		}
 	}
 
 	function api_waitUntil( cond:Void->Bool, doNext:Void->Void ) {
-		addRunLoop((tmod)->{
-			var result = cond();
-			if( result )
-				doNext();
-			return result;
-		});
+		if( cond() )
+			doNext();
+		else {
+			addRunLoop((tmod)->{
+				var result = cond();
+				if( result )
+					doNext();
+				return result;
+			});
+		}
 	}
 
 	function api_waitPromise<T:IPromisable>(c:T, onComplete:Void->Void) {
