@@ -522,8 +522,12 @@ class HParticle extends BatchElement {
 	}
 
 	function dispose() {
-		remove();
+		reset(null);
+
+		pool = null;
 		bounds = null;
+		scaleX_tween = null;
+		scaleY_tween = null;
 	}
 
 	public inline function isAlive() {
