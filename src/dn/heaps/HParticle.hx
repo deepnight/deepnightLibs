@@ -44,6 +44,8 @@ class HParticle extends BatchElement {
 	public var alphaFlicker		: Float;
 	public var customTmod		: Void->Float;
 
+	var x_tween(default,null) : TinyTween;
+	var y_tween(default,null) : TinyTween;
 	var scaleX_tween(default,null) : TinyTween;
 	var scaleY_tween(default,null) : TinyTween;
 
@@ -108,6 +110,8 @@ class HParticle extends BatchElement {
 		pool = p;
 		poolIdx = -1;
 
+		x_tween = new TinyTween(fps);
+		y_tween = new TinyTween(fps);
 		scaleX_tween = new TinyTween(fps);
 		scaleY_tween = new TinyTween(fps);
 
@@ -160,6 +164,20 @@ class HParticle extends BatchElement {
 		this.x = x;
 		this.y = y;
 	}
+
+	public inline function tweenX(to:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
+		x_tween.start(x, to, durationS, interp);
+	}
+
+	public inline function tweenY(to:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
+		y_tween.start(y, to, durationS, interp);
+	}
+
+	public inline function tweenXY(toX:Float, toY:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
+		x_tween.start(x, toX, durationS, interp);
+		y_tween.start(y, toY, durationS, interp);
+	}
+
 
 	public inline function tweenBothScales(from:Float, to:Float, durationS:Float, interp:TinyTweenInterpolation=Linear) {
 		scaleX_tween.start(from, to, durationS, interp);
@@ -306,6 +324,8 @@ class HParticle extends BatchElement {
 		delayedCbTimeS = 0;
 
 		// Tweens
+		x_tween.reset();
+		y_tween.reset();
 		scaleX_tween.reset();
 		scaleY_tween.reset();
 
@@ -526,6 +546,9 @@ class HParticle extends BatchElement {
 
 		pool = null;
 		bounds = null;
+
+		x_tween = null;
+		y_tween = null;
 		scaleX_tween = null;
 		scaleY_tween = null;
 	}
@@ -630,6 +653,12 @@ class HParticle extends BatchElement {
 			}
 
 			if( !killed ) {
+				// Custom movement tweens
+				if( x_tween.update(tmod) )
+					x = x_tween.curValue;
+				if( y_tween.update(tmod) )
+					y = y_tween.curValue;
+
 				// Gravity
 				dx += gx * tmod;
 				dy += gy * tmod;
