@@ -461,6 +461,18 @@ class Sfx {
 
 
 	/**
+		Adjust pitch
+
+		SOUND MUST BE PLAYING.
+	**/
+	public inline function pitch(value:Float) {
+		if( _requiresChannel() && value!=0 )
+			addEffect(  new hxd.snd.effect.Pitch(value)  );
+		return this;
+	}
+
+
+	/**
 		Mute a group of Sfx completely
 	**/
 	public static function muteGroup(id) {
