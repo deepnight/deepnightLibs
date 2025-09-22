@@ -152,7 +152,7 @@ class Debug extends dn.Process {
 		}
 		else {
 			errorFlow.visible = true;
-			createCollapsable(runner.lastException.message, Red, (p)->{
+			createCollapsable(runner.lastException.message, badColor.toBlack(0.65), (p)->{
 				createCopyButton(runner.lastException.stack.toString(), p);
 				createText(runner.lastException.toString(), Red, p);
 				if( runner.lastScriptError!=null && runner.lastScriptError.line>=0 )
