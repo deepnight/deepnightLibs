@@ -310,4 +310,8 @@ class MacroTools {
 		return macro {}
 	}
 
+
+	public static macro function getCurrentFunctionName() {
+		return macro $v{ Context.getLocalModule()+"."+Context.getLocalMethod() };
+	}
 }
