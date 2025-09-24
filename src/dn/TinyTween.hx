@@ -90,15 +90,25 @@ class TinyTween {
 	}
 
 	public dynamic function applyValue(v:Float) {}
-	public dynamic function onComplete() {}
+
+	/** This callback will be called only ONCE, the next this tween will complete. **/
+	public dynamic function onCompleteOnce() {}
+	function _doNothing() {}
+
+	/** This callback is called EVERYTIME this tween completes **/
+	public dynamic function onCompleteEverytime() {}
 
 	/** Advance the tween, return TRUE if the tween is running and curValue changed **/
 	public inline function update(tmod:Float) : Bool {
 		if( hasAnyValue() && !isComplete() ) {
 			elapsedS = M.fmin( elapsedS + tmod/fps, durationS );
 			applyValue(curValue);
-			if( isComplete() )
-				onComplete();
+			if( isComplete() ) {
+				var cb = onCompleteOnce;
+				onCompleteOnce = _doNothing;
+				cb();
+				onCompleteEverytime();
+			}
 			return true;
 		}
 		else
