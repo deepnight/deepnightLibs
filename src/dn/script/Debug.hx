@@ -672,7 +672,7 @@ class Debug extends dn.Process {
 			originTf.text = runner.origin;
 
 		if( outputTf.text!=runner.output.string )
-			outputTf.text = runner.output.string;
+			outputTf.text = runner.output.string+"("+runner.output.type+")";
 
 		// Refresh timer
 		if( isAsync() && asAsync().hasScriptRunning() )
