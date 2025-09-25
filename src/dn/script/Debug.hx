@@ -671,8 +671,8 @@ class Debug extends dn.Process {
 		if( originTf.text!=runner.origin )
 			originTf.text = runner.origin;
 
-		if( outputTf.text!=runner.output )
-			outputTf.text = Std.string(runner.output);
+		if( outputTf.text!=runner.output.string )
+			outputTf.text = runner.output.string;
 
 		// Refresh timer
 		if( isAsync() && asAsync().hasScriptRunning() )

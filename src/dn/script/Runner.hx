@@ -75,19 +75,7 @@ class Runner {
 	public var runWithoutCheck = false;
 
 	/** Last script output, untyped **/
-	public var output(get,never) : Null<Dynamic>;
-
-	/** Last script output value typed as Null<String>. If the output isn't an actual String, this equals to the String representation of the output. **/
-	public var output_str(get,never) : Null<String>;
-
-	/** Last script output value typed as Int. If the output isn't a valid number, this equals to 0. **/
-	public var output_int(get,never) : Int;
-
-	/** Last script output value typed as Float. If the output isn't a valid number, this equals to 0. **/
-	public var output_float(get,never) : Float;
-
-	/** Last script output value typed as Bool. If the output isn't a valid Bool, this equals to FALSE. **/
-	public var output_bool(get,never) : Bool;
+	public var output(get,never) : Null<RunnerOutput>;
 
 
 	#if heaps
@@ -113,7 +101,7 @@ class Runner {
 		}
 		addInternalKeyword("makeIterator_dynamic", _makeIteratorType(TDynamic), @:privateAccess interp.makeIterator);
 		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt), @:privateAccess interp.makeIterator);
-		addInternalKeyword("out", TFun([{ name:"v", opt:false, t:TDynamic }], TVoid), forceOutput);
+		addInternalKeyword("out", TFun([{ name:"v", opt:false, t:TDynamic }], TVoid), setCustomOutput);
 		exposeClassDefinition(dn.script.Promise);
 
 		// Register Int based named-colors (Red, Green, Blue, etc)
@@ -716,40 +704,11 @@ class Runner {
 	}
 
 
-	function forceOutput(v:Dynamic) {
+	function setCustomOutput(v:Dynamic) {
 		customRunOutput = v;
 	}
 
-	inline function get_output() return customRunOutput ?? lastRunOutput;
-
-	function get_output_int() {
-		return switch Type.typeof(output) {
-			case TInt, TFloat: M.isValidNumber(output) ? Std.int(output) : 0;
-			case _: 0;
-		}
-	}
-
-	function get_output_float() {
-		return switch Type.typeof(output) {
-			case TInt, TFloat: M.isValidNumber(output) ? output : 0;
-			case _: 0;
-		}
-	}
-
-	function get_output_bool() {
-		return switch Type.typeof(output) {
-			case TBool: output;
-			case _: false;
-		}
-	}
-
-	function get_output_str() {
-		return switch Type.typeof(output) {
-			case TNull: null;
-			case TClass(String): output;
-			case _: Std.string(output);
-		}
-	}
+	inline function get_output() return new RunnerOutput( customRunOutput ?? lastRunOutput );
 
 
 	function tryCatch(cb:Void->Void) : Bool {
@@ -854,3 +813,64 @@ class Runner {
 	}
 }
 
+
+
+/** Wrapper for runner output with safe typing API **/
+enum abstract RunnerOutput(Dynamic) { // to Int to Float to String to Bool {
+	/** Last script output value typed as Null<String>. If the output isn't an actual String, this equals to the String representation of the output. **/
+	public var string(get,never) : Null<String>;
+
+	/** Last script output value typed as Int. If the output isn't a valid number, this equals to 0. **/
+	public var int(get,never) : Int;
+
+	/** Last script output value typed as Float. If the output isn't a valid number, this equals to 0. **/
+	public var float(get,never) : Float;
+
+	/** Last script output value typed as Bool. If the output isn't a valid Bool, this equals to FALSE. **/
+	public var bool(get,never) : Bool;
+
+	public var type(get,never) : Type.ValueType;
+
+
+	public inline function new(v:Dynamic) {
+		this = v;
+	}
+
+
+	@:to function get_int() : Int {
+		return switch Type.typeof(this) {
+			case TInt, TFloat: M.isValidNumber(this) ? Std.int(this) : 0;
+			case _: 0;
+		}
+	}
+
+	@:to function get_float() : Float {
+		return switch Type.typeof(this) {
+			case TInt, TFloat: M.isValidNumber(this) ? this : 0.;
+			case _: 0.;
+		}
+	}
+
+	@:to function get_bool() {
+		return switch Type.typeof(this) {
+			case TBool: this;
+			case _: false;
+		}
+	}
+
+	@:keep public function toString() {
+		return get_string();
+	}
+	@:to function get_string() {
+		return switch Type.typeof(this) {
+			case TNull: null;
+			case TClass(String): this;
+			case _: Std.string(this);
+		}
+	}
+
+	inline function get_type() : Type.ValueType {
+		return Type.typeof(this);
+	}
+
+}
