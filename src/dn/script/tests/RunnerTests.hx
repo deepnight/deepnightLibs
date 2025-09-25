@@ -35,11 +35,11 @@ class RunnerTests {
 		r.rethrowLevel = Nothing;
 
 		// API calls
-		CiAssert.equals( { r.run("var x=pow2(5); x;"); r.output_int; },  25 );
-		CiAssert.equals( { r.run("var x=pow2(1.5); x;"); r.output_int; },  2 );
-		CiAssert.equals( { r.run("var x=pow2(1.5); x;"); r.output_float; },  2.25 );
-		CiAssert.equals( { r.run("var x=inc(1); x;"); r.output_int; },  2 );
-		CiAssert.equals( { r.run("var x=1; inc(x); x;"); r.output_int; },  1 );
+		CiAssert.equals( { r.run("var x=pow2(5); x;"); r.output.int; },  25 );
+		CiAssert.equals( { r.run("var x=pow2(1.5); x;"); r.output.int; },  2 );
+		CiAssert.equals( { r.run("var x=pow2(1.5); x;"); r.output.float; },  2.25 );
+		CiAssert.equals( { r.run("var x=inc(1); x;"); r.output.int; },  2 );
+		CiAssert.equals( { r.run("var x=1; inc(x); x;"); r.output.int; },  1 );
 
 
 		// Output: Dynamic
@@ -52,38 +52,38 @@ class RunnerTests {
 		CiAssert.equals( { r.run("unknown_var;"); r.output; },  null );
 
 		// Output: Int
-		CiAssert.equals( { r.run(""); r.output_int; },  0 );
-		CiAssert.equals( { r.run("var x=5; x;"); r.output_int; },  5 );
-		CiAssert.equals( { r.run("var x=5; x++;"); r.output_int; },  5 );
-		CiAssert.equals( { r.run("var x=5; ++x;"); r.output_int; },  6 );
-		CiAssert.equals( { r.run("1.9;"); r.output_int; },  1 );
-		CiAssert.equals( { r.run("-1.9;"); r.output_int; },  -1 );
-		CiAssert.equals( { r.run("null;"); r.output_int; },  0 );
-		CiAssert.equals( { r.run("1/0;"); r.output_int; },  0 );
-		CiAssert.equals( { r.run("'hello';"); r.output_int; },  0 );
+		CiAssert.equals( { r.run(""); r.output.int; },  0 );
+		CiAssert.equals( { r.run("var x=5; x;"); r.output.int; },  5 );
+		CiAssert.equals( { r.run("var x=5; x++;"); r.output.int; },  5 );
+		CiAssert.equals( { r.run("var x=5; ++x;"); r.output.int; },  6 );
+		CiAssert.equals( { r.run("1.9;"); r.output.int; },  1 );
+		CiAssert.equals( { r.run("-1.9;"); r.output.int; },  -1 );
+		CiAssert.equals( { r.run("null;"); r.output.int; },  0 );
+		CiAssert.equals( { r.run("1/0;"); r.output.int; },  0 );
+		CiAssert.equals( { r.run("'hello';"); r.output.int; },  0 );
 
 		// Output: Float
-		CiAssert.equals( { r.run(""); r.output_float; },  0 );
-		CiAssert.equals( { r.run("var x=5.2; x;"); r.output_float; },  5.2 );
-		CiAssert.equals( { r.run("null;"); r.output_float; },  0. );
-		CiAssert.equals( { r.run("1/0;"); r.output_float; },  0. );
-		CiAssert.equals( { r.run("'hello';"); r.output_float; },  0. );
+		CiAssert.equals( { r.run(""); r.output.float; },  0 );
+		CiAssert.equals( { r.run("var x=5.2; x;"); r.output.float; },  5.2 );
+		CiAssert.equals( { r.run("null;"); r.output.float; },  0. );
+		CiAssert.equals( { r.run("1/0;"); r.output.float; },  0. );
+		CiAssert.equals( { r.run("'hello';"); r.output.float; },  0. );
 
 		// Output: Bool
-		CiAssert.equals( { r.run(""); r.output_bool; },  false );
-		CiAssert.equals( { r.run("var x=true; x;"); r.output_bool; },  true );
-		CiAssert.equals( { r.run("var x=5; x;"); r.output_bool; },  false);
-		CiAssert.equals( { r.run("var x='hello'; x;"); r.output_bool; },  false);
-		CiAssert.equals( { r.run("null;"); r.output_bool; },  false );
-		CiAssert.equals( { r.run("5;"); r.output_bool; },  false );
-		CiAssert.equals( { r.run("'hello';"); r.output_bool; },  false );
+		CiAssert.equals( { r.run(""); r.output.bool; },  false );
+		CiAssert.equals( { r.run("var x=true; x;"); r.output.bool; },  true );
+		CiAssert.equals( { r.run("var x=5; x;"); r.output.bool; },  false);
+		CiAssert.equals( { r.run("var x='hello'; x;"); r.output.bool; },  false);
+		CiAssert.equals( { r.run("null;"); r.output.bool; },  false );
+		CiAssert.equals( { r.run("5;"); r.output.bool; },  false );
+		CiAssert.equals( { r.run("'hello';"); r.output.bool; },  false );
 
 		// Output: String
-		CiAssert.equals( { r.run(""); r.output_str; },  null );
-		CiAssert.equals( { r.run("var x=5; x;"); r.output_str; },  "5" );
-		CiAssert.equals( { r.run("var x=true; x;"); r.output_str; },  "true" );
-		CiAssert.equals( { r.run("var x='hello'; x;"); r.output_str; },  "hello" );
-		CiAssert.equals( { r.run("null;"); r.output_str; },  null );
+		CiAssert.equals( { r.run(""); r.output.string; },  null );
+		CiAssert.equals( { r.run("var x=5; x;"); r.output.string; },  "5" );
+		CiAssert.equals( { r.run("var x=true; x;"); r.output.string; },  "true" );
+		CiAssert.equals( { r.run("var x='hello'; x;"); r.output.string; },  "hello" );
+		CiAssert.equals( { r.run("null;"); r.output.string; },  null );
 	}
 }
 
