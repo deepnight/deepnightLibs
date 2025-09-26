@@ -148,9 +148,12 @@ class Process {
 		udelayer = new Delayer( getDefaultFrameRate() );
 	}
 
-	var _initOnceDone = false;
+	var _initOncePreUpdateDone = false;
+	var _initOnceFinalUpdateDone = false;
 	/** This special init method is only called once during next frame: call will happen *after* the constructor call and *before* any update. **/
-	function initOnceBeforeUpdate() {}
+	function initOncePreUpdate() {}
+	/** This special init method is only called once at the end of current frame: call will happen *after* the constructor call and *before* final update. **/
+	function initOnceFinalUpdate() {}
 
 
 	#if heaps
@@ -558,9 +561,9 @@ class Process {
 			p.tw.update(p.tmod);
 
 		if( canRun(p) ) {
-			if( !p._initOnceDone ) {
-				p.initOnceBeforeUpdate();
-				p._initOnceDone = true;
+			if( !p._initOncePreUpdateDone ) {
+				p.initOncePreUpdate();
+				p._initOncePreUpdateDone = true;
 			}
 			p.preUpdate();
 		}
@@ -623,7 +626,12 @@ class Process {
 		if( !canRun(p) )
 			return;
 
-		p.finalUpdate();
+		if( !p._initOnceFinalUpdateDone ) {
+			p.initOnceFinalUpdate();
+			p._initOnceFinalUpdateDone = true;
+		}
+		if( !p.destroyed )
+			p.finalUpdate();
 
 		if( !p.destroyed )
 			for (c in p.children)
