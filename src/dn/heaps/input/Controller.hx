@@ -912,6 +912,7 @@ class InputBinding<T:Int> {
 	public function getIcon(?suffix:String) : h2d.Flow {
 		var f = new h2d.Flow();
 		f.horizontalSpacing = 1;
+		f.horizontalAlign = Middle;
 		f.verticalAlign = Middle;
 
 		if( isLStick && padNeg==null && signLimit!=0 ) {
