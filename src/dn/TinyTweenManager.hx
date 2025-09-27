@@ -1,5 +1,10 @@
 package dn;
 
+#if macro
+import haxe.macro.Expr;
+import haxe.macro.Context;
+#end
+
 import dn.TinyTween;
 
 class TinyTweenManager {
@@ -33,6 +38,14 @@ class TinyTweenManager {
 	public function update(tmod:Float) {
 		for(t in pool)
 			t.update(tmod);
+	}
+
+	public macro function start2(ethis:Expr, ref:Expr, fromExpr:ExprOf<Float>, toExpr:ExprOf<Float>, durationS:ExprOf<Float>, interp:ExprOf<TinyTweenInterpolation>=null) {
+		switch ref.expr {
+			case EConst(CIdent(s)):
+			case _: Context.error("Need a variable identifier", ref.pos);
+		}
+		return macro $ethis.start($fromExpr, $toExpr, $durationS, $interp, v->$ref = v);
 	}
 }
 
