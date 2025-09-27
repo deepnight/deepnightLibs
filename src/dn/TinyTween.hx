@@ -101,17 +101,22 @@ class TinyTween {
 	/** This callback is called EVERYTIME this tween completes **/
 	public dynamic function onCompleteEverytime() {}
 
+
+	function complete() {
+		var cb = onCompleteOnce;
+		onCompleteOnce = _doNothing;
+		cb();
+		onCompleteEverytime();
+	}
+
+
 	/** Advance the tween, return TRUE if the tween is running and curValue changed **/
 	public inline function update(tmod:Float) : Bool {
 		if( hasAnyValue() && !isComplete() ) {
 			elapsedS = M.fmin( elapsedS + tmod/fps, durationS );
 			applyValue(curValue);
-			if( isComplete() ) {
-				var cb = onCompleteOnce;
-				onCompleteOnce = _doNothing;
-				cb();
-				onCompleteEverytime();
-			}
+			if( isComplete() )
+				complete();
 			return true;
 		}
 		else
