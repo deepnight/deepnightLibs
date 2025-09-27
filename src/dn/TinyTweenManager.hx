@@ -36,6 +36,8 @@ class TinyTweenManager {
 	}
 }
 
+
+
 class RecyclableTinyTween extends TinyTween implements dn.struct.RecyclablePool.Recyclable {
 	var manager : TinyTweenManager;
 
