@@ -27,7 +27,9 @@ class TinyTween {
 		fromValue = toValue = 0;
 		durationS = elapsedS = -1;
 		interp = EaseInOut;
+		onCompleteOnce = _doNothing;
 	}
+
 
 	/** Return TRUE if the tween has any valid value (ie. it's either started, or completed). Reseting makes this function FALSE. **/
 	public inline function hasAnyValue() {
@@ -90,6 +92,7 @@ class TinyTween {
 	}
 
 	public dynamic function applyValue(v:Float) {}
+	function _applyNothing(v:Float) {}
 
 	/** This callback will be called only ONCE, the next this tween will complete. **/
 	public dynamic function onCompleteOnce() {}
