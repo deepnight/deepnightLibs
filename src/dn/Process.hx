@@ -96,7 +96,7 @@ class Process {
 	public var cd : dn.Cooldown;
 
 	/** Tweenie tweens values **/
-	#if processUsesTweenie
+	#if useProcessTweenie
 	public var tw : dn.Tweenie;
 	#else
 	public var tinyTweens(default,null) : dn.TinyTweenManager;
@@ -147,7 +147,7 @@ class Process {
 		cd = new Cooldown( getDefaultFrameRate() );
 		delayer = new Delayer( getDefaultFrameRate() );
 
-		#if processUsesTweenie
+		#if useProcessTweenie
 		tw = new Tweenie( getDefaultFrameRate() );
 		#else
 		tinyTweens = new TinyTweenManager( getDefaultFrameRate() );
@@ -567,7 +567,7 @@ class Process {
 			p.ucd.update(p.utmod);
 
 		if( canRun(p) ) {
-			#if processUsesTweenie
+			#if useProcessTweenie
 			p.tw.update(p.tmod);
 			#else
 			p.tinyTweens.update(p.tmod);
@@ -707,7 +707,7 @@ class Process {
 		p.udelayer.dispose(); p.udelayer = null;
 		p.cd.dispose(); p.cd = null;
 		p.ucd.dispose(); p.ucd = null;
-		#if processUsesTweenie
+		#if useProcessTweenie
 		p.tw.destroy(); p.tw = null;
 		#else
 		p.tinyTweens.dispose(); p.tinyTweens = null;
@@ -822,7 +822,7 @@ class Process {
 		CiAssert.isNotNull(root.delayer);
 		CiAssert.isNotNull(root.udelayer);
 
-		#if processUsesTweenie
+		#if useProcessTweenie
 		CiAssert.isNotNull(root.tw);
 		#else
 		CiAssert.isNotNull(root.tinyTweens);
