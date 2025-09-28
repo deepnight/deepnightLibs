@@ -95,12 +95,13 @@ class Process {
 	/** Cooldown allows to track various countdowns for tons of good reasons **/
 	public var cd : dn.Cooldown;
 
-	/** Tweenie tweens values **/
 	#if useProcessTweenie
+	/** Tweenie tweens values **/
 	public var tw : dn.Tweenie;
-	#else
-	public var tinyTweens(default,null) : dn.TinyTweenManager;
 	#end
+
+	/** Tiny tweens manager **/
+	public var tinyTweens(default,null) : dn.TinyTweenManager;
 
 	/** Same as `delayer` but it isn't affected by time multiplier **/
 	public var udelayer : dn.Delayer;
@@ -149,9 +150,8 @@ class Process {
 
 		#if useProcessTweenie
 		tw = new Tweenie( getDefaultFrameRate() );
-		#else
-		tinyTweens = new TinyTweenManager( getDefaultFrameRate() );
 		#end
+		tinyTweens = new TinyTweenManager( getDefaultFrameRate() );
 
 		ucd = new Cooldown( getDefaultFrameRate() );
 		udelayer = new Delayer( getDefaultFrameRate() );
@@ -566,13 +566,13 @@ class Process {
 		if( canRun(p) )
 			p.ucd.update(p.utmod);
 
-		if( canRun(p) ) {
-			#if useProcessTweenie
+		#if useProcessTweenie
+		if( canRun(p) )
 			p.tw.update(p.tmod);
-			#else
+		#end
+
+		if( canRun(p) )
 			p.tinyTweens.update(p.tmod);
-			#end
-		}
 
 		if( canRun(p) ) {
 			if( !p._initOncePreUpdateDone ) {
@@ -709,9 +709,8 @@ class Process {
 		p.ucd.dispose(); p.ucd = null;
 		#if useProcessTweenie
 		p.tw.destroy(); p.tw = null;
-		#else
-		p.tinyTweens.dispose(); p.tinyTweens = null;
 		#end
+		p.tinyTweens.dispose(); p.tinyTweens = null;
 
 		// Clean up
 		p.parent = null;
@@ -824,9 +823,8 @@ class Process {
 
 		#if useProcessTweenie
 		CiAssert.isNotNull(root.tw);
-		#else
-		CiAssert.isNotNull(root.tinyTweens);
 		#end
+		CiAssert.isNotNull(root.tinyTweens);
 
 		CiAssert.equals( root.tmod, 1 );
 		#if unlimitedProcesses
