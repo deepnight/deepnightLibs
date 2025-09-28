@@ -68,13 +68,24 @@ class TinyTweenManager {
 		var fromExpr : Expr = null;
 		var toExpr : Expr = null;
 		switch tweenOp.expr {
-			case EConst(c):
+			case EConst(c): // "9", "v" etc
 				fromExpr = targetVarExpr;
 				toExpr = tweenOp;
 
+			case EUnop(op, postFix, e): // "-9"
+				switch op {
+					case OpNeg:
+						fromExpr = targetVarExpr;
+						toExpr = tweenOp;
+
+					case _:
+						Context.error("Unsupported tween operator", tweenOp.pos);
+
+				}
+
 			case EBinop(op, e1, e2):
 				switch op {
-					case OpGt:
+					case OpGt: // "0>9"
 						fromExpr = e1;
 						toExpr = e2;
 
