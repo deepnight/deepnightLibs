@@ -42,7 +42,8 @@ class TinyTweenManager {
 	public macro function start(ethis:Expr, ref:Expr, fromExpr:ExprOf<Float>, toExpr:ExprOf<Float>, durationS:ExprOf<Float>, interp:ExprOf<TinyTweenInterpolation>=null) {
 		switch ref.expr {
 			case EConst(CIdent(s)):
-			case _: Context.error("Need a variable identifier", ref.pos);
+			case EField(e, field, kind):
+			case _: Context.error("Need a variable identifier, got "+ref.expr.getName(), ref.pos);
 		}
 		interp = switch interp.expr {
 			case EConst(CIdent("null")): macro EaseInOut;
