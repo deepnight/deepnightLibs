@@ -6,6 +6,8 @@ enum abstract TinyTweenInterpolation(Int) to Int {
 	var EaseOut;
 	var EaseInOut;
 	var BackForth;
+	var BackForthEaseIn;
+	var BackForthEaseOut;
 }
 
 class TinyTween {
@@ -43,6 +45,8 @@ class TinyTween {
 		if( isComplete() )
 			return switch interp {
 				case BackForth: fromValue;
+				case BackForthEaseIn: fromValue;
+				case BackForthEaseOut: fromValue;
 				case _: toValue;
 			}
 
@@ -52,6 +56,8 @@ class TinyTween {
 			case EaseOut: M.bezier4( elapsedS/durationS, 0, 0.5, 1, 1 );
 			case EaseInOut: M.bezierFull4( elapsedS/durationS,   0, 0.66, 0.66, 1,   0, 0, 1, 1 );
 			case BackForth: M.bezier4( elapsedS/durationS, 0, 1+1/3, 1+1/3, 0 );
+			case BackForthEaseIn: M.bezier4( elapsedS/durationS, 0, 0, 2.25, 0 );
+			case BackForthEaseOut: M.bezier4( elapsedS/durationS, 0, 2.25, 0, 0 );
 		}
 		return fromValue + ( toValue - fromValue ) * ratio;
 	}
@@ -76,6 +82,8 @@ class TinyTween {
 				case EaseOut: interp;
 				case EaseInOut: EaseOut;
 				case BackForth: interp;
+				case BackForthEaseIn: interp;
+				case BackForthEaseOut: interp;
 			}
 		}
 		this.fromValue = from;
