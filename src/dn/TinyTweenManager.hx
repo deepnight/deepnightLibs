@@ -20,6 +20,13 @@ class TinyTweenManager {
 	}
 
 
+	public function dispose() {
+		for(t in pool)
+			t.dispose();
+		pool = null;
+	}
+
+
 	@:noCompletion
 	public function _allocTween(fromValue:Float, toValue:Float, durationS:Float, interp:TinyTweenInterpolation=EaseInOut, setter:Float->Void) {
 		for(t in pool)
@@ -77,8 +84,12 @@ class RecyclableTinyTween extends TinyTween implements dn.struct.RecyclablePool.
 
 	public function recycle() {
 		reset();
-		onCompleteEverytime = _doNothing;
 		applyValue = _applyNothing;
+	}
+
+	public function dispose() {
+		reset();
+		manager = null;
 	}
 
 	override function complete() {

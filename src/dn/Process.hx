@@ -96,7 +96,11 @@ class Process {
 	public var cd : dn.Cooldown;
 
 	/** Tweenie tweens values **/
+	#if processUsesTweenie
 	public var tw : dn.Tweenie;
+	#else
+	public var tinyTweens(default,null) : dn.TinyTweenManager;
+	#end
 
 	/** Same as `delayer` but it isn't affected by time multiplier **/
 	public var udelayer : dn.Delayer;
@@ -142,7 +146,12 @@ class Process {
 
 		cd = new Cooldown( getDefaultFrameRate() );
 		delayer = new Delayer( getDefaultFrameRate() );
+
+		#if processUsesTweenie
 		tw = new Tweenie( getDefaultFrameRate() );
+		#else
+		tinyTweens = new TinyTweenManager( getDefaultFrameRate() );
+		#end
 
 		ucd = new Cooldown( getDefaultFrameRate() );
 		udelayer = new Delayer( getDefaultFrameRate() );
@@ -557,8 +566,13 @@ class Process {
 		if( canRun(p) )
 			p.ucd.update(p.utmod);
 
-		if( canRun(p) )
+		if( canRun(p) ) {
+			#if processUsesTweenie
 			p.tw.update(p.tmod);
+			#else
+			p.tinyTweens.update(p.tmod);
+			#end
+		}
 
 		if( canRun(p) ) {
 			if( !p._initOncePreUpdateDone ) {
@@ -693,7 +707,11 @@ class Process {
 		p.udelayer.dispose(); p.udelayer = null;
 		p.cd.dispose(); p.cd = null;
 		p.ucd.dispose(); p.ucd = null;
+		#if processUsesTweenie
 		p.tw.destroy(); p.tw = null;
+		#else
+		p.tinyTweens.dispose(); p.tinyTweens = null;
+		#end
 
 		// Clean up
 		p.parent = null;
@@ -803,7 +821,13 @@ class Process {
 		CiAssert.isNotNull(root.ucd);
 		CiAssert.isNotNull(root.delayer);
 		CiAssert.isNotNull(root.udelayer);
+
+		#if processUsesTweenie
 		CiAssert.isNotNull(root.tw);
+		#else
+		CiAssert.isNotNull(root.tinyTweens);
+		#end
+
 		CiAssert.equals( root.tmod, 1 );
 		#if unlimitedProcesses
 		CiAssert.equals( ROOTS.length, 1);
