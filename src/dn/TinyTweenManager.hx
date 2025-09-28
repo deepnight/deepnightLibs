@@ -30,7 +30,7 @@ class TinyTweenManager {
 	@:noCompletion
 	public function _allocTween(fromValue:Float, toValue:Float, durationS:Float, interp:TinyTweenInterpolation=EaseInOut, setter:Float->Void) : RecyclableTinyTween {
 		for(t in pool)
-			if( !t.isCurrentlyRunning() ) {
+			if( !t.isCurrentlyRunning() && !t.isComplete() ) {
 				t.reset();
 				t.applyValue = setter;
 				t.start(fromValue, toValue, durationS, interp);
@@ -65,36 +65,19 @@ class TinyTweenManager {
 			case _: interp;
 		}
 
-		var fromExpr : Expr = null;
-		var toExpr : Expr = null;
+		var fromExpr = targetVarExpr;
+		var toExpr = tweenOp;
 		switch tweenOp.expr {
-			case EConst(c): // "9", "v" etc
-				fromExpr = targetVarExpr;
-				toExpr = tweenOp;
-
-			case EUnop(op, postFix, e): // "-9"
-				switch op {
-					case OpNeg:
-						fromExpr = targetVarExpr;
-						toExpr = tweenOp;
-
-					case _:
-						Context.error("Unsupported tween operator", tweenOp.pos);
-
-				}
-
 			case EBinop(op, e1, e2):
 				switch op {
-					case OpGt: // "0>9"
+					case OpGt: // "0>9" syntax
 						fromExpr = e1;
 						toExpr = e2;
 
 					case _:
-						Context.error("Unsupported tween operator", tweenOp.pos);
 				}
 
 			case _:
-				Context.error("Unsupported tween expression", tweenOp.pos);
 		}
 		return macro $ethis._allocTween($fromExpr, $toExpr, $durationS, $interp, v->$targetVarExpr = v);
 	}

@@ -107,6 +107,9 @@ class TinyTween {
 
 	/** This callback will be called only ONCE, the next this tween will complete. **/
 	public dynamic function onCompleteOnce() {}
+	public inline function then(cb:Void->Void) {
+		onCompleteOnce = cb;
+	}
 
 
 	function complete() {
