@@ -99,15 +99,11 @@ class TinyTween {
 	/** This callback will be called only ONCE, the next this tween will complete. **/
 	public dynamic function onCompleteOnce() {}
 
-	/** This callback is called EVERYTIME this tween completes **/
-	public dynamic function onCompleteEverytime() {}
-
 
 	function complete() {
 		var cb = onCompleteOnce;
 		onCompleteOnce = _doNothing;
 		cb();
-		onCompleteEverytime();
 	}
 
 
