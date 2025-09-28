@@ -91,12 +91,13 @@ class TinyTween {
 		fromValue = from;
 	}
 
-	public dynamic function applyValue(v:Float) {}
 	function _applyNothing(v:Float) {}
+	function _doNothing() {}
+
+	public dynamic function applyValue(v:Float) {}
 
 	/** This callback will be called only ONCE, the next this tween will complete. **/
 	public dynamic function onCompleteOnce() {}
-	function _doNothing() {}
 
 	/** This callback is called EVERYTIME this tween completes **/
 	public dynamic function onCompleteEverytime() {}
