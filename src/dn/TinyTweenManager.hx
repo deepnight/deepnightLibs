@@ -100,7 +100,7 @@ class TinyTweenManager {
 
 
 
-class RecyclableTinyTween extends TinyTween implements dn.struct.RecyclablePool.Recyclable {
+private class RecyclableTinyTween extends TinyTween implements dn.struct.RecyclablePool.Recyclable {
 	static var UNIQ = 0;
 	public var uid(default,null) : Int;
 	var manager : TinyTweenManager;
@@ -111,9 +111,12 @@ class RecyclableTinyTween extends TinyTween implements dn.struct.RecyclablePool.
 		this.manager = manager;
 	}
 
+	function _doNothingFloat(v:Float) {}
+
 	public function recycle() {
 		reset();
-		applyValue = _applyNothing;
+		applyValue = _doNothingFloat;
+		onValueApplied = _doNothingFloat;
 	}
 
 	public function dispose() {

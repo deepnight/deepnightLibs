@@ -92,6 +92,7 @@ class TinyTween {
 		this.elapsedS = 0;
 		this.interp = interp;
 		applyValue(curValue);
+		onValueApplied(curValue);
 	}
 
 	public function restartFrom(from:Float) {
@@ -99,10 +100,10 @@ class TinyTween {
 		fromValue = from;
 	}
 
-	function _applyNothing(v:Float) {}
 	function _doNothing() {}
 
 	public dynamic function applyValue(v:Float) {}
+	public dynamic function onValueApplied(v:Float) {}
 
 	/** This callback will be called only ONCE, the next this tween will complete. **/
 	public dynamic function onCompleteOnce() {}
@@ -120,6 +121,7 @@ class TinyTween {
 		if( hasAnyValue() && !isComplete() ) {
 			elapsedS = M.fmin( elapsedS + tmod/fps, durationS );
 			applyValue(curValue);
+			onValueApplied(curValue);
 			if( isComplete() )
 				complete();
 			return true;
