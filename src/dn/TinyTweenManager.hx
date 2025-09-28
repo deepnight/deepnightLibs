@@ -47,17 +47,45 @@ class TinyTweenManager {
 	}
 
 
-	public macro function start(ethis:Expr, ref:Expr, fromExpr:ExprOf<Float>, toExpr:ExprOf<Float>, durationS:ExprOf<Float>, interp:ExprOf<TinyTweenInterpolation>=null) {
-		switch ref.expr {
+	/**
+		Starts a tween operation on a target variable.
+		@param targetVar The variable to be tweened.
+		@param tweenOp The tween operation among these two formats: "9" or "0>9"
+		@param durationS The duration of the tween in seconds.
+		@param interp The interpolation method.
+	*/
+	public macro function start(ethis:Expr, targetVarExpr:ExprOf<Float>, tweenOp:Expr, durationS:ExprOf<Float>, interp:ExprOf<TinyTweenInterpolation>=null) {
+		switch targetVarExpr.expr {
 			case EConst(CIdent(s)):
 			case EField(e, field, kind):
-			case _: Context.error("Need a variable identifier, got "+ref.expr.getName(), ref.pos);
+			case _: Context.error("Need a variable identifier, got "+targetVarExpr.expr.getName(), targetVarExpr.pos);
 		}
 		interp = switch interp.expr {
 			case EConst(CIdent("null")): macro EaseInOut;
 			case _: interp;
 		}
-		return macro $ethis._allocTween($fromExpr, $toExpr, $durationS, $interp, v->$ref = v);
+
+		var fromExpr : Expr = null;
+		var toExpr : Expr = null;
+		switch tweenOp.expr {
+			case EConst(c):
+				fromExpr = targetVarExpr;
+				toExpr = tweenOp;
+
+			case EBinop(op, e1, e2):
+				switch op {
+					case OpGt:
+						fromExpr = e1;
+						toExpr = e2;
+
+					case _:
+						Context.error("Unsupported tween operator", tweenOp.pos);
+				}
+
+			case _:
+				Context.error("Unsupported tween expression", tweenOp.pos);
+		}
+		return macro $ethis._allocTween($fromExpr, $toExpr, $durationS, $interp, v->$targetVarExpr = v);
 	}
 
 
