@@ -28,13 +28,13 @@ class TinyTweenManager {
 
 
 	@:noCompletion
-	public function _allocTween(fromValue:Float, toValue:Float, durationS:Float, interp:TinyTweenInterpolation=EaseInOut, setter:Float->Void) {
+	public function _allocTween(fromValue:Float, toValue:Float, durationS:Float, interp:TinyTweenInterpolation=EaseInOut, setter:Float->Void) : RecyclableTinyTween {
 		for(t in pool)
 			if( !t.isCurrentlyRunning() ) {
 				t.reset();
 				t.applyValue = setter;
 				t.start(fromValue, toValue, durationS, interp);
-				return;
+				return t;
 			}
 
 		// Out of tweens
@@ -43,6 +43,7 @@ class TinyTweenManager {
 		pool.push(t);
 		t.applyValue = setter;
 		t.start(fromValue, toValue, durationS, interp);
+		return t;
 	}
 
 
