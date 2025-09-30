@@ -819,7 +819,8 @@ class Controller<T:Int> {
 
 			case _:
 				// Key with text
-				var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
+				var tf = new h2d.Text(iconsFont, f);
+				f.getProperties(tf).offsetY = iconsFontOffsetY;
 				switch keyId {
 					case Key.ESCAPE:
 						tf.text = "ESC";
