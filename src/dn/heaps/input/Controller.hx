@@ -9,7 +9,7 @@ import hxd.Pad;
 import hxd.Key;
 #end
 
-enum abstract PadButton(Int) {
+enum abstract PadButton(Int) to Int {
 	var A;
 	var B;
 	var X;
@@ -47,7 +47,7 @@ enum abstract PadButton(Int) {
 	var RSTICK_RIGHT;
 }
 
-enum abstract ControllerType(Int) {
+enum abstract ControllerType(Int) to Int {
 	var Keyboard;
 	var Gamepad;
 }

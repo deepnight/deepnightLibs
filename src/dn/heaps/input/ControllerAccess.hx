@@ -371,10 +371,13 @@ class ControllerAccess<T:Int> {
 		Return TRUE if any **button** of the pad is pressed (doesn't apply to stick or dpad, use `anyMovement()` for that).
 	**/
 	public inline function anyPadButtonPressed() {
-		return isPadPressed(A) || isPadPressed(B) || isPadPressed(X) || isPadPressed(Y)
-			|| isPadPressed(LT) || isPadPressed(RT)
-			|| isPadPressed(LB) || isPadPressed(RB)
-			|| isPadPressed(START) || isPadPressed(SELECT);
+		if( !isActive() )
+			return false;
+		else
+			return isPadPressedFast(A) || isPadPressedFast(B) || isPadPressedFast(X) || isPadPressedFast(Y)
+				|| isPadPressedFast(LT) || isPadPressedFast(RT)
+				|| isPadPressedFast(LB) || isPadPressedFast(RB)
+				|| isPadPressedFast(START) || isPadPressedFast(SELECT);
 	}
 
 
@@ -382,10 +385,13 @@ class ControllerAccess<T:Int> {
 		Return TRUE if any **button** of the pad is down (doesn't apply to stick or dpad, use `anyMovement()` for that).
 	**/
 	public inline function anyPadButtonDown() {
-		return isPadDown(A) || isPadDown(B) || isPadDown(X) || isPadDown(Y)
-			|| isPadDown(LT) || isPadDown(RT)
-			|| isPadDown(LB) || isPadDown(RB)
-			|| isPadDown(START) || isPadDown(SELECT);
+		if( !isActive() )
+			return false;
+		else
+			return isPadDownFast(A) || isPadDownFast(B) || isPadDownFast(X) || isPadDownFast(Y)
+				|| isPadDownFast(LT) || isPadDownFast(RT)
+				|| isPadDownFast(LB) || isPadDownFast(RB)
+				|| isPadDownFast(START) || isPadDownFast(SELECT);
 	}
 
 
@@ -393,8 +399,11 @@ class ControllerAccess<T:Int> {
 		Return TRUE if any movement input is detected (analog sticks or dpad).
 	**/
 	public inline function anyAxisMovement() {
-		return pad.xAxis!=0 || pad.yAxis!=0 || pad.rxAxis!=0 || pad.ryAxis!=0
-			|| isPadDown(DPAD_LEFT) || isPadDown(DPAD_RIGHT) || isPadDown(DPAD_UP) || isPadDown(DPAD_DOWN);
+		if( !isActive() )
+			return false;
+		else
+			return pad.xAxis!=0 || pad.yAxis!=0 || pad.rxAxis!=0 || pad.ryAxis!=0
+				|| isPadDownFast(DPAD_LEFT) || isPadDownFast(DPAD_RIGHT) || isPadDownFast(DPAD_UP) || isPadDownFast(DPAD_DOWN);
 	}
 
 
@@ -409,24 +418,25 @@ class ControllerAccess<T:Int> {
 	/**
 		Return the first PadButton detected as "pressed"
 	**/
-	public inline function getPressedPadButton() : Null<PadButton> {
+	public inline function getFirstPressedPadButton() : Null<PadButton> {
 		return
-			if( isPadPressed(A) ) A;
-			else if( isPadPressed(B) ) B;
-			else if( isPadPressed(X) ) X;
-			else if( isPadPressed(Y) ) Y;
-			else if( isPadPressed(LT) ) LT;
-			else if( isPadPressed(LB) ) LB;
-			else if( isPadPressed(RT) ) RT;
-			else if( isPadPressed(RB) ) RB;
-			else if( isPadPressed(START) ) START;
-			else if( isPadPressed(SELECT) ) SELECT;
-			else if( isPadPressed(DPAD_LEFT) ) DPAD_LEFT;
-			else if( isPadPressed(DPAD_RIGHT) ) DPAD_RIGHT;
-			else if( isPadPressed(DPAD_UP) ) DPAD_UP;
-			else if( isPadPressed(DPAD_DOWN) ) DPAD_DOWN;
-			else if( isPadPressed(LSTICK_PUSH) ) LSTICK_PUSH;
-			else if( isPadPressed(RSTICK_PUSH) ) RSTICK_PUSH;
+			if( !isActive() ) null;
+			else if( isPadPressedFast(A) ) A;
+			else if( isPadPressedFast(B) ) B;
+			else if( isPadPressedFast(X) ) X;
+			else if( isPadPressedFast(Y) ) Y;
+			else if( isPadPressedFast(LT) ) LT;
+			else if( isPadPressedFast(LB) ) LB;
+			else if( isPadPressedFast(RT) ) RT;
+			else if( isPadPressedFast(RB) ) RB;
+			else if( isPadPressedFast(START) ) START;
+			else if( isPadPressedFast(SELECT) ) SELECT;
+			else if( isPadPressedFast(DPAD_LEFT) ) DPAD_LEFT;
+			else if( isPadPressedFast(DPAD_RIGHT) ) DPAD_RIGHT;
+			else if( isPadPressedFast(DPAD_UP) ) DPAD_UP;
+			else if( isPadPressedFast(DPAD_DOWN) ) DPAD_DOWN;
+			else if( isPadPressedFast(LSTICK_PUSH) ) LSTICK_PUSH;
+			else if( isPadPressedFast(RSTICK_PUSH) ) RSTICK_PUSH;
 			else null;
 	}
 
@@ -485,11 +495,21 @@ class ControllerAccess<T:Int> {
 		return isActive() ? pad.isDown( controller.getPadButtonId(button) ) : false;
 	}
 
+	// Check button state without calling isActive()
+	inline function isPadDownFast(button:PadButton) {
+		return pad.isDown( controller.getPadButtonId(button) );
+	}
+
+
 	/**
 		Directly check if a gamepad button is pressed (ie. previously not pushed, and now it is).
 	**/
 	public inline function isPadPressed(button:PadButton) {
 		return isActive() ? pad.isPressed( controller.getPadButtonId(button) ) : false;
+	}
+
+	inline function isPadPressedFast(button:PadButton) {
+		return pad.isPressed( controller.getPadButtonId(button) );
 	}
 
 	/**
