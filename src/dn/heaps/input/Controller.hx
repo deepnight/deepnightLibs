@@ -856,7 +856,7 @@ class Controller<T:Int> {
 class InputBinding<T:Int> {
 	final analogDownDeadZone = 0.84;
 
-	var input : Controller<T>;
+	var controller : Controller<T>;
 	public var action : T;
 
 	public var padButton : Null<PadButton>;
@@ -880,8 +880,8 @@ class InputBinding<T:Int> {
 	public var comboBindings : Array<InputBinding<T>> = [];
 
 
-	public function new(i:Controller<T>, a:T) {
-		input = i;
+	public function new(c:Controller<T>, a:T) {
+		controller = c;
 		action = a;
 	}
 
@@ -917,40 +917,40 @@ class InputBinding<T:Int> {
 
 		if( isLStick && padNeg==null && signLimit!=0 ) {
 			// Left stick dir
-			signLimit>0 && isX ? input.getPadIcon(LSTICK_RIGHT, suffix, f)
-			: signLimit<0 && isX ? input.getPadIcon(LSTICK_LEFT, suffix, f)
-			: signLimit<0 && !isX ? input.getPadIcon(LSTICK_UP, suffix, f)
-			: input.getPadIcon(LSTICK_DOWN, suffix, f);
+			signLimit>0 && isX ? controller.getPadIcon(LSTICK_RIGHT, suffix, f)
+			: signLimit<0 && isX ? controller.getPadIcon(LSTICK_LEFT, suffix, f)
+			: signLimit<0 && !isX ? controller.getPadIcon(LSTICK_UP, suffix, f)
+			: controller.getPadIcon(LSTICK_DOWN, suffix, f);
 		}
 		if( !isLStick && padNeg==null && signLimit!=0 ) {
 			// Right stick dir
-			signLimit>0 && isX ? input.getPadIcon(RSTICK_RIGHT, suffix, f)
-			: signLimit<0 && isX ? input.getPadIcon(RSTICK_LEFT, suffix, f)
-			: signLimit<0 && !isX ? input.getPadIcon(RSTICK_UP, suffix, f)
-			: input.getPadIcon(RSTICK_DOWN, suffix, f);
+			signLimit>0 && isX ? controller.getPadIcon(RSTICK_RIGHT, suffix, f)
+			: signLimit<0 && isX ? controller.getPadIcon(RSTICK_LEFT, suffix, f)
+			: signLimit<0 && !isX ? controller.getPadIcon(RSTICK_UP, suffix, f)
+			: controller.getPadIcon(RSTICK_DOWN, suffix, f);
 		}
 		// Left stick axis
 		if( isLStick && signLimit==0 ) {
 			if( padNeg==null )
-				input.getPadIcon(isX ? LSTICK_X : LSTICK_Y, suffix, f);
+				controller.getPadIcon(isX ? LSTICK_X : LSTICK_Y, suffix, f);
 			else {
-				input.getPadIcon(padNeg, suffix, f);
-				input.getPadIcon(padPos, suffix, f);
+				controller.getPadIcon(padNeg, suffix, f);
+				controller.getPadIcon(padPos, suffix, f);
 			}
 		}
 		// Right stick axis
 		if( isRStick && signLimit==0 ) {
 			if( padNeg==null )
-				input.getPadIcon(isX ? RSTICK_X : RSTICK_Y, suffix, f);
+				controller.getPadIcon(isX ? RSTICK_X : RSTICK_Y, suffix, f);
 			else {
-				input.getPadIcon(padNeg, suffix, f);
-				input.getPadIcon(padPos, suffix, f);
+				controller.getPadIcon(padNeg, suffix, f);
+				controller.getPadIcon(padPos, suffix, f);
 			}
 		}
 
-		if( padButton!=null ) input.getPadIcon(padButton, suffix, f);
-		if( kbNeg>=0 ) input.getKeyboardIcon(kbNeg, f);
-		if( kbPos>=0 && kbPos!=kbNeg ) input.getKeyboardIcon(kbPos, f);
+		if( padButton!=null ) controller.getPadIcon(padButton, suffix, f);
+		if( kbNeg>=0 ) controller.getKeyboardIcon(kbNeg, f);
+		if( kbPos>=0 && kbPos!=kbNeg ) controller.getKeyboardIcon(kbPos, f);
 
 		if( comboBindings.length>0 ) {
 			for(b in comboBindings) {
@@ -1054,13 +1054,13 @@ class InputBinding<T:Int> {
 		else if( isRStick && padNeg==null && kbNeg<0 && !isX && pad.ryAxis!=0 )
 			return applySignLimit( pad.ryAxis * (invert?-1:1) );
 		// Negative button
-		else if( Key.isDown(kbNeg) && kbPos!=kbNeg || pad.isDown( input.getPadButtonId(padNeg) ) )
+		else if( Key.isDown(kbNeg) && kbPos!=kbNeg || pad.isDown( controller.getPadButtonId(padNeg) ) )
 			return invert ? 1 : -1;
 		// Positive button
-		else if( Key.isDown(kbPos) || pad.isDown( input.getPadButtonId(padPos) ) )
+		else if( Key.isDown(kbPos) || pad.isDown( controller.getPadButtonId(padPos) ) )
 			return invert ? -1 : 1;
 		// Regular button
-		else if( padButton!=null && pad.isDown( input.getPadButtonId(padButton) ) )
+		else if( padButton!=null && pad.isDown( controller.getPadButtonId(padButton) ) )
 			return invert ? -1 : 1;
 		else
 			return 0;
@@ -1090,9 +1090,9 @@ class InputBinding<T:Int> {
 			return false;
 		else
 			return
-				!isLStick && !isRStick && pad.isDown( input.getPadButtonId(padButton) )
+				!isLStick && !isRStick && pad.isDown( controller.getPadButtonId(padButton) )
 				|| Key.isDown(kbPos) || Key.isDown(kbNeg)
-				|| pad.isDown( input.getPadButtonId(padPos) ) || pad.isDown( input.getPadButtonId(padNeg) )
+				|| pad.isDown( controller.getPadButtonId(padPos) ) || pad.isDown( controller.getPadButtonId(padNeg) )
 				|| ( isLStick || isRStick ) && signLimit==0 && dn.M.fabs( getValue(pad) ) > analogDownDeadZone
 				|| ( isLStick || isRStick ) && signLimit==1 && getValue(pad) > analogDownDeadZone
 				|| ( isLStick || isRStick ) && signLimit==-1 && getValue(pad) < -analogDownDeadZone;
@@ -1121,13 +1121,13 @@ class InputBinding<T:Int> {
 			if( _pressedLocked )
 				return false;
 			else {
-				_pressedLocked = pad.isDown( input.getPadButtonId(padButton) ) || Key.isDown(kbPos) || Key.isDown(kbNeg);
+				_pressedLocked = pad.isDown( controller.getPadButtonId(padButton) ) || Key.isDown(kbPos) || Key.isDown(kbNeg);
 				return _pressedLocked;
 			}
 		}
 		else {
 			// General case
-			return pad.isPressed( input.getPadButtonId(padButton) ) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
+			return pad.isPressed( controller.getPadButtonId(padButton) ) || Key.isPressed(kbPos) || Key.isPressed(kbNeg);
 		}
 	}
 
@@ -1146,9 +1146,9 @@ class InputBinding<T:Int> {
 			return false;
 		else
 			return
-				!isLStick && !isRStick && pad.isReleased( input.getPadButtonId(padButton) )
+				!isLStick && !isRStick && pad.isReleased( controller.getPadButtonId(padButton) )
 				|| Key.isReleased(kbPos) || Key.isReleased(kbNeg)
-				|| pad.isReleased( input.getPadButtonId(padPos) ) || pad.isReleased( input.getPadButtonId(padNeg) )
+				|| pad.isReleased( controller.getPadButtonId(padPos) ) || pad.isReleased( controller.getPadButtonId(padNeg) )
 				|| ( isLStick || isRStick ) && signLimit==0 && dn.M.fabs( getValue(pad) ) < analogDownDeadZone
 				|| ( isLStick || isRStick ) && signLimit==1 && getValue(pad) < analogDownDeadZone
 				|| ( isLStick || isRStick ) && signLimit==-1 && getValue(pad) > -analogDownDeadZone;
