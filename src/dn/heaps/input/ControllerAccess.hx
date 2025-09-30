@@ -40,6 +40,9 @@ class ControllerAccess<T:Int> {
 	public var debugger(default,null) : Null<ControllerDebug<T>>;
 
 
+	@:noCompletion public var input(get,never) : Controller<T>;
+	@:deprecated("Use 'controller' property instead") inline function get_input() return controller;
+
 	public function dispose() {
 		controller.unregisterAccess(this);
 		controller = null;
