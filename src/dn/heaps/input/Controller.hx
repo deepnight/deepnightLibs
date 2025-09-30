@@ -154,17 +154,10 @@ class Controller<T:Int> {
 	static var _cachedLib : dn.heaps.slib.SpriteLib;
 	#end
 
-	/**
-		Default h2d.Font to render keyboard keys icons
-	**/
-	public static var ICON_FONT(get,never) : h2d.Font;
-		static inline function get_ICON_FONT() {
-			if( _cachedFont==null )
-				_cachedFont = hxd.res.DefaultFont.get();
-			return _cachedFont;
-		}
-	static var _cachedFont : h2d.Font;
-
+	// Default h2d.Font to render keyboard keys icons
+	public var iconsFont : h2d.Font;
+	// Y offset applied to icons texts rendering
+	public var iconsFontOffsetY = 0;
 
 	/**
 		Actual `hxd.Pad` behind
@@ -204,6 +197,8 @@ class Controller<T:Int> {
 	**/
 	private function new(actionNames:Map<Int,String>) {
 		this.actionNames = actionNames;
+
+		iconsFont = hxd.res.DefaultFont.get();
 
 		var all = MacroTools.getAbstractEnumValues(PadButton);
 		for(v in all) {
@@ -736,8 +731,9 @@ class Controller<T:Int> {
 				new h2d.Bitmap( ICONS_LIB.getTile(baseId), f );
 			else
 				new h2d.Bitmap( _errorTile(), f );
-		#else
-			var tf = new h2d.Text(hxd.res.DefaultFont.get(), f);
+			#else
+			var tf = new h2d.Text(iconsFont, f);
+			f.getProperties(tf).offsetY = iconsFontOffsetY;
 			tf.text = switch buttonIdx {
 				case 0: "LMB";
 				case 1: "RMB";
@@ -760,7 +756,8 @@ class Controller<T:Int> {
 			f.backgroundTile = getPadIconTile(b,suffix);
 			f.paddingHorizontal = 2;
 			f.paddingBottom = 2;
-			var tf = new h2d.Text(ICON_FONT, f);
+			var tf = new h2d.Text(iconsFont, f);
+			f.getProperties(tf).offsetY = iconsFontOffsetY;
 			tf.text = getPadButtonName(b);
 			tf.textColor = 0x0;
 			tf.alpha = 0.5;
@@ -964,7 +961,8 @@ class InputBinding<T:Int> {
 
 
 	inline function _addText(t:String, f:h2d.Flow) {
-		var tf = new h2d.Text(Controller.ICON_FONT, f);
+		var tf = new h2d.Text(controller.iconsFont, f);
+		f.getProperties(tf).offsetY = controller.iconsFontOffsetY;
 		tf.text = t;
 		return tf;
 	}
