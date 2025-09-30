@@ -365,13 +365,41 @@ class ControllerAccess<T:Int> {
 
 
 	/**
-		Return TRUE if any **button** of the pad is pressed (doesn't apply to stick or dpad)
+		Return TRUE if any **button** of the pad is pressed (doesn't apply to stick or dpad, use `anyMovement()` for that).
 	**/
 	public inline function anyPadButtonPressed() {
 		return isPadPressed(A) || isPadPressed(B) || isPadPressed(X) || isPadPressed(Y)
 			|| isPadPressed(LT) || isPadPressed(RT)
 			|| isPadPressed(LB) || isPadPressed(RB)
 			|| isPadPressed(START) || isPadPressed(SELECT);
+	}
+
+
+	/**
+		Return TRUE if any **button** of the pad is down (doesn't apply to stick or dpad, use `anyMovement()` for that).
+	**/
+	public inline function anyPadButtonDown() {
+		return isPadDown(A) || isPadDown(B) || isPadDown(X) || isPadDown(Y)
+			|| isPadDown(LT) || isPadDown(RT)
+			|| isPadDown(LB) || isPadDown(RB)
+			|| isPadDown(START) || isPadDown(SELECT);
+	}
+
+
+	/**
+		Return TRUE if any movement input is detected (analog sticks or dpad).
+	**/
+	public inline function anyAxisMovement() {
+		return pad.xAxis!=0 || pad.yAxis!=0 || pad.rxAxis!=0 || pad.ryAxis!=0
+			|| isPadDown(DPAD_LEFT) || isPadDown(DPAD_RIGHT) || isPadDown(DPAD_UP) || isPadDown(DPAD_DOWN);
+	}
+
+
+	/**
+		Return TRUE if any movement input is detected (analog sticks or dpad).
+	**/
+	public inline function anythingDown() {
+		return anyAxisMovement() || anyPadButtonDown();
 	}
 
 
@@ -397,17 +425,6 @@ class ControllerAccess<T:Int> {
 			else if( isPadPressed(LSTICK_PUSH) ) LSTICK_PUSH;
 			else if( isPadPressed(RSTICK_PUSH) ) RSTICK_PUSH;
 			else null;
-	}
-
-
-	/**
-		Return TRUE if any **button** of the pad is down (doesn't apply to stick or dpad)
-	**/
-	public inline function anyPadButtonDown() {
-		return isPadDown(A) || isPadDown(B) || isPadDown(X) || isPadDown(Y)
-			|| isPadDown(LT) || isPadDown(RT)
-			|| isPadDown(LB) || isPadDown(RB)
-			|| isPadDown(START) || isPadDown(SELECT);
 	}
 
 
