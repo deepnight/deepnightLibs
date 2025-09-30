@@ -197,7 +197,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 		gpFlow.verticalAlign = Middle;
 		gpFlow.minWidth = 150;
 		var first = true;
-		for(f in ca.controller.getAllBindindIconsFor(a,Gamepad)) {
+		for(f in ca.controller.getAllBindindIconsFor(a, Gamepad)) {
 			if( !first )
 				_addText(", ", gpFlow);
 			gpFlow.addChild(f);
@@ -207,7 +207,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 		var kbFlow = new h2d.Flow(c.flow);
 		kbFlow.verticalAlign = Middle;
 		var first = true;
-		for(f in ca.controller.getAllBindindIconsFor(a,Keyboard)) {
+		for(f in ca.controller.getAllBindindIconsFor(a, Keyboard)) {
 			if( !first )
 				_addText(", ", kbFlow);
 			kbFlow.addChild(f);

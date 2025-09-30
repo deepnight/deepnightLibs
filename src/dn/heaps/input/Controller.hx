@@ -157,7 +157,7 @@ class Controller<T:Int> {
 	// Default h2d.Font to render keyboard keys icons
 	public var iconsFont : h2d.Font;
 	// Y offset applied to icons texts rendering
-	public var iconsFontOffsetY = 0;
+	public var iconsFontOffsetY = -1;
 
 	/**
 		Actual `hxd.Pad` behind
@@ -775,16 +775,34 @@ class Controller<T:Int> {
 	/**
 		Return a visual representation (as h2d.Flow) of given keyboard key.
 	**/
-	public function getKeyboardIcon(keyId:Int, ?parent:h2d.Object) : h2d.Flow {
+	public function getKeyboardIcon(keyId:Int, ?suffix:String, ?parent:h2d.Object) : h2d.Flow {
 		var f = new h2d.Flow(parent);
+		f.horizontalAlign = Middle;
+		f.verticalAlign = Top;
 		#if heaps_aseprite
-			f.backgroundTile = ICONS_LIB.getTile("keyBg");
-			f.borderWidth = 6;
-			f.borderHeight = 7;
-			f.paddingTop = -1;
-			f.paddingHorizontal = 5;
-			f.paddingBottom = 6;
-			f.minHeight = f.minWidth = 8;
+			f.backgroundTile = suffix!=null && ICONS_LIB.exists("key_"+suffix)
+				? ICONS_LIB.getTile("key_"+suffix)
+				: ICONS_LIB.getTile("key");
+			switch suffix {
+				case "tiny":
+					f.borderWidth = 3;
+					f.borderHeight = 3;
+					f.borderBottom = 4;
+					f.paddingHorizontal = 3;
+					f.paddingTop = 0;
+					f.paddingBottom = 2;
+					f.minWidth = 11;
+					f.minHeight = 11;
+
+				case _:
+					f.borderWidth = 6;
+					f.borderHeight = 7;
+					f.paddingHorizontal = 5;
+					f.paddingTop = 0;
+					f.paddingBottom = 5;
+					f.minWidth = 12;
+					f.minHeight = 12;
+			}
 		#else
 			f.backgroundTile = h2d.Tile.fromColor(0xbdc8e9);
 			f.padding = 3;
@@ -830,8 +848,6 @@ class Controller<T:Int> {
 
 					case Key.SPACE:
 						tf.text = "SPACE";
-						f.paddingLeft+=8;
-						f.paddingRight+=8;
 
 					case _:
 						tf.text = getKeyName(keyId).toUpperCase();
@@ -947,8 +963,8 @@ class InputBinding<T:Int> {
 		}
 
 		if( padButton!=null ) controller.getPadIcon(padButton, suffix, f);
-		if( kbNeg>=0 ) controller.getKeyboardIcon(kbNeg, f);
-		if( kbPos>=0 && kbPos!=kbNeg ) controller.getKeyboardIcon(kbPos, f);
+		if( kbNeg>=0 ) controller.getKeyboardIcon(kbNeg, suffix, f);
+		if( kbPos>=0 && kbPos!=kbNeg ) controller.getKeyboardIcon(kbPos, suffix, f);
 
 		if( comboBindings.length>0 ) {
 			for(b in comboBindings) {
