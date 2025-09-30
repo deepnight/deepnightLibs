@@ -83,7 +83,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 		var allActions : Array<T> = [];
 		@:privateAccess
-		for( act in ca.input.actionNames.keys() ) {
+		for( act in ca.controller.actionNames.keys() ) {
 			var act : T = cast act;
 			allActions.push(act);
 		}
@@ -113,8 +113,8 @@ class ControllerDebug<T:Int> extends dn.Process {
 	}
 
 	inline function getActionName(act:T) {
-		return @:privateAccess ca.input.actionNames.exists(act)
-			? @:privateAccess ca.input.actionNames.get(act)
+		return @:privateAccess ca.controller.actionNames.exists(act)
+			? @:privateAccess ca.controller.actionNames.get(act)
 			: "???";
 	}
 
@@ -165,7 +165,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 
 
 	function createButton(a:T) {
-		var isAnalog = ca.input.isBoundToAnalog(a,true);
+		var isAnalog = ca.controller.isBoundToAnalog(a,true);
 
 		var c = createComponent();
 
@@ -197,7 +197,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 		gpFlow.verticalAlign = Middle;
 		gpFlow.minWidth = 150;
 		var first = true;
-		for(f in ca.input.getAllBindindIconsFor(a,Gamepad)) {
+		for(f in ca.controller.getAllBindindIconsFor(a,Gamepad)) {
 			if( !first )
 				_addText(", ", gpFlow);
 			gpFlow.addChild(f);
@@ -207,7 +207,7 @@ class ControllerDebug<T:Int> extends dn.Process {
 		var kbFlow = new h2d.Flow(c.flow);
 		kbFlow.verticalAlign = Middle;
 		var first = true;
-		for(f in ca.input.getAllBindindIconsFor(a,Keyboard)) {
+		for(f in ca.controller.getAllBindindIconsFor(a,Keyboard)) {
 			if( !first )
 				_addText(", ", kbFlow);
 			kbFlow.addChild(f);
@@ -351,13 +351,13 @@ class ControllerDebug<T:Int> extends dn.Process {
 	override function update() {
 		super.update();
 
-		if( !padConnected && ca.input.isPadConnected() )
+		if( !padConnected && ca.controller.isPadConnected() )
 			onPadConnected();
 
-		if( padConnected && !ca.input.isPadConnected() )
+		if( padConnected && !ca.controller.isPadConnected() )
 			onPadDisconnected();
 
-		status.text = getControllerName()+"\n"+ (ca.input.isPadConnected() ? "Pad connected" : "Pad disconnected");
-		status.textColor = ca.input.isPadConnected() ? GREEN : RED;
+		status.text = getControllerName()+"\n"+ (ca.controller.isPadConnected() ? "Pad connected" : "Pad disconnected");
+		status.textColor = ca.controller.isPadConnected() ? GREEN : RED;
 	}
 }

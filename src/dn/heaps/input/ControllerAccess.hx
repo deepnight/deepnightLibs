@@ -9,7 +9,7 @@ import dn.heaps.input.Controller;
 	This class should only be created through `Controller.createAccess()`.
 **/
 class ControllerAccess<T:Int> {
-	public var input(default,null) : Controller<T>;
+	public var controller(default,null) : Controller<T>;
 
 	public var disableRumble(get,set) : Bool;
 	public var rumbleMultiplicator(get,set) : Float;
@@ -24,25 +24,25 @@ class ControllerAccess<T:Int> {
 	var postLockUntilS = -1.;
 
 	@:allow(dn.heaps.input.Controller)
-	function new(m:Controller<T>) {
-		input = m;
+	function new(c:Controller<T>) {
+		controller = c;
 	}
 
-	inline function get_destroyed() return input==null || input.destroyed;
-	inline function get_bindings() return destroyed ? null : input.bindings;
-	inline function get_pad() return destroyed ? null : input.pad;
-	inline function get_disableRumble() return destroyed ? false : input.disableRumble;
-	inline function set_disableRumble(v){ if(!destroyed)input.disableRumble = v; return disableRumble; }
-	inline function get_rumbleMultiplicator() return destroyed ? 0 : input.rumbleMultiplicator;
-	inline function set_rumbleMultiplicator(v){ if(!destroyed)input.rumbleMultiplicator = v; return rumbleMultiplicator; }
+	inline function get_destroyed() return controller==null || controller.destroyed;
+	inline function get_bindings() return destroyed ? null : controller.bindings;
+	inline function get_pad() return destroyed ? null : controller.pad;
+	inline function get_disableRumble() return destroyed ? false : controller.disableRumble;
+	inline function set_disableRumble(v) { if(!destroyed) controller.disableRumble = v; return disableRumble; }
+	inline function get_rumbleMultiplicator() return destroyed ? 0 : controller.rumbleMultiplicator;
+	inline function set_rumbleMultiplicator(v) { if(!destroyed) controller.rumbleMultiplicator = v; return rumbleMultiplicator; }
 
 	/** Current `ControllerDebug` instance, if it exists. This can be created using `createDebugger()` **/
 	public var debugger(default,null) : Null<ControllerDebug<T>>;
 
 
 	public function dispose() {
-		input.unregisterAccess(this);
-		input = null;
+		controller.unregisterAccess(this);
+		controller = null;
 		holdTimeS = null;
 
 		if( debugger!=null ) {
@@ -53,7 +53,7 @@ class ControllerAccess<T:Int> {
 
 
 	@:keep public function toString() {
-		return 'ControllerAccess[ $input ]'
+		return 'ControllerAccess[ $controller ]'
 			+ ( !isActive()?"<LOCKED>":"" );
 	}
 
@@ -71,7 +71,7 @@ class ControllerAccess<T:Int> {
 			&& ( postLockUntilS<0 || haxe.Timer.stamp()>=postLockUntilS )
 			&& ( lockedUntilS<0 || haxe.Timer.stamp()>=lockedUntilS )
 			&& !lockCondition()
-			&& ( input.exclusive==null || input.exclusive==this );
+			&& ( controller.exclusive==null || controller.exclusive==this );
 	}
 
 	/**
@@ -115,10 +115,10 @@ class ControllerAccess<T:Int> {
 		Return analog float value (-1.0 to 1.0) associated with given action Enum.
 	**/
 	public inline function getAnalogValue(action:T) : Float {
-		if( isActive() && input.bindings.exists(action) ) {
+		if( isActive() && controller.bindings.exists(action) ) {
 			var out = 0.;
-			for(b in input.bindings.get(action) ) {
-				out = b.getValue(input.pad);
+			for(b in controller.bindings.get(action) ) {
+				out = b.getValue(controller.pad);
 				if( out!=0 )
 					break;
 			}
@@ -479,14 +479,14 @@ class ControllerAccess<T:Int> {
 		Directly check if a gamepad button is pushed.
 	**/
 	public inline function isPadDown(button:PadButton) {
-		return isActive() ? pad.isDown( input.getPadButtonId(button) ) : false;
+		return isActive() ? pad.isDown( controller.getPadButtonId(button) ) : false;
 	}
 
 	/**
 		Directly check if a gamepad button is pressed (ie. previously not pushed, and now it is).
 	**/
 	public inline function isPadPressed(button:PadButton) {
-		return isActive() ? pad.isPressed( input.getPadButtonId(button) ) : false;
+		return isActive() ? pad.isPressed( controller.getPadButtonId(button) ) : false;
 	}
 
 	/**
@@ -505,7 +505,7 @@ class ControllerAccess<T:Int> {
 
 	/** Rumbles physical controller, if supported **/
 	public inline function rumble(strength:Float, seconds:Float) {
-		input.rumble(strength, seconds);
+		controller.rumble(strength, seconds);
 	}
 
 	/**
@@ -532,13 +532,13 @@ class ControllerAccess<T:Int> {
 		Take exclusivity over all other `ControllerAccess` (they will not receive any input while this access has exclusivity)
 	**/
 	public inline function takeExclusivity() {
-		input.makeExclusive(this);
+		controller.makeExclusive(this);
 	}
 
 	/**
 		Release current exclusivity (even if it wasn't taken by this access)
 	**/
 	public inline function releaseExclusivity() {
-		input.releaseExclusivity();
+		controller.releaseExclusivity();
 	}
 }
