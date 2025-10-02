@@ -464,7 +464,7 @@ class Debug extends dn.Process {
 		expandedWrapper.verticalSpacing = 1;
 		expandedWrapper.paddingHorizontal= gap;
 		expandedWrapper.paddingBottom = gap;
-		expandedWrapper.backgroundTile = col.toBlack(0.5).toTile();
+		expandedWrapper.backgroundTile = Col.black().toTile();
 
 		var bt : h2d.Flow = null;
 		function _renderCollapsable() {
