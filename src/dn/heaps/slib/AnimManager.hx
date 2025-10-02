@@ -709,7 +709,7 @@ class AnimManager {
 		}
 
 		// Nothing to do
-		if( !destroyed && !hasAnim() && overlap==null )
+		if( !destroyed && !hasAnim() && overlap==null && ( !stateAnimsActive || stateAnims.length==0 ) )
 			stopUpdates();
 	}
 }
