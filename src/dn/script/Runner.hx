@@ -67,6 +67,7 @@ class Runner {
 	var functions : Array<ExposedFunction> = [];
 	var globalVars : Array<{ name:String, value:Dynamic, ttype:hscript.Checker.TType }> = [];
 	var internalKeywords: Array<{ name:String, type:hscript.Checker.TType, ?instanceRef:Dynamic }> = [];
+	var aliases: Array<{ alias:String, realType:String }> = [];
 
 	// If TRUE, throw errors instead of intercepeting them
 	public var rethrowLevel : ScriptRethrowLevel = Nothing;
@@ -103,6 +104,8 @@ class Runner {
 		addInternalKeyword("makeIterator_int", _makeIteratorType(TInt), @:privateAccess interp.makeIterator);
 		addInternalKeyword("out", TFun([{ name:"v", opt:false, t:TDynamic }], TVoid), setCustomOutput);
 		exposeClassDefinition(dn.script.Promise);
+		addTypeAlias("dn.Col", "Int");
+		addTypeAlias("dn.data.LocaleString", "String");
 
 		// Register Int based named-colors (Red, Green, Blue, etc)
 		var values = MacroTools.getAbstractEnumValues(Col.ColorEnum);
@@ -261,6 +264,11 @@ class Runner {
 		});
 
 		invalidateChecker();
+	}
+
+
+	public function addTypeAlias(alias:String, realTypeName:String) {
+		aliases.push({ alias:alias, realType:realTypeName });
 	}
 
 
@@ -451,7 +459,8 @@ class Runner {
 		for(f in functions)
 			_addClassRttiXml(f.cl);
 
-		_addTypeAliasXml("dn.Col", "Int");
+		for(alias in aliases)
+			_addTypeAliasXml(alias.alias, alias.realType);
 
 		// Aggregate XMLs into a single large XML
 		var fullXml = Xml.createDocument();
