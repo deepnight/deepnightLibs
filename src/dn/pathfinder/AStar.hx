@@ -36,6 +36,13 @@ class AStar<T> {
 				n.link(n2);
 	}
 
+	public function dispose() {
+		nodes = null;
+		collisions = null;
+		nodeToPoint = null;
+	}
+
+
 	dynamic function hasCollision(cx,cy) return false;
 
 	inline function sightCheck(fx,fy, tx,ty) {
