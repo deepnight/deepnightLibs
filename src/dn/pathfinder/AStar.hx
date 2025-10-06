@@ -7,8 +7,8 @@ package dn.pathfinder;
 class AStar<T> {
 	var nodes : Array<PathNode> = [];
 	var collisions : Map<Int,Bool> = new Map();
-	var wid = -1;
-	var hei = -1;
+	public var wid(default,null) = -1;
+	public var hei(default,null) = -1;
 
 	var nodeToPoint : (Int,Int)->T;
 
