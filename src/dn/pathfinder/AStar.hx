@@ -44,9 +44,10 @@ class AStar<T> {
 
 
 	dynamic function hasCollision(cx,cy) return false;
+	public dynamic function canSeeThrough(cx,cy) return !hasCollision(cx,cy);
 
 	inline function sightCheck(fx,fy, tx,ty) {
-		return dn.geom.Bresenham.checkThinLine(fx,fy, tx,ty, function(x,y) return !hasCollision(x,y));
+		return dn.geom.Bresenham.checkThinLine(fx,fy, tx,ty, canSeeThrough);
 	}
 
 	function getNodeAt(cx,cy) {
