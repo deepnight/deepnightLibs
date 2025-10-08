@@ -49,12 +49,12 @@ class TinyTweenManager {
 
 	/**
 		Starts a tween operation on a target variable.
-		@param targetVar The variable to be tweened.
+		@param targetVarExpr The variable to be tweened.
 		@param tweenOp The tween operation among these two formats: "9" or "0>9"
 		@param durationS The duration of the tween in seconds.
 		@param interp The interpolation method.
 	*/
-	public macro function start(ethis:Expr, targetVarExpr:ExprOf<Float>, tweenOp:Expr, durationS:ExprOf<Float>, interp:ExprOf<TinyTweenInterpolation>=null) {
+	public macro function start(ethis:Expr, targetVarExpr:Expr, tweenOp:Expr, durationS:ExprOf<Float>, interp:ExprOf<TinyTweenInterpolation>=null) {
 		switch targetVarExpr.expr {
 			case EConst(CIdent(s)):
 			case EField(e, field, kind):
