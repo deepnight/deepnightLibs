@@ -369,7 +369,7 @@ class Debug extends dn.Process {
 		// Globals
 		@:privateAccess
 		for(g in runner.checker.getGlobals().keyValueIterator()) {
-			switch g.value {
+			switch g?.value {
 				case TUnresolved(name): _addUnresolved(null, name, g.value);
 				case _:
 			}
@@ -567,6 +567,9 @@ class Debug extends dn.Process {
 
 	function getDescFromTType(name:String, ttype:hscript.Checker.TType) : String {
 		return switch ttype {
+			case TUnresolved(typeName): 'var $name : <$typeName?>';
+			case null: 'var $name : <null?>';
+
 			case TInt, TFloat, TBool:
 				var out = 'var $name : ${ttype.getName()}';
 				@:privateAccess if( runner.interp.variables.exists(name) )
@@ -582,7 +585,6 @@ class Debug extends dn.Process {
 			case TDynamic: 'instance "$name" => ${ttype.getName()}';
 			case TInst(c, args): 'instance "$name" => ${c.name}';
 			case TEnum(e, args): 'enum ${e.name}.$name';
-			case TUnresolved(typeName): 'var $name : <$typeName?>';
 
 			case TFun(args, ret):
 				var argsStr = args.map(
