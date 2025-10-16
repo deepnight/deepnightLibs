@@ -2,7 +2,7 @@ package dn.script;
 
 
 interface IPromisable {
-	public var promise : Promise;
+	public var promise(default,null) : Promise;
 }
 
 
@@ -18,7 +18,7 @@ class Promise implements IPromisable {
 
 	/** For usage comfort, a Promise is also considered as a Promisable object. **/
 	@:noCompletion
-	public var promise : Promise;
+	public var promise(default,null) : Promise;
 
 	public var onSkip : Null< Void->Void >;
 
