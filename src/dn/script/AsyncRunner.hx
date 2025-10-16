@@ -577,11 +577,18 @@ class AsyncRunner extends dn.script.Runner {
 					}
 
 				case ESwitch(e, cases, defaultExpr):
+					// Cases
 					for(c in cases)
 						switch Tools.expr(c.expr) {
 							case EBlock(exprs): asyncExprsArray(exprs);
 							case _: asyncExprsArray([c.expr]);
 						}
+
+					// Default
+					switch Tools.expr(defaultExpr) {
+						case EBlock(exprs): asyncExprsArray(exprs);
+						case _: asyncExprsArray([defaultExpr]);
+					}
 
 
 				case ECall(_):
