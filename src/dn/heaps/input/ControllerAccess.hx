@@ -408,9 +408,9 @@ class ControllerAccess<T:Int> {
 
 
 	/**
-		Return TRUE if any movement input is detected (analog sticks or dpad).
+		Return TRUE if any gamepad movement input is detected (buttons, analog sticks or dpad).
 	**/
-	public inline function anythingDown() {
+	public inline function anyPadAxisOrButton() {
 		return anyAxisMovement() || anyPadButtonDown();
 	}
 
@@ -448,6 +448,13 @@ class ControllerAccess<T:Int> {
 		return isActive() ? hxd.Key.isDown(k) : false;
 	}
 
+	/**
+		Directly check if a keyboard key is pushed.
+	**/
+	inline function isKeyboardDownFast(k:Int) {
+		return hxd.Key.isDown(k);
+	}
+
 
 	/**
 		Return TRUE if any key among Control, Shift or Alt is down.
@@ -460,25 +467,38 @@ class ControllerAccess<T:Int> {
 		Check if a pad or keyboard button traditionally associated with "Continuing" is pressed (eg. for a "Press any key to continue").
 	**/
 	public inline function anyStandardContinuePressed() {
-		return anyPadButtonPressed()
-			|| isKeyboardPressed(Key.E)
-			|| isKeyboardPressed(Key.F)
-			|| isKeyboardPressed(Key.ESCAPE)
-			|| isKeyboardPressed(Key.SPACE)
-			|| isKeyboardPressed(Key.ENTER)
-			|| isKeyboardPressed(Key.NUMPAD_ENTER);
+		return
+			anyPadButtonPressed()
+			|| (
+				isActive()
+				&& (
+					isKeyboardPressedFast(Key.E)
+					|| isKeyboardPressedFast(Key.F)
+					|| isKeyboardPressedFast(Key.ESCAPE)
+					|| isKeyboardPressedFast(Key.SPACE)
+					|| isKeyboardPressedFast(Key.ENTER)
+					|| isKeyboardPressedFast(Key.NUMPAD_ENTER)
+				)
+			);
 	}
 	/**
 		Check if a pad or keyboard button traditionally associated with "Continuing" is down (eg. for a "Press any key to continue").
 	**/
 	public inline function anyStandardContinueDown() {
-		return anyPadButtonDown()
-			|| isKeyboardDown(Key.E)
-			|| isKeyboardDown(Key.F)
-			|| isKeyboardDown(Key.ESCAPE)
-			|| isKeyboardDown(Key.SPACE)
-			|| isKeyboardDown(Key.ENTER)
-			|| isKeyboardDown(Key.NUMPAD_ENTER);
+		return
+			anyPadButtonDown()
+			|| (
+				isActive()
+				&& (
+					isKeyboardDownFast(Key.E)
+					|| isKeyboardDownFast(Key.F)
+					|| isKeyboardDownFast(Key.ESCAPE)
+					|| isKeyboardDownFast(Key.SPACE)
+					|| isKeyboardDownFast(Key.ENTER)
+					|| isKeyboardDownFast(Key.NUMPAD_ENTER)
+				)
+			);
+
 	}
 
 	/**
@@ -486,6 +506,13 @@ class ControllerAccess<T:Int> {
 	**/
 	public inline function isKeyboardPressed(k:Int) {
 		return isActive() ? hxd.Key.isPressed(k) : false;
+	}
+
+	/**
+		Directly check if a keyboard key is pressed (ie. it wasn't pushed in previous frame and it's now pushed).
+	**/
+	inline function isKeyboardPressedFast(k:Int) {
+		return hxd.Key.isPressed(k);
 	}
 
 	/**
