@@ -7,9 +7,10 @@ interface IPromisable {
 
 
 enum PromiseFinalState {
+	P_Unknown;
 	P_Success;
-	P_Fail;
-	P_Cancel;
+	P_Failed;
+	P_Canceled;
 }
 
 
@@ -19,7 +20,6 @@ class Promise implements IPromisable {
 
 	public var name : Null<String>;
 	public var uid(default,null) : Int;
-	public var completed(default,null) = false;
 	public var finalState : Null<PromiseFinalState> = null;
 	var listeners : Null< Array<Void->Void> > = [];
 
@@ -38,11 +38,11 @@ class Promise implements IPromisable {
 
 	@:keep public function toString() {
 		return '${name!=null?name:"Promise"}#$uid '
-			+ "(" + ( completed ? "COMPLETED" : listeners!=null ? listeners.length+" listeners" : "No listener" ) +")";
+			+ "(" + ( isComplete() ? finalState.getName() : listeners!=null ? listeners.length+" listeners" : "No listener" ) +")";
 	}
 
 	public function addOnCompleteListener(cb:Void->Void) {
-		if( completed )
+		if( isComplete() )
 			cb();
 		else if( listeners==null )
 			listeners = [cb];
@@ -50,11 +50,10 @@ class Promise implements IPromisable {
 			listeners.push(cb);
 	}
 
-	public function complete(state:PromiseFinalState=P_Success) {
-		if( listeners==null || completed )
+	public function complete(state:PromiseFinalState=P_Unknown) {
+		if( listeners==null || isComplete() )
 			return;
 
-		completed = true;
 		finalState = state;
 		for(cb in listeners)
 			cb();
@@ -63,8 +62,16 @@ class Promise implements IPromisable {
 	}
 
 
+	public function isComplete() {
+		return finalState!=null;
+	}
+
+	public function isSuccess() return finalState==P_Success;
+	public function isFailed() return finalState==P_Failed;
+	public function isCanceled() return finalState==P_Canceled;
+
 	public function canBeSkipped() : Bool {
-		return !completed && onSkip!=null;
+		return !isComplete() && onSkip!=null;
 	}
 
 	public function tryToSkip() {

@@ -26,6 +26,7 @@ class AsyncRunner extends dn.script.Runner {
 		this.fps = fps;
 		origin = "AsyncRunner";
 
+		exposeEnum(PromiseFinalState);
 		addInternalKeyword("delayExecutionS", TDynamic, api_delayExecutionS);
 		addInternalKeyword("waitUntil", TDynamic, api_waitUntil);
 		addInternalKeyword("waitPromise", TDynamic, api_waitPromise);
@@ -149,7 +150,7 @@ class AsyncRunner extends dn.script.Runner {
 			return;
 		}
 
-		if( c.promise.completed )
+		if( c.promise.isComplete() )
 			onComplete();
 		else {
 			c.promise.addOnCompleteListener(onComplete);
@@ -671,7 +672,7 @@ class AsyncRunner extends dn.script.Runner {
 		// Script completion detection
 		var allPromisesCompleted = true;
 		for(p in waitedPromises)
-			if( !p.completed ) {
+			if( !p.isComplete() ) {
 				allPromisesCompleted = false;
 				break;
 			}
