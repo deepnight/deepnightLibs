@@ -6,6 +6,12 @@ interface IPromisable {
 }
 
 
+enum PromiseFinalState {
+	P_Success;
+	P_Fail;
+	P_Cancel;
+}
+
 
 @:keep @:rtti
 class Promise implements IPromisable {
@@ -14,6 +20,7 @@ class Promise implements IPromisable {
 	public var name : Null<String>;
 	public var uid(default,null) : Int;
 	public var completed(default,null) = false;
+	public var finalState : Null<PromiseFinalState> = null;
 	var listeners : Null< Array<Void->Void> > = [];
 
 	/** For usage comfort, a Promise is also considered as a Promisable object. **/
@@ -43,11 +50,12 @@ class Promise implements IPromisable {
 			listeners.push(cb);
 	}
 
-	public function complete() {
+	public function complete(state:PromiseFinalState=P_Success) {
 		if( listeners==null || completed )
 			return;
 
 		completed = true;
+		finalState = state;
 		for(cb in listeners)
 			cb();
 
