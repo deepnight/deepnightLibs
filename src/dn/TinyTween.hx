@@ -35,12 +35,15 @@ class TinyTween {
 
 	/** Return TRUE if the tween has any valid value (ie. it's either started, or completed). Reseting makes this function FALSE. **/
 	public inline function hasAnyValue() {
-		return durationS>0;
+		return durationS>=0;
 	}
 
 	inline function get_curValue() {
 		if( !hasAnyValue() )
 			return 0;
+
+		if( durationS<=0 )
+			return toValue;
 
 		if( isComplete() )
 			return switch interp {
@@ -93,6 +96,9 @@ class TinyTween {
 		this.interp = interp;
 		applyValue(curValue);
 		onValueApplied(curValue);
+
+		if( durationS<=0 )
+			complete();
 	}
 
 	public function restartFrom(from:Float) {
@@ -177,6 +183,11 @@ class TinyTween {
 		CiAssert.equals( M.round(t.curValue), 20 );
 		t.update(fps*0.5);
 		CiAssert.equals( t.curValue, 10 );
+
+		// No duration
+		t.start(10, 20, 0, Linear);
+		CiAssert.equals( t.curValue, 20 );
+		CiAssert.equals( t.isComplete(), true );
 	}
 	#end
 }
