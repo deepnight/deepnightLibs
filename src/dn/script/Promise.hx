@@ -53,15 +53,15 @@ class Promise implements IPromisable {
 	}
 
 	public function complete(success:Bool) {
-		if( listeners==
-			null || isFinished() )
-			return;
+		if( listeners==null || isFinished() )
+			return this;
 
 		state = success ? P_Fulfilled : P_Rejected;
 		for(cb in listeners)
 			cb();
 
 		listeners = null;
+		return this;
 	}
 
 
