@@ -6,11 +6,10 @@ interface IPromisable {
 }
 
 
-enum PromiseFinalState {
-	P_Unknown;
-	P_Success;
-	P_Failed;
-	P_Canceled;
+enum PromiseState {
+	P_Pending;
+	P_Fulfilled;
+	P_Rejected;
 }
 
 
@@ -20,7 +19,7 @@ class Promise implements IPromisable {
 
 	public var name : Null<String>;
 	public var uid(default,null) : Int;
-	public var finalState : Null<PromiseFinalState> = null;
+	public var state(default,null) : PromiseState = P_Pending;
 	var listeners : Null< Array<Void->Void> > = [];
 
 	/** For usage comfort, a Promise is also considered as a Promisable object. **/
@@ -37,12 +36,15 @@ class Promise implements IPromisable {
 	}
 
 	@:keep public function toString() {
-		return '${name!=null?name:"Promise"}#$uid '
-			+ "(" + ( isComplete() ? finalState.getName() : listeners!=null ? listeners.length+" listeners" : "No listener" ) +")";
+		return '${name!=null?name:"Promise"}#$uid<$state> '
+			+ ( isFinished()
+				? ""
+				: "("+(listeners!=null ? listeners.length+" listeners" : "No listener")+")"
+			);
 	}
 
 	public function addOnCompleteListener(cb:Void->Void) {
-		if( isComplete() )
+		if( isFinished() )
 			cb();
 		else if( listeners==null )
 			listeners = [cb];
@@ -50,11 +52,12 @@ class Promise implements IPromisable {
 			listeners.push(cb);
 	}
 
-	public function complete(state:PromiseFinalState=P_Unknown) {
-		if( listeners==null || isComplete() )
+	public function complete(success:Bool) {
+		if( listeners==
+			null || isFinished() )
 			return;
 
-		finalState = state;
+		state = success ? P_Fulfilled : P_Rejected;
 		for(cb in listeners)
 			cb();
 
@@ -62,16 +65,13 @@ class Promise implements IPromisable {
 	}
 
 
-	public function isComplete() {
-		return finalState!=null;
-	}
-
-	public function isSuccess() return finalState==P_Success;
-	public function isFailed() return finalState==P_Failed;
-	public function isCanceled() return finalState==P_Canceled;
+	public inline function isPending() return state==P_Pending;
+	public inline function isFinished() return state!=P_Pending;
+	public inline function isFulfilled() return state==P_Fulfilled;
+	public inline function isRejected() return state==P_Rejected;
 
 	public function canBeSkipped() : Bool {
-		return !isComplete() && onSkip!=null;
+		return !isFinished() && onSkip!=null;
 	}
 
 	public function tryToSkip() {

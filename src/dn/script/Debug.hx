@@ -229,13 +229,13 @@ class Debug extends dn.Process {
 			createText("PROMISES:", White, f);
 			@:privateAccess
 			for(prom in async.waitedPromises)
-				createText(prom.toString(), prom.isComplete() ? Lime : Yellow, f);
+				createText(prom.toString(), prom.isFinished() ? Lime : Yellow, f);
 		}
 		createCollapsable("Promises", (f:h2d.Flow)->{
 			_renderPromiseList(f);
 			@:privateAccess
 			for(prom in async.waitedPromises)
-				if( !prom.isComplete() )
+				if( !prom.isFinished() )
 					prom.addOnCompleteListener( ()->_renderPromiseList(f) );
 		}, runtimeFlow);
 	}
