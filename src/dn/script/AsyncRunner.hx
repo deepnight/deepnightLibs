@@ -153,7 +153,7 @@ class AsyncRunner extends dn.script.Runner {
 		if( c.promise.isFinished() )
 			onComplete();
 		else {
-			c.promise.addOnCompleteListener(onComplete);
+			c.promise.then(onComplete);
 			if( !waitedPromises.contains(c.promise) )
 				waitedPromises.push(c.promise);
 		}

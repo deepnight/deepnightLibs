@@ -43,7 +43,7 @@ class Promise implements IPromisable {
 			);
 	}
 
-	public function addOnCompleteListener(cb:Void->Void) {
+	public function then(cb:Void->Void) {
 		if( isFinished() )
 			cb();
 		else if( listeners==null )

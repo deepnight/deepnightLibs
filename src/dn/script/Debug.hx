@@ -236,7 +236,7 @@ class Debug extends dn.Process {
 			@:privateAccess
 			for(prom in async.waitedPromises)
 				if( !prom.isFinished() )
-					prom.addOnCompleteListener( ()->_renderPromiseList(f) );
+					prom.then( ()->_renderPromiseList(f) );
 		}, runtimeFlow);
 	}
 
