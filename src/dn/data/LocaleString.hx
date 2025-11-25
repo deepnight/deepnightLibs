@@ -1,7 +1,7 @@
 package dn.data;
 
 abstract LocaleString(String) to String {
-	inline public function new(s:String) {
+	public inline function new(s:String) {
 		this = s;
 	}
 
