@@ -1,4 +1,5 @@
 import dn.CiAssert;
+import dn.CiAssert;
 import dn.Lib;
 
 class Tests {
@@ -48,6 +49,7 @@ class Tests {
 		#if hscript
 		dn.script.tests.RunnerTests.run();
 		#end
+		dn.script.Promise.test();
 
 
 		// Done!

@@ -126,4 +126,61 @@ class Promise implements IPromisable {
 		cb();
 		return true;
 	}
+
+
+	#if deepnightLibsTests
+	public static function test() {
+		var p = new Promise();
+		CiAssert.equals( p.isPending(), true );
+		CiAssert.equals( p.isFinished(), false );
+		CiAssert.equals( p.isFulfilled(), false );
+		CiAssert.equals( p.isRejected(), false );
+
+		// Fulfill test
+		p.fulfill();
+		CiAssert.equals( p.isPending(), false );
+		CiAssert.equals( p.isFinished(), true );
+		CiAssert.equals( p.isFulfilled(), true );
+		CiAssert.equals( p.isRejected(), false );
+		p.reject();
+		CiAssert.equals( p.state, P_Fulfilled );
+
+		// Reject test
+		var p = new Promise();
+		p.reject();
+		CiAssert.equals( p.isPending(), false );
+		CiAssert.equals( p.isFinished(), true );
+		CiAssert.equals( p.isFulfilled(), false );
+		CiAssert.equals( p.isRejected(), true );
+		p.fulfill();
+		CiAssert.equals( p.state, P_Rejected );
+
+		// Listeners (fulfill)
+		var v = 0;
+		var p = new Promise();
+		p.onAnyEnd( ()->v++ );
+		p.onFulfill( ()->v+=10 );
+		p.onReject( ()->v+=100 );
+		p.fulfill();
+		CiAssert.equals( v, 11 );
+
+		// Listeners (reject)
+		var v = 0;
+		var p = new Promise();
+		p.onAnyEnd( ()->v++ );
+		p.onFulfill( ()->v+=10 );
+		p.onReject( ()->v+=100 );
+		p.reject();
+		CiAssert.equals( v, 101 );
+
+		// Listeners after finished
+		var v = 0;
+		var p = new Promise();
+		p.fulfill();
+		p.onAnyEnd( ()->v++ );
+		p.onFulfill( ()->v+=10 );
+		p.onReject( ()->v+=100 );
+		CiAssert.equals( v, 11 );
+	}
+	#end
 }
