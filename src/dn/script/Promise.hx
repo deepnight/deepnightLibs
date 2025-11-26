@@ -12,6 +12,12 @@ enum PromiseState {
 	P_Rejected;
 }
 
+enum abstract PromiseListenerType(Int) to Int {
+	var PL_AnyEnd;
+	var PL_Fulfill;
+	var PL_Reject;
+}
+
 
 @:keep @:rtti
 class Promise implements IPromisable {
@@ -20,7 +26,7 @@ class Promise implements IPromisable {
 	public var name : Null<String>;
 	public var uid(default,null) : Int;
 	public var state(default,null) : PromiseState = P_Pending;
-	var listeners : Null< Array<Void->Void> > = [];
+	var listeners : Null< Map<PromiseListenerType, Array<Void->Void>> > = new Map(); // set to null when finished
 
 	/** For usage comfort, a Promise is also considered as a Promisable object. **/
 	@:noCompletion
@@ -39,27 +45,62 @@ class Promise implements IPromisable {
 		return '${name!=null?name:"Promise"}#$uid<$state> '
 			+ ( isFinished()
 				? ""
-				: "("+(listeners!=null ? listeners.length+" listeners" : "No listener")+")"
+				: '(${countListeners(PL_AnyEnd)} AnyEnd, ${countListeners(PL_Fulfill)} Fulfill, ${countListeners(PL_Reject)} Reject)'
 			);
 	}
 
-	public function then(cb:Void->Void) {
-		if( isFinished() )
-			cb();
-		else if( listeners==null )
-			listeners = [cb];
-		else if( !listeners.contains(cb) )
-			listeners.push(cb);
+	inline function countListeners(type:PromiseListenerType) : Int {
+		return listeners!=null && listeners.exists(type) ? listeners[type].length : 0;
 	}
 
-	public function complete(success:Bool) {
-		if( listeners==null || isFinished() )
+	function addListener(type:PromiseListenerType, cb:Void->Void) {
+		if( isFinished() ) {
+			switch type {
+				case PL_AnyEnd: cb();
+				case PL_Fulfill: if( isFulfilled() ) cb();
+				case PL_Reject: if( isRejected() ) cb();
+			}
+		}
+		else if( listeners!=null ) {
+			if( !listeners.exists(type) )
+				listeners.set(type, [cb]);
+			else if( !listeners.get(type).contains(cb) )
+				listeners.get(type).push(cb);
+		}
+	}
+
+	function executeListeners(type:PromiseListenerType) {
+		if( listeners!=null && listeners.exists(type) )
+			for(cb in listeners.get(type))
+				cb();
+	}
+
+
+	public inline function onAnyEnd(cb:Void->Void) {
+		addListener(PL_AnyEnd, cb);
+		return this;
+	}
+
+	public inline function onFulfill(cb:Void->Void) {
+		addListener(PL_Fulfill, cb);
+		return this;
+	}
+
+	public inline function onReject(cb:Void->Void) {
+		addListener(PL_Reject, cb);
+		return this;
+	}
+
+	public inline function fulfill() return end(true);
+	public inline function reject() return end(false);
+
+	function end(success:Bool) {
+		if( isFinished() )
 			return this;
 
 		state = success ? P_Fulfilled : P_Rejected;
-		for(cb in listeners)
-			cb();
-
+		executeListeners(PL_AnyEnd);
+		executeListeners( success ? PL_Fulfill : PL_Reject );
 		listeners = null;
 		return this;
 	}
@@ -69,6 +110,8 @@ class Promise implements IPromisable {
 	public inline function isFinished() return state!=P_Pending;
 	public inline function isFulfilled() return state==P_Fulfilled;
 	public inline function isRejected() return state==P_Rejected;
+
+
 
 	public function canBeSkipped() : Bool {
 		return !isFinished() && onSkip!=null;
