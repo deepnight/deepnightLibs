@@ -1046,6 +1046,7 @@ class M {
 	}
 
 	/** Return a value, or use a default value if it is null **/
+	#if haxe4 @:deprecated("Use the null-coalescing operator (??) instead of M.nullDefault()") #end
 	public static inline function nullDefault<T>(v:Null<T>, defaultIfNull:T) : T {
 		#if haxe4
 		return v ?? defaultIfNull;
