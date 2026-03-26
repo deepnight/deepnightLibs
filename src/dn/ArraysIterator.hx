@@ -38,10 +38,8 @@ class ArraysIterator<T> {
 	public static function test() {
 		function _countIterations(arrays:Array<Array<Int>>) : Int {
 			var i = 0;
-			for(v in new ArraysIterator(arrays)) {
-				trace(v);
+			for(v in new ArraysIterator(arrays))
 				i++;
-			}
 			return i;
 		}
 

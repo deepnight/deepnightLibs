@@ -17,6 +17,7 @@ class Tests {
 
 		// Libs
 		dn.Args.test();
+		dn.ArraysIterator.test();
 		dn.pathfinder.AStar.test();
 		dn.geom.Bresenham.test();
 		dn.geom.Geom.test();
