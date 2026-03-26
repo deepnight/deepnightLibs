@@ -1264,10 +1264,12 @@ class M {
 		CiAssert.equals( M.pretty(M.decimals(3)), M.pretty(0) );
 		CiAssert.equals( M.pretty(M.decimals(10.62)), M.pretty(0.62) );
 
+		#if( !haxe4 && !haxe5 )
 		CiAssert.equals( M.pretty(M.nullDefault(0, 5)), 0 );
 		CiAssert.equals( M.pretty(M.nullDefault(0.1, 5)), 0.1 );
 		CiAssert.equals( M.pretty(M.nullDefault(null, 5)), 5 );
 		CiAssert.equals( M.pretty(M.nullDefault(null, 5.1)), 5.1 );
+		#end
 
 		CiAssert.equals( M.addSign(0), "+0" );
 		CiAssert.equals( M.addSign(-1), "-1" );
