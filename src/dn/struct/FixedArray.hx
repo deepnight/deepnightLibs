@@ -92,6 +92,15 @@ class FixedArray<T> {
 	}
 
 
+	/** Create a classic Array using the content of this FixedArray **/
+	public function toArray() : Array<T> {
+		var out = [];
+		for(v in this)
+			out.push(v);
+		return out;
+	}
+
+
 	/** Return a standard Array using a mapping function on all elements **/
 	public function mapToArray<X>(mapValue:T->X) : Array<X> {
 		var out = [];
