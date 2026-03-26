@@ -546,6 +546,10 @@ class Debug extends dn.Process {
 		return createButton("Copy", ()->hxd.System.setClipboardText(value), p);
 	}
 
+	function getAllTTypeArgsNames(args:Array<hscript.Checker.TType>) {
+		return '<' + args.map( tt->getTTypeShortName(tt)).join(', ') + '>';
+	}
+
 	function getTTypeShortName(ttype:hscript.Checker.TType) : String {
 		return switch ttype {
 			case TInt: 'Int';
@@ -553,15 +557,18 @@ class Debug extends dn.Process {
 			case TBool: 'Bool';
 			case TDynamic: 'Dynamic';
 			case TUnresolved(name): '<$name?>';
-			case TInst(c, args): c.name;
-			case TEnum(e, args): e.name;
-			case TAbstract(a, args): a.name;
 			case TFun(args, ret): 'Callback';
 			case TVoid: 'Void';
 			case TNull(t): 'Null<${getTTypeShortName(t)}>';
 			case TAnon(fields): '{${fields.map(f->f.name).join(",")}}';
-			case TType(t, args): t.name;
-			case _: '?${ttype.getName()}';
+			case TParam(name): name;
+
+			case TInst(c, args): c.name + getAllTTypeArgsNames(args);
+			case TEnum(e, args): e.name + getAllTTypeArgsNames(args);
+			case TAbstract(a, args): a.name + getAllTTypeArgsNames(args);
+			case TType(t, args): t.name + getAllTTypeArgsNames(args);
+
+			case TLazy(_), TMono(_): '?${ttype.getName()}';
 		}
 	}
 
@@ -582,9 +589,11 @@ class Debug extends dn.Process {
 					out += ' = ' + runner.interp.variables.get(name);
 				out;
 
-			case TDynamic: 'instance "$name" => ${ttype.getName()}';
-			case TInst(c, args): 'instance "$name" => ${c.name}';
-			case TEnum(e, args): 'enum ${e.name}.$name';
+			case TDynamic: 'instance "$name" => ${getTTypeShortName(ttype)}';
+			case TInst(c, args): 'instance "$name" => ${c.name}${getAllTTypeArgsNames(args)}';
+			case TEnum(e, args): 'enum ${e.name}.$name${getAllTTypeArgsNames(args)}';
+			case TAbstract(a, args): 'abstract ${a.name} ${getAllTTypeArgsNames(args)}';
+			// case TType(t, args): t.name + getAllTTypeArgsNames(args);
 
 			case TFun(args, ret):
 				var argsStr = args.map(
