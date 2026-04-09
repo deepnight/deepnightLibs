@@ -137,6 +137,13 @@ class RandList<T> {
 		return null;
 	}
 
+	public function drawAndRemove(?rndFunc:Int->Int) : Null<T> {
+		var v = draw(rndFunc);
+		if( v!=null )
+			remove(v);
+		return v;
+	}
+
 	public function filteredDraw(filter:T->Bool, ?rndFunc:Int->Int) : Null<T> {
 		var fList = drawList.filter(function(e) return filter(e.value));
 		var total = 0;
