@@ -4,6 +4,23 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 using haxe.macro.Tools;
 
+class AbstractEnumValue<T> {
+	public var name(default,null) : String;
+	public var value(default,null) : T;
+	public var meta(default,null) : Map< String, Array<Dynamic> >;
+
+	public function new(name:String, value:T, meta:Map<String, Array<Dynamic>>) {
+		this.name = name;
+		this.value = value;
+		this.meta = meta;
+	}
+
+	@:keep public function toString() {
+		return '$name = $value (meta: ${Std.string(meta)})';
+	}
+}
+
+
 class MacroTools {
 	public static macro function error(err:ExprOf<String>) {
 		var pos = haxe.macro.Context.currentPos();
@@ -213,7 +230,7 @@ class MacroTools {
 	/**
 		Return an Array<String> containing all the "values" from an Abstract Enum
 	**/
-	public static function getAbstractEnumValuesForMacros(abstractEnumType:haxe.macro.Expr) : Array<{ name:String, valueExpr:Expr }> {
+	public static function getAbstractEnumValuesForMacros(abstractEnumType:haxe.macro.Expr) : Array<{ name:String, valueExpr:Expr, metaExpr:Expr }> {
 		var typeName = abstractEnumType.toString();
 		var type = try Context.getType(typeName) catch(_) {
 			Context.fatalError('Type not found: $typeName', abstractEnumType.pos);
@@ -234,12 +251,43 @@ class MacroTools {
 						case _: null;
 					}
 
+					// Read enum values meta
+					var metaMap : Map<String, Array<Dynamic>> = new Map();
+					var metaNames = field.meta.get().map( m->m.name );
+					for( metaData in field.meta.get() )
+						metaMap.set(metaData.name, metaData.params);
+
+					var metaExpr : Expr = {
+						pos: field.pos,
+						expr: EArrayDecl([
+							for( metaData in field.meta.get().filter( m->m.name.indexOf(":")<0 ) ) {
+								pos: field.pos,
+								expr: EBinop(
+									OpArrow,
+									macro $v{metaData.name},
+									{
+										pos: field.pos,
+										expr: EArrayDecl(metaData.params.map( p-> switch p.expr {
+											case EConst(CInt(v)): macro $v{v};
+											case EConst(CString(v)): macro $v{v};
+											case EConst(CIdent(v)): macro $v{v};
+											case _:
+												Context.fatalError("Unsupported meta type "+p.expr.getName()+" in "+metaData.name, p.pos);
+												macro null;
+										}))
+									}
+								)
+							}
+						]),
+					}
+
 					if( valueExpr==null )
 						Context.fatalError("Only abstract enum of Int or String are supported.", abstractEnumType.pos);
 
 					all.push({
 						name: field.name,
 						valueExpr: valueExpr,
+						metaExpr: metaExpr,
 					});
 				}
 
@@ -253,33 +301,28 @@ class MacroTools {
 
 
 	/**
-		Create an `Array<{ name:String, value:XXX }>` from an Abstract Enum, where `value` type depends on the underlying enum type (Int or String).
+		Create an array representing the info of an Abstract Enum, where `value` type depends on the underlying enum type (Int or String).
+
+		Returns: `Array<{ name:String, value:T, meta:Map<String,Array<Dynamic> }>`
 	**/
 	public static macro function getAbstractEnumValues(abstractEnumType:haxe.macro.Expr) {
 		var allValues = getAbstractEnumValuesForMacros(abstractEnumType);
-
-		// Check enum underlying type
 		if( allValues.length==0 )
 			Context.fatalError("Abstract enum has no values.", abstractEnumType.pos);
-		var underlyingComplexType = switch allValues[0].valueExpr.expr {
-			case EConst(CInt(_)): macro : Int;
-			case EConst(CString(_)): macro : String;
-			case _: Context.fatalError("Only supports abstract enum of Int or String.", abstractEnumType.pos);
-		}
 
 		// Build anonymous objects of value expressions
 		var valueInitExprs = [];
-		for(v in allValues)
-			valueInitExprs.push( macro { name: $v{v.name}, value: $e{v.valueExpr} } );
-
-		// Build Array declaration as `[ { name:..., value:... }, ... ]`
-		var arrayInitExpr : Expr = { pos:Context.currentPos(), expr: EArrayDecl(valueInitExprs) }
-		return macro {
-			var arr : Array<{ name:String, value:$underlyingComplexType }>;
-			arr = $arrayInitExpr;
-			arr;
+		for(v in allValues) {
+			valueInitExprs.push( macro {
+				new dn.MacroTools.AbstractEnumValue( $v{v.name}, $e{v.valueExpr}, $e{v.metaExpr} );
+			});
 		}
+
+		// Build output Array expression
+		var arrayInitExpr : Expr = { pos:Context.currentPos(), expr: EArrayDecl(valueInitExprs) }
+		return macro $arrayInitExpr;
 	}
+
 
 	public static macro function addMetaToClass(fullClassName:String, metas:Array<String>) {
 		var pos = Context.currentPos();
