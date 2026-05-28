@@ -489,7 +489,7 @@ class SpriteLib {
 	#if castle
 	public function getCdbTile(tileInf:cdb.Types.TilePos, xr=0., yr=0.) {
 		if( tileInf==null )
-			return h2d.Tile.fromColor(0xff0000, 4,4, 0);
+			return h2d.Tile.fromColor(0xff0000, 8,8, 1);
 
 		final size = tileInf.size;
 		var t = tile.sub(
