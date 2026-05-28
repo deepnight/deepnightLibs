@@ -86,9 +86,9 @@ abstract Col(Int) from Int to Int {
 	/** Create a random color using HSL **/
 	public static inline function randomHSL(?hue:Float, ?sat:Float, ?lum:Float) : Col {
 		return fromHsl(
-			hue!=null ? hue : Math.random(),
-			sat!=null ? sat : Math.random(),
-			lum!=null ? lum : Math.random()
+			hue ?? Math.random(),
+			sat ?? Math.random(),
+			lum ?? Math.random()
 		);
 	}
 
@@ -109,9 +109,9 @@ abstract Col(Int) from Int to Int {
 	/** Create a random color using RGB **/
 	public static inline function randomRGB(?r:Float, ?g:Float, ?b:Float) : Col {
 		return fromRGBf(
-			r!=null ? r : Math.random(),
-			g!=null ? g : Math.random(),
-			b!=null ? b : Math.random()
+			r ?? Math.random(),
+			g ?? Math.random(),
+			b ?? Math.random()
 		);
 	}
 
