@@ -145,7 +145,7 @@ class AsyncRunner extends dn.script.Runner {
 		}
 
 		if( c.promise==null ) {
-			emitError('waitPromise: the given object has no promise field');
+			emitError('waitPromise(): $c (${Lib.getShortClassName(c)}) has no promise field');
 			onComplete();
 			return;
 		}
