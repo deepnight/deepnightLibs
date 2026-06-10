@@ -106,6 +106,27 @@ class MacroTools {
 		}
 	}
 
+
+	/**
+		Return the INTEGER value of a compiler flag defined with -D.
+		This method returns 1 if the flag is defined without value, or null if the flag value is not a valid integer or missing.
+	 **/
+	public static macro function getCompilerDefinedInt(flagName:Expr) {
+		var flagName = switch( flagName.expr ) {
+			case EConst(CString(s)) : s;
+			default : Context.error("Constant expected here", flagName.pos);
+		}
+
+		var raw = Context.definedValue(flagName);
+		if( raw==null )
+			return macro null;
+		else {
+			var v = Std.parseInt(raw);
+			return v!=null ? macro $v{v} : macro null;
+		}
+	}
+
+
 	/**
 		Return the compilation date as standard Date string format
 	**/
