@@ -102,7 +102,9 @@ class Sfx {
 	}
 
 	public function toString() {
-		return "Sfx"+( filePath==null?"":'[$filePath]' ) + ( customIdentifier!=null ? customIdentifier : Std.string(sound) );
+		return "Sfx"
+			+ ( customIdentifier!=null ? "."+customIdentifier : "" )
+			+ ( filePath==null?"":'[$filePath]' );
 	}
 
 
