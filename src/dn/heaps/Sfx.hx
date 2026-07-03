@@ -82,6 +82,7 @@ class Sfx {
 
 	public function new(s:Sound) {
 		sound = s;
+		// TODO add error/warning if missing sound.entry
 		volume = 1;
 		spatialRangeMul = 1.0;
 		groupId = DEFAULT_GROUP_ID;
