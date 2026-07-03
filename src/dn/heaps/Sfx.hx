@@ -44,7 +44,9 @@ class Sfx {
 	static var GLOBAL_GROUPS : Map<Int, GlobalGroup> = new Map();
 	public static var DEFAULT_GROUP_ID = 0;
 
-	var lastChannel : Null<Channel>;
+	// This only exists during playback of the Sound object
+	var activeChannel : Null<Channel>;
+
 	public var sound(default,null) : Sound;
 	public var groupId(default,set) : Int;
 	public var soundGroup(get,never) : Null<SoundGroup>;
@@ -65,7 +67,7 @@ class Sfx {
 		inline function get_baseDurationS() return sound.getData().duration;
 
 	public var curPlayDurationS(get,never) : Float;
-		inline function get_curPlayDurationS() return lastChannel!=null ? lastChannel.duration : 0.;
+		inline function get_curPlayDurationS() return activeChannel!=null ? activeChannel.duration : 0.;
 
 	var spatialX : Null<Float>;
 	var spatialY : Null<Float>;
@@ -98,7 +100,7 @@ class Sfx {
 	public function dispose() {
 		stop();
 		sound = null;
-		lastChannel = null;
+		activeChannel = null;
 		onEndCurrent = null;
 	}
 
@@ -184,7 +186,7 @@ class Sfx {
 	}
 
 	public function togglePlayPause() {
-		if( lastChannel==null )
+		if( activeChannel==null )
 			return false;
 
 		if( !isPaused() ) {
@@ -198,25 +200,25 @@ class Sfx {
 	}
 
 	public function pause() {
-		if( lastChannel!=null )
-			lastChannel.pause = true;
+		if( activeChannel!=null )
+			activeChannel.pause = true;
 	}
 
 	public function resume() {
-		if( lastChannel!=null )
-			lastChannel.pause = false;
+		if( activeChannel!=null )
+			activeChannel.pause = false;
 	}
 
-	public inline function isPaused() return lastChannel!=null && lastChannel.pause;
+	public inline function isPaused() return activeChannel!=null && activeChannel.pause;
 
 	/**
 		Update internal stuff when the Sound starts playing.
 	**/
 	inline function onStartPlaying(c:Channel) {
 		onEndCurrent = null;
-		lastChannel = c;
-		lastChannel.onEnd = ()->{
-			if( lastChannel.loop )
+		activeChannel = c;
+		activeChannel.onEnd = ()->{
+			if( activeChannel.loop )
 				onLoop();
 
 			if( onEndCurrent!=null ) {
@@ -225,6 +227,7 @@ class Sfx {
 				cb();
 			}
 
+			activeChannel = null;
 		}
 		applyVolume();
 
@@ -312,8 +315,8 @@ class Sfx {
 	}
 
 	function applyVolume() {
-		if( _requiresChannel() )
-			lastChannel.volume = getFinalVolume();
+		if( _requiresActiveChannel() )
+			activeChannel.volume = getFinalVolume();
 	}
 
 	/**
@@ -346,7 +349,7 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public function onEnd(cb:Void->Void) {
-		if( _requiresChannel() )
+		if( _requiresActiveChannel() )
 			onEndCurrent = cb;
 	}
 
@@ -357,8 +360,8 @@ class Sfx {
 	/**
 		Check for the existence of a Channel (ie. sounds is currently playing). In "debug" mode, an exception is thrown if none is found.
 	**/
-	inline function _requiresChannel() : Bool {
-		if( lastChannel==null || lastChannel.isReleased() ) {
+	inline function _requiresActiveChannel() : Bool {
+		if( activeChannel==null || activeChannel.isReleased() ) {
 			#if debug
 			throw "Sound must be playing to use this method";
 			#end
@@ -369,27 +372,27 @@ class Sfx {
 	}
 
 	public inline function isPlaying() {
-		return lastChannel!=null && !isPaused();
+		return activeChannel!=null && !isPaused();
 	}
 
 	public inline function isFading() {
-		return lastChannel!=null && @:privateAccess lastChannel.currentFade!=null;
+		return activeChannel!=null && @:privateAccess activeChannel.currentFade!=null;
 	}
 
 	/**
 		Stop sound
 	**/
 	public function stop() {
-		if( lastChannel!=null )
-			lastChannel.stop();
-		lastChannel = null;
+		if( activeChannel!=null )
+			activeChannel.stop();
+		activeChannel = null;
 	}
 
 	/**
 		Stop sound with a fade-out
 	**/
 	public inline function stopWithFadeOut(duratonS:Float) {
-		if( lastChannel!=null && lastChannel.volume<=0.03 )
+		if( activeChannel!=null && activeChannel.volume<=0.03 )
 			stop();
 		else
 			fadeTo(0, duratonS, stop);
@@ -401,8 +404,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public function fadeTo(vol:Float, duratonS=1.0, ?onComplete:Void->Void) {
-		if( _requiresChannel() )
-			lastChannel.fadeTo(vol * getMixedVolumeFactor(), duratonS, onComplete);
+		if( _requiresActiveChannel() )
+			activeChannel.fadeTo(vol * getMixedVolumeFactor(), duratonS, onComplete);
 		return this;
 	}
 
@@ -423,8 +426,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function setPositionS(time:Float) {
-		if( _requiresChannel() )
-			lastChannel.position = time;
+		if( _requiresActiveChannel() )
+			activeChannel.position = time;
 		return this;
 	}
 
@@ -435,8 +438,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function setPositionRatio(r:Float) {
-		if( _requiresChannel() )
-			lastChannel.position = baseDurationS*r;
+		if( _requiresActiveChannel() )
+			activeChannel.position = baseDurationS*r;
 		return this;
 	}
 
@@ -446,8 +449,8 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function addEffect(e:Effect) {
-		if( _requiresChannel() )
-			lastChannel.addEffect(e);
+		if( _requiresActiveChannel() )
+			activeChannel.addEffect(e);
 		return this;
 	}
 
@@ -457,7 +460,7 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function pitchRandomly(range=0.12) {
-		if( _requiresChannel() && range>0 )
+		if( _requiresActiveChannel() && range>0 )
 			addEffect(  new hxd.snd.effect.Pitch( Lib.rnd(1-M.fabs(range), 1+M.fabs(range)) )  );
 		return this;
 	}
@@ -469,7 +472,7 @@ class Sfx {
 		SOUND MUST BE PLAYING.
 	**/
 	public inline function pitch(value:Float) {
-		if( _requiresChannel() && value!=0 )
+		if( _requiresActiveChannel() && value!=0 )
 			addEffect(  new hxd.snd.effect.Pitch(value)  );
 		return this;
 	}
