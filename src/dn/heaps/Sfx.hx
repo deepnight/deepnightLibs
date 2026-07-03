@@ -227,7 +227,8 @@ class Sfx {
 				cb();
 			}
 
-			activeChannel = null;
+			if( !activeChannel.loop )
+				activeChannel = null;
 		}
 		applyVolume();
 
