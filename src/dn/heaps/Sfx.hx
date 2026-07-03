@@ -214,7 +214,7 @@ class Sfx {
 	/**
 		Update internal stuff when the Sound starts playing.
 	**/
-	inline function onStartPlaying(c:Channel) {
+	function onStartPlaying(c:Channel) {
 		onEndCurrent = null;
 		activeChannel = c;
 		activeChannel.onEnd = ()->{
