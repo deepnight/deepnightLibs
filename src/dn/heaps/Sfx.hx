@@ -114,7 +114,7 @@ class Sfx {
 
 	inline function set_groupId(v) {
 		#if debug
-		if( isPlaying() )
+		if( isCurrentlyPlaying() )
 			trace("WARNING: changing groupId of a playing Sfx will not affect it immediately.");
 		#end
 		return groupId = v;
@@ -124,7 +124,7 @@ class Sfx {
 
 	inline function set_volume(v) {
 		volume = M.fclamp(v,0,1);
-		if( isPlaying() )
+		if( isCurrentlyPlaying() )
 			applyVolume();
 		return volume;
 	}
@@ -175,7 +175,7 @@ class Sfx {
 
 
 	public inline function togglePlayStop(?loop=false, ?vol:Float) {
-		if( isPlaying() ) {
+		if( isCurrentlyPlaying() ) {
 			stop();
 			return false;
 		}
@@ -250,7 +250,7 @@ class Sfx {
 		if( vol!=null )
 			volume = vol;
 
-		if( isPlaying() )
+		if( isCurrentlyPlaying() )
 			stop();
 
 		if( SOUND_DEFAULT_GROUPS.exists(soundUid) )
@@ -275,7 +275,7 @@ class Sfx {
 		if( vol!=null )
 			volume = vol;
 
-		if( isPlaying() )
+		if( isCurrentlyPlaying() )
 			stop();
 
 		onStartPlaying(  sound.play(false, volume, getGlobalGroup(groupId).soundGroup) );
@@ -301,7 +301,7 @@ class Sfx {
 	**/
 	public inline function setSpatialRangeMul(rangeMul=1.0) {
 		spatialRangeMul = rangeMul;
-		if( isPlaying() )
+		if( isCurrentlyPlaying() )
 			applyVolume();
 		return this;
 	}
@@ -372,8 +372,17 @@ class Sfx {
 			return true;
 	}
 
-	public inline function isPlaying() {
+
+	@:deprecated("Use isCurrentlyPlaying() instead") @:noCompletion
+	public function isPlaying() return isCurrentlyPlaying();
+
+	public inline function isCurrentlyPlaying() {
 		return activeChannel!=null && !isPaused();
+	}
+
+	// Return TRUE if the Sfx has an active Channel (ie. is currently playing or is paused)
+	public inline function isPlayingOrIsPaused() {
+		return activeChannel!=null;
 	}
 
 	public inline function isFading() {
