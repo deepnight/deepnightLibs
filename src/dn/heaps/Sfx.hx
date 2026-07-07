@@ -209,7 +209,9 @@ class Sfx {
 			activeChannel.pause = false;
 	}
 
-	public inline function isPaused() return activeChannel!=null && activeChannel.pause;
+	public inline function isPaused() {
+		return activeChannel!=null && activeChannel.pause;
+	}
 
 	/**
 		Update internal stuff when the Sound starts playing.
