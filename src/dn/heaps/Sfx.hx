@@ -259,6 +259,7 @@ class Sfx {
 		return this;
 	}
 
+
 	/**
 		Play sound
 	**/
@@ -376,6 +377,7 @@ class Sfx {
 	@:deprecated("Use isCurrentlyPlaying() instead") @:noCompletion
 	public function isPlaying() return isCurrentlyPlaying();
 
+	// Return TRUE is the Sfx is currently playing
 	public inline function isCurrentlyPlaying() {
 		return activeChannel!=null && !isPaused();
 	}
