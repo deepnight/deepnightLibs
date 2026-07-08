@@ -439,19 +439,22 @@ class Sfx {
 
 		SOUND MUST BE PLAYING.
 	**/
-	public inline function setPositionS(time:Float) {
+	public function setPositionS(time:Float) {
 		if( _requiresActiveChannel() )
 			activeChannel.position = time;
 		return this;
 	}
 
+	public function getPositionS() {
+		return activeChannel!=null ? activeChannel.position : 0.;
+	}
 
 	/**
 		Change play position using a ratio of the total duration (0-1).
 
 		SOUND MUST BE PLAYING.
 	**/
-	public inline function setPositionRatio(r:Float) {
+	public function setPositionRatio(r:Float) {
 		if( _requiresActiveChannel() )
 			activeChannel.position = baseDurationS*r;
 		return this;
