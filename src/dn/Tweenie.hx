@@ -378,9 +378,6 @@ class Tweenie {
 	}
 	#end
 
-	#if display
-	public function createS(fieldRef:Dynamic, toExpr:Dynamic, tweenType:TType, ?sec:Float) : Tween { return null; }
-	#else
 	public macro function createS(ethis:Expr, field:ExprOf<Dynamic>, toExpr:ExprOf<Float>, ?tp:ExprOf<TType>, ?sec:ExprOf<Float>) {
 		var ms = {
 			expr : EBinop(OpMult, isNull(sec) ? tp : sec, macro 1000),
@@ -391,16 +388,10 @@ class Tweenie {
 		else
 			return buildCreateExpr(ethis, field, toExpr, tp, ms);
 	}
-	#end
 
-	#if display
-	public function createMs(fieldRef:Dynamic, toExpr:Dynamic, tweenType:TType, ?ms:Float) : Tween { return null; }
-	#else
 	public macro function createMs(ethis:Expr, field:ExprOf<Dynamic>, toExpr:ExprOf<Float>, ?tp:ExprOf<TType>, ?ms:ExprOf<Float>) {
 		return buildCreateExpr(ethis, field, toExpr, tp, ms);
 	}
-	#end
-
 
 	function create_(getter:Void->Float, setter:Float->Void, from:Null<Float>, to:Float, tp:TType, duration_ms:Null<Float>, allowDuplicates=false) {
 		if ( duration_ms==null )
