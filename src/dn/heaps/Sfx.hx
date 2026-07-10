@@ -47,12 +47,12 @@ class Sfx {
 	// This only exists during playback of the Sound object
 	var activeChannel : Null<Channel>;
 
-	public var sound(default,null) : Sound;
+	public var soundRes(default,null) : Sound;
 	public var groupId(default,set) : Int;
 	public var soundGroup(get,never) : Null<SoundGroup>;
 
 	public var filePath(get,never) : Null<String>;
-		inline function get_filePath() return sound==null || sound.entry==null ? null : sound.entry.path;
+		inline function get_filePath() return soundRes?.entry?.path;
 
 	public var soundUid : Int;
 
@@ -64,7 +64,7 @@ class Sfx {
 
 	/** Sound duration in seconds **/
 	public var baseDurationS(get,never) : Float;
-		inline function get_baseDurationS() return sound.getData().duration;
+		inline function get_baseDurationS() return soundRes.getData().duration;
 
 	public var curPlayDurationS(get,never) : Float;
 		inline function get_curPlayDurationS() return activeChannel!=null ? activeChannel.duration : 0.;
@@ -82,8 +82,8 @@ class Sfx {
 	var onEndCurrent : Null< Void->Void >;
 
 
-	public function new(s:Sound) {
-		sound = s;
+	public function new(res:Sound) {
+		soundRes = res;
 		// TODO add error/warning if missing sound.entry
 		volume = 1;
 		spatialRangeMul = 1.0;
@@ -99,7 +99,7 @@ class Sfx {
 
 	public function dispose() {
 		stop();
-		sound = null;
+		soundRes = null;
 		activeChannel = null;
 		onEndCurrent = null;
 	}
@@ -258,7 +258,7 @@ class Sfx {
 		if( SOUND_DEFAULT_GROUPS.exists(soundUid) )
 			groupId = SOUND_DEFAULT_GROUPS.get(soundUid);
 
-		onStartPlaying( sound.play(loop, volume, getGlobalGroup(groupId).soundGroup) );
+		onStartPlaying( soundRes.play(loop, volume, getGlobalGroup(groupId).soundGroup) );
 		return this;
 	}
 
@@ -282,7 +282,7 @@ class Sfx {
 		if( isCurrentlyPlaying() )
 			stop();
 
-		onStartPlaying(  sound.play(false, volume, getGlobalGroup(groupId).soundGroup) );
+		onStartPlaying(  soundRes.play(false, volume, getGlobalGroup(groupId).soundGroup) );
 		setSpatialPos(x,y);
 		return this;
 	}
