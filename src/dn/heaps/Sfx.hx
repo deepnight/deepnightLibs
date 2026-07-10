@@ -257,6 +257,7 @@ class Sfx {
 
 		if( SOUND_DEFAULT_GROUPS.exists(soundUid) )
 			groupId = SOUND_DEFAULT_GROUPS.get(soundUid);
+
 		onStartPlaying( sound.play(loop, volume, getGlobalGroup(groupId).soundGroup) );
 		return this;
 	}
