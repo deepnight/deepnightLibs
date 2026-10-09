@@ -1,12 +1,20 @@
 package dn;
 
 typedef LogEntry = {
-	var time: Float;
+	var dateStamp: Float;
+	var elapsedStampS: Float;
 	var tag: String;
 	var str: String;
 	var color: Col;
 	var flushed: Bool;
 	var critical: Bool;
+}
+
+enum TimeStampStyle {
+	TS_None;
+	TS_Date;
+	TS_ElapsedMs;
+	TS_ElapsedS;
 }
 
 class Log {
@@ -33,7 +41,7 @@ class Log {
 	/**
 		If TRUE, the date will also be visible in printEntry()
 	**/
-	public var printDate = false;
+	public var timeStampStyle : TimeStampStyle = TS_None;
 
 	var currentIndent = 0;
 
@@ -100,7 +108,7 @@ class Log {
 				var fo = sys.io.File.append(filePath, false);
 				for(l in entries)
 					if( !l.flushed ) {
-						fo.writeString( getPrintableEntry(l,true)+"\n" );
+						fo.writeString( getPrintableEntry(l,TS_Date)+"\n" );
 						l.flushed = true;
 					}
 
@@ -116,7 +124,7 @@ class Log {
 
 				js.node.Require.require("fs");
 				for(l in flushedLogs)
-					js.node.Fs.appendFileSync( filePath, js.node.Buffer.from( getPrintableEntry(l,true)+"\n") );
+					js.node.Fs.appendFileSync( filePath, js.node.Buffer.from( getPrintableEntry(l,TS_Date)+"\n") );
 
 			#else
 
@@ -180,15 +188,30 @@ class Log {
 
 
 
-	function getPrintableEntry(l:LogEntry, forceDate=false) {
+	function getPrintableEntry(l:LogEntry, ?overrideStyleIfNone:TimeStampStyle) {
 		if( l.str.length==0 )
 			return "";
 
-		var date = formatDate(l.time);
+		var style = timeStampStyle==TS_None && overrideStyleIfNone!=null ? overrideStyleIfNone : timeStampStyle;
 		return
 			'[${l.tag.toUpperCase()}]'
 			+ fillSpaces(l.tag.length+2, 15)
-			+ ( forceDate || printDate ? date + fillSpaces(date.length, 22) : "" )
+			+ (switch style {
+				case TS_None:
+					"";
+
+				case TS_Date:
+					var date = formatDate(l.dateStamp);
+					date + fillSpaces(date.length, 22);
+
+				case TS_ElapsedMs:
+					var t = M.pretty(l.elapsedStampS*1000)+"ms";
+					t + fillSpaces(t.length, 15);
+
+				case TS_ElapsedS:
+					var t = M.pretty(l.elapsedStampS,2)+"s";
+					t + fillSpaces(t.length, 12);
+			})
 			+ l.str;
 	}
 
@@ -211,7 +234,8 @@ class Log {
 			text = Lib.repeatChar("  ",currentIndent) + (indentBullet==null ? "" : indentBullet+" ") + text;
 
 		entries.push({
-			time: Date.now().getTime(),
+			dateStamp: Date.now().getTime(),
+			elapsedStampS: haxe.Timer.stamp(),
 			tag: tag,
 			str: text,
 			color: color==null ? getTagColor(tag) : color,
