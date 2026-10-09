@@ -55,8 +55,13 @@ class Log {
 	public var outputConsole : Null<h2d.Console>;
 	#end
 
+
+	var startTimeS : Float;
+
+
 	public function new(maxEntries=500) {
 		entries = [];
+		startTimeS = haxe.Timer.stamp();
 		this.maxEntries = maxEntries;
 	}
 
@@ -235,7 +240,7 @@ class Log {
 
 		entries.push({
 			dateStamp: Date.now().getTime(),
-			elapsedStampS: haxe.Timer.stamp(),
+			elapsedStampS: haxe.Timer.stamp()-startTimeS,
 			tag: tag,
 			str: text,
 			color: color==null ? getTagColor(tag) : color,
