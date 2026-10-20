@@ -721,7 +721,9 @@ class Runner {
 
 
 	function tryCatch(cb:Void->Void) : Bool {
+		#if !debug
 		try {
+		#end
 			try {
 				try {
 					cb();
@@ -749,6 +751,7 @@ class Runner {
 				}
 				return false;
 			}
+		#if !debug
 		}
 		catch( unknownException:haxe.Exception ) {
 			reportError(unknownException);
@@ -759,6 +762,7 @@ class Runner {
 			}
 			return false;
 		}
+		#end
 	}
 
 
