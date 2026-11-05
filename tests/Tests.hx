@@ -46,6 +46,7 @@ class Tests {
 		dn.Version.test();
 		dn.Log.test();
 		dn.TinyTween.test();
+		dn.pathfinder.GraphCrawler.test();
 
 		#if hscript
 		dn.script.tests.RunnerTests.run();
