@@ -91,118 +91,6 @@ class Cooldown {
 		fastCheck = new haxe.ds.IntMap();
 	}
 
-	#if display
-	/**
-	 * Checks whether the cooldown with the associated name is active
-	 * @param k name of the cooldown to check
-	 * @return Bool `true` if it is still on cooldown
-	 */
-	public function has( k : String ) : Bool return false;
-
-	/**
-	 * Checks whether the cooldown exists, and if it does not also creates it
-	 * @param k name of the cooldown to check
-	 * @param seconds cooldown in seconds
-	 * @return Bool `true` if the cooldown exists
-	 */
-	public function hasSetS( k : String, seconds : Float ) : Bool return false;
-
-	/**
-	 * Checks whether the cooldown exists, and if it does not also creates it
-	 * @param k name of the cooldown to check
-	 * @param ms cooldown in milliseconds
-	 * @return Bool `true` if the cooldown exists
-	 */
-	public function hasSetMs( k : String, ms : Float ) : Bool return false;
-
-	/**
-	 * Checks whether the cooldown exists, and if it does not also creates it
-	 * @param k name of the cooldown to check
-	 * @param frames cooldown in frames
-	 * @return Bool `true` if the cooldown exists
-	 */
-	public function hasSetF( k : String, frames : Float ) : Bool return false;
-
-	/**
-	 * Removes a cooldown from the list
-	 * @param k name of the cooldown to remove
-	 */
-	public function unset( k : String ) {}
-
-	/**
-	 * Get the remaining time of a cooldown
-	 * @param k name of the cooldown
-	 * @return Float time remaining in seconds
-	 */
-	public function getS( k:String ) : Float return 0.;
-
-	/**
-	 * Get the remaining time of a cooldown
-	 * @param k name of the cooldown
-	 * @return Float time remaining in milliseconds
-	 */
-	public function getMs( k : String ) : Float return 0.;
-
-	/**
-	 * Get the remaining time of a cooldown
-	 * @param k name of the cooldown
-	 * @return Float time remaining in frames
-	 */
-	public function getF( k : String ) : Float return 0.;
-
-	/**
-	 * Create or overwrite a cooldown
-	 * @param k name of the cooldown
-	 * @param milliSeconds time in milliseconds
-	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
-	 * @param onComplete A callback invoked once this cooldown completes
-	 */
-	public function setMs( k : String, milliSeconds:Float, allowLower=true, ?onComplete:Void->Void ){}
-
-	/**
-	 * Create or overwrite a cooldown
-	 * @param k name of the cooldown
-	 * @param seconds time in seconds
-	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
-	 * @param onComplete A callback invoked once this cooldown completes
-	 */
-	public function setS( k : String, seconds:Float, allowLower=true, ?onComplete:Void->Void ){}
-
-	/**
-	 * Create or overwrite a cooldown
-	 * @param k name of the cooldown
-	 * @param frames time in frames
-	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
-	 * @param onComplete A callback invoked once this cooldown completes
-	 */
-	public function setF( k : String, frames:Float, allowLower=true, ?onComplete:Void->Void ){}
-
-	/**
-	 * Get the initial cooldown time
-	 * @param k name of the cooldown
-	 * @return Float the initial cooldown value in frames
-	 */
-	public function getInitialValueF( k : String ) : Float return 0.;
-
-	/**
-	 * Get the completion ratio of a given cooldown
-	 *
-	 * Starts at 1. and goes to 0. when completed
-	 * @param k cooldown to check
-	 * @return Float the ratio
-	 */
-	public function getRatio( k : String ) : Float return 0.;
-
-	/**
-	 * Set the completion callback for a given cooldown
-	 * @param k name of the cooldown to set
-	 * @param onceCB callback that will be called once the cooldown completes
-	 */
-	public function onComplete( k : String, onceCB : Void->Void ){}
-	#else
-
-
-
 	#if macro
 	static function m_getMeta() : MetaAccess {
 		for( m in Context.getModule("dn.Cooldown") )
@@ -300,28 +188,79 @@ class Cooldown {
 	}
 	#end
 
+	/**
+	 * Checks whether the cooldown with the associated name is active
+	 * @param k name of the cooldown to check
+	 * @return Bool `true` if it is still on cooldown
+	 */
 	public macro function has( ethis : Expr, k : ExprOf<String> ){
 		return macro $ethis._has(${m_key(k)});
 	}
 
+	/**
+	 * Checks whether the cooldown exists, and if it does not also creates it
+	 * @param k name of the cooldown to check
+	 * @param seconds cooldown in seconds
+	 * @return Bool `true` if the cooldown exists
+	 */
 	public macro function hasSetS(ethis:Expr, k:ExprOf<String>, seconds:ExprOf<Float>)   return macro $ethis._hasSetF(${m_key(k)}, $ethis.secToFrames($seconds));
+
+	/**
+	 * Checks whether the cooldown exists, and if it does not also creates it
+	 * @param k name of the cooldown to check
+	 * @param ms cooldown in milliseconds
+	 * @return Bool `true` if the cooldown exists
+	 */
 	public macro function hasSetMs(ethis:Expr, k:ExprOf<String>, ms:ExprOf<Float>)       return macro $ethis._hasSetF(${m_key(k)}, $ethis.msToFrames($ms));
 
+	/**
+	 * Checks whether the cooldown exists, and if it does not also creates it
+	 * @param k name of the cooldown to check
+	 * @param frames cooldown in frames
+	 * @return Bool `true` if the cooldown exists
+	 */
 	public macro function hasSetF( ethis : Expr, k : ExprOf<String>, frames : ExprOf<Float> ) {
 		return macro $ethis._hasSetF(${m_key(k)},$frames);
 	}
 
+	/**
+	 * Removes a cooldown from the list
+	 * @param k name of the cooldown to remove
+	 */
 	public macro function unset( ethis : Expr, k : ExprOf<String> ){
 		return macro $ethis._unset(${m_key(k)});
 	}
 
+	/**
+	 * Get the remaining time of a cooldown
+	 * @param k name of the cooldown
+	 * @return Float time remaining in seconds
+	 */
 	public macro function getS(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>   return macro $ethis._getF(${m_key(k)}) / $ethis.baseFps;
+
+	/**
+	 * Get the remaining time of a cooldown
+	 * @param k name of the cooldown
+	 * @return Float time remaining in milliseconds
+	 */
 	public macro function getMs(ethis:Expr,k:ExprOf<String>) : ExprOf<Float>  return macro $ethis._getF(${m_key(k)}) * 1000. / $ethis.baseFps;
 
+	/**
+	 * Get the remaining time of a cooldown
+	 * @param k name of the cooldown
+	 * @return Float time remaining in frames
+	 */
 	public macro function getF( ethis : Expr, k : ExprOf<String> ){
 		return macro $ethis._getF(${m_key(k)});
 	}
 
+	/**
+	 * Create or overwrite a cooldown
+	 * @param k name of the cooldown
+	 * @param milliSeconds time in milliseconds
+	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
+	 * @param onComplete A callback invoked once this cooldown completes
+	 */
 	public macro function setMs(ethis:Expr, k:ExprOf<String>, milliSeconds:ExprOf<Float>, extra:Array<Expr>){
 		var allowLower : Expr = null, onComplete : Expr = macro null;
 		for( e in extra )
@@ -334,6 +273,14 @@ class Cooldown {
 		if( allowLower == null ) allowLower = macro true;
 		return macro $ethis._setF(${m_key(k)}, $ethis.msToFrames($milliSeconds), $allowLower, $onComplete);
 	}
+
+	/**
+	 * Create or overwrite a cooldown
+	 * @param k name of the cooldown
+	 * @param seconds time in seconds
+	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
+	 * @param onComplete A callback invoked once this cooldown completes
+	 */
 	public macro function setS(ethis:Expr, k:ExprOf<String>, seconds:ExprOf<Float>, extra:Array<Expr>){
 		var allowLower : Expr = null, onComplete : Expr = macro null;
 		for( e in extra )
@@ -347,6 +294,13 @@ class Cooldown {
 		return macro $ethis._setF(${m_key(k)}, $ethis.secToFrames($seconds), $allowLower, $onComplete);
 	}
 
+	/**
+	 * Create or overwrite a cooldown
+	 * @param k name of the cooldown
+	 * @param frames time in frames
+	 * @param allowLower whether to allow overwriting an existing cooldown with a lower one
+	 * @param onComplete A callback invoked once this cooldown completes
+	 */
 	public macro function setF( ethis : Expr, k : ExprOf<String>, frames : ExprOf<Float>, extra:Array<Expr> ){
 		var allowLower : Expr = null, onComplete : Expr = macro null;
 		for( e in extra )
@@ -360,20 +314,34 @@ class Cooldown {
 		return macro $ethis._setF(${m_key(k)}, $frames, $allowLower, $onComplete);
 	}
 
+	/**
+	 * Get the initial cooldown time
+	 * @param k name of the cooldown
+	 * @return Float the initial cooldown value in frames
+	 */
 	public macro function getInitialValueF( ethis : Expr, k : ExprOf<String> ){
 		return macro $ethis._getInitialValueF(${m_key(k)});
 	}
 
-	/** Returns cooldown progression from 1 (start) to 0 (end) **/
+	/**
+	 * Get the completion ratio of a given cooldown
+	 *
+	 * Starts at 1. and goes to 0. when completed
+	 * @param k cooldown to check
+	 * @return Float the ratio
+	 */
 	public macro function getRatio( ethis : Expr, k : ExprOf<String> ){
 		return macro $ethis._getRatio(${m_key(k)});
 	}
 
+	/**
+	 * Set the completion callback for a given cooldown
+	 * @param k name of the cooldown to set
+	 * @param onceCB callback that will be called once the cooldown completes
+	 */
 	public macro function onComplete( ethis : Expr, k : ExprOf<String>, onceCB : ExprOf<Void->Void> ){
 		return macro $ethis._onComplete(${m_key(k)}, $onceCB);
 	}
-
-	#end
 
 	public static macro function getKey( k : ExprOf<String> ){
 		return m_key(k);
