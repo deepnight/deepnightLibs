@@ -350,6 +350,7 @@ class HParticle extends BatchElement {
 		toColor = to;
 		dColor = 1/(t*fps);
 		rColor = 0;
+		colorize(from);
 	}
 
 
