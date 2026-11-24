@@ -319,6 +319,10 @@ class AnimManager {
 		return this;
 	}
 
+	public inline function isReversed() {
+		return hasAnim() && getLastAnim().reverse;
+	}
+
 	public function killAfterPlay() {
 		if( hasAnim() )
 			getLastAnim().killAfterPlay = true;
