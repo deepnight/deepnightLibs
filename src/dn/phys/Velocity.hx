@@ -63,6 +63,12 @@ class Velocity {
 		if( sign!=0 )
 			_preMultX = M.fabs(_preMultX) * (sign>0?1:-1);
 	}
+	public inline function invert() {
+		invertX();
+		invertY();
+	}
+	public inline function invertX() _preMultX = -_preMultX;
+	public inline function invertY() _preMultY = -_preMultY;
 
 	inline function get_y() return _preMultY;
 	public inline function setY(v:Float) _preMultY = v * preMul;
